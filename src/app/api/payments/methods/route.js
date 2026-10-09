@@ -1,0 +1,135 @@
+import { NextResponse } from 'next/server';
+import { ObjectId } from 'mongodb';
+import { getDb } from '@/lib/mongodb';
+import { getSessionUser, ROLES } from '@/lib/auth';
+import { ensureDbInitialized } from '@/lib/initDb';
+
+// GET payment methods
+export async function GET(req) {
+  try {
+    await ensureDbInitialized();
+    const { searchParams } = new URL(req.url);
+    const all = searchParams.get('all') === 'true';
+
+    const db = await getDb();
+    const methodsCol = db.collection('payment_methods');
+
+    const query = all ? {} : { isActive: true };
+    const methods = await methodsCol.find(query).toArray();
+
+    return NextResponse.json({
+      success: true,
+      methods: methods.map(m => ({
+        id: m._id.toString(),
+        methodId: m.methodId,
+        name: m.name,
+        type: m.type,
+        tag: m.tag,
+        accountDetails: m.accountDetails,
+        instructions: m.instructions,
+        minDeposit: m.minDeposit || 10,
+        maxDeposit: m.maxDeposit || 5000,
+        isActive: m.isActive ?? true,
+      })),
+    });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
+
+// POST: Add Payment Method (Super Admin & Financial Manager)
+export async function POST(req) {
+  try {
+    const session = await getSessionUser();
+    if (!session || (session.role !== ROLES.SUPER_ADMIN && session.role !== ROLES.FINANCIAL_MANAGER)) {
+      return NextResponse.json({ success: false, error: 'Unauthorized.' }, { status: 403 });
+    }
+
+    const { name, type = 'custom', accountDetails, instructions, minDeposit = 10, maxDeposit = 5000, tag = 'Instant' } = await req.json();
+
+    if (!name || !accountDetails) {
+      return NextResponse.json({ success: false, error: 'Name and Account Details are required.' }, { status: 400 });
+    }
+
+    const db = await getDb();
+    const methodsCol = db.collection('payment_methods');
+
+    const methodId = name.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+    const newMethod = {
+      methodId,
+      name,
+      type,
+      tag,
+      accountDetails,
+      instructions: instructions || 'Send payment and upload proof.',
+      minDeposit: Number(minDeposit),
+      maxDeposit: Number(maxDeposit),
+      isActive: true,
+      createdAt: new Date(),
+    };
+
+    const res = await methodsCol.insertOne(newMethod);
+    return NextResponse.json({ success: true, id: res.insertedId.toString(), message: 'Payment method created.' });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
+
+// PUT: Edit Payment Method
+export async function PUT(req) {
+  try {
+    const session = await getSessionUser();
+    if (!session || (session.role !== ROLES.SUPER_ADMIN && session.role !== ROLES.FINANCIAL_MANAGER)) {
+      return NextResponse.json({ success: false, error: 'Unauthorized.' }, { status: 403 });
+    }
+
+    const { id, name, accountDetails, instructions, minDeposit, maxDeposit, isActive, tag } = await req.json();
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'Method ID is required.' }, { status: 400 });
+    }
+
+    const db = await getDb();
+    const methodsCol = db.collection('payment_methods');
+
+    const updateFields = {};
+    if (name !== undefined) updateFields.name = name;
+    if (accountDetails !== undefined) updateFields.accountDetails = accountDetails;
+    if (instructions !== undefined) updateFields.instructions = instructions;
+    if (minDeposit !== undefined) updateFields.minDeposit = Number(minDeposit);
+    if (maxDeposit !== undefined) updateFields.maxDeposit = Number(maxDeposit);
+    if (isActive !== undefined) updateFields.isActive = Boolean(isActive);
+    if (tag !== undefined) updateFields.tag = tag;
+
+    await methodsCol.updateOne({ _id: new ObjectId(id) }, { $set: updateFields });
+
+    return NextResponse.json({ success: true, message: 'Payment method updated.' });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
+
+// DELETE: Remove Payment Method
+export async function DELETE(req) {
+  try {
+    const session = await getSessionUser();
+    if (!session || (session.role !== ROLES.SUPER_ADMIN && session.role !== ROLES.FINANCIAL_MANAGER)) {
+      return NextResponse.json({ success: false, error: 'Unauthorized.' }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'Method ID is required.' }, { status: 400 });
+    }
+
+    const db = await getDb();
+    const methodsCol = db.collection('payment_methods');
+
+    await methodsCol.deleteOne({ _id: new ObjectId(id) });
+    return NextResponse.json({ success: true, message: 'Payment method deleted.' });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
