@@ -165,13 +165,14 @@ export default function Home() {
           {/* TAB 1: CASINO LOBBY */}
           {activeTab === 'main' && (
             <div>
-              {/* Dynamic Rotating Promo Banner */}
+              {/* Dynamic Rotating Promo Banner with Live Progressive Jackpot */}
               <VegasHeroBanner
                 user={user}
                 onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
                 onOpenWallet={() => setWalletOpen(true)}
                 onOpenDailyBonus={() => setDailyBonusOpen(true)}
                 onOpenReferrals={() => setActiveTab('referrals')}
+                onPlayGame={handlePlayGame}
               />
 
               {/* Quick Action Tiles (Deposit, Cashout, Daily Bonus, Vouchers) */}
@@ -180,6 +181,7 @@ export default function Home() {
                 onOpenWallet={() => setWalletOpen(true)}
                 onOpenDailyBonus={() => setDailyBonusOpen(true)}
                 onOpenPromo={() => setPromoOpen(true)}
+                onOpenReferrals={() => setActiveTab('referrals')}
                 onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
               />
 
