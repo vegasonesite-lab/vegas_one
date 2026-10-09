@@ -23,13 +23,13 @@ export default function ReferralCenterTab({ user, onRefreshUser }) {
     try {
       const res = await fetch('/api/affiliates');
       const data = await res.json();
-      if (data.success) {
+      if (data.success && data.stats) {
         setAffiliateData(prev => ({
           ...prev,
-          referralCode: data.referralCode || prev.referralCode,
-          totalReferred: data.totalReferred || 0,
-          totalEarnedSC: data.totalEarnedSC || 0,
-          unclaimedSC: data.unclaimedSC || 0,
+          referralCode: data.stats.referralCode || prev.referralCode,
+          totalReferred: data.stats.totalReferrals || 0,
+          totalEarnedSC: data.stats.commissionsEarned || 0,
+          unclaimedSC: data.stats.commissionsUnpaid || 0,
         }));
       }
     } catch {}
