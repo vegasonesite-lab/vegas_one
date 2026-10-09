@@ -4,16 +4,15 @@ import React from 'react';
 import {
   LayoutDashboard,
   Gamepad2,
-  Flame,
   CircleDot,
   Dices,
   Rocket,
   Sparkles,
+  Flame,
   Gift,
   Crown,
   Users,
   FileText,
-  HelpCircle,
   X,
 } from 'lucide-react';
 
@@ -31,9 +30,9 @@ export default function Sidebar({
     { id: 'slots', label: 'Slots', icon: Gamepad2 },
     { id: 'roulette', label: 'Roulette', icon: CircleDot },
     { id: 'blackjack', label: 'Blackjack', icon: Dices },
-    { id: 'crash', label: 'Crash', icon: Rocket, badge: 'NEW', badgeColor: 'bg-amber-500 text-black' },
+    { id: 'crash', label: 'Crash', icon: Rocket, badge: 'NEW', badgeColor: 'badge-gold' },
     { id: 'keno', label: 'Keno', icon: Sparkles },
-    { id: 'fish', label: 'Sweepstakes', icon: Flame, badge: '15', badgeColor: 'bg-purple-600 text-white' },
+    { id: 'fish', label: 'Sweepstakes', icon: Flame, badge: '15', badgeColor: 'badge-purple' },
   ];
 
   const navItemsMore = [
@@ -55,7 +54,7 @@ export default function Sidebar({
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed top-16 bottom-0 left-0 w-64 bg-[#0a0c18] border-r border-white/5 z-40 transition-transform duration-300 flex flex-col justify-between overflow-y-auto ${
+        className={`vegas-sidebar fixed top-16 bottom-0 left-0 w-64 z-40 flex flex-col justify-between overflow-y-auto ${
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
@@ -87,11 +86,7 @@ export default function Sidebar({
                       setActiveTab(item.id);
                       if (window.innerWidth < 1024) onClose();
                     }}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition ${
-                      isActive
-                        ? 'bg-gradient-to-r from-purple-700/80 to-purple-900/60 text-white shadow-lg shadow-purple-950/50 border border-purple-500/30'
-                        : 'text-gray-400 hover:text-white hover:bg-white/5'
-                    }`}
+                    className={`sidebar-nav-item ${isActive ? 'active' : ''}`}
                   >
                     <div className="flex items-center gap-3">
                       <Icon size={18} className={isActive ? 'text-amber-400' : 'text-gray-400'} />
@@ -99,7 +94,9 @@ export default function Sidebar({
                     </div>
 
                     {item.badge && (
-                      <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${item.badgeColor}`}>
+                      <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
+                        item.badgeColor === 'badge-gold' ? 'bg-amber-400 text-black' : 'bg-purple-600 text-white'
+                      }`}>
                         {item.badge}
                       </span>
                     )}
@@ -124,10 +121,12 @@ export default function Sidebar({
                       if (item.action) item.action();
                       if (window.innerWidth < 1024) onClose();
                     }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-gray-400 hover:text-white hover:bg-white/5 transition"
+                    className="sidebar-nav-item"
                   >
-                    <Icon size={18} className="text-gray-400" />
-                    <span>{item.label}</span>
+                    <div className="flex items-center gap-3">
+                      <Icon size={18} className="text-gray-400" />
+                      <span>{item.label}</span>
+                    </div>
                   </button>
                 );
               })}
@@ -136,14 +135,14 @@ export default function Sidebar({
         </div>
 
         {/* Footer info matching screenshot */}
-        <div className="p-4 border-t border-white/5 bg-[#070810]">
+        <div className="p-4 border-t border-white/5 bg-[#060710]">
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
             <span className="text-xs font-bold text-gray-300">
               {onlineCount.toLocaleString()} online
             </span>
           </div>
-          <p className="text-[11px] text-gray-500">v1.0.0 · Vegas One</p>
+          <p className="text-[11px] text-gray-500 font-medium">v1.0.0 · Vegas One</p>
         </div>
       </aside>
     </>
