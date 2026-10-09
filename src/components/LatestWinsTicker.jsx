@@ -15,15 +15,21 @@ export default function LatestWinsTicker() {
   ]);
 
   useEffect(() => {
-    // Fetch live ticker updates from server
-    fetch('/api/games/activity?mode=ticker')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && data.ticker?.length > 0) {
-          setTickerWins(data.ticker);
-        }
-      })
-      .catch(() => {});
+    // Dynamic real-time live ticker polling from MongoDB
+    const fetchTicker = () => {
+      fetch('/api/games/activity?mode=ticker')
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.ticker?.length > 0) {
+            setTickerWins(data.ticker);
+          }
+        })
+        .catch(() => {});
+    };
+
+    fetchTicker();
+    const interval = setInterval(fetchTicker, 4500);
+    return () => clearInterval(interval);
   }, []);
 
   return (

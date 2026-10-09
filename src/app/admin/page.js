@@ -142,37 +142,43 @@ export default function AdminPortal() {
     fetchSession();
   }, []);
 
-  // Fetch data when activeTab changes
+  // Fetch data when activeTab changes & Dynamic Real-time 4s Polling
   useEffect(() => {
     if (!user) return;
 
-    if (activeTab === 'overview') {
-      fetch('/api/admin/stats').then(r => r.json()).then(d => { if (d.success) setStats(d.stats); });
-    } else if (activeTab === 'games') {
-      fetch('/api/games?all=true').then(r => r.json()).then(d => { if (d.success) setGames(d.games); });
-    } else if (activeTab === 'game_activity') {
-      fetch('/api/games/activity?mode=admin').then(r => r.json()).then(d => { if (d.success) setActivities(d.activities); });
-    } else if (activeTab === 'finance') {
-      fetch('/api/payments/deposit?status=all').then(r => r.json()).then(d => { if (d.success) setDeposits(d.deposits); });
-      fetch('/api/payments/withdraw?status=all').then(r => r.json()).then(d => { if (d.success) setRedemptions(d.redemptions); });
-      fetch('/api/payments/methods?all=true').then(r => r.json()).then(d => { if (d.success) setPaymentMethods(d.methods); });
-    } else if (activeTab === 'ledger') {
-      fetch(`/api/ledger?username=${encodeURIComponent(ledgerFilterUser)}&type=${ledgerFilterType}`)
-        .then(r => r.json())
-        .then(d => { if (d.success) setLedgerRecords(d.records); });
-    } else if (activeTab === 'chat') {
-      fetch('/api/chat?inbox=true').then(r => r.json()).then(d => { if (d.success) setChatConversations(d.conversations); });
-    } else if (activeTab === 'kyc') {
-      fetch('/api/kyc?status=all').then(r => r.json()).then(d => { if (d.success) setKycRequests(d.requests); });
-    } else if (activeTab === 'promos') {
-      fetch('/api/promos').then(r => r.json()).then(d => { if (d.success) setPromos(d.promotions); });
-    } else if (activeTab === 'affiliates') {
-      fetch('/api/affiliates?mode=admin').then(r => r.json()).then(d => { if (d.success) setAffiliates(d.affiliates); });
-    } else if (activeTab === 'staff') {
-      fetch('/api/admin/staff').then(r => r.json()).then(d => { if (d.success) setStaffList(d.staff); });
-    } else if (activeTab === 'settings') {
-      fetch('/api/admin/settings').then(r => r.json()).then(d => { if (d.success) setSysSettings(d.settings); });
-    }
+    const loadData = () => {
+      if (activeTab === 'overview') {
+        fetch('/api/admin/stats').then(r => r.json()).then(d => { if (d.success) setStats(d.stats); });
+      } else if (activeTab === 'games') {
+        fetch('/api/games?all=true').then(r => r.json()).then(d => { if (d.success) setGames(d.games); });
+      } else if (activeTab === 'game_activity') {
+        fetch('/api/games/activity?mode=admin').then(r => r.json()).then(d => { if (d.success) setActivities(d.activities); });
+      } else if (activeTab === 'finance') {
+        fetch('/api/payments/deposit?status=all').then(r => r.json()).then(d => { if (d.success) setDeposits(d.deposits); });
+        fetch('/api/payments/withdraw?status=all').then(r => r.json()).then(d => { if (d.success) setRedemptions(d.redemptions); });
+        fetch('/api/payments/methods?all=true').then(r => r.json()).then(d => { if (d.success) setPaymentMethods(d.methods); });
+      } else if (activeTab === 'ledger') {
+        fetch(`/api/ledger?username=${encodeURIComponent(ledgerFilterUser)}&type=${ledgerFilterType}`)
+          .then(r => r.json())
+          .then(d => { if (d.success) setLedgerRecords(d.records); });
+      } else if (activeTab === 'chat') {
+        fetch('/api/chat?inbox=true').then(r => r.json()).then(d => { if (d.success) setChatConversations(d.conversations); });
+      } else if (activeTab === 'kyc') {
+        fetch('/api/kyc?status=all').then(r => r.json()).then(d => { if (d.success) setKycRequests(d.requests); });
+      } else if (activeTab === 'promos') {
+        fetch('/api/promos').then(r => r.json()).then(d => { if (d.success) setPromos(d.promotions); });
+      } else if (activeTab === 'affiliates') {
+        fetch('/api/affiliates?mode=admin').then(r => r.json()).then(d => { if (d.success) setAffiliates(d.affiliates); });
+      } else if (activeTab === 'staff') {
+        fetch('/api/admin/staff').then(r => r.json()).then(d => { if (d.success) setStaffList(d.staff); });
+      } else if (activeTab === 'settings') {
+        fetch('/api/admin/settings').then(r => r.json()).then(d => { if (d.success) setSysSettings(d.settings); });
+      }
+    };
+
+    loadData();
+    const interval = setInterval(loadData, 4000);
+    return () => clearInterval(interval);
   }, [user, activeTab, ledgerFilterUser, ledgerFilterType]);
 
   // Load chat messages when active conversation selected

@@ -32,6 +32,7 @@ export default function PromoModal({ isOpen, onClose, user, onPromoRedeemed }) {
         setMessage(data.message);
         setCode('');
         if (onPromoRedeemed) onPromoRedeemed();
+        window.dispatchEvent(new CustomEvent('balanceUpdated'));
       } else {
         setErrorMsg(data.error);
       }

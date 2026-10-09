@@ -45,6 +45,7 @@ export default function DailyBonusModal({ isOpen, onClose, user, onBonusClaimed 
           colors: ['#F59E0B', '#FBBF24', '#8B5CF6'],
         });
         if (onBonusClaimed) onBonusClaimed();
+        window.dispatchEvent(new CustomEvent('balanceUpdated'));
       } else {
         setErrorMsg(data.error);
       }

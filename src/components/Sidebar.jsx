@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 import {
   LayoutDashboard,
   Gamepad2,
@@ -13,7 +15,8 @@ import {
   Crown,
   Users,
   FileText,
-  X,
+  ChevronLeft,
+  Compass,
 } from 'lucide-react';
 
 export default function Sidebar({
@@ -25,14 +28,18 @@ export default function Sidebar({
   onOpenAffiliates,
   onlineCount = 62480,
 }) {
+  const navItemsAccount = [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  ];
+
   const navItemsCasino = [
-    { id: 'lobby', label: 'Lobby', icon: LayoutDashboard },
+    { id: 'lobby', label: 'Lobby', icon: Compass },
     { id: 'slots', label: 'Slots', icon: Gamepad2 },
     { id: 'roulette', label: 'Roulette', icon: CircleDot },
     { id: 'blackjack', label: 'Blackjack', icon: Dices },
-    { id: 'crash', label: 'Crash', icon: Rocket, badge: 'NEW', badgeColor: 'badge-gold' },
+    { id: 'crash', label: 'Crash', icon: Rocket, badge: 'NEW', badgeColor: 'bg-amber-400 text-black' },
     { id: 'keno', label: 'Keno', icon: Sparkles },
-    { id: 'fish', label: 'Sweepstakes', icon: Flame, badge: '15', badgeColor: 'badge-purple' },
+    { id: 'fish', label: 'Sweepstakes', icon: Flame, badge: '15', badgeColor: 'bg-purple-600 text-white' },
   ];
 
   const navItemsMore = [
@@ -48,34 +55,72 @@ export default function Sidebar({
       {isOpen && (
         <div
           onClick={onClose}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 lg:hidden"
         />
       )}
 
       {/* Sidebar Container */}
       <aside
-        className={`vegas-sidebar fixed top-16 bottom-0 left-0 w-64 z-40 flex flex-col justify-between overflow-y-auto ${
+        className={`vegas-sidebar ${
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
-        <div className="p-4 space-y-6">
-          {/* Close button for mobile */}
-          <div className="flex items-center justify-between lg:hidden mb-2">
-            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Navigation</span>
-            <button
-              onClick={onClose}
-              className="p-1 rounded-md text-gray-400 hover:text-white hover:bg-white/10"
-            >
-              <X size={18} />
-            </button>
+        {/* Brand Header with Logo and Collapse Arrow (Matches ora.games) */}
+        <div className="sidebar-header">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="relative shrink-0" style={{ width: '148px', height: '34px' }}>
+              <Image
+                src="/images/logo.webp"
+                alt="Vegas One Logo"
+                fill
+                sizes="148px"
+                className="object-contain"
+                priority
+              />
+            </div>
+          </Link>
+
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition"
+            title="Collapse Sidebar"
+          >
+            <ChevronLeft size={18} />
+          </button>
+        </div>
+
+        {/* Scrollable Navigation Groups */}
+        <div className="sidebar-scroll">
+          {/* SECTION 1: ACCOUNT */}
+          <div>
+            <p className="sidebar-section-title">ACCOUNT</p>
+            <div className="space-y-1">
+              {navItemsAccount.map(item => {
+                const Icon = item.icon;
+                const isActive = activeTab === 'dashboard' || activeTab === 'lobby';
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setActiveTab('lobby');
+                      if (window.innerWidth < 1024) onClose();
+                    }}
+                    className={`sidebar-nav-item ${isActive ? 'active' : ''}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon size={17} className={isActive ? 'text-amber-400' : 'text-gray-400'} />
+                      <span>{item.label}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          {/* SECTION: CASINO */}
+          {/* SECTION 2: CASINO */}
           <div>
-            <p className="text-[11px] font-bold text-gray-500 tracking-wider uppercase mb-2 px-3">
-              Casino
-            </p>
-            <nav className="space-y-1">
+            <p className="sidebar-section-title">CASINO</p>
+            <div className="space-y-1">
               {navItemsCasino.map(item => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
@@ -89,29 +134,25 @@ export default function Sidebar({
                     className={`sidebar-nav-item ${isActive ? 'active' : ''}`}
                   >
                     <div className="flex items-center gap-3">
-                      <Icon size={18} className={isActive ? 'text-amber-400' : 'text-gray-400'} />
+                      <Icon size={17} className={isActive ? 'text-amber-400' : 'text-gray-400'} />
                       <span>{item.label}</span>
                     </div>
 
                     {item.badge && (
-                      <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
-                        item.badgeColor === 'badge-gold' ? 'bg-amber-400 text-black' : 'bg-purple-600 text-white'
-                      }`}>
+                      <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${item.badgeColor}`}>
                         {item.badge}
                       </span>
                     )}
                   </button>
                 );
               })}
-            </nav>
+            </div>
           </div>
 
-          {/* SECTION: MORE */}
+          {/* SECTION 3: MORE */}
           <div>
-            <p className="text-[11px] font-bold text-gray-500 tracking-wider uppercase mb-2 px-3">
-              More
-            </p>
-            <nav className="space-y-1">
+            <p className="sidebar-section-title">MORE</p>
+            <div className="space-y-1">
               {navItemsMore.map(item => {
                 const Icon = item.icon;
                 return (
@@ -124,20 +165,20 @@ export default function Sidebar({
                     className="sidebar-nav-item"
                   >
                     <div className="flex items-center gap-3">
-                      <Icon size={18} className="text-gray-400" />
+                      <Icon size={17} className="text-gray-400" />
                       <span>{item.label}</span>
                     </div>
                   </button>
                 );
               })}
-            </nav>
+            </div>
           </div>
         </div>
 
-        {/* Footer info matching screenshot */}
-        <div className="p-4 border-t border-white/5 bg-[#060710]">
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+        {/* Sidebar Footer with Live Online Status */}
+        <div className="sidebar-footer">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
             <span className="text-xs font-bold text-gray-300">
               {onlineCount.toLocaleString()} online
             </span>

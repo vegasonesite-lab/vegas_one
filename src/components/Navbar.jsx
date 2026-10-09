@@ -12,6 +12,7 @@ export default function Navbar({
   onOpenKyc,
   onOpenDailyBonus,
   onOpenNotifications,
+  sidebarOpen = true,
   onToggleSidebar,
   activeCurrency,
   setActiveCurrency,
@@ -33,9 +34,11 @@ export default function Navbar({
   const isStaff = user && ['super_admin', 'financial_manager', 'coin_manager', 'chat_support'].includes(user.role);
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-16 bg-[#080914]/90 backdrop-blur-md border-b border-white/5 z-50 px-4 flex items-center justify-between">
-      {/* Left Section: Logo & Toggle */}
-      <div className="flex items-center gap-4">
+    <header className={`fixed top-0 right-0 h-16 bg-[#080914]/90 backdrop-blur-md border-b border-white/5 z-40 px-4 md:px-6 flex items-center justify-between transition-all duration-300 ${
+      sidebarOpen ? 'left-0 lg:left-64' : 'left-0'
+    }`}>
+      {/* Left Section: Mobile/Collapsed Logo & Menu Toggle */}
+      <div className="flex items-center gap-3">
         <button
           onClick={onToggleSidebar}
           className="p-2 rounded-lg bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition"
@@ -44,18 +47,21 @@ export default function Navbar({
           <Menu size={20} />
         </button>
 
-        <Link href="/" className="flex items-center gap-2">
-          <div className="relative shrink-0" style={{ width: '160px', height: '38px' }}>
-            <Image
-              src="/images/logo.webp"
-              alt="Vegas One Logo"
-              width={160}
-              height={38}
-              className="object-contain"
-              priority
-            />
-          </div>
-        </Link>
+        {/* Visible when desktop sidebar is closed or on mobile screens */}
+        <div className={`flex items-center gap-2 ${sidebarOpen ? 'lg:hidden' : 'flex'}`}>
+          <Link href="/" className="flex items-center gap-2">
+            <div className="relative shrink-0" style={{ width: '140px', height: '34px' }}>
+              <Image
+                src="/images/logo.webp"
+                alt="Vegas One Logo"
+                fill
+                sizes="140px"
+                className="object-contain"
+                priority
+              />
+            </div>
+          </Link>
+        </div>
       </div>
 
       {/* Right Section: Currency Toggle, Wallet Balance, Notifications & User */}

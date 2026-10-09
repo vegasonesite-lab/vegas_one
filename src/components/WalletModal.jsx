@@ -73,6 +73,8 @@ export default function WalletModal({
         setMessage('Deposit submitted! Our financial desk is verifying your payment.');
         setSenderNote('');
         setTxHash('');
+        if (onBalanceUpdated) onBalanceUpdated();
+        window.dispatchEvent(new CustomEvent('balanceUpdated'));
       } else {
         setErrorMsg(data.error);
       }
@@ -106,6 +108,7 @@ export default function WalletModal({
         setMessage(data.message);
         setDestinationAddress('');
         if (onBalanceUpdated) onBalanceUpdated();
+        window.dispatchEvent(new CustomEvent('balanceUpdated'));
       } else {
         setErrorMsg(data.error);
       }

@@ -18,12 +18,14 @@ import PromoModal from '@/components/PromoModal';
 import NotificationsModal from '@/components/NotificationsModal';
 import Vegas777SlotModal from '@/components/games/Vegas777SlotModal';
 import NeonCrashModal from '@/components/games/NeonCrashModal';
+import RouletteModal from '@/components/games/RouletteModal';
+import BlackjackModal from '@/components/games/BlackjackModal';
 import ExternalGameModal from '@/components/games/ExternalGameModal';
 
 export default function Home() {
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeCategory, setActiveCategory] = useState('lobby');
   const [activeCurrency, setActiveCurrency] = useState('SC');
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -40,13 +42,15 @@ export default function Home() {
   // Active Game State
   const [activeSlotGame, setActiveSlotGame] = useState(false);
   const [activeCrashGame, setActiveCrashGame] = useState(false);
+  const [activeRouletteGame, setActiveRouletteGame] = useState(false);
+  const [activeBlackjackGame, setActiveBlackjackGame] = useState(false);
   const [activeExternalGame, setActiveExternalGame] = useState(null);
 
   // Games list
   const [games, setGames] = useState([]);
   const [gameCounts, setGameCounts] = useState({});
 
-  // 1. Fetch current authenticated session
+  // 1. Fetch current authenticated session & Real-time Live Polling
   const refreshUser = async () => {
     try {
       const res = await fetch('/api/auth/me');
@@ -65,6 +69,16 @@ export default function Home() {
 
   useEffect(() => {
     refreshUser();
+    // Dynamic real-time sync with MongoDB every 3.5 seconds
+    const interval = setInterval(refreshUser, 3500);
+
+    const onBalanceEvt = () => refreshUser();
+    window.addEventListener('balanceUpdated', onBalanceEvt);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('balanceUpdated', onBalanceEvt);
+    };
   }, []);
 
   // 2. Fetch games library
@@ -103,6 +117,10 @@ export default function Home() {
       setActiveSlotGame(true);
     } else if (game.gameId === 'neon-crash') {
       setActiveCrashGame(true);
+    } else if (game.gameId === 'royal-roulette') {
+      setActiveRouletteGame(true);
+    } else if (game.gameId === 'vegas-blackjack') {
+      setActiveBlackjackGame(true);
     } else {
       setActiveExternalGame(game);
     }
@@ -126,6 +144,7 @@ export default function Home() {
         onOpenKyc={() => setKycOpen(true)}
         onOpenDailyBonus={() => setDailyBonusOpen(true)}
         onOpenNotifications={() => setNotificationsOpen(true)}
+        sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         activeCurrency={activeCurrency}
         setActiveCurrency={setActiveCurrency}
@@ -144,7 +163,7 @@ export default function Home() {
       />
 
       {/* 3. Main Lobby Content Area */}
-      <main className="pt-20 pb-16 px-4 md:px-6 lg:ml-64 transition-all">
+      <main className={`pt-20 pb-16 px-4 md:px-6 transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : 'ml-0'}`}>
         <div className="max-w-7xl mx-auto">
           {/* Hero Section Matching ora.games Screenshot */}
           <HeroBanner
@@ -263,6 +282,24 @@ export default function Home() {
         user={user}
         activeCurrency={activeCurrency}
         onBalanceUpdate={handleBalanceUpdate}
+      />
+
+      <RouletteModal
+        isOpen={activeRouletteGame}
+        onClose={() => setActiveRouletteGame(false)}
+        user={user}
+        currency={activeCurrency}
+        onBalanceUpdate={handleBalanceUpdate}
+        soundEnabled={soundEnabled}
+      />
+
+      <BlackjackModal
+        isOpen={activeBlackjackGame}
+        onClose={() => setActiveBlackjackGame(false)}
+        user={user}
+        currency={activeCurrency}
+        onBalanceUpdate={handleBalanceUpdate}
+        soundEnabled={soundEnabled}
       />
 
       <ExternalGameModal
