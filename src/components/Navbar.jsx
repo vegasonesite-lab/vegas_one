@@ -45,11 +45,12 @@ export default function Navbar({
         </button>
 
         <Link href="/" className="flex items-center gap-2">
-          <div className="relative h-10 w-44">
+          <div className="relative shrink-0" style={{ width: '160px', height: '38px' }}>
             <Image
               src="/images/logo.webp"
               alt="Vegas One Logo"
-              fill
+              width={160}
+              height={38}
               className="object-contain"
               priority
             />

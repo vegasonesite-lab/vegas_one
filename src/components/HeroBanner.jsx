@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Sparkles, Zap, Play, Info, Gift, Users, Trophy, Flame } from 'lucide-react';
+import { Sparkles, Zap, Play, Gift, Users, Trophy, Flame } from 'lucide-react';
 
 export default function HeroBanner({
   onPlayClick,
@@ -15,22 +15,28 @@ export default function HeroBanner({
       {/* 1. Large Hero Feature Card (2 Columns on XL) */}
       <div className="xl:col-span-2 relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#1b143f] via-[#101227] to-[#0a0c1a] border border-purple-500/30 p-6 md:p-8 flex flex-col justify-between shadow-2xl">
         {/* Glow ambient background circles */}
-        <div className="absolute -top-24 -left-24 w-80 h-80 bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
+        <div
+          className="absolute -top-24 -left-24 rounded-full blur-3xl pointer-events-none"
+          style={{ width: '280px', height: '280px', background: 'rgba(124, 58, 237, 0.2)' }}
+        />
+        <div
+          className="absolute -bottom-20 -right-20 rounded-full blur-3xl pointer-events-none"
+          style={{ width: '280px', height: '280px', background: 'rgba(245, 158, 11, 0.15)' }}
+        />
 
         {/* Content & Visual Flex */}
         <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="max-w-xl">
+          <div className="max-w-xl flex-1">
             {/* Live Badge */}
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-950/80 border border-purple-500/40 text-purple-300 text-xs font-bold uppercase tracking-wider mb-4">
-              <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+              <span className="w-2 h-2 rounded-full bg-amber-400" />
               <span>JACKPOT NIGHT · LIVE</span>
             </div>
 
             {/* Headline */}
             <h1 className="text-3xl md:text-5xl font-black text-white leading-tight mb-3 tracking-tight">
               WIN UP TO{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500">
+              <span className="text-amber-400">
                 5,000×
               </span>{' '}
               IN SWEEPS COINS
@@ -61,12 +67,16 @@ export default function HeroBanner({
           </div>
 
           {/* 3D Slot Machine Artwork */}
-          <div className="relative w-64 h-64 md:w-80 md:h-80 shrink-0 flex items-center justify-center animate-pulse-glow">
+          <div
+            className="relative shrink-0 flex items-center justify-center animate-pulse-glow"
+            style={{ width: '280px', height: '280px', maxWidth: '100%' }}
+          >
             <Image
               src="/images/hero-slot.webp"
               alt="Vegas One Jackpot Slot"
-              fill
-              className="object-contain drop-shadow-[0_15px_30px_rgba(245,158,11,0.25)]"
+              width={280}
+              height={280}
+              className="object-contain"
               priority
             />
           </div>
@@ -95,12 +105,12 @@ export default function HeroBanner({
           </div>
 
           <div className="bg-white/5 border border-white/5 rounded-xl p-2.5 flex items-center gap-2.5">
-            <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
+            <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-400">
               <Trophy size={16} />
             </div>
             <div>
               <p className="text-[10px] text-gray-400 font-bold uppercase">Regular Bonus</p>
-              <p className="text-xs font-black text-blue-400">50%</p>
+              <p className="text-xs font-black text-cyan-400">50%</p>
             </div>
           </div>
 
@@ -140,11 +150,12 @@ export default function HeroBanner({
             >
               View Details
             </button>
-            <div className="relative w-24 h-16 opacity-90">
+            <div className="relative shrink-0" style={{ width: '100px', height: '65px' }}>
               <Image
                 src="/images/weekly-raffle.webp"
                 alt="Weekly Raffle"
-                fill
+                width={100}
+                height={65}
                 className="object-contain"
               />
             </div>
@@ -173,11 +184,12 @@ export default function HeroBanner({
               <Zap size={14} />
               <span>Play Now</span>
             </button>
-            <div className="relative w-24 h-16 opacity-90">
+            <div className="relative shrink-0" style={{ width: '100px', height: '65px' }}>
               <Image
                 src="/images/welcome-bonus.webp"
                 alt="Welcome Bonus"
-                fill
+                width={100}
+                height={65}
                 className="object-contain"
               />
             </div>
