@@ -33,7 +33,7 @@ export default function HowToPlayPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0E0816] text-[#F8FAFC] selection:bg-[#FF7A59] selection:text-[#0E0816] flex flex-col justify-between font-body antialiased">
+    <div className="min-h-screen bg-[#070514] text-[#F8FAFC] selection:bg-[#00F0FF] selection:text-[#070514] flex flex-col justify-between font-body antialiased">
       <div>
         <VegasNavbar activeTab="rules" onSelectTab={() => {}} />
 
@@ -44,7 +44,7 @@ export default function HowToPlayPage() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              color: '#FF7A59',
+              color: '#00F0FF',
               fontSize: '12px',
               fontWeight: 700,
               textDecoration: 'none',
@@ -64,8 +64,8 @@ export default function HowToPlayPage() {
                   gap: '6px',
                   padding: '5px 12px',
                   borderRadius: '9999px',
-                  backgroundColor: 'rgba(245, 180, 97, 0.15)',
-                  color: '#F5B461',
+                  backgroundColor: 'rgba(0, 240, 255, 0.15)',
+                  color: '#00F0FF',
                   fontSize: '11px',
                   fontFamily: 'Sora, sans-serif',
                   fontWeight: 800,
@@ -89,13 +89,13 @@ export default function HowToPlayPage() {
                 <div
                   key={s.num}
                   style={{
-                    backgroundColor: '#171124',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    backgroundColor: '#0E0A24',
+                    border: '1px solid rgba(0, 240, 255, 0.15)',
                     borderRadius: '20px',
                     padding: '24px',
                   }}
                 >
-                  <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '28px', fontWeight: 900, color: '#FF7A59', display: 'block', marginBottom: '8px' }}>
+                  <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '28px', fontWeight: 900, color: '#00F0FF', display: 'block', marginBottom: '8px' }}>
                     {s.num}
                   </span>
                   <h3 style={{ fontFamily: 'Sora, sans-serif', fontSize: '18px', fontWeight: 800, color: '#FFFFFF', margin: '0 0 8px 0' }}>

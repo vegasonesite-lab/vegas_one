@@ -33,7 +33,7 @@ export default function PromotionsPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0E0816] text-[#F8FAFC] selection:bg-[#FF7A59] selection:text-[#0E0816] flex flex-col justify-between font-body antialiased">
+    <div className="min-h-screen bg-[#070514] text-[#F8FAFC] selection:bg-[#00F0FF] selection:text-[#070514] flex flex-col justify-between font-body antialiased">
       <div>
         <VegasNavbar activeTab="promotions" onSelectTab={() => {}} />
 
@@ -44,7 +44,7 @@ export default function PromotionsPage() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              color: '#FF7A59',
+              color: '#00F0FF',
               fontSize: '12px',
               fontWeight: 700,
               textDecoration: 'none',
@@ -130,8 +130,8 @@ export default function PromotionsPage() {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
               {/* Promo 1: Welcome Pack */}
-              <div style={{ backgroundColor: '#171124', border: '1px solid rgba(255, 122, 89, 0.3)', borderRadius: '20px', padding: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#FF7A59', fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px' }}>
+              <div style={{ backgroundColor: '#0E0A24', border: '1px solid rgba(0, 240, 255, 0.3)', borderRadius: '20px', padding: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#00F0FF', fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px' }}>
                   <Gift size={15} />
                   <span>NEW SIGNUP PRIVILEGE</span>
                 </div>
@@ -147,8 +147,8 @@ export default function PromotionsPage() {
               </div>
 
               {/* Promo 2: 300% Welcome Match */}
-              <div style={{ backgroundColor: '#171124', border: '1px solid rgba(245, 180, 97, 0.3)', borderRadius: '20px', padding: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#F5B461', fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px' }}>
+              <div style={{ backgroundColor: '#0E0A24', border: '1px solid rgba(224, 38, 216, 0.4)', borderRadius: '20px', padding: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#E026D8', fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px' }}>
                   <Flame size={15} />
                   <span>FIRST PURCHASE BOOST</span>
                 </div>
@@ -156,16 +156,16 @@ export default function PromotionsPage() {
                   300% Bonus Up to $7,500
                 </h3>
                 <p style={{ fontSize: '13px', color: '#B3A9C0', lineHeight: 1.5, margin: '0 0 16px 0' }}>
-                  Deposit using Cash App, Zelle, or Venmo and get 300% extra Sweeps Coins plus 150 Free Spins. Code: <strong>CROWNROYALE</strong>
+                  Deposit using Cash App, Zelle, or Venmo and get 300% extra Sweeps Coins plus 150 Free Spins. Code: <strong>VEGASONE</strong>
                 </p>
-                <Link href="/wallet" className="btn-sovereign-teal" style={{ textDecoration: 'none', fontSize: '11px', padding: '10px 20px' }}>
+                <Link href="/wallet" className="btn-sovereign-coral" style={{ textDecoration: 'none', fontSize: '11px', padding: '10px 20px' }}>
                   LOAD COINS
                 </Link>
               </div>
 
               {/* Promo 3: 50% Referral Commission */}
-              <div style={{ backgroundColor: '#171124', border: '1px solid rgba(20, 184, 166, 0.3)', borderRadius: '20px', padding: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#14B8A6', fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px' }}>
+              <div style={{ backgroundColor: '#0E0A24', border: '1px solid rgba(0, 240, 255, 0.3)', borderRadius: '20px', padding: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#00F0FF', fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px' }}>
                   <Sparkles size={15} />
                   <span>AFFILIATE CASH LOUNGE</span>
                 </div>
@@ -175,7 +175,7 @@ export default function PromotionsPage() {
                 <p style={{ fontSize: '13px', color: '#B3A9C0', lineHeight: 1.5, margin: '0 0 16px 0' }}>
                   Invite friends to Vegas One and receive 50% cash commissions on every coin deposit they make for life!
                 </p>
-                <Link href="/referrals" className="btn-sovereign-coral" style={{ textDecoration: 'none', fontSize: '11px', padding: '10px 20px' }}>
+                <Link href="/referrals" className="btn-sovereign-teal" style={{ textDecoration: 'none', fontSize: '11px', padding: '10px 20px' }}>
                   VIEW REFERRAL STATS
                 </Link>
               </div>

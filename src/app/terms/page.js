@@ -10,7 +10,7 @@ import LiveChatWidget from '@/components/LiveChatWidget';
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-[#0E0816] text-[#F8FAFC] selection:bg-[#FF7A59] selection:text-[#0E0816] flex flex-col justify-between font-body antialiased">
+    <div className="min-h-screen bg-[#070514] text-[#F8FAFC] selection:bg-[#00F0FF] selection:text-[#070514] flex flex-col justify-between font-body antialiased">
       <div>
         <VegasNavbar activeTab="rules" onSelectTab={() => {}} />
 
@@ -21,7 +21,7 @@ export default function TermsPage() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              color: '#FF7A59',
+              color: '#00F0FF',
               fontSize: '12px',
               fontWeight: 700,
               textDecoration: 'none',
@@ -36,14 +36,14 @@ export default function TermsPage() {
             style={{
               maxWidth: '820px',
               margin: '0 auto',
-              backgroundColor: '#171124',
+              backgroundColor: '#0E0A24',
               borderRadius: '24px',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(0, 240, 255, 0.2)',
               padding: '36px 32px',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-              <FileText size={28} color="#FF7A59" />
+              <FileText size={28} color="#00F0FF" />
               <h1 style={{ fontFamily: 'Sora, sans-serif', fontSize: '28px', fontWeight: 900, color: '#FFFFFF', margin: 0 }}>
                 Terms &amp; Conditions
               </h1>

@@ -15,7 +15,7 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0E0816] text-[#F8FAFC] selection:bg-[#FF7A59] selection:text-[#0E0816] flex flex-col justify-between font-body antialiased">
+    <div className="min-h-screen bg-[#070514] text-[#F8FAFC] selection:bg-[#00F0FF] selection:text-[#070514] flex flex-col justify-between font-body antialiased">
       <div>
         <VegasNavbar activeTab="rules" onSelectTab={() => {}} />
 
@@ -26,7 +26,7 @@ export default function ContactPage() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              color: '#FF7A59',
+              color: '#00F0FF',
               fontSize: '12px',
               fontWeight: 700,
               textDecoration: 'none',
@@ -46,8 +46,8 @@ export default function ContactPage() {
                   gap: '6px',
                   padding: '5px 12px',
                   borderRadius: '9999px',
-                  backgroundColor: 'rgba(20, 184, 166, 0.15)',
-                  color: '#14B8A6',
+                  backgroundColor: 'rgba(0, 240, 255, 0.15)',
+                  color: '#00F0FF',
                   fontSize: '11px',
                   fontFamily: 'Sora, sans-serif',
                   fontWeight: 800,
@@ -69,8 +69,8 @@ export default function ContactPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px', marginBottom: '32px' }}>
               <div
                 style={{
-                  backgroundColor: '#171124',
-                  border: '1px solid rgba(255, 122, 89, 0.3)',
+                  backgroundColor: '#0E0A24',
+                  border: '1px solid rgba(0, 240, 255, 0.3)',
                   borderRadius: '24px',
                   padding: '30px 24px',
                   textAlign: 'center',
@@ -86,14 +86,14 @@ export default function ContactPage() {
                       width: '52px',
                       height: '52px',
                       borderRadius: '16px',
-                      backgroundColor: 'rgba(255, 122, 89, 0.15)',
+                      backgroundColor: 'rgba(0, 240, 255, 0.15)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       marginBottom: '16px',
                     }}
                   >
-                    <MessageSquare size={26} color="#FF7A59" />
+                    <MessageSquare size={26} color="#00F0FF" />
                   </div>
                   <h3 style={{ fontFamily: 'Sora, sans-serif', fontSize: '18px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 6px 0' }}>
                     Instant Live Chat
@@ -131,14 +131,14 @@ export default function ContactPage() {
                       width: '52px',
                       height: '52px',
                       borderRadius: '16px',
-                      backgroundColor: 'rgba(245, 180, 97, 0.15)',
+                      backgroundColor: 'rgba(0, 240, 255, 0.15)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       marginBottom: '16px',
                     }}
                   >
-                    <Mail size={26} color="#F5B461" />
+                    <Mail size={26} color="#00F0FF" />
                   </div>
                   <h3 style={{ fontFamily: 'Sora, sans-serif', fontSize: '18px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 6px 0' }}>
                     Email Concierge

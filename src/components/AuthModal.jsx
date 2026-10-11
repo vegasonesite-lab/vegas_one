@@ -106,8 +106,8 @@ export default function AuthModal({
 
   const inputStyle = {
     width: '100%',
-    backgroundColor: '#0E0816',
-    border: '1px solid rgba(255, 255, 255, 0.12)',
+    backgroundColor: '#070514',
+    border: '1px solid rgba(0, 240, 255, 0.18)',
     borderRadius: '8px',
     padding: '8px 12px 8px 34px',
     color: '#FFFFFF',
@@ -124,8 +124,8 @@ export default function AuthModal({
         position: 'fixed',
         inset: 0,
         zIndex: 9999,
-        backgroundColor: 'rgba(5, 2, 10, 0.85)',
-        backdropFilter: 'blur(10px)',
+        backgroundColor: 'rgba(5, 2, 12, 0.88)',
+        backdropFilter: 'blur(12px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -136,10 +136,10 @@ export default function AuthModal({
         style={{
           width: '100%',
           maxWidth: '410px',
-          backgroundColor: '#171124',
+          backgroundColor: '#0E0A24',
           borderRadius: '20px',
-          border: '1px solid rgba(255, 122, 89, 0.35)',
-          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.95), 0 0 30px rgba(255, 122, 89, 0.12)',
+          border: '1px solid rgba(0, 240, 255, 0.35)',
+          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.95), 0 0 35px rgba(0, 240, 255, 0.16), inset 0 0 20px rgba(224, 38, 216, 0.08)',
           padding: '20px 22px 22px 22px',
           position: 'relative',
           color: '#F8FAFC',
@@ -174,21 +174,17 @@ export default function AuthModal({
 
         {/* Modal Brand Header */}
         <div style={{ textAlign: 'center', marginBottom: '12px' }}>
-          <div
+          <img
+            src="/images/logo.png"
+            alt="Vegas One"
             style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '10px',
-              background: 'linear-gradient(135deg, #FF7A59 0%, #F5B461 100%)',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 4px 14px rgba(255, 122, 89, 0.35)',
+              height: '46px',
+              width: 'auto',
+              objectFit: 'contain',
               marginBottom: '6px',
+              filter: 'drop-shadow(0 0 12px rgba(0, 240, 255, 0.45)) drop-shadow(0 0 18px rgba(224, 38, 216, 0.3))',
             }}
-          >
-            <Crown size={18} color="#0E0816" fill="#0E0816" />
-          </div>
+          />
           <h2 style={{ fontFamily: 'Sora, sans-serif', fontSize: '18px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 2px 0' }}>
             {tab === 'login' ? 'Welcome Back to Vegas One' : 'Create Sovereign Vault'}
           </h2>
@@ -203,11 +199,11 @@ export default function AuthModal({
         <div
           style={{
             display: 'flex',
-            backgroundColor: '#0E0816',
+            backgroundColor: '#070514',
             borderRadius: '9999px',
             padding: '2px',
             marginBottom: '12px',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
+            border: '1px solid rgba(0, 240, 255, 0.15)',
           }}
         >
           <button
@@ -218,8 +214,8 @@ export default function AuthModal({
               padding: '6px 0',
               borderRadius: '9999px',
               border: 'none',
-              backgroundColor: tab === 'login' ? '#FF7A59' : 'transparent',
-              color: tab === 'login' ? '#0E0816' : '#9A91A8',
+              backgroundColor: tab === 'login' ? '#00F0FF' : 'transparent',
+              color: tab === 'login' ? '#070514' : '#9A91A8',
               fontFamily: 'Sora, sans-serif',
               fontSize: '10.5px',
               fontWeight: 900,
@@ -239,8 +235,8 @@ export default function AuthModal({
               padding: '6px 0',
               borderRadius: '9999px',
               border: 'none',
-              backgroundColor: tab === 'register' ? '#FF7A59' : 'transparent',
-              color: tab === 'register' ? '#0E0816' : '#9A91A8',
+              backgroundColor: tab === 'register' ? '#00F0FF' : 'transparent',
+              color: tab === 'register' ? '#070514' : '#9A91A8',
               fontFamily: 'Sora, sans-serif',
               fontSize: '10.5px',
               fontWeight: 900,
@@ -350,7 +346,7 @@ export default function AuthModal({
                   style={{
                     background: 'transparent',
                     border: 'none',
-                    color: '#FF7A59',
+                    color: '#00F0FF',
                     fontWeight: 800,
                     cursor: 'pointer',
                     textDecoration: 'underline',
@@ -367,8 +363,8 @@ export default function AuthModal({
             {/* Freeplay Bonus Highlight Badge */}
             <div
               style={{
-                backgroundColor: 'rgba(20, 184, 166, 0.12)',
-                border: '1px solid rgba(20, 184, 166, 0.3)',
+                backgroundColor: 'rgba(0, 240, 255, 0.12)',
+                border: '1px solid rgba(0, 240, 255, 0.35)',
                 borderRadius: '8px',
                 padding: '6px 10px',
                 display: 'flex',
@@ -376,7 +372,7 @@ export default function AuthModal({
                 gap: '8px',
               }}
             >
-              <Gift size={14} color="#14B8A6" style={{ shrink: 0 }} />
+              <Gift size={14} color="#00F0FF" style={{ shrink: 0 }} />
               <p style={{ fontSize: '10px', color: '#E2E8F0', margin: 0, lineHeight: 1.3 }}>
                 <strong>Member Perk:</strong> Eligible for <strong>$3.00 Freeplay</strong> immediately after registration!
               </p>
@@ -476,7 +472,7 @@ export default function AuthModal({
                 id="ageVerify"
                 checked={ageVerified}
                 onChange={(e) => setAgeVerified(e.target.checked)}
-                style={{ accentColor: '#FF7A59', cursor: 'pointer', width: '14px', height: '14px' }}
+                style={{ accentColor: '#00F0FF', cursor: 'pointer', width: '14px', height: '14px' }}
                 required
               />
               <label htmlFor="ageVerify" style={{ fontSize: '10px', color: '#B3A9C0', cursor: 'pointer', userSelect: 'none' }}>
@@ -511,7 +507,7 @@ export default function AuthModal({
                   style={{
                     background: 'transparent',
                     border: 'none',
-                    color: '#FF7A59',
+                    color: '#00F0FF',
                     fontWeight: 800,
                     cursor: 'pointer',
                     textDecoration: 'underline',

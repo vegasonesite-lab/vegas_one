@@ -203,10 +203,10 @@ export default function WalletModal({
         style={{
           width: '100%',
           maxWidth: '560px',
-          backgroundColor: '#171124',
+          backgroundColor: '#0E0A24',
           borderRadius: '24px',
-          border: '1px solid rgba(255, 122, 89, 0.35)',
-          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.9), 0 0 40px rgba(255, 122, 89, 0.1)',
+          border: '1px solid rgba(0, 240, 255, 0.35)',
+          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.95), 0 0 40px rgba(0, 240, 255, 0.15)',
           padding: '28px 24px',
           position: 'relative',
           color: '#F8FAFC',
@@ -240,20 +240,16 @@ export default function WalletModal({
 
         {/* Modal Brand Header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '20px' }}>
-          <div
+          <img
+            src="/images/logo.png"
+            alt="Vegas One"
             style={{
-              width: '44px',
-              height: '44px',
-              borderRadius: '14px',
-              background: 'linear-gradient(135deg, #FF7A59 0%, #F5B461 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 8px 20px rgba(255, 122, 89, 0.35)',
+              height: '46px',
+              width: 'auto',
+              objectFit: 'contain',
+              filter: 'drop-shadow(0 0 12px rgba(0, 240, 255, 0.45)) drop-shadow(0 0 16px rgba(224, 38, 216, 0.35))',
             }}
-          >
-            <Wallet size={22} color="#0E0816" />
-          </div>
+          />
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <h2 style={{ fontFamily: 'Sora, sans-serif', fontSize: '20px', fontWeight: 900, color: '#FFFFFF', margin: 0 }}>
@@ -266,9 +262,9 @@ export default function WalletModal({
                   fontWeight: 800,
                   padding: '3px 8px',
                   borderRadius: '9999px',
-                  backgroundColor: 'rgba(20, 184, 166, 0.15)',
-                  color: '#14B8A6',
-                  border: '1px solid rgba(20, 184, 166, 0.3)',
+                  backgroundColor: 'rgba(0, 240, 255, 0.15)',
+                  color: '#00F0FF',
+                  border: '1px solid rgba(0, 240, 255, 0.3)',
                 }}
               >
                 USD CASH
@@ -284,11 +280,11 @@ export default function WalletModal({
         {user && (
           <div
             style={{
-              backgroundColor: '#0E0816',
+              backgroundColor: '#070514',
               borderRadius: '14px',
               padding: '12px 18px',
               marginBottom: '18px',
-              border: '1px solid rgba(20, 184, 166, 0.25)',
+              border: '1px solid rgba(0, 240, 255, 0.25)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -298,12 +294,12 @@ export default function WalletModal({
               <span style={{ fontSize: '10px', fontFamily: 'Sora, sans-serif', fontWeight: 700, color: '#9A91A8', textTransform: 'uppercase' }}>
                 Unified Vault Balance
               </span>
-              <p style={{ margin: '2px 0 0 0', fontFamily: 'Sora, sans-serif', fontSize: '20px', fontWeight: 900, color: '#14B8A6' }}>
+              <p style={{ margin: '2px 0 0 0', fontFamily: 'Sora, sans-serif', fontSize: '20px', fontWeight: 900, color: '#00F0FF' }}>
                 ${Number(user.balanceSC ?? user.balance ?? 0).toFixed(2)}
               </p>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <span style={{ fontSize: '10px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#F5B461', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#E026D8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 STATUS
               </span>
               <p style={{ margin: '2px 0 0 0', fontFamily: 'Sora, sans-serif', fontSize: '12px', fontWeight: 800, color: '#FFFFFF' }}>
@@ -317,11 +313,11 @@ export default function WalletModal({
         <div
           style={{
             display: 'flex',
-            backgroundColor: '#0E0816',
+            backgroundColor: '#070514',
             borderRadius: '9999px',
             padding: '3px',
             marginBottom: '20px',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
+            border: '1px solid rgba(0, 240, 255, 0.18)',
           }}
         >
           <button
@@ -332,8 +328,8 @@ export default function WalletModal({
               padding: '8px 0',
               borderRadius: '9999px',
               border: 'none',
-              backgroundColor: activeTab === 'deposit' ? '#FF7A59' : 'transparent',
-              color: activeTab === 'deposit' ? '#0E0816' : '#9A91A8',
+              backgroundColor: activeTab === 'deposit' ? '#00F0FF' : 'transparent',
+              color: activeTab === 'deposit' ? '#070514' : '#9A91A8',
               fontFamily: 'Sora, sans-serif',
               fontSize: '10.5px',
               fontWeight: 900,
@@ -358,8 +354,8 @@ export default function WalletModal({
               padding: '8px 0',
               borderRadius: '9999px',
               border: 'none',
-              backgroundColor: activeTab === 'redeem' ? '#14B8A6' : 'transparent',
-              color: activeTab === 'redeem' ? '#0E0816' : '#9A91A8',
+              backgroundColor: activeTab === 'redeem' ? '#E026D8' : 'transparent',
+              color: activeTab === 'redeem' ? '#FFFFFF' : '#9A91A8',
               fontFamily: 'Sora, sans-serif',
               fontSize: '10.5px',
               fontWeight: 900,
@@ -384,8 +380,8 @@ export default function WalletModal({
               padding: '8px 0',
               borderRadius: '9999px',
               border: 'none',
-              backgroundColor: activeTab === 'history' ? '#F5B461' : 'transparent',
-              color: activeTab === 'history' ? '#0E0816' : '#9A91A8',
+              backgroundColor: activeTab === 'history' ? '#00F0FF' : 'transparent',
+              color: activeTab === 'history' ? '#070514' : '#9A91A8',
               fontFamily: 'Sora, sans-serif',
               fontSize: '10.5px',
               fontWeight: 900,
@@ -459,8 +455,9 @@ export default function WalletModal({
                       style={{
                         padding: '10px 12px',
                         borderRadius: '14px',
-                        backgroundColor: isSel ? 'rgba(255, 122, 89, 0.15)' : '#0E0816',
-                        border: isSel ? '1px solid #FF7A59' : '1px solid rgba(255, 255, 255, 0.08)',
+                        backgroundColor: isSel ? 'rgba(0, 240, 255, 0.15)' : '#070514',
+                        border: isSel ? '1px solid #00F0FF' : '1px solid rgba(0, 240, 255, 0.12)',
+                        boxShadow: isSel ? '0 0 16px rgba(0, 240, 255, 0.25)' : 'none',
                         textAlign: 'left',
                         cursor: 'pointer',
                         transition: 'all 0.2s',
@@ -469,10 +466,10 @@ export default function WalletModal({
                         justifyContent: 'space-between',
                       }}
                     >
-                      <span style={{ fontSize: '12px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: isSel ? '#FFFFFF' : '#C8C1D4' }}>
+                      <span style={{ fontSize: '12px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: isSel ? '#00F0FF' : '#C8C1D4' }}>
                         {m.name}
                       </span>
-                      <span style={{ fontSize: '10px', color: '#14B8A6', fontWeight: 700, marginTop: '4px' }}>
+                      <span style={{ fontSize: '10px', color: '#00F0FF', fontWeight: 700, marginTop: '4px' }}>
                         {m.tag || 'Instant'}
                       </span>
                     </button>
@@ -487,7 +484,7 @@ export default function WalletModal({
                 <label style={{ fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#C8C1D4', letterSpacing: '0.05em' }}>
                   2. SELECT AMOUNT
                 </label>
-                <span style={{ fontSize: '11px', color: '#F5B461', fontFamily: 'Sora, sans-serif', fontWeight: 800 }}>
+                <span style={{ fontSize: '11px', color: '#00F0FF', fontFamily: 'Sora, sans-serif', fontWeight: 800 }}>
                   Bonus: +{(depositAmount * 10000).toLocaleString()} GC FREE
                 </span>
               </div>
@@ -500,9 +497,9 @@ export default function WalletModal({
                     style={{
                       padding: '8px 0',
                       borderRadius: '10px',
-                      backgroundColor: depositAmount === amt ? '#F5B461' : '#0E0816',
-                      color: depositAmount === amt ? '#0E0816' : '#C8C1D4',
-                      border: depositAmount === amt ? '1px solid #F5B461' : '1px solid rgba(255, 255, 255, 0.08)',
+                      backgroundColor: depositAmount === amt ? '#00F0FF' : '#070514',
+                      color: depositAmount === amt ? '#070514' : '#C8C1D4',
+                      border: depositAmount === amt ? '1px solid #00F0FF' : '1px solid rgba(255, 255, 255, 0.08)',
                       fontFamily: 'Sora, sans-serif',
                       fontWeight: 900,
                       fontSize: '12px',
@@ -557,7 +554,7 @@ export default function WalletModal({
                     style={{
                       backgroundColor: 'transparent',
                       border: 'none',
-                      color: '#FF7A59',
+                      color: '#00F0FF',
                       fontSize: '11px',
                       fontFamily: 'Sora, sans-serif',
                       fontWeight: 800,
@@ -567,21 +564,22 @@ export default function WalletModal({
                       gap: '4px',
                     }}
                   >
-                    {copied ? <Check size={12} color="#10B981" /> : <Copy size={12} />}
+                    {copied ? <Check size={12} color="#00F0FF" /> : <Copy size={12} />}
                     <span>{copied ? 'COPIED!' : 'COPY'}</span>
                   </button>
                 </div>
                 <div
                   style={{
-                    backgroundColor: '#171124',
+                    backgroundColor: '#070514',
                     padding: '8px 12px',
                     borderRadius: '8px',
                     fontFamily: 'monospace',
                     fontSize: '13px',
-                    color: '#F5B461',
+                    color: '#00F0FF',
                     fontWeight: 700,
                     wordBreak: 'break-all',
                     marginBottom: '8px',
+                    border: '1px solid rgba(0, 240, 255, 0.2)',
                   }}
                 >
                   {selectedMethod.accountDetails}
@@ -599,10 +597,10 @@ export default function WalletModal({
               </label>
               <div
                 style={{
-                  border: '1px dashed rgba(255, 255, 255, 0.2)',
+                  border: '1px dashed rgba(0, 240, 255, 0.3)',
                   borderRadius: '12px',
                   padding: '12px',
-                  backgroundColor: '#0E0816',
+                  backgroundColor: '#070514',
                   textAlign: 'center',
                   cursor: 'pointer',
                   position: 'relative',
@@ -622,13 +620,13 @@ export default function WalletModal({
                   }}
                 />
                 {proofImage ? (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: '#14B8A6', fontSize: '12px', fontWeight: 700 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: '#00F0FF', fontSize: '12px', fontWeight: 700 }}>
                     <Check size={16} />
                     <span>Receipt screenshot attached successfully!</span>
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', color: '#9A91A8', fontSize: '11px' }}>
-                    <Upload size={18} color="#FF7A59" />
+                    <Upload size={18} color="#00F0FF" />
                     <span>Click or tap to upload payment screenshot / receipt</span>
                   </div>
                 )}
@@ -858,7 +856,7 @@ export default function WalletModal({
 
             {loadingHistory ? (
               <div style={{ textAlign: 'center', padding: '36px 0', color: '#9A91A8', fontSize: '12px', fontFamily: 'DM Sans, sans-serif' }}>
-                <Clock size={20} className="animate-spin" style={{ margin: '0 auto 8px auto', display: 'block', color: '#F5B461' }} />
+                <Clock size={20} className="animate-spin" style={{ margin: '0 auto 8px auto', display: 'block', color: '#00F0FF' }} />
                 Fetching vault transaction logs...
               </div>
             ) : historyItems.length === 0 ? (
@@ -911,13 +909,13 @@ export default function WalletModal({
                               width: '32px',
                               height: '32px',
                               borderRadius: '10px',
-                              backgroundColor: isDeposit ? 'rgba(255, 122, 89, 0.15)' : 'rgba(20, 184, 166, 0.15)',
+                              backgroundColor: isDeposit ? 'rgba(0, 240, 255, 0.15)' : 'rgba(224, 38, 216, 0.15)',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                             }}
                           >
-                            {isDeposit ? <ArrowDownCircle size={16} color="#FF7A59" /> : <ArrowUpCircle size={16} color="#14B8A6" />}
+                            {isDeposit ? <ArrowDownCircle size={16} color="#00F0FF" /> : <ArrowUpCircle size={16} color="#E026D8" />}
                           </div>
                           <div>
                             <span style={{ fontSize: '12px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#FFFFFF' }}>
@@ -935,7 +933,7 @@ export default function WalletModal({
                               fontFamily: 'Sora, sans-serif',
                               fontSize: '14px',
                               fontWeight: 900,
-                              color: isDeposit ? '#5EEAD4' : '#F5B461',
+                              color: isDeposit ? '#00F0FF' : '#E026D8',
                             }}
                           >
                             {isDeposit ? '+' : '-'}${Number(item.amount || 0).toFixed(2)}
@@ -951,17 +949,17 @@ export default function WalletModal({
                                 padding: '2px 8px',
                                 borderRadius: '9999px',
                                 backgroundColor: isApproved
-                                  ? 'rgba(20, 184, 166, 0.15)'
+                                  ? 'rgba(0, 240, 255, 0.15)'
                                   : isRejected
                                   ? 'rgba(239, 68, 68, 0.15)'
-                                  : 'rgba(245, 180, 97, 0.15)',
-                                color: isApproved ? '#5EEAD4' : isRejected ? '#F87171' : '#F5B461',
+                                  : 'rgba(224, 38, 216, 0.15)',
+                                color: isApproved ? '#00F0FF' : isRejected ? '#F87171' : '#E026D8',
                                 border: `1px solid ${
                                   isApproved
-                                    ? 'rgba(20, 184, 166, 0.3)'
+                                    ? 'rgba(0, 240, 255, 0.3)'
                                     : isRejected
                                     ? 'rgba(239, 68, 68, 0.35)'
-                                    : 'rgba(245, 180, 97, 0.3)'
+                                    : 'rgba(224, 38, 216, 0.3)'
                                 }`,
                               }}
                             >

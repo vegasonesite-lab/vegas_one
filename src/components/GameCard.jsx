@@ -8,12 +8,12 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
   // Badge styling
   const getBadge = () => {
     if (game.isHot) {
-      return { label: 'HOT', bg: 'rgba(255, 122, 89, 0.2)', color: '#FF7A59', border: 'rgba(255, 122, 89, 0.4)' };
+      return { label: 'HOT', bg: 'rgba(224, 38, 216, 0.2)', color: '#E026D8', border: 'rgba(224, 38, 216, 0.4)' };
     }
     if (game.isFeatured) {
-      return { label: 'EXCLUSIVE', bg: 'rgba(245, 180, 97, 0.2)', color: '#F5B461', border: 'rgba(245, 180, 97, 0.4)' };
+      return { label: 'EXCLUSIVE', bg: 'rgba(0, 240, 255, 0.2)', color: '#00F0FF', border: 'rgba(0, 240, 255, 0.4)' };
     }
-    return { label: 'SWEEPS', bg: '#231C30', color: '#D1CADB', border: 'rgba(255, 255, 255, 0.15)' };
+    return { label: 'SWEEPS', bg: '#17103B', color: '#D1CADB', border: 'rgba(0, 240, 255, 0.2)' };
   };
 
   const badge = getBadge();
@@ -146,7 +146,7 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
           }}
         >
           <span>RTP: <strong style={{ color: '#F8FAFC', fontWeight: 600 }}>{rtpDisplay}</strong></span>
-          <span>Max Bet: <strong style={{ color: '#F5B461', fontWeight: 600 }}>{maxBetDisplay}</strong></span>
+          <span>Max Bet: <strong style={{ color: '#00F0FF', fontWeight: 600 }}>{maxBetDisplay}</strong></span>
         </div>
 
         {/* 3. Subcategory and Game Title */}
@@ -181,7 +181,7 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
         </div>
       </div>
 
-      {/* 4. Single PLAY NOW Button (DEMO Removed!) */}
+      {/* 4. Single PLAY NOW Button */}
       <div>
         <button
           type="button"
@@ -191,8 +191,8 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
           }}
           style={{
             width: '100%',
-            backgroundColor: '#FF7A59',
-            color: '#0E0816',
+            background: 'linear-gradient(135deg, #E026D8 0%, #00F0FF 100%)',
+            color: '#FFFFFF',
             fontFamily: 'Sora, sans-serif',
             fontWeight: 900,
             fontSize: '12px',
@@ -202,7 +202,7 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
             borderRadius: '12px',
             border: 'none',
             cursor: 'pointer',
-            boxShadow: '0 4px 14px rgba(255, 122, 89, 0.25)',
+            boxShadow: '0 4px 14px rgba(0, 240, 255, 0.3)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

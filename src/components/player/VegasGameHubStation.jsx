@@ -211,7 +211,7 @@ export default function VegasGameHubStation({
               }}
             >
               <span>{game.title.toUpperCase()}</span>
-              <span style={{ color: '#F5B461', fontSize: '16px' }}>STATION</span>
+              <span style={{ color: '#00F0FF', fontSize: '16px' }}>STATION</span>
             </h2>
             <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#A69FB3', fontFamily: 'DM Sans, sans-serif' }}>
               Dedicated Sweepstakes Gaming Terminal & Account Management
@@ -227,9 +227,9 @@ export default function VegasGameHubStation({
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
-                backgroundColor: 'rgba(20, 184, 166, 0.15)',
-                border: '1px solid rgba(20, 184, 166, 0.4)',
-                color: '#14B8A6',
+                backgroundColor: 'rgba(0, 240, 255, 0.15)',
+                border: '1px solid rgba(0, 240, 255, 0.4)',
+                color: '#00F0FF',
                 fontFamily: 'Sora, sans-serif',
                 fontWeight: 800,
                 fontSize: '12px',
@@ -238,7 +238,7 @@ export default function VegasGameHubStation({
                 textTransform: 'uppercase',
               }}
             >
-              <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#14B8A6', boxShadow: '0 0 8px #14B8A6' }} />
+              <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#00F0FF', boxShadow: '0 0 8px #00F0FF' }} />
               <span>PLATFORM LINKED &amp; ACTIVE</span>
             </span>
           ) : isPending ? (
@@ -247,9 +247,9 @@ export default function VegasGameHubStation({
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
-                backgroundColor: 'rgba(245, 180, 97, 0.15)',
-                border: '1px solid rgba(245, 180, 97, 0.4)',
-                color: '#F5B461',
+                backgroundColor: 'rgba(224, 38, 216, 0.15)',
+                border: '1px solid rgba(224, 38, 216, 0.4)',
+                color: '#E026D8',
                 fontFamily: 'Sora, sans-serif',
                 fontWeight: 800,
                 fontSize: '12px',
@@ -267,9 +267,9 @@ export default function VegasGameHubStation({
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
-                backgroundColor: 'rgba(255, 122, 89, 0.15)',
-                border: '1px solid rgba(255, 122, 89, 0.4)',
-                color: '#FF7A59',
+                backgroundColor: 'rgba(0, 240, 255, 0.15)',
+                border: '1px solid rgba(0, 240, 255, 0.4)',
+                color: '#00F0FF',
                 fontFamily: 'Sora, sans-serif',
                 fontWeight: 800,
                 fontSize: '12px',
@@ -337,7 +337,7 @@ export default function VegasGameHubStation({
               fontSize: '11px',
               fontFamily: 'Sora, sans-serif',
               fontWeight: 800,
-              color: '#F5B461',
+              color: '#00F0FF',
               textTransform: 'uppercase',
               letterSpacing: '0.06em',
               marginBottom: '6px',
@@ -482,22 +482,22 @@ export default function VegasGameHubStation({
               </p>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#F5B461', fontFamily: 'Sora, sans-serif', fontWeight: 800, fontSize: '13px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#00F0FF', fontFamily: 'Sora, sans-serif', fontWeight: 800, fontSize: '13px' }}>
               <Clock size={16} />
               <span>Est: ~30s</span>
             </div>
           </div>
 
           {/* Progress Bar */}
-          <div style={{ width: '100%', height: '8px', backgroundColor: '#271E36', borderRadius: '9999px', overflow: 'hidden', marginBottom: '24px' }}>
+          <div style={{ width: '100%', height: '8px', backgroundColor: '#070514', borderRadius: '9999px', overflow: 'hidden', marginBottom: '24px' }}>
             <div
               style={{
                 height: '100%',
-                background: 'linear-gradient(90deg, #FF7A59 0%, #F5B461 60%, #14B8A6 100%)',
+                background: 'linear-gradient(90deg, #E026D8 0%, #00F0FF 100%)',
                 width: `${Math.max(15, Math.min(100, stepTimer))}%`,
                 transition: 'width 0.8s ease',
                 borderRadius: '9999px',
-                boxShadow: '0 0 10px rgba(245, 180, 97, 0.5)',
+                boxShadow: '0 0 10px rgba(0, 240, 255, 0.5)',
               }}
             />
           </div>
@@ -506,33 +506,33 @@ export default function VegasGameHubStation({
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
             
             {/* Step 1 */}
-            <div style={{ backgroundColor: '#130D1E', border: '1px solid rgba(20, 184, 166, 0.3)', borderRadius: '16px', padding: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(20, 184, 166, 0.2)', color: '#14B8A6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ backgroundColor: '#0E0A24', border: '1px solid rgba(0, 240, 255, 0.3)', borderRadius: '16px', padding: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(0, 240, 255, 0.2)', color: '#00F0FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <CheckCircle2 size={18} />
               </div>
               <div>
                 <p style={{ margin: 0, fontFamily: 'Sora, sans-serif', fontWeight: 800, fontSize: '12px', color: '#FFFFFF' }}>
                   1. Request Submitted
                 </p>
-                <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#14B8A6' }}>Queued with 24/7 staff</p>
+                <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#00F0FF' }}>Queued with 24/7 staff</p>
               </div>
             </div>
 
             {/* Step 2 */}
-            <div style={{ backgroundColor: '#130D1E', border: '1px solid rgba(245, 180, 97, 0.3)', borderRadius: '16px', padding: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(245, 180, 97, 0.2)', color: '#F5B461', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ backgroundColor: '#0E0A24', border: '1px solid rgba(224, 38, 216, 0.3)', borderRadius: '16px', padding: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(224, 38, 216, 0.2)', color: '#E026D8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <RefreshCw size={16} className="animate-spin" />
               </div>
               <div>
                 <p style={{ margin: 0, fontFamily: 'Sora, sans-serif', fontWeight: 800, fontSize: '12px', color: '#FFFFFF' }}>
                   2. Allocating Terminal
                 </p>
-                <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#F5B461' }}>Generating secure vault</p>
+                <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#E026D8' }}>Generating secure vault</p>
               </div>
             </div>
 
             {/* Step 3 */}
-            <div style={{ backgroundColor: '#130D1E', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '16px', padding: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ backgroundColor: '#0E0A24', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '16px', padding: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(255, 255, 255, 0.08)', color: '#A69FB3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Key size={16} />
               </div>
@@ -617,13 +617,13 @@ export default function VegasGameHubStation({
                   style={{
                     flex: 1,
                     backgroundColor: '#130D1E',
-                    border: '1.5px solid rgba(245, 180, 97, 0.4)',
+                    border: '1.5px solid rgba(224, 38, 216, 0.4)',
                     borderRadius: '12px',
                     padding: '10px 14px',
                     fontFamily: 'monospace',
                     fontWeight: 800,
                     fontSize: '15px',
-                    color: '#F5B461',
+                    color: '#E026D8',
                     outline: 'none',
                   }}
                 />
@@ -654,8 +654,8 @@ export default function VegasGameHubStation({
             }}
           >
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#F5B461', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
-                <Coins size={16} color="#F5B461" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
+                <Coins size={16} color="#00F0FF" />
                 <span>TERMINAL COIN OPERATIONS</span>
               </div>
               <p style={{ margin: 0, fontSize: '13px', color: '#A69FB3', fontFamily: 'DM Sans, sans-serif', lineHeight: 1.5 }}>
@@ -693,17 +693,17 @@ export default function VegasGameHubStation({
       <div
         style={{
           marginTop: '36px',
-          backgroundColor: '#171124',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
+          backgroundColor: '#0E0A24',
+          border: '1px solid rgba(0, 240, 255, 0.15)',
           borderRadius: '22px',
           padding: '24px 26px',
-          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.35)',
+          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.45)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px', flexWrap: 'wrap', gap: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ width: '32px', height: '32px', borderRadius: '10px', backgroundColor: 'rgba(245, 180, 97, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Clock size={16} color="#F5B461" />
+            <div style={{ width: '32px', height: '32px', borderRadius: '10px', backgroundColor: 'rgba(0, 240, 255, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Clock size={16} color="#00F0FF" />
             </div>
             <div>
               <h3 style={{ fontFamily: 'Sora, sans-serif', fontSize: '15px', fontWeight: 800, color: '#FFFFFF', margin: 0 }}>
@@ -779,12 +779,12 @@ export default function VegasGameHubStation({
                           ? 'rgba(20, 184, 166, 0.2)'
                           : item.status === 'CANCELLED' || item.status === 'REJECTED'
                           ? 'rgba(244, 63, 94, 0.2)'
-                          : 'rgba(245, 180, 97, 0.2)',
+                          : 'rgba(0, 240, 255, 0.2)',
                         color: item.status === 'READY'
-                          ? '#14B8A6'
+                          ? '#00F0FF'
                           : item.status === 'CANCELLED' || item.status === 'REJECTED'
                           ? '#F43F5E'
-                          : '#F5B461',
+                          : '#00F0FF',
                         letterSpacing: '0.04em',
                       }}
                     >
@@ -797,7 +797,7 @@ export default function VegasGameHubStation({
 
                   {item.status === 'READY' && item.gameAccountUsername && (
                     <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#E2E8F0', fontFamily: 'monospace' }}>
-                      Credentials: <strong style={{ color: '#14B8A6' }}>{item.gameAccountUsername}</strong> / <span style={{ color: '#F5B461' }}>{item.gameAccountPassword}</span>
+                      Credentials: <strong style={{ color: '#00F0FF' }}>{item.gameAccountUsername}</strong> / <span style={{ color: '#E026D8' }}>{item.gameAccountPassword}</span>
                     </p>
                   )}
 

@@ -45,24 +45,24 @@ export default function LatestWinsTicker() {
         marginBottom: '36px',
         overflow: 'hidden',
         borderRadius: '16px',
-        backgroundColor: '#171124',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
+        backgroundColor: '#0E0A24',
+        border: '1px solid rgba(0, 240, 255, 0.18)',
         padding: '10px 18px',
         display: 'flex',
         alignItems: 'center',
-        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)',
+        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 240, 255, 0.04)',
       }}
     >
-      {/* Static Teal LIVE WINS Badge (Image 2 Spec) */}
+      {/* Static Cyan LIVE WINS Badge */}
       <div
         style={{
           flexShrink: 0,
           display: 'flex',
           alignItems: 'center',
           gap: '8px',
-          backgroundColor: 'rgba(20, 184, 166, 0.15)',
-          border: '1px solid rgba(20, 184, 166, 0.35)',
-          color: '#14B8A6',
+          backgroundColor: 'rgba(0, 240, 255, 0.15)',
+          border: '1px solid rgba(0, 240, 255, 0.35)',
+          color: '#00F0FF',
           padding: '5px 14px',
           borderRadius: '9999px',
           fontSize: '11px',
@@ -79,9 +79,9 @@ export default function LatestWinsTicker() {
             width: '6px',
             height: '6px',
             borderRadius: '50%',
-            backgroundColor: '#14B8A6',
+            backgroundColor: '#00F0FF',
             display: 'inline-block',
-            boxShadow: '0 0 6px #14B8A6',
+            boxShadow: '0 0 8px #00F0FF',
           }}
         />
         <span>LIVE WINS</span>
@@ -93,14 +93,14 @@ export default function LatestWinsTicker() {
           {wins.concat(wins).map((item, idx) => (
             <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, color: '#C9C2D4' }}>
               {item.icon === 'gem' ? (
-                <Gem size={14} color="#F5B461" style={{ flexShrink: 0 }} />
+                <Gem size={14} color="#E026D8" style={{ flexShrink: 0 }} />
               ) : (
-                <Sparkles size={14} color="#FF7A59" style={{ flexShrink: 0 }} />
+                <Sparkles size={14} color="#00F0FF" style={{ flexShrink: 0 }} />
               )}
 
               <span style={{ fontWeight: 700, color: '#FFFFFF' }}>{item.username}</span>
               <span style={{ color: '#9A91A8' }}>won</span>
-              <span style={{ fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#14B8A6' }}>{item.amount}</span>
+              <span style={{ fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#00F0FF' }}>{item.amount}</span>
               <span style={{ color: '#9A91A8' }}>on</span>
               <span style={{ fontWeight: 600, color: '#F8FAFC' }}>{item.game}</span>
               <span style={{ fontSize: '11px', color: '#7E758C' }}>{item.time}</span>

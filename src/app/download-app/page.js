@@ -43,7 +43,7 @@ export default function DownloadAppPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0E0816] text-[#F8FAFC] selection:bg-[#FF7A59] selection:text-[#0E0816] flex flex-col justify-between font-body antialiased">
+    <div className="min-h-screen bg-[#070514] text-[#F8FAFC] selection:bg-[#00F0FF] selection:text-[#070514] flex flex-col justify-between font-body antialiased">
       <div>
         <VegasNavbar activeTab="download-app" onSelectTab={() => {}} />
 
@@ -54,7 +54,7 @@ export default function DownloadAppPage() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              color: '#FF7A59',
+              color: '#00F0FF',
               fontSize: '12px',
               fontWeight: 700,
               textDecoration: 'none',
@@ -80,9 +80,9 @@ export default function DownloadAppPage() {
                 gap: '6px',
                 padding: '6px 14px',
                 borderRadius: '9999px',
-                backgroundColor: 'rgba(20, 184, 166, 0.15)',
-                border: '1px solid rgba(20, 184, 166, 0.35)',
-                color: '#14B8A6',
+                backgroundColor: 'rgba(0, 240, 255, 0.15)',
+                border: '1px solid rgba(0, 240, 255, 0.35)',
+                color: '#00F0FF',
                 fontSize: '11px',
                 fontFamily: 'Sora, sans-serif',
                 fontWeight: 800,
@@ -107,7 +107,7 @@ export default function DownloadAppPage() {
               }}
             >
               Play Vegas One Anywhere.<br />
-              <span style={{ color: '#FF7A59' }}>Full-Screen Mobile App Experience.</span>
+              <span style={{ color: '#00F0FF' }}>Full-Screen Mobile App Experience.</span>
             </h1>
 
             <p style={{ fontSize: '15px', color: '#B3A9C0', lineHeight: 1.6, margin: 0 }}>
@@ -120,14 +120,14 @@ export default function DownloadAppPage() {
             {/* Android APK Card */}
             <div
               style={{
-                backgroundColor: '#171124',
-                border: '1px solid rgba(255, 122, 89, 0.35)',
+                backgroundColor: '#0E0A24',
+                border: '1px solid rgba(0, 240, 255, 0.35)',
                 borderRadius: '24px',
                 padding: '32px 28px',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
-                boxShadow: '0 20px 45px rgba(0,0,0,0.5)',
+                boxShadow: '0 20px 45px rgba(0,0,0,0.5), 0 0 30px rgba(0, 240, 255, 0.1)',
               }}
             >
               <div>
@@ -137,20 +137,20 @@ export default function DownloadAppPage() {
                       width: '48px',
                       height: '48px',
                       borderRadius: '14px',
-                      backgroundColor: 'rgba(255, 122, 89, 0.15)',
-                      border: '1px solid rgba(255, 122, 89, 0.3)',
+                      backgroundColor: 'rgba(0, 240, 255, 0.15)',
+                      border: '1px solid rgba(0, 240, 255, 0.3)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <Smartphone size={24} color="#FF7A59" />
+                    <Smartphone size={24} color="#00F0FF" />
                   </div>
                   <div>
                     <h2 style={{ fontFamily: 'Sora, sans-serif', fontSize: '20px', fontWeight: 900, color: '#FFFFFF', margin: 0 }}>
                       Android Release APK
                     </h2>
-                    <span style={{ fontSize: '11px', color: '#14B8A6', fontWeight: 700 }}>
+                    <span style={{ fontSize: '11px', color: '#00F0FF', fontWeight: 700 }}>
                       Direct Install · v2.4 Release
                     </span>
                   </div>
@@ -158,15 +158,15 @@ export default function DownloadAppPage() {
 
                 <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px 0', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#C8C1D4' }}>
-                    <CheckCircle2 size={16} color="#14B8A6" />
+                    <CheckCircle2 size={16} color="#00F0FF" />
                     <span>Works on all Android phones & tablets (Android 8.0+)</span>
                   </li>
                   <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#C8C1D4' }}>
-                    <CheckCircle2 size={16} color="#14B8A6" />
+                    <CheckCircle2 size={16} color="#00F0FF" />
                     <span>Instant background push notifications for coin drops</span>
                   </li>
                   <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#C8C1D4' }}>
-                    <CheckCircle2 size={16} color="#14B8A6" />
+                    <CheckCircle2 size={16} color="#00F0FF" />
                     <span>Auto-updating secure release architecture</span>
                   </li>
                 </ul>
@@ -199,14 +199,14 @@ export default function DownloadAppPage() {
             {/* iOS Safari Web App Card */}
             <div
               style={{
-                backgroundColor: '#171124',
-                border: '1px solid rgba(245, 180, 97, 0.35)',
+                backgroundColor: '#0E0A24',
+                border: '1px solid rgba(224, 38, 216, 0.35)',
                 borderRadius: '24px',
                 padding: '32px 28px',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
-                boxShadow: '0 20px 45px rgba(0,0,0,0.5)',
+                boxShadow: '0 20px 45px rgba(0,0,0,0.5), 0 0 30px rgba(224, 38, 216, 0.1)',
               }}
             >
               <div>
@@ -216,27 +216,27 @@ export default function DownloadAppPage() {
                       width: '48px',
                       height: '48px',
                       borderRadius: '14px',
-                      backgroundColor: 'rgba(245, 180, 97, 0.15)',
-                      border: '1px solid rgba(245, 180, 97, 0.3)',
+                      backgroundColor: 'rgba(224, 38, 216, 0.15)',
+                      border: '1px solid rgba(224, 38, 216, 0.3)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <Apple size={24} color="#F5B461" />
+                    <Apple size={24} color="#E026D8" />
                   </div>
                   <div>
                     <h2 style={{ fontFamily: 'Sora, sans-serif', fontSize: '20px', fontWeight: 900, color: '#FFFFFF', margin: 0 }}>
                       Apple iOS Web App
                     </h2>
-                    <span style={{ fontSize: '11px', color: '#F5B461', fontWeight: 700 }}>
+                    <span style={{ fontSize: '11px', color: '#E026D8', fontWeight: 700 }}>
                       iPhone &amp; iPad Native PWA
                     </span>
                   </div>
                 </div>
 
-                <div style={{ backgroundColor: '#0E0816', borderRadius: '14px', padding: '16px', marginBottom: '20px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                  <p style={{ fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#F5B461', textTransform: 'uppercase', margin: '0 0 8px 0' }}>
+                <div style={{ backgroundColor: '#070514', borderRadius: '14px', padding: '16px', marginBottom: '20px', border: '1px solid rgba(224, 38, 216, 0.2)' }}>
+                  <p style={{ fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#E026D8', textTransform: 'uppercase', margin: '0 0 8px 0' }}>
                     3-STEP SETUP FOR IPHONE &amp; IPAD:
                   </p>
                   <ol style={{ paddingLeft: '18px', margin: 0, fontSize: '12px', color: '#B3A9C0', lineHeight: 1.6, display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -309,7 +309,7 @@ export default function DownloadAppPage() {
                       }}
                     >
                       <span>{faq.q}</span>
-                      {isOpen ? <ChevronUp size={16} color="#FF7A59" /> : <ChevronDown size={16} color="#9A91A8" />}
+                      {isOpen ? <ChevronUp size={16} color="#00F0FF" /> : <ChevronDown size={16} color="#9A91A8" />}
                     </button>
                     {isOpen && (
                       <div style={{ padding: '0 20px 16px 20px', fontSize: '13px', color: '#B3A9C0', lineHeight: 1.6, whiteSpace: 'pre-line' }}>

@@ -8,7 +8,7 @@ export default function VegasOnboarding({ onOpenAuth, onOpenWallet }) {
     {
       num: '01',
       icon: UserCheck,
-      iconColor: '#F5B461',
+      iconColor: '#00F0FF',
       title: 'Secure Patron Registration',
       description:
         'Encrypted, frictionless instant sign-in. Zero intrusive verification queues for standard cryptographic deposits.',
@@ -18,7 +18,7 @@ export default function VegasOnboarding({ onOpenAuth, onOpenWallet }) {
     {
       num: '02',
       icon: Wallet,
-      iconColor: '#FF7A59',
+      iconColor: '#E026D8',
       title: 'Fund Your Vault & Claim',
       description:
         'Instant zero-fee deposit with 300% match up to $7,500 credited dynamically with immediate Tier II privilege unlock.',
@@ -28,7 +28,7 @@ export default function VegasOnboarding({ onOpenAuth, onOpenWallet }) {
     {
       num: '03',
       icon: DollarSign,
-      iconColor: '#14B8A6',
+      iconColor: '#00F0FF',
       title: 'Accumulate & Liquidate',
       description:
         'Unlock sovereign cashback, bespoke physical luxury gifts, and instantaneous crypto or wire payouts at your command.',
@@ -49,13 +49,13 @@ export default function VegasOnboarding({ onOpenAuth, onOpenWallet }) {
             fontSize: '11px',
             fontFamily: 'Sora, sans-serif',
             fontWeight: 800,
-            color: '#F5B461',
+            color: '#00F0FF',
             textTransform: 'uppercase',
             letterSpacing: '0.06em',
             marginBottom: '8px',
           }}
         >
-          <TrendingUp size={14} color="#F5B461" />
+          <TrendingUp size={14} color="#00F0FF" />
           <span>EFFORTLESS ONBOARDING</span>
         </div>
 
@@ -95,8 +95,8 @@ export default function VegasOnboarding({ onOpenAuth, onOpenWallet }) {
               key={step.num}
               style={{
                 position: 'relative',
-                backgroundColor: '#171124',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                backgroundColor: '#0E0A24',
+                border: '1px solid rgba(0, 240, 255, 0.15)',
                 borderRadius: '18px',
                 padding: '24px 26px',
                 boxShadow: '0 8px 24px rgba(0, 0, 0, 0.35)',

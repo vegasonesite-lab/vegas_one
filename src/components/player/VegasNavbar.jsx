@@ -46,76 +46,46 @@ export default function VegasNavbar({
         position: 'sticky',
         top: 0,
         zIndex: 50,
-        backgroundColor: 'rgba(14, 8, 22, 0.96)',
-        backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+        backgroundColor: 'rgba(7, 5, 20, 0.96)',
+        backdropFilter: 'blur(16px)',
+        borderBottom: '1px solid rgba(0, 240, 255, 0.18)',
+        boxShadow: '0 4px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 240, 255, 0.08)',
       }}
     >
       <div
         className="sovereign-container"
         style={{
-          height: '74px',
+          height: '76px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: '16px',
         }}
       >
-        {/* Left: Royal Crown Logo */}
+        {/* Left: Neon Vegas One Marquee Badge Logo */}
         <Link
           href="/"
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '10px',
             cursor: 'pointer',
             userSelect: 'none',
             textDecoration: 'none',
           }}
         >
-          {/* Golden Crown Emblem */}
-          <div style={{ width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg
-              viewBox="0 0 24 24"
-              style={{
-                width: '28px',
-                height: '28px',
-                fill: '#F5B461',
-                filter: 'drop-shadow(0 2px 10px rgba(245, 180, 97, 0.5))',
-              }}
-            >
-              <path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5ZM19 19C19 19.5523 18.5523 20 18 20H6C5.44772 20 5 19.5523 5 19V17H19V19Z" />
-            </svg>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span
-              style={{
-                fontFamily: 'Sora, sans-serif',
-                fontWeight: 900,
-                fontSize: '17px',
-                letterSpacing: '0.15em',
-                color: '#F8FAFC',
-                lineHeight: 1,
-                textTransform: 'uppercase',
-              }}
-            >
-              VEGAS <span style={{ color: '#F5B461' }}>ONE</span>
-            </span>
-            <span
-              style={{
-                fontSize: '9px',
-                fontFamily: 'Sora, sans-serif',
-                fontWeight: 700,
-                letterSpacing: '0.22em',
-                color: '#A69FB3',
-                textTransform: 'uppercase',
-                marginTop: '3px',
-              }}
-            >
-              ROYAL SALON
-            </span>
-          </div>
+          <img
+            src="/images/logo.png"
+            alt="Vegas One Luxury Casino"
+            style={{
+              height: '48px',
+              width: 'auto',
+              maxMaxWidth: '190px',
+              objectFit: 'contain',
+              filter: 'drop-shadow(0 0 16px rgba(0, 240, 255, 0.5)) drop-shadow(0 0 25px rgba(224, 38, 216, 0.35))',
+              transition: 'transform 0.2s ease',
+            }}
+            className="hover:scale-105"
+          />
         </Link>
 
         {/* Center: Single Elegant Sweepstakes Games Pill */}
@@ -126,8 +96,8 @@ export default function VegasNavbar({
               display: 'inline-flex',
               alignItems: 'center',
               gap: '8px',
-              backgroundColor: '#171124',
-              border: '1px solid rgba(255, 122, 89, 0.35)',
+              backgroundColor: '#140E33',
+              border: '1px solid rgba(0, 240, 255, 0.4)',
               padding: '8px 22px',
               borderRadius: '9999px',
               color: '#FFFFFF',
@@ -137,11 +107,11 @@ export default function VegasNavbar({
               fontWeight: 800,
               letterSpacing: '0.04em',
               textTransform: 'uppercase',
-              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4)',
+              boxShadow: '0 0 20px rgba(0, 240, 255, 0.2)',
               transition: 'all 0.2s ease',
             }}
           >
-            <Flame size={15} color="#FF7A59" />
+            <Flame size={15} color="#00F0FF" />
             <span>SWEEPSTAKES GAMES</span>
           </Link>
         </div>
@@ -236,9 +206,9 @@ export default function VegasNavbar({
                     width: '38px',
                     height: '38px',
                     borderRadius: '50%',
-                    backgroundColor: '#25183E',
-                    border: '2px solid rgba(245, 180, 97, 0.6)',
-                    color: '#F5B461',
+                    backgroundColor: '#0E0A24',
+                    border: '2px solid rgba(0, 240, 255, 0.7)',
+                    color: '#00F0FF',
                     fontFamily: 'Sora, sans-serif',
                     fontWeight: 800,
                     fontSize: '12px',
@@ -309,9 +279,9 @@ export default function VegasNavbar({
                         <Link
                           href="/admin"
                           onClick={() => setUserDropdownOpen(false)}
-                          style={{ width: '100%', padding: '8px 16px', textAlign: 'left', background: 'transparent', border: 'none', color: '#F5B461', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}
+                          style={{ width: '100%', padding: '8px 16px', textAlign: 'left', background: 'transparent', border: 'none', color: '#00F0FF', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}
                         >
-                          <Shield size={14} color="#F5B461" />
+                          <Shield size={14} color="#00F0FF" />
                           <span>Staff Sovereign Console</span>
                         </Link>
                       )}

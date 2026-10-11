@@ -86,7 +86,7 @@ export default function GamesPage() {
     });
 
   return (
-    <div className="min-h-screen bg-[#0E0816] text-[#F8FAFC] selection:bg-[#FF7A59] selection:text-[#0E0816] flex flex-col justify-between font-body antialiased">
+    <div className="min-h-screen bg-[#070514] text-[#F8FAFC] selection:bg-[#00F0FF] selection:text-[#070514] flex flex-col justify-between font-body antialiased">
       <div>
         <VegasNavbar
           user={user}
@@ -112,7 +112,7 @@ export default function GamesPage() {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                color: '#FF7A59',
+                color: '#00F0FF',
                 fontSize: '12px',
                 fontWeight: 700,
                 textDecoration: 'none',
@@ -125,7 +125,7 @@ export default function GamesPage() {
 
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px' }}>
               <div>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#F5B461', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
                   <span>⧉ OFFICIAL SWEEPSTAKES LIBRARY</span>
                 </div>
                 <h1 style={{ fontFamily: 'Sora, sans-serif', fontSize: '36px', fontWeight: 900, color: '#FFFFFF', margin: 0, letterSpacing: '-0.02em' }}>

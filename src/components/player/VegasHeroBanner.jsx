@@ -31,7 +31,7 @@ export default function VegasHeroBanner({
   }, []);
 
   const handleCopyCode = () => {
-    navigator.clipboard?.writeText('CROWNROYALE');
+    navigator.clipboard?.writeText('VEGASONE');
     setCopiedCode(true);
     setTimeout(() => setCopiedCode(false), 2000);
   };
@@ -46,7 +46,7 @@ export default function VegasHeroBanner({
           left: '10%',
           width: '380px',
           height: '380px',
-          background: 'rgba(255, 122, 89, 0.08)',
+          background: 'rgba(0, 240, 255, 0.1)',
           borderRadius: '50%',
           filter: 'blur(120px)',
           pointerEvents: 'none',
@@ -59,14 +59,14 @@ export default function VegasHeroBanner({
           right: '15%',
           width: '380px',
           height: '380px',
-          background: 'rgba(20, 184, 166, 0.08)',
+          background: 'rgba(224, 38, 216, 0.1)',
           borderRadius: '50%',
           filter: 'blur(120px)',
           pointerEvents: 'none',
         }}
       />
 
-      {/* 2-Column Split Grid from Image 2 */}
+      {/* 2-Column Split Grid */}
       <div className="sovereign-hero-grid">
         
         {/* LEFT COLUMN: Eyebrow, Headline, Welcome Pack, CTAs, Trust */}
@@ -78,8 +78,8 @@ export default function VegasHeroBanner({
               display: 'inline-flex',
               alignItems: 'center',
               gap: '8px',
-              backgroundColor: '#171124',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              backgroundColor: '#0E0A24',
+              border: '1px solid rgba(0, 240, 255, 0.25)',
               padding: '6px 14px',
               borderRadius: '9999px',
               width: 'fit-content',
@@ -90,28 +90,28 @@ export default function VegasHeroBanner({
                 width: '8px',
                 height: '8px',
                 borderRadius: '50%',
-                backgroundColor: '#14B8A6',
+                backgroundColor: '#00F0FF',
                 display: 'inline-block',
-                boxShadow: '0 0 8px #14B8A6',
+                boxShadow: '0 0 10px #00F0FF',
               }}
             />
             <span
               style={{
                 fontSize: '11px',
                 fontFamily: 'Sora, sans-serif',
-                fontWeight: 700,
+                fontWeight: 800,
                 letterSpacing: '0.06em',
                 textTransform: 'uppercase',
-                color: '#14B8A6',
+                color: '#00F0FF',
               }}
             >
-              CROWN PRIVILEGE SUITE · SALON PRIVÉ
+              VEGAS ONE MARQUEE SUITE · VIP SALON
             </span>
           </div>
 
           {/* Heading */}
           <h1 className="sovereign-hero-title">
-            Enter the <span className="highlight">Royal Hall</span>
+            Enter the <span className="highlight">Marquee Hall</span>
           </h1>
 
           {/* Subtitle */}
@@ -119,12 +119,12 @@ export default function VegasHeroBanner({
             Step into an unprecedented arena of high-roller rewards, instantaneous vault payouts, and prestige loyalty privileges tailored for discerning sovereign patrons.
           </p>
 
-          {/* Triple Tier Welcome Pack Card (Image 2) */}
+          {/* Triple Tier Welcome Pack Card */}
           <div className="sovereign-welcome-card">
             <div className="sovereign-welcome-header">
               <div>
                 <div className="sovereign-welcome-pack-label">
-                  <Trophy size={14} color="#F5B461" />
+                  <Trophy size={14} color="#00F0FF" />
                   <span>TRIPLE TIER WELCOME PACK</span>
                 </div>
                 <div className="sovereign-welcome-amount">
@@ -152,14 +152,14 @@ export default function VegasHeroBanner({
                     gap: '4px',
                   }}
                 >
-                  Code: <span style={{ color: '#F5B461', textDecoration: 'underline' }}>CROWNROYALE</span>
-                  {copiedCode && <span style={{ color: '#10B981', fontSize: '10px' }}>✓ Copied</span>}
+                  Code: <span style={{ color: '#00F0FF', textDecoration: 'underline', fontWeight: 800 }}>VEGASONE</span>
+                  {copiedCode && <span style={{ color: '#00F0FF', fontSize: '10px' }}>✓ Copied</span>}
                 </button>
               </div>
             </div>
 
-            <p style={{ margin: 0, paddingTop: '12px', fontSize: '12px', color: '#A69FB3', fontFamily: 'DM Sans, sans-serif', lineHeight: 1.5 }}>
-              Includes <strong style={{ color: '#F5B461' }}>+150 Crown Free Spins</strong> and instantaneous Tier II Sovereign Status upgrade.
+            <p style={{ margin: 0, paddingTop: '12px', fontSize: '12px', color: '#CBD5E1', fontFamily: 'DM Sans, sans-serif', lineHeight: 1.5 }}>
+              Includes <strong style={{ color: '#00F0FF' }}>+150 Neon Free Spins</strong> and instantaneous Tier II Sovereign Status upgrade.
             </p>
           </div>
 
@@ -170,8 +170,12 @@ export default function VegasHeroBanner({
               onClick={user ? onOpenWallet : () => onOpenAuth('register')}
               className="btn-sovereign-coral"
             >
-              <Crown size={17} color="#0E0816" fill="#0E0816" />
-              <span>CLAIM ROYAL WELCOME</span>
+              <img
+                src="/images/logo.png"
+                alt="Vegas One"
+                style={{ height: '22px', width: 'auto', objectFit: 'contain' }}
+              />
+              <span>CLAIM NEON WELCOME</span>
             </button>
 
             <button
@@ -190,15 +194,15 @@ export default function VegasHeroBanner({
           {/* Trust Ribbons */}
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '20px', paddingTop: '6px', fontSize: '12px', color: '#9A91A8', fontFamily: 'DM Sans, sans-serif' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Lock size={14} color="#14B8A6" />
+              <Lock size={14} color="#00F0FF" />
               <span>Instant Crypto & Fiat Settlements</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <CheckCircle2 size={14} color="#F5B461" />
+              <CheckCircle2 size={14} color="#E026D8" />
               <span>99.4% Platform RTP</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <ShieldCheck size={14} color="#FF7A59" />
+              <ShieldCheck size={14} color="#00F0FF" />
               <span>Licensed Sovereign Gaming</span>
             </div>
           </div>
@@ -226,9 +230,9 @@ export default function VegasHeroBanner({
                   width: '7px',
                   height: '7px',
                   borderRadius: '50%',
-                  backgroundColor: '#14B8A6',
+                  backgroundColor: '#00F0FF',
                   display: 'inline-block',
-                  boxShadow: '0 0 8px #14B8A6',
+                  boxShadow: '0 0 8px #00F0FF',
                 }}
               />
               <span>SALON PRIVÉ LIVE</span>
@@ -239,28 +243,28 @@ export default function VegasHeroBanner({
               style={{
                 position: 'absolute',
                 inset: 0,
-                background: 'linear-gradient(to top, #171124 0%, transparent 40%, rgba(0,0,0,0.3) 100%)',
+                background: 'linear-gradient(to top, #0E0A24 0%, transparent 40%, rgba(0,0,0,0.3) 100%)',
                 pointerEvents: 'none',
               }}
             />
           </div>
 
-          {/* Overlay Mega Jackpot Box from Image 2 */}
+          {/* Overlay Mega Jackpot Box */}
           <div className="sovereign-jackpot-box">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#F5B461', letterSpacing: '0.06em' }}>
-                <Crown size={14} color="#F5B461" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#00F0FF', letterSpacing: '0.06em' }}>
+                <Crown size={14} color="#00F0FF" />
                 <span>CURRENT MEGA JACKPOT</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#14B8A6' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#E026D8' }}>
                 <span
                   style={{
                     width: '6px',
                     height: '6px',
                     borderRadius: '50%',
-                    backgroundColor: '#14B8A6',
+                    backgroundColor: '#E026D8',
                     display: 'inline-block',
-                    boxShadow: '0 0 6px #14B8A6',
+                    boxShadow: '0 0 6px #E026D8',
                   }}
                 />
                 <span>DROPPING SOON</span>

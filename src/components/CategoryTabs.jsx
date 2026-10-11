@@ -29,16 +29,16 @@ export default function CategoryTabs({ activeFilter = 'all', setActiveFilter, fa
           cursor: 'pointer',
           whiteSpace: 'nowrap',
           transition: 'all 0.2s ease',
-          backgroundColor: activeFilter === 'all' ? '#271E36' : 'transparent',
-          color: activeFilter === 'all' ? '#FFFFFF' : '#9A91A8',
-          border: activeFilter === 'all' ? '1px solid rgba(255, 255, 255, 0.18)' : '1px solid transparent',
-          boxShadow: activeFilter === 'all' ? '0 4px 14px rgba(0, 0, 0, 0.4)' : 'none',
+          backgroundColor: activeFilter === 'all' ? '#0E0A24' : 'transparent',
+          color: activeFilter === 'all' ? '#00F0FF' : '#9A91A8',
+          border: activeFilter === 'all' ? '1px solid rgba(0, 240, 255, 0.4)' : '1px solid transparent',
+          boxShadow: activeFilter === 'all' ? '0 4px 14px rgba(0, 240, 255, 0.25)' : 'none',
           display: 'flex',
           alignItems: 'center',
           gap: '8px',
         }}
       >
-        <Flame size={14} color={activeFilter === 'all' ? '#FF7A59' : '#9A91A8'} />
+        <Flame size={14} color={activeFilter === 'all' ? '#00F0FF' : '#9A91A8'} />
         <span>ALL SWEEPSTAKES GAMES</span>
       </button>
 
@@ -57,10 +57,10 @@ export default function CategoryTabs({ activeFilter = 'all', setActiveFilter, fa
           cursor: 'pointer',
           whiteSpace: 'nowrap',
           transition: 'all 0.2s ease',
-          backgroundColor: activeFilter === 'favorites' ? '#271E36' : 'transparent',
-          color: activeFilter === 'favorites' ? '#FFFFFF' : '#9A91A8',
-          border: activeFilter === 'favorites' ? '1px solid rgba(255, 255, 255, 0.18)' : '1px solid transparent',
-          boxShadow: activeFilter === 'favorites' ? '0 4px 14px rgba(0, 0, 0, 0.4)' : 'none',
+          backgroundColor: activeFilter === 'favorites' ? '#0E0A24' : 'transparent',
+          color: activeFilter === 'favorites' ? '#E026D8' : '#9A91A8',
+          border: activeFilter === 'favorites' ? '1px solid rgba(224, 38, 216, 0.4)' : '1px solid transparent',
+          boxShadow: activeFilter === 'favorites' ? '0 4px 14px rgba(224, 38, 216, 0.25)' : 'none',
           display: 'flex',
           alignItems: 'center',
           gap: '8px',

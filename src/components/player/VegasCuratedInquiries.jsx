@@ -41,13 +41,13 @@ export default function VegasCuratedInquiries() {
             fontSize: '11px',
             fontFamily: 'Sora, sans-serif',
             fontWeight: 800,
-            color: '#F5B461',
+            color: '#00F0FF',
             textTransform: 'uppercase',
             letterSpacing: '0.06em',
             marginBottom: '8px',
           }}
         >
-          <BookOpen size={14} color="#F5B461" />
+          <BookOpen size={14} color="#00F0FF" />
           <span>CONCIERGE DESK</span>
         </div>
 
@@ -68,8 +68,8 @@ export default function VegasCuratedInquiries() {
             <div
               key={idx}
               style={{
-                backgroundColor: '#171124',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                backgroundColor: '#0E0A24',
+                border: '1px solid rgba(0, 240, 255, 0.15)',
                 borderRadius: '16px',
                 overflow: 'hidden',
                 transition: 'all 0.2s ease',
@@ -99,7 +99,7 @@ export default function VegasCuratedInquiries() {
                 <span>{faq.q}</span>
                 <ChevronDown
                   size={18}
-                  color="#FF7A59"
+                  color="#00F0FF"
                   style={{
                     flexShrink: 0,
                     transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',

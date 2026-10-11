@@ -67,8 +67,8 @@ export default function VegasFreeplayBanner({ user, onOpenAuth, onBalanceUpdated
   return (
     <div
       style={{
-        backgroundColor: '#171124',
-        border: '1px solid rgba(245, 180, 97, 0.3)',
+        backgroundColor: '#0E0A24',
+        border: '1px solid rgba(0, 240, 255, 0.35)',
         borderRadius: '20px',
         padding: '18px 24px',
         marginBottom: '32px',
@@ -77,7 +77,7 @@ export default function VegasFreeplayBanner({ user, onOpenAuth, onBalanceUpdated
         justifyContent: 'space-between',
         flexWrap: 'wrap',
         gap: '16px',
-        boxShadow: '0 8px 30px rgba(0, 0, 0, 0.35)',
+        boxShadow: '0 8px 30px rgba(0, 0, 0, 0.45)',
         position: 'relative',
         overflow: 'hidden',
       }}
@@ -90,7 +90,7 @@ export default function VegasFreeplayBanner({ user, onOpenAuth, onBalanceUpdated
           left: 0,
           width: '180px',
           height: '180px',
-          background: 'radial-gradient(circle, rgba(245, 180, 97, 0.12) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(0, 240, 255, 0.15) 0%, transparent 70%)',
           pointerEvents: 'none',
         }}
       />
@@ -101,9 +101,9 @@ export default function VegasFreeplayBanner({ user, onOpenAuth, onBalanceUpdated
             width: '46px',
             height: '46px',
             borderRadius: '14px',
-            backgroundColor: 'rgba(245, 180, 97, 0.15)',
-            border: '1px solid rgba(245, 180, 97, 0.3)',
-            color: '#F5B461',
+            backgroundColor: 'rgba(0, 240, 255, 0.15)',
+            border: '1px solid rgba(0, 240, 255, 0.4)',
+            color: '#00F0FF',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

@@ -399,7 +399,7 @@ export default function AdminPortal({ initialTab }) {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#0E0816', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F8FAFC', fontFamily: 'Sora, sans-serif', fontWeight: 800 }}>
+      <div style={{ minHeight: '100vh', backgroundColor: '#070514', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F8FAFC', fontFamily: 'Sora, sans-serif', fontWeight: 800 }}>
         Loading Vegas One Staff Portal...
       </div>
     );
@@ -408,14 +408,20 @@ export default function AdminPortal({ initialTab }) {
   // Not Logged In as Staff Form
   if (!user) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#0E0816', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', fontFamily: 'DM Sans, sans-serif' }}>
-        <div style={{ maxWidth: '420px', width: '100%', backgroundColor: '#171124', border: '1px solid rgba(255, 122, 89, 0.35)', borderRadius: '20px', padding: '32px 28px', boxShadow: '0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(255, 122, 89, 0.15)' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: '#070514', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', fontFamily: 'DM Sans, sans-serif' }}>
+        <div style={{ maxWidth: '420px', width: '100%', backgroundColor: '#0E0A24', border: '1px solid rgba(0, 240, 255, 0.35)', borderRadius: '20px', padding: '32px 28px', boxShadow: '0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(0, 240, 255, 0.16)' }}>
           <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-            <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'linear-gradient(135deg, #FF7A59 0%, #F5B461 100%)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 18px rgba(255, 122, 89, 0.35)', marginBottom: '10px' }}>
-              <svg viewBox="0 0 24 24" style={{ width: '22px', height: '22px', fill: '#0E0816' }}>
-                <path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5ZM19 19C19 19.5523 18.5523 20 18 20H6C5.44772 20 5 19.5523 5 19V17H19V19Z" />
-              </svg>
-            </div>
+            <img
+              src="/images/logo.png"
+              alt="Vegas One"
+              style={{
+                height: '52px',
+                width: 'auto',
+                objectFit: 'contain',
+                marginBottom: '10px',
+                filter: 'drop-shadow(0 0 14px rgba(0, 240, 255, 0.45)) drop-shadow(0 0 20px rgba(224, 38, 216, 0.35))',
+              }}
+            />
             <h2 style={{ fontFamily: 'Sora, sans-serif', fontSize: '20px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 4px 0' }}>
               Staff Management Terminal
             </h2>
@@ -441,7 +447,7 @@ export default function AdminPortal({ initialTab }) {
                 value={loginId}
                 onChange={(e) => setLoginId(e.target.value)}
                 required
-                style={{ width: '100%', backgroundColor: '#0E0816', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '10px', padding: '10px 14px', color: '#FFFFFF', fontSize: '12.5px', outline: 'none', boxSizing: 'border-box' }}
+                style={{ width: '100%', backgroundColor: '#070514', border: '1px solid rgba(0, 240, 255, 0.2)', borderRadius: '10px', padding: '10px 14px', color: '#FFFFFF', fontSize: '12.5px', outline: 'none', boxSizing: 'border-box' }}
               />
             </div>
 
@@ -455,7 +461,7 @@ export default function AdminPortal({ initialTab }) {
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
                 required
-                style={{ width: '100%', backgroundColor: '#0E0816', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '10px', padding: '10px 14px', color: '#FFFFFF', fontSize: '12.5px', outline: 'none', boxSizing: 'border-box' }}
+                style={{ width: '100%', backgroundColor: '#070514', border: '1px solid rgba(0, 240, 255, 0.2)', borderRadius: '10px', padding: '10px 14px', color: '#FFFFFF', fontSize: '12.5px', outline: 'none', boxSizing: 'border-box' }}
               />
             </div>
 
@@ -468,8 +474,8 @@ export default function AdminPortal({ initialTab }) {
             </button>
           </form>
 
-          <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.08)', textAlign: 'center' }}>
-            <Link href="/" style={{ fontSize: '12px', color: '#A69FB3', textDecoration: 'none', transition: 'color 0.2s' }}>
+          <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(0, 240, 255, 0.12)', textAlign: 'center' }}>
+            <Link href="/" style={{ fontSize: '12px', color: '#00F0FF', textDecoration: 'none', transition: 'color 0.2s', fontWeight: 700 }}>
               ← Return to Casino Lobby
             </Link>
           </div>
@@ -519,13 +525,13 @@ export default function AdminPortal({ initialTab }) {
   const visibleTabs = allTabs.filter(t => isAllowed(t.id));
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0E0816', color: '#F8FAFC', display: 'flex', flexDirection: 'column', fontFamily: 'DM Sans, sans-serif' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#070514', color: '#F8FAFC', display: 'flex', flexDirection: 'column', fontFamily: 'DM Sans, sans-serif' }}>
       {/* Top Staff Navbar */}
       <header
         style={{
           height: '66px',
-          backgroundColor: '#171124',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+          backgroundColor: '#0E0A24',
+          borderBottom: '1px solid rgba(0, 240, 255, 0.14)',
           padding: '0 24px',
           display: 'flex',
           alignItems: 'center',
@@ -534,23 +540,25 @@ export default function AdminPortal({ initialTab }) {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
-            <div style={{ width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg viewBox="0 0 24 24" style={{ width: '26px', height: '26px', fill: '#F5B461', filter: 'drop-shadow(0 2px 10px rgba(245, 180, 97, 0.5))' }}>
-                <path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5ZM19 19C19 19.5523 18.5523 20 18 20H6C5.44772 20 5 19.5523 5 19V17H19V19Z" />
-              </svg>
-            </div>
-            <span style={{ fontFamily: 'Sora, sans-serif', fontWeight: 900, fontSize: '16px', letterSpacing: '0.14em', color: '#F8FAFC' }}>
-              VEGAS <span style={{ color: '#F5B461' }}>ONE</span>
-            </span>
+          <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', textDecoration: 'none' }}>
+            <img
+              src="/images/logo.png"
+              alt="Vegas One"
+              style={{
+                height: '42px',
+                width: 'auto',
+                objectFit: 'contain',
+                filter: 'drop-shadow(0 0 10px rgba(0, 240, 255, 0.45)) drop-shadow(0 0 16px rgba(224, 38, 216, 0.35))',
+              }}
+            />
           </Link>
           <span
             style={{
               padding: '4px 10px',
               borderRadius: '9999px',
-              backgroundColor: 'rgba(255, 122, 89, 0.15)',
-              border: '1px solid rgba(255, 122, 89, 0.35)',
-              color: '#FF7A59',
+              backgroundColor: 'rgba(0, 240, 255, 0.12)',
+              border: '1px solid rgba(0, 240, 255, 0.35)',
+              color: '#00F0FF',
               fontSize: '10.5px',
               fontFamily: 'Sora, sans-serif',
               fontWeight: 800,
@@ -673,21 +681,21 @@ export default function AdminPortal({ initialTab }) {
                     border: 'none',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
-                    backgroundColor: isActive ? '#FF7A59' : 'transparent',
-                    color: isActive ? '#0E0816' : '#9A91A8',
-                    boxShadow: isActive ? '0 4px 14px rgba(255, 122, 89, 0.35)' : 'none',
+                    backgroundColor: isActive ? '#00F0FF' : 'transparent',
+                    color: isActive ? '#070514' : '#9A91A8',
+                    boxShadow: isActive ? '0 4px 14px rgba(0, 240, 255, 0.4)' : 'none',
                     textAlign: 'left',
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Icon size={16} color={isActive ? '#0E0816' : '#9A91A8'} />
+                    <Icon size={16} color={isActive ? '#070514' : '#9A91A8'} />
                     <span>{tab.label}</span>
                   </div>
                   {hasBadge && (
                     <span
                       style={{
-                        backgroundColor: isActive ? '#0E0816' : '#EF4444',
-                        color: isActive ? '#FF7A59' : '#FFFFFF',
+                        backgroundColor: isActive ? '#070514' : '#EF4444',
+                        color: isActive ? '#00F0FF' : '#FFFFFF',
                         fontSize: '9.5px',
                         fontFamily: 'Sora, sans-serif',
                         fontWeight: 900,
@@ -2052,7 +2060,7 @@ export default function AdminPortal({ initialTab }) {
                           <td className="p-3 text-right space-x-2">
                             <button
                               onClick={() => setAdjustModal({ open: true, user: u, amount: '', reason: '' })}
-                              className="text-xs bg-[#0E0816] text-[#F5B461] border border-[#F5B461]/30 hover:bg-[#F5B461]/10 px-2.5 py-1.5 rounded-lg font-bold"
+                              className="text-xs bg-[#070514] text-[#00F0FF] border border-[#00F0FF]/30 hover:bg-[#00F0FF]/10 px-2.5 py-1.5 rounded-lg font-bold"
                             >
                               Adjust $
                             </button>
@@ -2126,8 +2134,8 @@ export default function AdminPortal({ initialTab }) {
               </div>
 
               {/* Add Gateway */}
-              <div className="bg-[#171124] border border-white/10 p-5 rounded-2xl space-y-4">
-                <h3 className="text-xs font-black text-[#FF7A59] uppercase tracking-wider">Add Payment Gateway Rail</h3>
+              <div className="bg-[#0E0A24] border border-[#00F0FF]/20 p-5 rounded-2xl space-y-4">
+                <h3 className="text-xs font-black text-[#00F0FF] uppercase tracking-wider">Add Payment Gateway Rail</h3>
                 <form
                   onSubmit={async (e) => {
                     e.preventDefault();
@@ -2253,7 +2261,7 @@ export default function AdminPortal({ initialTab }) {
                           </td>
                           <td className="p-3 font-bold text-white">{rec.username}</td>
                           <td className="p-3">
-                            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-white/5 text-[#F5B461]">
+                            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[#00F0FF]/10 text-[#00F0FF]">
                               {rec.type}
                             </span>
                           </td>
@@ -2283,9 +2291,9 @@ export default function AdminPortal({ initialTab }) {
                 <p className="text-xs text-[#9A91A8] mt-1">Review &amp; approve referral rewards claimed by registered agents</p>
               </div>
 
-              <div className="bg-[#171124] border border-white/10 rounded-2xl overflow-hidden">
+              <div className="bg-[#0E0A24] border border-[#00F0FF]/20 rounded-2xl overflow-hidden">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-[#0E0816] text-gray-400 uppercase border-b border-white/10">
+                  <thead className="bg-[#070514] text-gray-400 uppercase border-b border-white/10">
                     <tr>
                       <th className="p-3">Agent</th>
                       <th className="p-3">Referral Code</th>
@@ -2305,7 +2313,7 @@ export default function AdminPortal({ initialTab }) {
                       affiliates.map(a => (
                         <tr key={a.userId} className="hover:bg-white/5">
                           <td className="p-3 font-bold text-white">{a.username}</td>
-                          <td className="p-3 font-mono text-[#F5B461]">{a.referralCode}</td>
+                          <td className="p-3 font-mono text-[#00F0FF]">{a.referralCode}</td>
                           <td className="p-3 font-mono text-emerald-400">${a.commissionsEarned} SC</td>
                           <td className="p-3 font-mono text-purple-300 font-bold">${a.commissionsUnpaid} SC</td>
                           <td className="p-3 text-right">
@@ -2330,7 +2338,7 @@ export default function AdminPortal({ initialTab }) {
           {/* MODAL: ADJUST PLAYER BALANCE */}
           {adjustModal.open && (
             <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-              <div className="bg-[#171124] border border-[#FF7A59]/40 p-6 rounded-2xl max-w-md w-full space-y-4">
+              <div className="bg-[#0E0A24] border border-[#00F0FF]/40 p-6 rounded-2xl max-w-md w-full space-y-4 shadow-[0_0_40px_rgba(0,240,255,0.2)]">
                 <div className="flex items-center justify-between">
                   <h3 className="text-base font-black text-white">Adjust Patron Balance</h3>
                   <button onClick={() => setAdjustModal({ open: false, user: null, amount: '', reason: '' })} className="text-gray-400 hover:text-white">

@@ -37,19 +37,19 @@ export default function VegasCrownClub({ user, onOpenVIPDetails }) {
               alignItems: 'center',
               gap: '8px',
               backgroundColor: '#231C30',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(0, 240, 255, 0.3)',
               padding: '6px 14px',
               borderRadius: '9999px',
               fontSize: '11px',
               fontFamily: 'Sora, sans-serif',
               fontWeight: 800,
-              color: '#F5B461',
+              color: '#00F0FF',
               textTransform: 'uppercase',
               letterSpacing: '0.06em',
               marginBottom: '12px',
             }}
           >
-            <Trophy size={14} color="#F5B461" />
+            <Trophy size={14} color="#00F0FF" />
             <span>SOVEREIGN PATRON REWARD TIER</span>
           </div>
 
@@ -120,8 +120,8 @@ export default function VegasCrownClub({ user, onOpenVIPDetails }) {
                   style={{
                     height: '100%',
                     borderRadius: '9999px',
-                    background: 'linear-gradient(90deg, #FF7A59 0%, #F5B461 50%, #14B8A6 100%)',
-                    boxShadow: '0 0 12px rgba(20, 184, 166, 0.5)',
+                    background: 'linear-gradient(90deg, #E026D8 0%, #00F0FF 100%)',
+                    boxShadow: '0 0 12px rgba(0, 240, 255, 0.5)',
                     width: `${percentage}%`,
                     transition: 'width 1s ease',
                   }}
@@ -131,8 +131,8 @@ export default function VegasCrownClub({ user, onOpenVIPDetails }) {
               {/* Status Labels */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px', color: '#9A91A8', fontFamily: 'DM Sans, sans-serif', marginTop: '12px' }}>
                 <span>Tier II Master</span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#F5B461' }}>
-                  <Lock size={12} color="#F5B461" />
+                <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#00F0FF' }}>
+                  <Lock size={12} color="#00F0FF" />
                   <span>Next: Tier IV Imperial ({Math.max(0, target - points).toLocaleString()} CP remaining)</span>
                 </span>
               </div>
@@ -181,15 +181,15 @@ export default function VegasCrownClub({ user, onOpenVIPDetails }) {
                   width: '42px',
                   height: '42px',
                   borderRadius: '12px',
-                  backgroundColor: 'rgba(245, 180, 97, 0.15)',
-                  color: '#F5B461',
+                  backgroundColor: 'rgba(0, 240, 255, 0.15)',
+                  color: '#00F0FF',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   marginBottom: '16px',
                 }}
               >
-                <Compass size={20} color="#F5B461" />
+                <Compass size={20} color="#00F0FF" />
               </div>
               <div>
                 <h4 style={{ fontFamily: 'Sora, sans-serif', fontSize: '14px', fontWeight: 700, color: '#FFFFFF', margin: '0 0 6px 0' }}>
@@ -204,7 +204,7 @@ export default function VegasCrownClub({ user, onOpenVIPDetails }) {
             {/* Perk 2 */}
             <div
               style={{
-                backgroundColor: '#130D1E',
+                backgroundColor: '#0E0A24',
                 border: '1px solid rgba(255, 255, 255, 0.06)',
                 borderRadius: '18px',
                 padding: '20px',
@@ -218,15 +218,15 @@ export default function VegasCrownClub({ user, onOpenVIPDetails }) {
                   width: '42px',
                   height: '42px',
                   borderRadius: '12px',
-                  backgroundColor: 'rgba(20, 184, 166, 0.15)',
-                  color: '#14B8A6',
+                  backgroundColor: 'rgba(0, 240, 255, 0.15)',
+                  color: '#00F0FF',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   marginBottom: '16px',
                 }}
               >
-                <Zap size={20} color="#14B8A6" />
+                <Zap size={20} color="#00F0FF" />
               </div>
               <div>
                 <h4 style={{ fontFamily: 'Sora, sans-serif', fontSize: '14px', fontWeight: 700, color: '#FFFFFF', margin: '0 0 6px 0' }}>
@@ -241,7 +241,7 @@ export default function VegasCrownClub({ user, onOpenVIPDetails }) {
             {/* Perk 3 */}
             <div
               style={{
-                backgroundColor: '#130D1E',
+                backgroundColor: '#0E0A24',
                 border: '1px solid rgba(255, 255, 255, 0.06)',
                 borderRadius: '18px',
                 padding: '20px',
@@ -255,15 +255,15 @@ export default function VegasCrownClub({ user, onOpenVIPDetails }) {
                   width: '42px',
                   height: '42px',
                   borderRadius: '12px',
-                  backgroundColor: 'rgba(255, 122, 89, 0.15)',
-                  color: '#FF7A59',
+                  backgroundColor: 'rgba(224, 38, 216, 0.15)',
+                  color: '#E026D8',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   marginBottom: '16px',
                 }}
               >
-                <Plane size={20} color="#FF7A59" />
+                <Plane size={20} color="#E026D8" />
               </div>
               <div>
                 <h4 style={{ fontFamily: 'Sora, sans-serif', fontSize: '14px', fontWeight: 700, color: '#FFFFFF', margin: '0 0 6px 0' }}>

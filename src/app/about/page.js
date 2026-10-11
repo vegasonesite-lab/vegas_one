@@ -10,7 +10,7 @@ import LiveChatWidget from '@/components/LiveChatWidget';
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-[#0E0816] text-[#F8FAFC] selection:bg-[#FF7A59] selection:text-[#0E0816] flex flex-col justify-between font-body antialiased">
+    <div className="min-h-screen bg-[#070514] text-[#F8FAFC] selection:bg-[#00F0FF] selection:text-[#070514] flex flex-col justify-between font-body antialiased">
       <div>
         <VegasNavbar activeTab="rules" onSelectTab={() => {}} />
 
@@ -21,7 +21,7 @@ export default function AboutPage() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '6px',
-              color: '#FF7A59',
+              color: '#00F0FF',
               fontSize: '12px',
               fontWeight: 700,
               textDecoration: 'none',
@@ -34,21 +34,17 @@ export default function AboutPage() {
 
           <div style={{ maxWidth: '820px', margin: '0 auto' }}>
             <div style={{ textAlign: 'center', marginBottom: '36px' }}>
-              <div
+              <img
+                src="/images/logo.png"
+                alt="Vegas One"
                 style={{
-                  width: '56px',
-                  height: '56px',
-                  borderRadius: '16px',
-                  background: 'linear-gradient(135deg, #FF7A59 0%, #F5B461 100%)',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: '0 8px 24px rgba(255, 122, 89, 0.4)',
+                  height: '64px',
+                  width: 'auto',
+                  objectFit: 'contain',
                   marginBottom: '16px',
+                  filter: 'drop-shadow(0 0 16px rgba(0, 240, 255, 0.45)) drop-shadow(0 0 24px rgba(224, 38, 216, 0.35))',
                 }}
-              >
-                <Crown size={28} color="#0E0816" fill="#0E0816" />
-              </div>
+              />
               <h1 style={{ fontFamily: 'Sora, sans-serif', fontSize: '38px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 12px 0' }}>
                 About Vegas One Sovereign
               </h1>
@@ -59,9 +55,9 @@ export default function AboutPage() {
 
             <div
               style={{
-                backgroundColor: '#171124',
+                backgroundColor: '#0E0A24',
                 borderRadius: '24px',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(0, 240, 255, 0.2)',
                 padding: '36px 32px',
                 fontSize: '14px',
                 color: '#CBD5E1',
@@ -76,20 +72,20 @@ export default function AboutPage() {
               </p>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', margin: '10px 0' }}>
-                <div style={{ backgroundColor: '#0E0816', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                  <ShieldCheck size={22} color="#14B8A6" style={{ marginBottom: '8px' }} />
+                <div style={{ backgroundColor: '#070514', padding: '16px', borderRadius: '16px', border: '1px solid rgba(0, 240, 255, 0.15)' }}>
+                  <ShieldCheck size={22} color="#00F0FF" style={{ marginBottom: '8px' }} />
                   <h4 style={{ color: '#FFFFFF', margin: '0 0 4px 0', fontFamily: 'Sora, sans-serif' }}>100% US Legal</h4>
                   <p style={{ fontSize: '12px', color: '#9A91A8', margin: 0 }}>Operated under promotional sweepstakes regulations.</p>
                 </div>
 
-                <div style={{ backgroundColor: '#0E0816', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                  <Lock size={22} color="#FF7A59" style={{ marginBottom: '8px' }} />
+                <div style={{ backgroundColor: '#070514', padding: '16px', borderRadius: '16px', border: '1px solid rgba(224, 38, 216, 0.15)' }}>
+                  <Lock size={22} color="#E026D8" style={{ marginBottom: '8px' }} />
                   <h4 style={{ color: '#FFFFFF', margin: '0 0 4px 0', fontFamily: 'Sora, sans-serif' }}>Fast Settlements</h4>
                   <p style={{ fontSize: '12px', color: '#9A91A8', margin: 0 }}>Cash App, Zelle, Venmo, &amp; Crypto payouts.</p>
                 </div>
 
-                <div style={{ backgroundColor: '#0E0816', padding: '16px', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                  <Trophy size={22} color="#F5B461" style={{ marginBottom: '8px' }} />
+                <div style={{ backgroundColor: '#070514', padding: '16px', borderRadius: '16px', border: '1px solid rgba(0, 240, 255, 0.15)' }}>
+                  <Trophy size={22} color="#00F0FF" style={{ marginBottom: '8px' }} />
                   <h4 style={{ color: '#FFFFFF', margin: '0 0 4px 0', fontFamily: 'Sora, sans-serif' }}>99.4% RTP</h4>
                   <p style={{ fontSize: '12px', color: '#9A91A8', margin: 0 }}>Highest payout rate in the sweepstakes industry.</p>
                 </div>

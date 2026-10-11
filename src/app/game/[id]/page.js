@@ -117,7 +117,7 @@ export default function GameDetailPage() {
   }, [gameId]);
 
   return (
-    <div className="min-h-screen bg-[#0E0816] text-[#F8FAFC] selection:bg-[#FF7A59] selection:text-[#0E0816] flex flex-col justify-between font-body antialiased">
+    <div className="min-h-screen bg-[#070514] text-[#F8FAFC] selection:bg-[#00F0FF] selection:text-[#070514] flex flex-col justify-between font-body antialiased">
       <div>
         {/* Top Sovereign Navbar */}
         <VegasNavbar
@@ -152,7 +152,7 @@ export default function GameDetailPage() {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  color: '#FF7A59',
+                  color: '#00F0FF',
                   textDecoration: 'none',
                   fontWeight: 700,
                   transition: 'opacity 0.2s',
@@ -195,9 +195,9 @@ export default function GameDetailPage() {
               style={{
                 padding: '100px 20px',
                 textAlign: 'center',
-                backgroundColor: '#171124',
+                backgroundColor: '#0E0A24',
                 borderRadius: '24px',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(0, 240, 255, 0.18)',
               }}
             >
               <div
@@ -205,8 +205,8 @@ export default function GameDetailPage() {
                   width: '40px',
                   height: '40px',
                   borderRadius: '50%',
-                  border: '3px solid rgba(255, 122, 89, 0.2)',
-                  borderTopColor: '#FF7A59',
+                  border: '3px solid rgba(0, 240, 255, 0.2)',
+                  borderTopColor: '#00F0FF',
                   animation: 'spin 1s linear infinite',
                   margin: '0 auto 16px',
                 }}
