@@ -200,6 +200,7 @@ export default function WalletModal({
       }}
     >
       <div
+        className="modal-scrollable"
         style={{
           width: '100%',
           maxWidth: '560px',
@@ -207,11 +208,10 @@ export default function WalletModal({
           borderRadius: '24px',
           border: '1px solid rgba(0, 240, 255, 0.35)',
           boxShadow: '0 25px 60px rgba(0, 0, 0, 0.95), 0 0 40px rgba(0, 240, 255, 0.15)',
-          padding: '28px 24px',
+          padding: '24px 22px',
           position: 'relative',
           color: '#F8FAFC',
           maxHeight: '90vh',
-          overflowY: 'auto',
         }}
       >
         {/* Close Button */}

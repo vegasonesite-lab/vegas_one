@@ -54,20 +54,45 @@ button, input, select, textarea {
   font-family: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* Custom Scrollbars */
+/* Custom Sleek Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #070514;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1D144A;
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #E026D8;
+  background: rgba(0, 240, 255, 0.35);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+}
+
+/* Modal Smooth Inset Scrollbar (Prevents corner bleed & ugly borders) */
+.modal-scrollable {
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+}
+.modal-scrollable::-webkit-scrollbar {
+  width: 5px !important;
+}
+.modal-scrollable::-webkit-scrollbar-track {
+  background: transparent !important;
+  margin: 18px 0 !important;
+}
+.modal-scrollable::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16) !important;
+  border-radius: 9999px !important;
+}
+.modal-scrollable::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 240, 255, 0.45) !important;
 }
 
 /* Typography */

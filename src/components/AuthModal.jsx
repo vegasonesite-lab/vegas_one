@@ -133,6 +133,7 @@ export default function AuthModal({
       }}
     >
       <div
+        className="modal-scrollable"
         style={{
           width: '100%',
           maxWidth: '410px',
@@ -144,7 +145,6 @@ export default function AuthModal({
           position: 'relative',
           color: '#F8FAFC',
           maxHeight: '92vh',
-          overflowY: 'auto',
           boxSizing: 'border-box',
         }}
       >

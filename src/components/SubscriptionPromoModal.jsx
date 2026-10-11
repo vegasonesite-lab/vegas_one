@@ -99,6 +99,7 @@ export default function SubscriptionPromoModal({
       }}
     >
       <div
+        className="modal-scrollable"
         style={{
           width: '100%',
           maxWidth: '430px',
@@ -110,7 +111,6 @@ export default function SubscriptionPromoModal({
           position: 'relative',
           color: '#F8FAFC',
           maxHeight: '92vh',
-          overflowY: 'auto',
           boxSizing: 'border-box',
         }}
       >
