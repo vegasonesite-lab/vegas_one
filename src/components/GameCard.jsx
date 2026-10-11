@@ -2,67 +2,217 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Play, Flame, Sparkles, Trophy } from 'lucide-react';
+import { Heart, Play } from 'lucide-react';
 
-export default function GameCard({ game, onPlay }) {
+export default function GameCard({ game, onPlay, isFavorite = false, onToggleFavorite }) {
+  // Badge styling
+  const getBadge = () => {
+    if (game.isHot) {
+      return { label: 'HOT', bg: 'rgba(255, 122, 89, 0.2)', color: '#FF7A59', border: 'rgba(255, 122, 89, 0.4)' };
+    }
+    if (game.isFeatured) {
+      return { label: 'EXCLUSIVE', bg: 'rgba(245, 180, 97, 0.2)', color: '#F5B461', border: 'rgba(245, 180, 97, 0.4)' };
+    }
+    return { label: 'SWEEPS', bg: '#231C30', color: '#D1CADB', border: 'rgba(255, 255, 255, 0.15)' };
+  };
+
+  const badge = getBadge();
+  const activeCount = Math.floor((game.playsCount || 0) * 3 + (game.title.length * 17) % 350 + 24);
+
+  const maxBetDisplay = game.maxBetSC ? `$${Number(game.maxBetSC).toLocaleString()}` : '$50,000';
+  const rtpDisplay = game.rtp ? `${Number(game.rtp).toFixed(1)}%` : '99.4%';
+
   return (
     <div
+      className="game-card-luxury"
       onClick={() => onPlay(game)}
-      className="group relative cursor-pointer overflow-hidden rounded-2xl bg-[#0c0e1e] border border-white/10 hover:border-amber-400/80 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_30px_rgba(255,190,11,0.25)] flex flex-col"
+      style={{ cursor: 'pointer' }}
     >
-      {/* Thumbnail Box */}
-      <div
-        className="relative aspect-[16/11] w-full overflow-hidden bg-black"
-        style={{ position: 'relative', width: '100%', aspectRatio: '16/11' }}
-      >
-        <Image
-          src={game.thumbnail || '/images/vegas-777.webp'}
-          alt={game.title}
-          fill
-          className="object-cover group-hover:scale-110 transition-transform duration-500"
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
-        />
+      {/* 1. Game Thumbnail Box */}
+      <div>
+        <div className="game-thumb-box">
+          <Image
+            src={game.thumbnail || '/images/vegas-777.webp'}
+            alt={game.title}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            style={{ objectFit: 'cover', objectPosition: 'center' }}
+          />
 
-        {/* Gradient dark overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0c0e1e] via-transparent to-black/30 opacity-70 group-hover:opacity-30 transition-opacity" />
+          {/* Top Left Badge */}
+          <div style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 10 }}>
+            <span
+              style={{
+                fontSize: '10px',
+                fontFamily: 'Sora, sans-serif',
+                fontWeight: 900,
+                letterSpacing: '0.05em',
+                textTransform: 'uppercase',
+                padding: '4px 8px',
+                borderRadius: '6px',
+                backgroundColor: badge.bg,
+                color: badge.color,
+                border: `1px solid ${badge.border}`,
+                backdropFilter: 'blur(8px)',
+                display: 'inline-block',
+              }}
+            >
+              {badge.label}
+            </span>
+          </div>
 
-        {/* Top Badges */}
-        <div className="absolute top-2 left-2 z-10 flex items-center gap-1">
-          <span className="bg-black/85 backdrop-blur-md border border-amber-400/40 text-amber-400 text-[9px] font-black uppercase px-2 py-0.5 rounded shadow">
-            SWEEPS
-          </span>
+          {/* Top Right: Favorite Heart & Active Count */}
+          <div style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 10, display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onToggleFavorite) onToggleFavorite(game.id || game.gameId);
+              }}
+              style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                backgroundColor: 'rgba(14, 8, 22, 0.85)',
+                border: isFavorite ? '1px solid #F43F5E' : '1px solid rgba(255, 255, 255, 0.1)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                backdropFilter: 'blur(8px)',
+                transition: 'all 0.2s ease',
+              }}
+              title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            >
+              <Heart
+                size={14}
+                color={isFavorite ? '#F43F5E' : '#FFFFFF'}
+                fill={isFavorite ? '#F43F5E' : 'none'}
+              />
+            </button>
+
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                backgroundColor: 'rgba(14, 8, 22, 0.85)',
+                backdropFilter: 'blur(8px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                padding: '4px 8px',
+                borderRadius: '6px',
+                fontSize: '10px',
+                fontFamily: 'Sora, sans-serif',
+                fontWeight: 700,
+                color: '#E2DCEB',
+              }}
+            >
+              <span
+                style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  backgroundColor: '#14B8A6',
+                  display: 'inline-block',
+                  boxShadow: '0 0 6px #14B8A6',
+                }}
+              />
+              <span>{activeCount}</span>
+            </div>
+          </div>
+
+          {/* Vignette Overlay */}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'linear-gradient(to top, #171124 0%, transparent 40%, rgba(0,0,0,0.2) 100%)',
+              pointerEvents: 'none',
+            }}
+          />
         </div>
 
-        {game.isHot && (
-          <div className="absolute top-2 right-2 z-10 flex items-center gap-1 bg-gradient-to-r from-red-600 to-amber-600 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded shadow">
-            <Flame size={10} className="fill-white" />
-            <span>HOT</span>
-          </div>
-        )}
+        {/* 2. Stats Row */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            fontSize: '11px',
+            fontFamily: 'DM Sans, sans-serif',
+            color: '#9A91A8',
+            marginBottom: '8px',
+            padding: '0 2px',
+          }}
+        >
+          <span>RTP: <strong style={{ color: '#F8FAFC', fontWeight: 600 }}>{rtpDisplay}</strong></span>
+          <span>Max Bet: <strong style={{ color: '#F5B461', fontWeight: 600 }}>{maxBetDisplay}</strong></span>
+        </div>
 
-        {/* Hover Action Play Shield */}
-        <div className="absolute inset-0 bg-purple-950/60 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-amber-400 to-yellow-300 text-black flex items-center justify-center shadow-xl shadow-amber-500/50 transform scale-75 group-hover:scale-100 transition-transform">
-            <Play size={22} className="fill-black ml-0.5" />
-          </div>
-          <span className="text-[11px] font-black tracking-wider text-white uppercase bg-black/60 px-2.5 py-0.5 rounded-full border border-white/20">
-            PLAY NOW
-          </span>
+        {/* 3. Subcategory and Game Title */}
+        <div style={{ marginBottom: '14px', padding: '0 2px' }}>
+          <p
+            style={{
+              fontSize: '10px',
+              fontFamily: 'Sora, sans-serif',
+              fontWeight: 700,
+              letterSpacing: '0.06em',
+              color: '#A69FB3',
+              textTransform: 'uppercase',
+              margin: '0 0 3px 0',
+            }}
+          >
+            SWEEPSTAKES ARENA
+          </p>
+          <h3
+            style={{
+              fontFamily: 'Sora, sans-serif',
+              fontSize: '15px',
+              fontWeight: 900,
+              color: '#F8FAFC',
+              margin: 0,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {game.title}
+          </h3>
         </div>
       </div>
 
-      {/* Game Info Bottom Strip */}
-      <div className="p-3 bg-[#0a0c1a] border-t border-white/5 flex items-center justify-between gap-2">
-        <div className="truncate">
-          <h3 className="text-xs sm:text-sm font-black text-white group-hover:text-amber-400 transition-colors truncate">
-            {game.title}
-          </h3>
-          <p className="text-[10px] text-gray-400 truncate">{game.provider || 'Vegas One'}</p>
-        </div>
-
-        <span className="shrink-0 text-[9px] font-black bg-white/5 border border-white/10 px-2 py-0.5 rounded text-purple-300 uppercase">
-          {game.category}
-        </span>
+      {/* 4. Single PLAY NOW Button (DEMO Removed!) */}
+      <div>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onPlay(game);
+          }}
+          style={{
+            width: '100%',
+            backgroundColor: '#FF7A59',
+            color: '#0E0816',
+            fontFamily: 'Sora, sans-serif',
+            fontWeight: 900,
+            fontSize: '12px',
+            letterSpacing: '0.05em',
+            textTransform: 'uppercase',
+            padding: '11px 0',
+            borderRadius: '12px',
+            border: 'none',
+            cursor: 'pointer',
+            boxShadow: '0 4px 14px rgba(255, 122, 89, 0.25)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            transition: 'all 0.2s ease',
+          }}
+        >
+          <Play size={14} fill="#0E0816" />
+          <span>PLAY NOW</span>
+        </button>
       </div>
     </div>
   );

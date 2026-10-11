@@ -1,17 +1,16 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Trophy, Flame, Sparkles } from 'lucide-react';
+import { Gem, Sparkles } from 'lucide-react';
 
 export default function LatestWinsTicker() {
-  const [tickerWins, setTickerWins] = useState([
-    { username: 'raze', game: 'FIRE KIRIN', amount: 3410.0, multiplier: '180x', currency: 'SC' },
-    { username: 'satoshi.j', game: 'JUWA 777', amount: 6990.66, multiplier: '250x', currency: 'SC' },
-    { username: 'nyx', game: 'GAME VAULT 999', amount: 2118.14, multiplier: '95x', currency: 'SC' },
-    { username: 'halcyon', game: 'GOLDEN DRAGON', amount: 4850.0, multiplier: '120x', currency: 'SC' },
-    { username: 'crypto_ace', game: 'VEGAS 777 DELUXE', amount: 7016.45, multiplier: '500x', currency: 'SC' },
-    { username: 'lucky_bella', game: 'ORION STARS', amount: 1850.5, multiplier: '85x', currency: 'SC' },
-    { username: 'drake99', game: 'NEON CRASH', amount: 5600.0, multiplier: '45x', currency: 'SC' },
+  const [wins, setWins] = useState([
+    { username: 'LadyVesper_9', amount: '$48,200.00', game: 'Obsidian Roulette', time: '42s ago', icon: 'gem' },
+    { username: 'BaronKlaus', amount: '12.5 BTC ($842,500)', game: 'Crown Megaways', time: '1m ago', icon: 'btc' },
+    { username: 'Sovereign_Ace', amount: '$94,500.00', game: 'Juwa 777 Deluxe', time: '2m ago', icon: 'crown' },
+    { username: 'RoyalTycoon', amount: '$31,800.00', game: 'Fire Kirin Boss', time: '3m ago', icon: 'gem' },
+    { username: 'HighRoller_X', amount: '$112,400.00', game: 'Game Vault 999', time: '4m ago', icon: 'crown' },
+    { username: 'VegasEmpress', amount: '$54,120.00', game: 'Orion Stars', time: '5m ago', icon: 'gem' },
   ]);
 
   useEffect(() => {
@@ -21,51 +20,91 @@ export default function LatestWinsTicker() {
         .then(res => res.json())
         .then(data => {
           if (data.success && data.ticker?.length > 0) {
-            setTickerWins(data.ticker);
+            const formatted = data.ticker.map((item, i) => ({
+              username: item.username || `Player_${i + 1}`,
+              amount: `$${Number(item.amount || 1500).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+              game: item.game || 'Vegas High-Roller',
+              time: `${(i + 1) * 45}s ago`,
+              icon: i % 2 === 0 ? 'gem' : 'crown',
+            }));
+            setWins(formatted);
           }
         })
         .catch(() => {});
     };
 
     fetchTicker();
-    const interval = setInterval(fetchTicker, 4500);
+    const interval = setInterval(fetchTicker, 5000);
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="relative mb-8 overflow-hidden rounded-2xl bg-[#090b1c] border border-amber-400/20 py-3 px-4 flex items-center shadow-lg">
-      {/* Static Glowing Badge */}
-      <div className="shrink-0 flex items-center gap-2 bg-gradient-to-r from-amber-400 to-yellow-500 text-black px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider shadow-md shadow-amber-500/20 mr-4 z-10">
-        <Trophy size={14} className="fill-black" />
-        <span className="hidden sm:inline">LIVE WINNERS</span>
-        <span className="sm:hidden">WINS</span>
+    <div
+      style={{
+        position: 'relative',
+        marginBottom: '36px',
+        overflow: 'hidden',
+        borderRadius: '16px',
+        backgroundColor: '#171124',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        padding: '10px 18px',
+        display: 'flex',
+        alignItems: 'center',
+        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)',
+      }}
+    >
+      {/* Static Teal LIVE WINS Badge (Image 2 Spec) */}
+      <div
+        style={{
+          flexShrink: 0,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          backgroundColor: 'rgba(20, 184, 166, 0.15)',
+          border: '1px solid rgba(20, 184, 166, 0.35)',
+          color: '#14B8A6',
+          padding: '5px 14px',
+          borderRadius: '9999px',
+          fontSize: '11px',
+          fontFamily: 'Sora, sans-serif',
+          fontWeight: 800,
+          letterSpacing: '0.06em',
+          textTransform: 'uppercase',
+          marginRight: '20px',
+          zIndex: 10,
+        }}
+      >
+        <span
+          style={{
+            width: '6px',
+            height: '6px',
+            borderRadius: '50%',
+            backgroundColor: '#14B8A6',
+            display: 'inline-block',
+            boxShadow: '0 0 6px #14B8A6',
+          }}
+        />
+        <span>LIVE WINS</span>
       </div>
 
-      {/* Marquee Scrolling Winner Chips */}
-      <div className="overflow-hidden relative w-full mask-linear">
-        <div className="animate-marquee flex items-center gap-6 text-xs font-medium">
-          {tickerWins.concat(tickerWins).map((win, idx) => (
-            <div
-              key={idx}
-              className="flex items-center gap-2.5 shrink-0 bg-[#0e1128] border border-white/5 py-1 px-3 rounded-xl hover:border-amber-400/50 transition-colors"
-            >
-              {/* Avatar Initial with neon ring */}
-              <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-purple-600 to-amber-400 text-black font-black text-[10px] flex items-center justify-center uppercase shrink-0 shadow-sm">
-                {win.username.charAt(0)}
-              </div>
+      {/* Ticker marquee */}
+      <div style={{ overflow: 'hidden', position: 'relative', width: '100%' }}>
+        <div className="animate-marquee" style={{ display: 'flex', alignItems: 'center', gap: '32px', fontSize: '13px', fontFamily: 'DM Sans, sans-serif' }}>
+          {wins.concat(wins).map((item, idx) => (
+            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, color: '#C9C2D4' }}>
+              {item.icon === 'gem' ? (
+                <Gem size={14} color="#F5B461" style={{ flexShrink: 0 }} />
+              ) : (
+                <Sparkles size={14} color="#FF7A59" style={{ flexShrink: 0 }} />
+              )}
 
-              {/* Player & Game */}
-              <div className="flex items-center gap-1.5 whitespace-nowrap">
-                <span className="text-gray-200 font-bold">{win.username}</span>
-                <span className="text-gray-500 text-[10px]">won on</span>
-                <span className="text-amber-300 font-extrabold uppercase text-[11px]">{win.game}</span>
-              </div>
-
-              {/* Win Amount */}
-              <span className="bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono font-black text-xs px-2 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
-                <Sparkles size={11} className="text-emerald-400" />
-                +{Number(win.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {win.currency || 'SC'}
-              </span>
+              <span style={{ fontWeight: 700, color: '#FFFFFF' }}>{item.username}</span>
+              <span style={{ color: '#9A91A8' }}>won</span>
+              <span style={{ fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#14B8A6' }}>{item.amount}</span>
+              <span style={{ color: '#9A91A8' }}>on</span>
+              <span style={{ fontWeight: 600, color: '#F8FAFC' }}>{item.game}</span>
+              <span style={{ fontSize: '11px', color: '#7E758C' }}>{item.time}</span>
+              <span style={{ color: '#4E4461', marginLeft: '8px', fontWeight: 900 }}>·</span>
             </div>
           ))}
         </div>

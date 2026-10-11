@@ -79,19 +79,12 @@ export default function PlayerProfileTab({ user, onOpenKyc }) {
           </div>
         </div>
 
-        {/* Quick Balance Stats */}
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="flex-1 sm:flex-initial bg-[#12152b] border border-white/5 rounded-xl p-3 text-center min-w-[110px]">
-            <p className="text-[10px] text-gray-400 uppercase font-bold">Sweeps Coins</p>
-            <p className="text-lg font-black text-amber-400 font-mono">
-              ${Number(user?.balanceSC || 0).toFixed(2)} SC
-            </p>
-          </div>
-
-          <div className="flex-1 sm:flex-initial bg-[#12152b] border border-white/5 rounded-xl p-3 text-center min-w-[110px]">
-            <p className="text-[10px] text-gray-400 uppercase font-bold">Gold Coins</p>
-            <p className="text-lg font-black text-yellow-400 font-mono">
-              {Math.floor(user?.balanceGC || 0).toLocaleString()} GC
+        {/* Quick Unified Balance Stats */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ backgroundColor: '#0E0816', border: '1px solid rgba(20, 184, 166, 0.3)', borderRadius: '12px', padding: '12px 20px', textAlign: 'center', minWidth: '160px' }}>
+            <p style={{ fontSize: '10px', color: '#9A91A8', textTransform: 'uppercase', fontWeight: 800, margin: 0 }}>Sovereign Vault Balance</p>
+            <p style={{ fontSize: '20px', fontWeight: 900, color: '#14B8A6', margin: '2px 0 0 0', fontFamily: 'Sora, sans-serif' }}>
+              ${Number(user?.balanceSC ?? user?.balance ?? 0).toFixed(2)}
             </p>
           </div>
         </div>

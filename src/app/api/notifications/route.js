@@ -80,3 +80,54 @@ export async function POST(req) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
+
+// PUT: Player subscribes to Web Push & VIP Promo Emails
+export async function PUT(req) {
+  try {
+    const session = await getSessionUser();
+    const body = await req.json();
+    const email = (session?.email || body.email || '').toLowerCase().trim();
+    const fcmToken = body.token || body.fcmToken || null;
+    const device = body.device || 'web_chrome';
+
+    if (!email) {
+      return NextResponse.json({ success: false, error: 'Email is required' }, { status: 400 });
+    }
+
+    const db = await getDb();
+    const subsCol = db.collection('subscriptions');
+    const usersCol = db.collection('users');
+
+    await subsCol.updateOne(
+      { email },
+      {
+        $set: {
+          email,
+          fcmToken,
+          device,
+          userId: session?.userId || null,
+          username: session?.username || email.split('@')[0],
+          isSubscribed: true,
+          updatedAt: new Date(),
+        },
+        $setOnInsert: { createdAt: new Date() },
+      },
+      { upsert: true }
+    );
+
+    if (session?.userId) {
+      const { ObjectId } = await import('mongodb');
+      await usersCol.updateOne(
+        { _id: new ObjectId(session.userId) },
+        { $set: { isSubscribed: true } }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Successfully subscribed to VIP Promos & Chrome Push Notifications!',
+    });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}

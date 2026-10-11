@@ -19,10 +19,10 @@ export default function RouletteModal({
   onBalanceUpdate,
   soundEnabled = true,
 }) {
-  const isSC = currency === 'SC';
-  const balance = user ? (isSC ? user.balanceSC : user.balanceGC) : 0;
+  const isSC = true;
+  const balance = user ? Number(user.balanceSC ?? user.balance ?? 0) : 0;
 
-  const [betAmount, setBetAmount] = useState(isSC ? 1.0 : 500);
+  const [betAmount, setBetAmount] = useState(1.0);
   const [selectedBetType, setSelectedBetType] = useState('red'); // 'red', 'black', 'even', 'odd', 'number'
   const [selectedNumber, setSelectedNumber] = useState(7);
   const [spinning, setSpinning] = useState(false);

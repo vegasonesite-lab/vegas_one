@@ -1,54 +1,89 @@
 'use client';
 
 import React from 'react';
-import {
-  Flame,
-  Gamepad2,
-  Rocket,
-  CircleDot,
-  Dices,
-  Sparkles,
-  Trophy,
-} from 'lucide-react';
+import { Flame, Heart } from 'lucide-react';
 
-export default function CategoryTabs({ activeCategory, setActiveCategory, counts = {} }) {
-  const tabs = [
-    { id: 'lobby', label: 'All Hot Games', icon: Flame, count: Object.values(counts).reduce((a, b) => a + b, 0) || 16 },
-    { id: 'fish', label: 'Fish & Sweeps', icon: Trophy, count: counts.fish || 6 },
-    { id: 'slots', label: 'Slots', icon: Gamepad2, count: counts.slots || 7 },
-    { id: 'crash', label: 'Rocket Crash', icon: Rocket, count: counts.crash || 1 },
-    { id: 'roulette', label: 'Roulette', icon: CircleDot, count: counts.roulette || 1 },
-    { id: 'blackjack', label: 'Blackjack', icon: Dices, count: counts.blackjack || 1 },
-  ];
-
+export default function CategoryTabs({ activeFilter = 'all', setActiveFilter, favoritesCount = 0 }) {
   return (
-    <div className="flex items-center gap-2 sm:gap-2.5 overflow-x-auto pb-2 mb-6 scrollbar-none">
-      {tabs.map(tab => {
-        const Icon = tab.icon;
-        const isActive = activeCategory === tab.id;
-        return (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setActiveCategory(tab.id)}
-            className={`py-2 px-3.5 sm:px-4 rounded-xl text-xs sm:text-xs font-black transition-all flex items-center gap-2 whitespace-nowrap border ${
-              isActive
-                ? 'bg-gradient-to-r from-amber-400 to-yellow-500 text-black border-amber-300 shadow-lg shadow-amber-500/30 scale-105'
-                : 'bg-[#0d1024] text-gray-400 border-white/5 hover:text-white hover:bg-white/5 hover:border-white/10'
-            }`}
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        overflowX: 'auto',
+        paddingBottom: '4px',
+      }}
+    >
+      {/* Tab 1: All Sweepstakes Games */}
+      <button
+        type="button"
+        onClick={() => setActiveFilter('all')}
+        style={{
+          padding: '9px 22px',
+          borderRadius: '9999px',
+          fontSize: '11px',
+          fontFamily: 'Sora, sans-serif',
+          fontWeight: 800,
+          letterSpacing: '0.05em',
+          textTransform: 'uppercase',
+          cursor: 'pointer',
+          whiteSpace: 'nowrap',
+          transition: 'all 0.2s ease',
+          backgroundColor: activeFilter === 'all' ? '#271E36' : 'transparent',
+          color: activeFilter === 'all' ? '#FFFFFF' : '#9A91A8',
+          border: activeFilter === 'all' ? '1px solid rgba(255, 255, 255, 0.18)' : '1px solid transparent',
+          boxShadow: activeFilter === 'all' ? '0 4px 14px rgba(0, 0, 0, 0.4)' : 'none',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+        }}
+      >
+        <Flame size={14} color={activeFilter === 'all' ? '#FF7A59' : '#9A91A8'} />
+        <span>ALL SWEEPSTAKES GAMES</span>
+      </button>
+
+      {/* Tab 2: Favorites */}
+      <button
+        type="button"
+        onClick={() => setActiveFilter('favorites')}
+        style={{
+          padding: '9px 22px',
+          borderRadius: '9999px',
+          fontSize: '11px',
+          fontFamily: 'Sora, sans-serif',
+          fontWeight: 800,
+          letterSpacing: '0.05em',
+          textTransform: 'uppercase',
+          cursor: 'pointer',
+          whiteSpace: 'nowrap',
+          transition: 'all 0.2s ease',
+          backgroundColor: activeFilter === 'favorites' ? '#271E36' : 'transparent',
+          color: activeFilter === 'favorites' ? '#FFFFFF' : '#9A91A8',
+          border: activeFilter === 'favorites' ? '1px solid rgba(255, 255, 255, 0.18)' : '1px solid transparent',
+          boxShadow: activeFilter === 'favorites' ? '0 4px 14px rgba(0, 0, 0, 0.4)' : 'none',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+        }}
+      >
+        <Heart size={14} color={activeFilter === 'favorites' ? '#F43F5E' : '#9A91A8'} fill={activeFilter === 'favorites' ? '#F43F5E' : 'none'} />
+        <span>FAVORITES</span>
+        {favoritesCount > 0 && (
+          <span
+            style={{
+              backgroundColor: 'rgba(244, 63, 94, 0.2)',
+              color: '#F43F5E',
+              fontSize: '10px',
+              fontWeight: 900,
+              padding: '2px 7px',
+              borderRadius: '9999px',
+              marginLeft: '2px',
+            }}
           >
-            <Icon size={15} className={isActive ? 'text-black' : 'text-gray-400'} />
-            <span>{tab.label}</span>
-            {tab.count !== undefined && (
-              <span className={`text-[10px] font-black px-1.5 py-0.2 rounded-full ${
-                isActive ? 'bg-black/25 text-black' : 'bg-white/10 text-gray-400'
-              }`}>
-                {tab.count}
-              </span>
-            )}
-          </button>
-        );
-      })}
+            {favoritesCount}
+          </span>
+        )}
+      </button>
     </div>
   );
 }

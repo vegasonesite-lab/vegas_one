@@ -5,6 +5,7 @@ import { signToken, ROLES } from '@/lib/auth';
 import { checkGeoAccess } from '@/lib/geoCheck';
 import { sendEmail, getWelcomeEmailTemplate } from '@/lib/email';
 import { ensureDbInitialized } from '@/lib/initDb';
+import { getDeviceIdFromRequest } from '@/lib/deviceServer';
 
 export async function POST(req) {
   try {
@@ -19,7 +20,7 @@ export async function POST(req) {
       );
     }
 
-    const { username, email, password, referralCode: inputRef, state = 'CA', ageVerified } = await req.json();
+    const { username, email, password, referralCode: inputRef, state = 'CA', ageVerified, deviceId: rawDeviceId } = await req.json();
 
     if (!username || !email || !password) {
       return NextResponse.json({ success: false, error: 'All fields are required.' }, { status: 400 });
@@ -34,11 +35,12 @@ export async function POST(req) {
 
     const cleanUsername = username.trim().toLowerCase();
     const cleanEmail = email.trim().toLowerCase();
+    const deviceId = getDeviceIdFromRequest(req, rawDeviceId);
 
     const db = await getDb();
     const usersCol = db.collection('users');
 
-    // Check duplicate
+    // Check duplicate username or email
     const existing = await usersCol.findOne({
       $or: [{ email: cleanEmail }, { username: cleanUsername }],
     });
@@ -47,6 +49,21 @@ export async function POST(req) {
       return NextResponse.json(
         { success: false, error: 'Username or email is already registered.' },
         { status: 409 }
+      );
+    }
+
+    // 2. Device Restriction Check (Only 1 account per device)
+    const deviceOwner = await usersCol.findOne({
+      $or: [{ deviceId: deviceId }, { boundDevices: deviceId }],
+    });
+
+    if (deviceOwner) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Security Restriction: Only 1 account is permitted per device. This device is already linked to account "${deviceOwner.username}". Multiple accounts are not allowed.`,
+        },
+        { status: 403 }
       );
     }
 
@@ -64,6 +81,8 @@ export async function POST(req) {
     const initialBonusSC = 5.0; // 5 Free Sweeps Coins
     const initialBonusGC = 50000; // 50,000 Gold Coins
 
+    const sessionVersion = Date.now().toString();
+
     const newUser = {
       username: cleanUsername,
       email: cleanEmail,
@@ -76,6 +95,11 @@ export async function POST(req) {
       country: 'US',
       referralCode: myReferralCode,
       referredBy: referrer ? referrer.username : null,
+      deviceId: deviceId,
+      boundDevices: [deviceId],
+      sessionVersion,
+      lastLoginDevice: deviceId,
+      lastLoginAt: new Date(),
       affiliateCommissionsEarned: 0,
       affiliateCommissionsUnpaid: 0,
       totalDeposited: 0,
@@ -109,12 +133,13 @@ export async function POST(req) {
       html: getWelcomeEmailTemplate(cleanUsername),
     }).catch(() => {});
 
-    // Sign session token
+    // Sign session token with sessionVersion
     const token = signToken({
       userId,
       username: cleanUsername,
       email: cleanEmail,
       role: ROLES.PLAYER,
+      sessionVersion,
     });
 
     const response = NextResponse.json({
@@ -126,7 +151,7 @@ export async function POST(req) {
         email: cleanEmail,
         role: ROLES.PLAYER,
         balanceSC: initialBonusSC,
-        balanceGC: initialBonusGC,
+        balance: initialBonusSC,
         kycStatus: 'none',
         referralCode: myReferralCode,
       },
@@ -138,6 +163,15 @@ export async function POST(req) {
       sameSite: 'lax',
       path: '/',
       maxAge: 7 * 24 * 3600,
+    });
+
+    // Persist 10-year device ID cookie
+    response.cookies.set('v1_device_id', deviceId, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 315360000,
     });
 
     return response;

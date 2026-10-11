@@ -8,15 +8,34 @@ async function initFirebaseAdmin() {
 
   try {
     const admin = await import('firebase-admin');
-    const serviceAccountPath = path.join(process.cwd(), 'firebase-service-account.json');
+    const possiblePaths = [
+      path.join(process.cwd(), 'google-services.json'),
+      path.join(process.cwd(), 'firebase-service-account.json'),
+      path.join(process.cwd(), 'firebase-admin.json'),
+    ];
 
-    if (fs.existsSync(serviceAccountPath)) {
-      const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
-      if (!admin.default.apps.length) {
-        admin.default.initializeApp({
-          credential: admin.default.credential.cert(serviceAccount),
-        });
+    let serviceAccount = null;
+    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+      try {
+        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+      } catch {}
+    }
+
+    if (!serviceAccount) {
+      for (const p of possiblePaths) {
+        if (fs.existsSync(/*turbopackIgnore: true*/ p)) {
+          try {
+            serviceAccount = JSON.parse(fs.readFileSync(/*turbopackIgnore: true*/ p, 'utf8'));
+            break;
+          } catch {}
+        }
       }
+    }
+
+    if (serviceAccount && !admin.default.apps.length) {
+      admin.default.initializeApp({
+        credential: admin.default.credential.cert(serviceAccount),
+      });
       firebaseAdmin = admin.default;
       return firebaseAdmin;
     }

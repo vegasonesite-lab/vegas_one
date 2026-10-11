@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { ObjectId } from 'mongodb';
-import { getSessionUser } from '@/lib/auth';
+import { getSessionUser, ROLES } from '@/lib/auth';
 import { getDb } from '@/lib/mongodb';
 
 export async function GET() {
@@ -15,7 +16,53 @@ export async function GET() {
     const user = await usersCol.findOne({ _id: new ObjectId(session.userId) });
 
     if (!user) {
-      return NextResponse.json({ authenticated: false, user: null });
+      const resp = NextResponse.json({ authenticated: false, user: null });
+      resp.cookies.delete('vegas_session');
+      return resp;
+    }
+
+    if (user.isBanned) {
+      const resp = NextResponse.json({ authenticated: false, user: null, error: 'Account suspended.' });
+      resp.cookies.delete('vegas_session');
+      return resp;
+    }
+
+    // 1. Single Active Session Check (If logged in elsewhere, expire older session)
+    if (session.sessionVersion && user.sessionVersion && session.sessionVersion !== user.sessionVersion) {
+      const resp = NextResponse.json({
+        authenticated: false,
+        user: null,
+        sessionExpired: true,
+        error: 'Your account was logged in from another device. Session terminated.',
+      });
+      resp.cookies.delete('vegas_session');
+      return resp;
+    }
+
+    // 2. Single Account Per Device Verification
+    const isPlayer = !user.role || user.role === ROLES.PLAYER || user.role === 'player' || user.role === 'user';
+    if (isPlayer) {
+      const cookieStore = await cookies();
+      const clientDeviceId = cookieStore.get('v1_device_id')?.value;
+
+      if (clientDeviceId && clientDeviceId.length >= 6) {
+        const otherOwner = await usersCol.findOne({
+          _id: { $ne: user._id },
+          role: { $in: [ROLES.PLAYER, 'user', 'player', null] },
+          $or: [{ deviceId: clientDeviceId }, { boundDevices: clientDeviceId }],
+        });
+
+        if (otherOwner) {
+          const resp = NextResponse.json({
+            authenticated: false,
+            user: null,
+            deviceConflict: true,
+            error: `Device Policy: Only 1 account is permitted per device. This device is bound to account "${otherOwner.username}".`,
+          });
+          resp.cookies.delete('vegas_session');
+          return resp;
+        }
+      }
     }
 
     return NextResponse.json({
@@ -26,13 +73,14 @@ export async function GET() {
         email: user.email,
         role: user.role,
         balanceSC: Number((user.balanceSC || 0).toFixed(2)),
-        balanceGC: Math.floor(user.balanceGC || 0),
+        balance: Number((user.balanceSC || 0).toFixed(2)),
         kycStatus: user.kycStatus || 'none',
         referralCode: user.referralCode || '',
         referredBy: user.referredBy || null,
         totalDeposited: user.totalDeposited || 0,
         affiliateCommissionsUnpaid: user.affiliateCommissionsUnpaid || 0,
         affiliateCommissionsEarned: user.affiliateCommissionsEarned || 0,
+        deviceId: user.deviceId || null,
       },
     });
   } catch (error) {

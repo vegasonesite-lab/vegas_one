@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Gamepad2, Clock, Wallet, Users, User, Shield } from 'lucide-react';
+import Link from 'next/link';
+import { Gamepad2, Clock, Wallet, Users, Smartphone, ShieldCheck } from 'lucide-react';
 
 export default function MobileBottomNav({
   activeTab = 'main',
@@ -10,71 +11,93 @@ export default function MobileBottomNav({
   onOpenAuth,
   user,
 }) {
+  const itemStyle = (isActive) => ({
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '3px',
+    padding: '4px 8px',
+    color: isActive ? '#FF7A59' : '#9A91A8',
+    textDecoration: 'none',
+    fontSize: '10px',
+    fontFamily: 'Sora, sans-serif',
+    fontWeight: isActive ? 800 : 600,
+    transition: 'color 0.15s',
+  });
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#080a18]/95 backdrop-blur-xl border-t border-white/10 lg:hidden px-3 py-1.5 flex items-center justify-around shadow-2xl safe-area-pb">
+    <nav
+      style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 50,
+        backgroundColor: 'rgba(14, 8, 22, 0.98)',
+        backdropFilter: 'blur(16px)',
+        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+        padding: '6px 12px 10px 12px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-around',
+        boxShadow: '0 -10px 30px rgba(0, 0, 0, 0.6)',
+      }}
+      className="mobile-only-nav"
+    >
       {/* 1. Lobby */}
-      <button
-        onClick={() => onSelectTab('main')}
-        className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl transition ${
-          activeTab === 'main' ? 'text-amber-400 font-extrabold' : 'text-gray-400 hover:text-white'
-        }`}
-      >
-        <Gamepad2 size={20} className={activeTab === 'main' ? 'text-amber-400' : ''} />
-        <span className="text-[10px] tracking-tight">Lobby</span>
-      </button>
+      <Link href="/" style={itemStyle(activeTab === 'main')}>
+        <Gamepad2 size={18} color={activeTab === 'main' ? '#FF7A59' : '#9A91A8'} />
+        <span>Lobby</span>
+      </Link>
 
-      {/* 2. Ledger */}
-      <button
-        onClick={() => {
-          if (!user) onOpenAuth('login');
-          else onSelectTab('ledger');
-        }}
-        className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl transition ${
-          activeTab === 'ledger' ? 'text-amber-400 font-extrabold' : 'text-gray-400 hover:text-white'
-        }`}
-      >
-        <Clock size={20} className={activeTab === 'ledger' ? 'text-amber-400' : ''} />
-        <span className="text-[10px] tracking-tight">Ledger</span>
-      </button>
+      {/* 2. Games */}
+      <Link href="/games" style={itemStyle(activeTab === 'games')}>
+        <Gamepad2 size={18} color={activeTab === 'games' ? '#FF7A59' : '#9A91A8'} />
+        <span>Games</span>
+      </Link>
 
-      {/* 3. Center Cashier (Highlighted Gold Floating Circle) */}
-      <button
-        onClick={() => {
-          if (!user) onOpenAuth('login');
-          else onOpenWallet();
+      {/* 3. Center Cashier / Vault */}
+      <Link
+        href="/wallet"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          marginTop: '-18px',
+          textDecoration: 'none',
         }}
-        className="flex flex-col items-center -mt-5 group"
       >
-        <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-amber-500 via-amber-400 to-yellow-300 text-black flex items-center justify-center shadow-lg shadow-amber-500/40 border-2 border-[#060711] group-hover:scale-105 transition-transform">
-          <Wallet size={22} className="text-black" />
+        <div
+          style={{
+            width: '46px',
+            height: '46px',
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #FF7A59 0%, #F5B461 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 6px 20px rgba(255, 122, 89, 0.45)',
+            border: '2px solid #0E0816',
+          }}
+        >
+          <Wallet size={20} color="#0E0816" />
         </div>
-        <span className="text-[10px] font-black text-amber-400 tracking-tight mt-0.5">Cashier</span>
-      </button>
+        <span style={{ fontSize: '10px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#F5B461', marginTop: '2px' }}>
+          Vault
+        </span>
+      </Link>
 
       {/* 4. Referrals */}
-      <button
-        onClick={() => onSelectTab('referrals')}
-        className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl transition ${
-          activeTab === 'referrals' ? 'text-amber-400 font-extrabold' : 'text-gray-400 hover:text-white'
-        }`}
-      >
-        <Users size={20} className={activeTab === 'referrals' ? 'text-amber-400' : ''} />
-        <span className="text-[10px] tracking-tight">Referrals</span>
-      </button>
+      <Link href="/referrals" style={itemStyle(activeTab === 'referrals')}>
+        <Users size={18} color={activeTab === 'referrals' ? '#FF7A59' : '#9A91A8'} />
+        <span>VIP 50%</span>
+      </Link>
 
-      {/* 5. Account / Profile */}
-      <button
-        onClick={() => {
-          if (!user) onOpenAuth('login');
-          else onSelectTab('profile');
-        }}
-        className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl transition ${
-          activeTab === 'profile' ? 'text-amber-400 font-extrabold' : 'text-gray-400 hover:text-white'
-        }`}
-      >
-        <User size={20} className={activeTab === 'profile' ? 'text-amber-400' : ''} />
-        <span className="text-[10px] tracking-tight">Account</span>
-      </button>
+      {/* 5. Mobile App */}
+      <Link href="/download-app" style={itemStyle(activeTab === 'download-app')}>
+        <Smartphone size={18} color={activeTab === 'download-app' ? '#FF7A59' : '#9A91A8'} />
+        <span>App</span>
+      </Link>
     </nav>
   );
 }

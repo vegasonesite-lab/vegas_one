@@ -35,10 +35,10 @@ export default function BlackjackModal({
   onBalanceUpdate,
   soundEnabled = true,
 }) {
-  const isSC = currency === 'SC';
-  const balance = user ? (isSC ? user.balanceSC : user.balanceGC) : 0;
+  const isSC = true;
+  const balance = user ? Number(user.balanceSC ?? user.balance ?? 0) : 0;
 
-  const [betAmount, setBetAmount] = useState(isSC ? 1.0 : 500);
+  const [betAmount, setBetAmount] = useState(1.0);
   const [gameState, setGameState] = useState('betting'); // 'betting', 'playing', 'finished'
   const [dealerHand, setDealerHand] = useState([]);
   const [playerHand, setPlayerHand] = useState([]);

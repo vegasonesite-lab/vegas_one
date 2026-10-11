@@ -47,6 +47,16 @@ export async function ensureDbInitialized() {
           createdAt: new Date(),
         },
         {
+          username: 'operationadmin',
+          email: 'ops@vegasone.games',
+          passwordHash: staffPasswordHash,
+          role: ROLES.OPERATION_ADMIN,
+          balanceSC: 0,
+          balanceGC: 0,
+          kycStatus: 'approved',
+          createdAt: new Date(),
+        },
+        {
           username: 'chatsupport',
           email: 'support@vegasone.games',
           passwordHash: staffPasswordHash,

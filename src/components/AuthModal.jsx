@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Lock, Mail, User, ShieldCheck, Gift } from 'lucide-react';
+import { X, Lock, Mail, User, Gift, Eye, EyeOff, Crown, Sparkles, MapPin, CheckCircle2 } from 'lucide-react';
+import { getOrCreateDeviceId } from '@/lib/deviceClient';
 
 export default function AuthModal({
   isOpen,
@@ -14,9 +15,10 @@ export default function AuthModal({
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [referralCode, setReferralCode] = useState('');
   const [state, setState] = useState('CA');
-  const [ageVerified, setAgeVerified] = useState(false);
+  const [ageVerified, setAgeVerified] = useState(true);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
 
@@ -33,10 +35,14 @@ export default function AuthModal({
     setLoading(true);
 
     try {
+      const deviceId = getOrCreateDeviceId();
       const res = await fetch('/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier, password }),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-device-id': deviceId,
+        },
+        body: JSON.stringify({ identifier, password, deviceId }),
       });
 
       const data = await res.json();
@@ -46,11 +52,11 @@ export default function AuthModal({
         if (onAuthSuccess) onAuthSuccess(data.user);
         onClose();
       } else {
-        setErrorMsg(data.error);
+        setErrorMsg(data.error || 'Invalid credentials.');
       }
     } catch {
       setLoading(false);
-      setErrorMsg('Login failed. Please check credentials.');
+      setErrorMsg('Login connection failed. Please try again.');
     }
   };
 
@@ -65,9 +71,13 @@ export default function AuthModal({
     setLoading(true);
 
     try {
+      const deviceId = getOrCreateDeviceId();
       const res = await fetch('/api/auth/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-device-id': deviceId,
+        },
         body: JSON.stringify({
           username,
           email,
@@ -75,6 +85,7 @@ export default function AuthModal({
           referralCode,
           state,
           ageVerified: true,
+          deviceId,
         }),
       });
 
@@ -85,174 +96,431 @@ export default function AuthModal({
         if (onAuthSuccess) onAuthSuccess(data.user);
         onClose();
       } else {
-        setErrorMsg(data.error);
+        setErrorMsg(data.error || 'Registration failed.');
       }
     } catch {
       setLoading(false);
-      setErrorMsg('Registration failed.');
+      setErrorMsg('Registration failed. Please try again.');
     }
   };
 
+  const inputStyle = {
+    width: '100%',
+    backgroundColor: '#0E0816',
+    border: '1px solid rgba(255, 255, 255, 0.12)',
+    borderRadius: '8px',
+    padding: '8px 12px 8px 34px',
+    color: '#FFFFFF',
+    fontSize: '12px',
+    fontFamily: 'DM Sans, sans-serif',
+    outline: 'none',
+    boxSizing: 'border-box',
+    transition: 'border-color 0.2s',
+  };
+
   return (
-    <div className="modal-overlay">
-      <div className="modal-content max-w-md p-6 bg-[#0e1122] border border-amber-500/40 relative">
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
+        backgroundColor: 'rgba(5, 2, 10, 0.85)',
+        backdropFilter: 'blur(10px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '16px',
+      }}
+    >
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '410px',
+          backgroundColor: '#171124',
+          borderRadius: '20px',
+          border: '1px solid rgba(255, 122, 89, 0.35)',
+          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.95), 0 0 30px rgba(255, 122, 89, 0.12)',
+          padding: '20px 22px 22px 22px',
+          position: 'relative',
+          color: '#F8FAFC',
+          maxHeight: '92vh',
+          overflowY: 'auto',
+          boxSizing: 'border-box',
+        }}
+      >
+        {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10"
+          type="button"
+          style={{
+            position: 'absolute',
+            top: '16px',
+            right: '16px',
+            background: 'rgba(255, 255, 255, 0.06)',
+            border: 'none',
+            borderRadius: '50%',
+            width: '30px',
+            height: '30px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#9A91A8',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+          }}
         >
-          <X size={20} />
+          <X size={16} />
         </button>
 
-        {/* Tab switcher */}
-        <div className="grid grid-cols-2 gap-2 p-1 bg-[#070914] rounded-xl mb-6 border border-white/5">
-          <button
-            onClick={() => { setTab('login'); setErrorMsg(null); }}
-            className={`py-2 rounded-lg text-xs font-black uppercase tracking-wider transition ${
-              tab === 'login'
-                ? 'bg-amber-400 text-black shadow-md'
-                : 'text-gray-400 hover:text-white'
-            }`}
+        {/* Modal Brand Header */}
+        <div style={{ textAlign: 'center', marginBottom: '12px' }}>
+          <div
+            style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '10px',
+              background: 'linear-gradient(135deg, #FF7A59 0%, #F5B461 100%)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 14px rgba(255, 122, 89, 0.35)',
+              marginBottom: '6px',
+            }}
           >
-            Log In
+            <Crown size={18} color="#0E0816" fill="#0E0816" />
+          </div>
+          <h2 style={{ fontFamily: 'Sora, sans-serif', fontSize: '18px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 2px 0' }}>
+            {tab === 'login' ? 'Welcome Back to Vegas One' : 'Create Sovereign Vault'}
+          </h2>
+          <p style={{ fontSize: '11.5px', color: '#A69FB3', margin: 0, fontFamily: 'DM Sans, sans-serif' }}>
+            {tab === 'login'
+              ? 'Access your sweepstakes accounts & balances'
+              : 'Sign up now & unlock 3.00 Freeplay instantly'}
+          </p>
+        </div>
+
+        {/* Tab Switcher Pills */}
+        <div
+          style={{
+            display: 'flex',
+            backgroundColor: '#0E0816',
+            borderRadius: '9999px',
+            padding: '2px',
+            marginBottom: '12px',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => { setTab('login'); setErrorMsg(null); }}
+            style={{
+              flex: 1,
+              padding: '6px 0',
+              borderRadius: '9999px',
+              border: 'none',
+              backgroundColor: tab === 'login' ? '#FF7A59' : 'transparent',
+              color: tab === 'login' ? '#0E0816' : '#9A91A8',
+              fontFamily: 'Sora, sans-serif',
+              fontSize: '10.5px',
+              fontWeight: 900,
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+            }}
+          >
+            SIGN IN
           </button>
           <button
+            type="button"
             onClick={() => { setTab('register'); setErrorMsg(null); }}
-            className={`py-2 rounded-lg text-xs font-black uppercase tracking-wider transition ${
-              tab === 'register'
-                ? 'bg-gradient-to-r from-purple-600 to-purple-800 text-white shadow-md'
-                : 'text-gray-400 hover:text-white'
-            }`}
+            style={{
+              flex: 1,
+              padding: '6px 0',
+              borderRadius: '9999px',
+              border: 'none',
+              backgroundColor: tab === 'register' ? '#FF7A59' : 'transparent',
+              color: tab === 'register' ? '#0E0816' : '#9A91A8',
+              fontFamily: 'Sora, sans-serif',
+              fontSize: '10.5px',
+              fontWeight: 900,
+              letterSpacing: '0.04em',
+              textTransform: 'uppercase',
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+            }}
           >
-            Sign Up (Free 5 SC)
+            CREATE ACCOUNT
           </button>
         </div>
 
+        {/* Error Alert */}
         {errorMsg && (
-          <div className="mb-4 p-3 rounded-xl bg-red-500/20 border border-red-500/40 text-red-300 text-xs font-bold text-center">
+          <div
+            style={{
+              backgroundColor: 'rgba(239, 68, 68, 0.15)',
+              border: '1px solid rgba(239, 68, 68, 0.35)',
+              color: '#FCA5A5',
+              padding: '8px 12px',
+              borderRadius: '10px',
+              fontSize: '11.5px',
+              fontFamily: 'DM Sans, sans-serif',
+              marginBottom: '12px',
+              textAlign: 'center',
+            }}
+          >
             {errorMsg}
           </div>
         )}
 
         {/* LOGIN FORM */}
         {tab === 'login' ? (
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <div>
-              <label className="text-xs font-bold text-gray-300 block mb-1">Username or Email</label>
-              <div className="relative">
+              <label style={{ display: 'block', fontSize: '10px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '3px', letterSpacing: '0.04em' }}>
+                USERNAME OR EMAIL
+              </label>
+              <div style={{ position: 'relative' }}>
+                <User size={14} color="#796E8A" style={{ position: 'absolute', top: '10px', left: '12px' }} />
                 <input
                   type="text"
                   placeholder="Enter username or email"
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                   required
+                  style={inputStyle}
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-xs font-bold text-gray-300 block mb-1">Password</label>
-              <input
-                type="password"
-                placeholder="Enter password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <label style={{ display: 'block', fontSize: '10px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '3px', letterSpacing: '0.04em' }}>
+                PASSWORD
+              </label>
+              <div style={{ position: 'relative' }}>
+                <Lock size={14} color="#796E8A" style={{ position: 'absolute', top: '10px', left: '12px' }} />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  style={inputStyle}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    top: '9px',
+                    right: '12px',
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#796E8A',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                </button>
+              </div>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full btn-gold py-3 text-sm font-black flex items-center justify-center gap-2 shadow-lg shadow-amber-500/30 uppercase"
+              className="btn-sovereign-coral"
+              style={{
+                width: '100%',
+                padding: '10px 0',
+                marginTop: '2px',
+                fontSize: '11.5px',
+                letterSpacing: '0.04em',
+                borderRadius: '10px',
+              }}
             >
-              <span>{loading ? 'SIGNING IN...' : 'LOG IN TO PLAY'}</span>
+              <span>{loading ? 'AUTHENTICATING...' : 'SIGN IN TO SOVEREIGN'}</span>
             </button>
+
+            <div style={{ textAlign: 'center', marginTop: '4px', paddingBottom: '2px' }}>
+              <p style={{ fontSize: '11px', color: '#9A91A8', margin: 0 }}>
+                Don't have an account?{' '}
+                <button
+                  type="button"
+                  onClick={() => setTab('register')}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#FF7A59',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    textDecoration: 'underline',
+                  }}
+                >
+                  Sign Up &amp; Claim 3 Freeplay
+                </button>
+              </p>
+            </div>
           </form>
         ) : (
-          /* REGISTER FORM */
-          <form onSubmit={handleRegister} className="space-y-3.5">
-            <div className="bg-purple-950/40 border border-purple-500/30 rounded-xl p-3 flex items-center gap-2.5">
-              <Gift size={20} className="text-amber-400 shrink-0" />
-              <p className="text-xs text-purple-200 font-semibold leading-tight">
-                New Player Welcome Pack: <strong>5.00 Free SC</strong> + <strong>50,000 GC</strong> added immediately!
+          /* REGISTRATION FORM */
+          <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
+            {/* Freeplay Bonus Highlight Badge */}
+            <div
+              style={{
+                backgroundColor: 'rgba(20, 184, 166, 0.12)',
+                border: '1px solid rgba(20, 184, 166, 0.3)',
+                borderRadius: '8px',
+                padding: '6px 10px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+            >
+              <Gift size={14} color="#14B8A6" style={{ shrink: 0 }} />
+              <p style={{ fontSize: '10px', color: '#E2E8F0', margin: 0, lineHeight: 1.3 }}>
+                <strong>Member Perk:</strong> Eligible for <strong>$3.00 Freeplay</strong> immediately after registration!
               </p>
             </div>
 
             <div>
-              <label className="text-xs font-bold text-gray-300 block mb-1">Username</label>
-              <input
-                type="text"
-                placeholder="Choose username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-gray-300 block mb-1">Email Address</label>
-              <input
-                type="email"
-                placeholder="name@domain.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-xs font-bold text-gray-300 block mb-1">Password</label>
+              <label style={{ display: 'block', fontSize: '9.5px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '2px', letterSpacing: '0.04em' }}>
+                USERNAME
+              </label>
+              <div style={{ position: 'relative' }}>
+                <User size={13} color="#796E8A" style={{ position: 'absolute', top: '10px', left: '12px' }} />
                 <input
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  type="text"
+                  placeholder="Choose username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   required
+                  style={inputStyle}
                 />
               </div>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '9.5px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '2px', letterSpacing: '0.04em' }}>
+                EMAIL ADDRESS
+              </label>
+              <div style={{ position: 'relative' }}>
+                <Mail size={13} color="#796E8A" style={{ position: 'absolute', top: '10px', left: '12px' }} />
+                <input
+                  type="email"
+                  placeholder="name@domain.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  style={inputStyle}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
               <div>
-                <label className="text-xs font-bold text-gray-300 block mb-1">US State</label>
-                <select value={state} onChange={(e) => setState(e.target.value)}>
-                  {['CA', 'TX', 'FL', 'NY', 'IL', 'PA', 'OH', 'GA', 'NC', 'AZ', 'CO', 'NJ', 'VA', 'TN', 'IN'].map(s => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
+                <label style={{ display: 'block', fontSize: '9.5px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '2px', letterSpacing: '0.04em' }}>
+                  PASSWORD
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <Lock size={13} color="#796E8A" style={{ position: 'absolute', top: '10px', left: '12px' }} />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    style={inputStyle}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '9.5px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '2px', letterSpacing: '0.04em' }}>
+                  US STATE
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <MapPin size={13} color="#796E8A" style={{ position: 'absolute', top: '10px', left: '12px' }} />
+                  <select
+                    value={state}
+                    onChange={(e) => setState(e.target.value)}
+                    style={{ ...inputStyle, appearance: 'none', cursor: 'pointer' }}
+                  >
+                    {['CA', 'TX', 'FL', 'NY', 'IL', 'PA', 'OH', 'GA', 'NC', 'AZ', 'CO', 'NJ', 'VA', 'TN', 'IN'].map(s => (
+                      <option key={s} value={s} style={{ backgroundColor: '#171124', color: '#FFFFFF' }}>{s}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
 
             <div>
-              <label className="text-xs font-bold text-gray-300 block mb-1">Referral Code (Optional)</label>
-              <input
-                type="text"
-                placeholder="e.g. V1-ABC12"
-                value={referralCode}
-                onChange={(e) => setReferralCode(e.target.value)}
-              />
+              <label style={{ display: 'block', fontSize: '9.5px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '2px', letterSpacing: '0.04em' }}>
+                REFERRAL CODE (OPTIONAL)
+              </label>
+              <div style={{ position: 'relative' }}>
+                <Sparkles size={13} color="#796E8A" style={{ position: 'absolute', top: '10px', left: '12px' }} />
+                <input
+                  type="text"
+                  placeholder="e.g. V1-ROYAL7"
+                  value={referralCode}
+                  onChange={(e) => setReferralCode(e.target.value)}
+                  style={inputStyle}
+                />
+              </div>
             </div>
 
-            {/* Age & Compliance Checkbox */}
-            <div className="flex items-start gap-2.5 pt-1">
+            {/* Certification Checkbox */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingTop: '1px' }}>
               <input
                 type="checkbox"
                 id="ageVerify"
                 checked={ageVerified}
                 onChange={(e) => setAgeVerified(e.target.checked)}
-                className="w-4 h-4 mt-0.5 rounded accent-amber-400"
+                style={{ accentColor: '#FF7A59', cursor: 'pointer', width: '14px', height: '14px' }}
                 required
               />
-              <label htmlFor="ageVerify" className="text-[11px] text-gray-300 leading-tight">
-                I certify that I am at least 18 years old (21+ where required) and a resident of the United States.
+              <label htmlFor="ageVerify" style={{ fontSize: '10px', color: '#B3A9C0', cursor: 'pointer', userSelect: 'none' }}>
+                I certify that I am 18+ and a legal resident of the United States.
               </label>
             </div>
 
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full btn-purple py-3 text-sm font-black flex items-center justify-center gap-2 shadow-lg shadow-purple-950/50 uppercase"
+              className="btn-sovereign-coral"
+              style={{
+                width: '100%',
+                padding: '10px 0',
+                marginTop: '3px',
+                fontSize: '11.5px',
+                letterSpacing: '0.04em',
+                borderRadius: '10px',
+              }}
             >
-              <span>{loading ? 'CREATING ACCOUNT...' : 'CREATE ACCOUNT & CLAIM 5 SC'}</span>
+              <span>{loading ? 'CREATING SOVEREIGN VAULT...' : 'CREATE ACCOUNT & CLAIM 3 FREEPLAY'}</span>
             </button>
+
+            {/* Switch to Sign In */}
+            <div style={{ textAlign: 'center', marginTop: '3px', paddingBottom: '2px' }}>
+              <p style={{ fontSize: '11px', color: '#9A91A8', margin: 0 }}>
+                Already registered?{' '}
+                <button
+                  type="button"
+                  onClick={() => setTab('login')}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#FF7A59',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    textDecoration: 'underline',
+                  }}
+                >
+                  Sign In
+                </button>
+              </p>
+            </div>
           </form>
         )}
       </div>

@@ -62,8 +62,8 @@ export async function POST(req) {
     const { amount, payoutMethod, destinationAddress } = await req.json();
 
     const redeemAmount = Number(amount);
-    if (!redeemAmount || redeemAmount < 50.0) {
-      return NextResponse.json({ success: false, error: 'Minimum redemption is 50.00 SC.' }, { status: 400 });
+    if (!redeemAmount || redeemAmount < 20.0) {
+      return NextResponse.json({ success: false, error: 'Minimum redemption is 20.00 SC.' }, { status: 400 });
     }
 
     if (!destinationAddress || !payoutMethod) {

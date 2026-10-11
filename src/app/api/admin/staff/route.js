@@ -16,7 +16,7 @@ export async function GET() {
     const usersCol = db.collection('users');
 
     const staff = await usersCol
-      .find({ role: { $in: [ROLES.SUPER_ADMIN, ROLES.FINANCIAL_MANAGER, ROLES.COIN_MANAGER, ROLES.CHAT_SUPPORT] } })
+      .find({ role: { $in: [ROLES.SUPER_ADMIN, ROLES.OPERATION_ADMIN, ROLES.FINANCIAL_MANAGER, ROLES.COIN_MANAGER, ROLES.CHAT_SUPPORT] } })
       .project({ passwordHash: 0 })
       .toArray();
 
@@ -50,7 +50,7 @@ export async function POST(req) {
       return NextResponse.json({ success: false, error: 'All fields are required.' }, { status: 400 });
     }
 
-    const allowedRoles = [ROLES.FINANCIAL_MANAGER, ROLES.COIN_MANAGER, ROLES.CHAT_SUPPORT, ROLES.SUPER_ADMIN];
+    const allowedRoles = [ROLES.FINANCIAL_MANAGER, ROLES.OPERATION_ADMIN, ROLES.COIN_MANAGER, ROLES.CHAT_SUPPORT, ROLES.SUPER_ADMIN];
     if (!allowedRoles.includes(role)) {
       return NextResponse.json({ success: false, error: 'Invalid staff role.' }, { status: 400 });
     }
