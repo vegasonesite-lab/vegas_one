@@ -3,9 +3,9 @@ import nodemailer from 'nodemailer';
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.hostinger.com',
   port: parseInt(process.env.SMTP_PORT || '465'),
-  secure: process.env.SMTP_SECURE === 'true' || true,
+  secure: process.env.SMTP_SECURE === 'false' ? false : true,
   auth: {
-    user: process.env.SMTP_USER || 'support@vegasone.games',
+    user: process.env.SMTP_USER || 'verified@vegasone.games',
     pass: process.env.SMTP_PASS || '',
   },
 });
@@ -17,8 +17,9 @@ export async function sendEmail({ to, subject, html }) {
   }
 
   try {
+    const fromAddress = process.env.SMTP_FROM || process.env.SMTP_USER || 'verified@vegasone.games';
     const info = await transporter.sendMail({
-      from: `"Vegas One" <${process.env.SMTP_FROM || 'support@vegasone.games'}>`,
+      from: `"Vegas One" <${fromAddress}>`,
       to,
       subject,
       html,
@@ -49,6 +50,29 @@ export function getWelcomeEmailTemplate(username) {
       </a>
       <p style="margin-top: 36px; font-size: 12px; color: #64748b;">
         No purchase necessary. Void where prohibited. Must be 18+ and a US resident.
+      </p>
+    </div>
+  `;
+}
+
+export function getOtpEmailTemplate(otp, purpose = 'Account Verification') {
+  return `
+    <div style="background-color: #0E0816; color: #FFFFFF; padding: 40px 24px; font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 520px; margin: auto; border-radius: 16px; border: 1px solid rgba(255, 122, 89, 0.35); box-shadow: 0 20px 50px rgba(0,0,0,0.85);">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <h1 style="color: #FF7A59; margin: 0; font-size: 26px; font-weight: 900; letter-spacing: 1px;">VEGAS ONE</h1>
+        <p style="color: #F5B461; font-size: 11px; margin: 4px 0 0 0; text-transform: uppercase; letter-spacing: 2px;">Luxury Sweepstakes Lounge</p>
+      </div>
+      <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 24px; text-align: center;">
+        <h2 style="font-size: 17px; margin: 0 0 10px 0; color: #FFFFFF;">${purpose} Code</h2>
+        <p style="font-size: 13px; color: #9A91A8; margin: 0 0 22px 0; line-height: 1.5;">
+          Use the 6-digit one-time security code below to complete your action. This code will expire in <strong>10 minutes</strong>.
+        </p>
+        <div style="display: inline-block; background: linear-gradient(135deg, rgba(255, 122, 89, 0.15), rgba(245, 180, 97, 0.15)); border: 2px dashed #FF7A59; padding: 14px 28px; border-radius: 12px; font-size: 32px; font-weight: 900; letter-spacing: 8px; color: #FF7A59; font-family: monospace;">
+          ${otp}
+        </div>
+      </div>
+      <p style="margin-top: 24px; font-size: 11px; color: #64748B; text-align: center; line-height: 1.5;">
+        If you did not request this security code, please ignore this email or reach out to 24/7 VIP Live Support.
       </p>
     </div>
   `;
