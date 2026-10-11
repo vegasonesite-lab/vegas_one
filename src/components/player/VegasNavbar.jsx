@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Wallet,
   Shield,
@@ -15,7 +16,7 @@ import {
 } from 'lucide-react';
 
 export default function VegasNavbar({
-  user,
+  user: propUser,
   activeTab = 'main',
   onSelectTab,
   onOpenAuth,
@@ -27,7 +28,77 @@ export default function VegasNavbar({
   activeCurrency = 'SC',
   setActiveCurrency,
 }) {
+  const router = useRouter();
+  const [internalUser, setInternalUser] = useState(null);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+
+  // If user prop is not passed (or undefined on subpages), auto-fetch /api/auth/me so session stays active everywhere
+  useEffect(() => {
+    if (propUser === undefined) {
+      let isMounted = true;
+      fetch('/api/auth/me')
+        .then((res) => res.json())
+        .then((data) => {
+          if (isMounted && data && data.authenticated && data.user) {
+            setInternalUser(data.user);
+          }
+        })
+        .catch(() => {});
+      return () => {
+        isMounted = false;
+      };
+    }
+  }, [propUser]);
+
+  const activeUser = propUser !== undefined ? propUser : internalUser;
+  const isStaff = activeUser && ['super_admin', 'financial_manager', 'coin_manager', 'chat_support'].includes(activeUser.role);
+
+  const handleLogoClick = (e) => {
+    if (typeof onSelectTab === 'function') {
+      onSelectTab('main');
+    }
+    if (typeof window !== 'undefined' && window.location.pathname === '/') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleWalletClick = () => {
+    if (typeof onOpenWallet === 'function') {
+      onOpenWallet();
+    } else {
+      router.push('/wallet');
+    }
+  };
+
+  const handleAuthClick = (mode = 'login') => {
+    if (typeof onOpenAuth === 'function') {
+      onOpenAuth(mode);
+    } else {
+      router.push(`/?auth=${mode}`);
+    }
+  };
+
+  const handleKycClick = () => {
+    if (typeof onOpenKyc === 'function') {
+      onOpenKyc();
+    } else {
+      router.push('/?auth=login');
+    }
+    setUserDropdownOpen(false);
+  };
+
+  const handleTabClick = (tab) => {
+    if (typeof onSelectTab === 'function') {
+      onSelectTab(tab);
+    } else if (tab === 'ledger') {
+      router.push('/ledger');
+    } else if (tab === 'main') {
+      router.push('/');
+    } else {
+      router.push(`/#${tab}`);
+    }
+    setUserDropdownOpen(false);
+  };
 
   const handleLogout = async () => {
     try {
@@ -37,8 +108,6 @@ export default function VegasNavbar({
       window.location.reload();
     }
   };
-
-  const isStaff = user && ['super_admin', 'financial_manager', 'coin_manager', 'chat_support'].includes(user.role);
 
   return (
     <header
@@ -65,6 +134,7 @@ export default function VegasNavbar({
         {/* Left: Neon Vegas One Marquee Badge Logo */}
         <Link
           href="/"
+          onClick={handleLogoClick}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -119,21 +189,21 @@ export default function VegasNavbar({
 
         {/* Right Side: Balances + Coral Deposit Button + Avatar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {user ? (
+          {activeUser ? (
             <>
               {/* Single Unified Cash Vault Balance Capsule */}
               <div
-                onClick={onOpenWallet}
+                onClick={handleWalletClick}
                 style={{
                   cursor: 'pointer',
-                  backgroundColor: '#171124',
-                  border: '1px solid rgba(20, 184, 166, 0.45)',
+                  backgroundColor: '#0E0A24',
+                  border: '1px solid rgba(0, 240, 255, 0.45)',
                   padding: '7px 16px',
                   borderRadius: '9999px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.4)',
+                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.4), 0 0 15px rgba(0, 240, 255, 0.15)',
                   transition: 'all 0.15s ease',
                 }}
                 title="Sovereign Vault Balance"
@@ -143,8 +213,8 @@ export default function VegasNavbar({
                     width: '20px',
                     height: '20px',
                     borderRadius: '50%',
-                    backgroundColor: 'rgba(20, 184, 166, 0.2)',
-                    color: '#14B8A6',
+                    backgroundColor: 'rgba(0, 240, 255, 0.2)',
+                    color: '#00F0FF',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -159,18 +229,18 @@ export default function VegasNavbar({
                     fontFamily: 'Lexend, sans-serif',
                     fontWeight: 900,
                     fontSize: '13.5px',
-                    color: '#14B8A6',
+                    color: '#00F0FF',
                     letterSpacing: '-0.01em',
                   }}
                 >
-                  ${Number(user.balanceSC ?? user.balance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  ${Number(activeUser.balanceSC ?? activeUser.balance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
 
-              {/* Coral Primary Deposit Button (from Image 2) */}
+              {/* Coral Primary Deposit Button */}
               <button
                 type="button"
-                onClick={onOpenWallet}
+                onClick={handleWalletClick}
                 className="btn-sovereign-coral"
                 style={{ padding: '9px 22px', fontSize: '12px' }}
               >
@@ -180,17 +250,17 @@ export default function VegasNavbar({
               {/* Quick Wallet Icon Button */}
               <button
                 type="button"
-                onClick={onOpenWallet}
+                onClick={handleWalletClick}
                 style={{
                   width: '38px',
                   height: '38px',
                   borderRadius: '50%',
-                  backgroundColor: '#171124',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  backgroundColor: '#0E0A24',
+                  border: '1px solid rgba(0, 240, 255, 0.3)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#9A91A8',
+                  color: '#00F0FF',
                   cursor: 'pointer',
                 }}
                 title="My Vault"
@@ -219,7 +289,7 @@ export default function VegasNavbar({
                     cursor: 'pointer',
                   }}
                 >
-                  {user.username ? user.username.substring(0, 2).toUpperCase() : 'VIP'}
+                  {activeUser.username ? activeUser.username.substring(0, 2).toUpperCase() : 'VIP'}
                 </button>
 
                 {userDropdownOpen && (
@@ -230,49 +300,40 @@ export default function VegasNavbar({
                       marginTop: '10px',
                       width: '240px',
                       borderRadius: '16px',
-                      backgroundColor: '#171124',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      boxShadow: '0 20px 40px rgba(0, 0, 0, 0.6)',
+                      backgroundColor: '#0E0A24',
+                      border: '1px solid rgba(0, 240, 255, 0.35)',
+                      boxShadow: '0 20px 40px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 240, 255, 0.15)',
                       padding: '8px 0',
                       zIndex: 100,
                     }}
                   >
                     <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}>
                       <p style={{ margin: 0, fontSize: '11px', color: '#9A91A8', textTransform: 'uppercase' }}>Sovereign Patron</p>
-                      <p style={{ margin: '3px 0 0 0', fontFamily: 'Lexend, sans-serif', fontWeight: 800, fontSize: '14px', color: '#FFFFFF' }}>{user.username}</p>
+                      <p style={{ margin: '3px 0 0 0', fontFamily: 'Lexend, sans-serif', fontWeight: 800, fontSize: '14px', color: '#FFFFFF' }}>{activeUser.username}</p>
                     </div>
 
                     <div style={{ padding: '6px 0' }}>
                       <button
-                        onClick={() => {
-                          onSelectTab('profile');
-                          setUserDropdownOpen(false);
-                        }}
+                        onClick={() => handleTabClick('profile')}
                         style={{ width: '100%', padding: '8px 16px', textAlign: 'left', background: 'transparent', border: 'none', color: '#D1CADB', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
                       >
-                        <User size={14} color="#9A91A8" />
+                        <User size={14} color="#00F0FF" />
                         <span>Account & Security</span>
                       </button>
 
                       <button
-                        onClick={() => {
-                          onOpenKyc();
-                          setUserDropdownOpen(false);
-                        }}
+                        onClick={handleKycClick}
                         style={{ width: '100%', padding: '8px 16px', textAlign: 'left', background: 'transparent', border: 'none', color: '#D1CADB', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
                       >
-                        <Shield size={14} color="#14B8A6" />
+                        <Shield size={14} color="#00F0FF" />
                         <span>Identity Verification (KYC)</span>
                       </button>
 
                       <button
-                        onClick={() => {
-                          onSelectTab('ledger');
-                          setUserDropdownOpen(false);
-                        }}
+                        onClick={() => handleTabClick('ledger')}
                         style={{ width: '100%', padding: '8px 16px', textAlign: 'left', background: 'transparent', border: 'none', color: '#D1CADB', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
                       >
-                        <Clock size={14} color="#9A91A8" />
+                        <Clock size={14} color="#00F0FF" />
                         <span>Vault Ledger</span>
                       </button>
 
@@ -306,7 +367,7 @@ export default function VegasNavbar({
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <button
                 type="button"
-                onClick={() => onOpenAuth('login')}
+                onClick={() => handleAuthClick('login')}
                 className="btn-sovereign-dark"
                 style={{ padding: '8px 18px', fontSize: '12px' }}
               >
@@ -315,7 +376,7 @@ export default function VegasNavbar({
 
               <button
                 type="button"
-                onClick={() => onOpenAuth('register')}
+                onClick={() => handleAuthClick('register')}
                 className="btn-sovereign-coral"
                 style={{ padding: '8px 20px', fontSize: '12px' }}
               >

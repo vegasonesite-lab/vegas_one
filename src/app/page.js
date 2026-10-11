@@ -54,6 +54,17 @@ export default function Home() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [subscriptionModalOpen, setSubscriptionModalOpen] = useState(false);
 
+  // Auto-open Auth modal if redirected with ?auth=login or ?auth=register
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const authParam = params.get('auth');
+      if (authParam === 'login' || authParam === 'register') {
+        setAuthModal({ open: true, tab: authParam });
+      }
+    }
+  }, []);
+
   // Auto-open Subscription Promo modal on login if not already subscribed
   useEffect(() => {
     if (user && !user.isSubscribed) {
