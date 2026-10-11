@@ -40,3 +40,17 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# android build
+.gradle/
+android/app/build/
+android/build/
+android/local.properties
+android/.gradle/
+*.apk
+public/download/*.apk
+public/*.apk
+
+# secrets
+firebase-service-account.json
+
