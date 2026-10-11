@@ -44,7 +44,7 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
             <span
               style={{
                 fontSize: '10px',
-                fontFamily: 'Sora, sans-serif',
+                fontFamily: 'Lexend, sans-serif',
                 fontWeight: 900,
                 letterSpacing: '0.05em',
                 textTransform: 'uppercase',
@@ -102,7 +102,7 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
                 padding: '4px 8px',
                 borderRadius: '6px',
                 fontSize: '10px',
-                fontFamily: 'Sora, sans-serif',
+                fontFamily: 'Lexend, sans-serif',
                 fontWeight: 700,
                 color: '#E2DCEB',
               }}
@@ -139,7 +139,7 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
             alignItems: 'center',
             justifyContent: 'space-between',
             fontSize: '11px',
-            fontFamily: 'DM Sans, sans-serif',
+            fontFamily: 'Lexend, sans-serif',
             color: '#9A91A8',
             marginBottom: '8px',
             padding: '0 2px',
@@ -154,7 +154,7 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
           <p
             style={{
               fontSize: '10px',
-              fontFamily: 'Sora, sans-serif',
+              fontFamily: 'Lexend, sans-serif',
               fontWeight: 700,
               letterSpacing: '0.06em',
               color: '#A69FB3',
@@ -166,7 +166,7 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
           </p>
           <h3
             style={{
-              fontFamily: 'Sora, sans-serif',
+              fontFamily: 'Lexend, sans-serif',
               fontSize: '15px',
               fontWeight: 900,
               color: '#F8FAFC',
@@ -193,7 +193,7 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
             width: '100%',
             background: 'linear-gradient(135deg, #E026D8 0%, #00F0FF 100%)',
             color: '#FFFFFF',
-            fontFamily: 'Sora, sans-serif',
+            fontFamily: 'Lexend, sans-serif',
             fontWeight: 900,
             fontSize: '12px',
             letterSpacing: '0.05em',

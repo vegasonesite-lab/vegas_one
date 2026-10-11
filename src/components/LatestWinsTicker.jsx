@@ -66,7 +66,7 @@ export default function LatestWinsTicker() {
           padding: '5px 14px',
           borderRadius: '9999px',
           fontSize: '11px',
-          fontFamily: 'Sora, sans-serif',
+          fontFamily: 'Lexend, sans-serif',
           fontWeight: 800,
           letterSpacing: '0.06em',
           textTransform: 'uppercase',
@@ -89,7 +89,7 @@ export default function LatestWinsTicker() {
 
       {/* Ticker marquee */}
       <div style={{ overflow: 'hidden', position: 'relative', width: '100%' }}>
-        <div className="animate-marquee" style={{ display: 'flex', alignItems: 'center', gap: '32px', fontSize: '13px', fontFamily: 'DM Sans, sans-serif' }}>
+        <div className="animate-marquee" style={{ display: 'flex', alignItems: 'center', gap: '32px', fontSize: '13px', fontFamily: 'Lexend, sans-serif' }}>
           {wins.concat(wins).map((item, idx) => (
             <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, color: '#C9C2D4' }}>
               {item.icon === 'gem' ? (
@@ -100,7 +100,7 @@ export default function LatestWinsTicker() {
 
               <span style={{ fontWeight: 700, color: '#FFFFFF' }}>{item.username}</span>
               <span style={{ color: '#9A91A8' }}>won</span>
-              <span style={{ fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#00F0FF' }}>{item.amount}</span>
+              <span style={{ fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#00F0FF' }}>{item.amount}</span>
               <span style={{ color: '#9A91A8' }}>on</span>
               <span style={{ fontWeight: 600, color: '#F8FAFC' }}>{item.game}</span>
               <span style={{ fontSize: '11px', color: '#7E758C' }}>{item.time}</span>

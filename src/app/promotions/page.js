@@ -82,7 +82,7 @@ export default function PromotionsPage() {
                   padding: '4px 12px',
                   borderRadius: '9999px',
                   fontSize: '11px',
-                  fontFamily: 'Sora, sans-serif',
+                  fontFamily: 'Lexend, sans-serif',
                   fontWeight: 900,
                   textTransform: 'uppercase',
                   marginBottom: '10px',
@@ -90,7 +90,7 @@ export default function PromotionsPage() {
               >
                 <span>FACEBOOK OFFICIAL PROMO HUB</span>
               </div>
-              <h2 style={{ fontFamily: 'Sora, sans-serif', fontSize: '26px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 8px 0' }}>
+              <h2 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '26px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 8px 0' }}>
                 Daily Freeplay Drops &amp; Exclusive Tournament Codes
               </h2>
               <p style={{ margin: 0, fontSize: '13px', color: '#E3F2FD', lineHeight: 1.5 }}>
@@ -105,7 +105,7 @@ export default function PromotionsPage() {
               style={{
                 backgroundColor: '#FFFFFF',
                 color: '#1877F2',
-                fontFamily: 'Sora, sans-serif',
+                fontFamily: 'Lexend, sans-serif',
                 fontWeight: 900,
                 fontSize: '12px',
                 padding: '14px 26px',
@@ -124,18 +124,18 @@ export default function PromotionsPage() {
 
           {/* Active Promotions Grid */}
           <div style={{ marginBottom: '24px' }}>
-            <h2 style={{ fontFamily: 'Sora, sans-serif', fontSize: '24px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 16px 0' }}>
+            <h2 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '24px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 16px 0' }}>
               Active Vault Promotions &amp; Broadcasts
             </h2>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
               {/* Promo 1: Welcome Pack */}
               <div style={{ backgroundColor: '#0E0A24', border: '1px solid rgba(0, 240, 255, 0.3)', borderRadius: '20px', padding: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#00F0FF', fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#00F0FF', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px' }}>
                   <Gift size={15} />
                   <span>NEW SIGNUP PRIVILEGE</span>
                 </div>
-                <h3 style={{ fontFamily: 'Sora, sans-serif', fontSize: '18px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 8px 0' }}>
+                <h3 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '18px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 8px 0' }}>
                   $3.00 Instant Freeplay Bonus
                 </h3>
                 <p style={{ fontSize: '13px', color: '#B3A9C0', lineHeight: 1.5, margin: '0 0 16px 0' }}>
@@ -148,11 +148,11 @@ export default function PromotionsPage() {
 
               {/* Promo 2: 300% Welcome Match */}
               <div style={{ backgroundColor: '#0E0A24', border: '1px solid rgba(224, 38, 216, 0.4)', borderRadius: '20px', padding: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#E026D8', fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#E026D8', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px' }}>
                   <Flame size={15} />
                   <span>FIRST PURCHASE BOOST</span>
                 </div>
-                <h3 style={{ fontFamily: 'Sora, sans-serif', fontSize: '18px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 8px 0' }}>
+                <h3 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '18px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 8px 0' }}>
                   300% Bonus Up to $7,500
                 </h3>
                 <p style={{ fontSize: '13px', color: '#B3A9C0', lineHeight: 1.5, margin: '0 0 16px 0' }}>
@@ -165,11 +165,11 @@ export default function PromotionsPage() {
 
               {/* Promo 3: 50% Referral Commission */}
               <div style={{ backgroundColor: '#0E0A24', border: '1px solid rgba(0, 240, 255, 0.3)', borderRadius: '20px', padding: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#00F0FF', fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#00F0FF', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px' }}>
                   <Sparkles size={15} />
                   <span>AFFILIATE CASH LOUNGE</span>
                 </div>
-                <h3 style={{ fontFamily: 'Sora, sans-serif', fontSize: '18px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 8px 0' }}>
+                <h3 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '18px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 8px 0' }}>
                   50% Lifetime Commission
                 </h3>
                 <p style={{ fontSize: '13px', color: '#B3A9C0', lineHeight: 1.5, margin: '0 0 16px 0' }}>

@@ -44,7 +44,7 @@ export default function PrivacyPage() {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
               <Shield size={28} color="#00F0FF" />
-              <h1 style={{ fontFamily: 'Sora, sans-serif', fontSize: '28px', fontWeight: 900, color: '#FFFFFF', margin: 0 }}>
+              <h1 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '28px', fontWeight: 900, color: '#FFFFFF', margin: 0 }}>
                 Privacy Policy &amp; Data Security
               </h1>
             </div>
@@ -55,7 +55,7 @@ export default function PrivacyPage() {
               </p>
 
               <section>
-                <h3 style={{ color: '#FFFFFF', fontFamily: 'Sora, sans-serif', fontSize: '16px', margin: '0 0 6px 0' }}>
+                <h3 style={{ color: '#FFFFFF', fontFamily: 'Lexend, sans-serif', fontSize: '16px', margin: '0 0 6px 0' }}>
                   Information We Collect
                 </h3>
                 <p style={{ margin: 0 }}>
@@ -64,7 +64,7 @@ export default function PrivacyPage() {
               </section>
 
               <section>
-                <h3 style={{ color: '#FFFFFF', fontFamily: 'Sora, sans-serif', fontSize: '16px', margin: '0 0 6px 0' }}>
+                <h3 style={{ color: '#FFFFFF', fontFamily: 'Lexend, sans-serif', fontSize: '16px', margin: '0 0 6px 0' }}>
                   Data Protection Guarantee
                 </h3>
                 <p style={{ margin: 0 }}>

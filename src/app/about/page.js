@@ -38,14 +38,15 @@ export default function AboutPage() {
                 src="/images/logo.png"
                 alt="Vegas One"
                 style={{
-                  height: '64px',
+                  height: '92px',
                   width: 'auto',
+                  maxHeight: '100px',
                   objectFit: 'contain',
-                  marginBottom: '16px',
-                  filter: 'drop-shadow(0 0 16px rgba(0, 240, 255, 0.45)) drop-shadow(0 0 24px rgba(224, 38, 216, 0.35))',
+                  marginBottom: '20px',
+                  filter: 'drop-shadow(0 0 20px rgba(0, 240, 255, 0.55)) drop-shadow(0 0 30px rgba(224, 38, 216, 0.45))',
                 }}
               />
-              <h1 style={{ fontFamily: 'Sora, sans-serif', fontSize: '38px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 12px 0' }}>
+              <h1 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '38px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 12px 0' }}>
                 About Vegas One Sovereign
               </h1>
               <p style={{ fontSize: '15px', color: '#B3A9C0', lineHeight: 1.6, margin: 0 }}>
@@ -74,19 +75,19 @@ export default function AboutPage() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', margin: '10px 0' }}>
                 <div style={{ backgroundColor: '#070514', padding: '16px', borderRadius: '16px', border: '1px solid rgba(0, 240, 255, 0.15)' }}>
                   <ShieldCheck size={22} color="#00F0FF" style={{ marginBottom: '8px' }} />
-                  <h4 style={{ color: '#FFFFFF', margin: '0 0 4px 0', fontFamily: 'Sora, sans-serif' }}>100% US Legal</h4>
+                  <h4 style={{ color: '#FFFFFF', margin: '0 0 4px 0', fontFamily: 'Lexend, sans-serif' }}>100% US Legal</h4>
                   <p style={{ fontSize: '12px', color: '#9A91A8', margin: 0 }}>Operated under promotional sweepstakes regulations.</p>
                 </div>
 
                 <div style={{ backgroundColor: '#070514', padding: '16px', borderRadius: '16px', border: '1px solid rgba(224, 38, 216, 0.15)' }}>
                   <Lock size={22} color="#E026D8" style={{ marginBottom: '8px' }} />
-                  <h4 style={{ color: '#FFFFFF', margin: '0 0 4px 0', fontFamily: 'Sora, sans-serif' }}>Fast Settlements</h4>
+                  <h4 style={{ color: '#FFFFFF', margin: '0 0 4px 0', fontFamily: 'Lexend, sans-serif' }}>Fast Settlements</h4>
                   <p style={{ fontSize: '12px', color: '#9A91A8', margin: 0 }}>Cash App, Zelle, Venmo, &amp; Crypto payouts.</p>
                 </div>
 
                 <div style={{ backgroundColor: '#070514', padding: '16px', borderRadius: '16px', border: '1px solid rgba(0, 240, 255, 0.15)' }}>
                   <Trophy size={22} color="#00F0FF" style={{ marginBottom: '8px' }} />
-                  <h4 style={{ color: '#FFFFFF', margin: '0 0 4px 0', fontFamily: 'Sora, sans-serif' }}>99.4% RTP</h4>
+                  <h4 style={{ color: '#FFFFFF', margin: '0 0 4px 0', fontFamily: 'Lexend, sans-serif' }}>99.4% RTP</h4>
                   <p style={{ fontSize: '12px', color: '#9A91A8', margin: 0 }}>Highest payout rate in the sweepstakes industry.</p>
                 </div>
               </div>

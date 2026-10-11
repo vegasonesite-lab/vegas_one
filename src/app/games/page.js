@@ -125,10 +125,10 @@ export default function GamesPage() {
 
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px' }}>
               <div>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
                   <span>⧉ OFFICIAL SWEEPSTAKES LIBRARY</span>
                 </div>
-                <h1 style={{ fontFamily: 'Sora, sans-serif', fontSize: '36px', fontWeight: 900, color: '#FFFFFF', margin: 0, letterSpacing: '-0.02em' }}>
+                <h1 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '36px', fontWeight: 900, color: '#FFFFFF', margin: 0, letterSpacing: '-0.02em' }}>
                   The Grand Collection
                 </h1>
               </div>
@@ -149,7 +149,7 @@ export default function GamesPage() {
                     padding: '10px 16px 10px 38px',
                     color: '#FFFFFF',
                     fontSize: '12px',
-                    fontFamily: 'DM Sans, sans-serif',
+                    fontFamily: 'Lexend, sans-serif',
                     outline: 'none',
                     boxSizing: 'border-box',
                   }}
@@ -178,7 +178,7 @@ export default function GamesPage() {
                 border: '1px dashed rgba(255, 255, 255, 0.1)',
               }}
             >
-              <p style={{ color: '#9A91A8', fontFamily: 'Sora, sans-serif', fontSize: '16px', margin: 0 }}>
+              <p style={{ color: '#9A91A8', fontFamily: 'Lexend, sans-serif', fontSize: '16px', margin: 0 }}>
                 No games found matching your selection.
               </p>
               <p style={{ color: '#5F5472', fontSize: '13px', marginTop: '6px' }}>

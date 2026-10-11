@@ -244,21 +244,22 @@ export default function WalletModal({
             src="/images/logo.png"
             alt="Vegas One"
             style={{
-              height: '46px',
+              height: '68px',
               width: 'auto',
+              maxHeight: '74px',
               objectFit: 'contain',
-              filter: 'drop-shadow(0 0 12px rgba(0, 240, 255, 0.45)) drop-shadow(0 0 16px rgba(224, 38, 216, 0.35))',
+              filter: 'drop-shadow(0 0 14px rgba(0, 240, 255, 0.5)) drop-shadow(0 0 20px rgba(224, 38, 216, 0.4))',
             }}
           />
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h2 style={{ fontFamily: 'Sora, sans-serif', fontSize: '20px', fontWeight: 900, color: '#FFFFFF', margin: 0 }}>
+              <h2 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '20px', fontWeight: 900, color: '#FFFFFF', margin: 0 }}>
                 Sovereign Cashier & Vault
               </h2>
               <span
                 style={{
                   fontSize: '10px',
-                  fontFamily: 'Sora, sans-serif',
+                  fontFamily: 'Lexend, sans-serif',
                   fontWeight: 800,
                   padding: '3px 8px',
                   borderRadius: '9999px',
@@ -270,7 +271,7 @@ export default function WalletModal({
                 USD CASH
               </span>
             </div>
-            <p style={{ fontSize: '12px', color: '#9A91A8', margin: '2px 0 0 0', fontFamily: 'DM Sans, sans-serif' }}>
+            <p style={{ fontSize: '12px', color: '#9A91A8', margin: '2px 0 0 0', fontFamily: 'Lexend, sans-serif' }}>
               Instant settlements · Zero fees on sweepstakes transfers
             </p>
           </div>
@@ -291,18 +292,18 @@ export default function WalletModal({
             }}
           >
             <div>
-              <span style={{ fontSize: '10px', fontFamily: 'Sora, sans-serif', fontWeight: 700, color: '#9A91A8', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'Lexend, sans-serif', fontWeight: 700, color: '#9A91A8', textTransform: 'uppercase' }}>
                 Unified Vault Balance
               </span>
-              <p style={{ margin: '2px 0 0 0', fontFamily: 'Sora, sans-serif', fontSize: '20px', fontWeight: 900, color: '#00F0FF' }}>
+              <p style={{ margin: '2px 0 0 0', fontFamily: 'Lexend, sans-serif', fontSize: '20px', fontWeight: 900, color: '#00F0FF' }}>
                 ${Number(user.balanceSC ?? user.balance ?? 0).toFixed(2)}
               </p>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <span style={{ fontSize: '10px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#E026D8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              <span style={{ fontSize: '10px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#E026D8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                 STATUS
               </span>
-              <p style={{ margin: '2px 0 0 0', fontFamily: 'Sora, sans-serif', fontSize: '12px', fontWeight: 800, color: '#FFFFFF' }}>
+              <p style={{ margin: '2px 0 0 0', fontFamily: 'Lexend, sans-serif', fontSize: '12px', fontWeight: 800, color: '#FFFFFF' }}>
                 Verified Patron
               </p>
             </div>
@@ -330,7 +331,7 @@ export default function WalletModal({
               border: 'none',
               backgroundColor: activeTab === 'deposit' ? '#00F0FF' : 'transparent',
               color: activeTab === 'deposit' ? '#070514' : '#9A91A8',
-              fontFamily: 'Sora, sans-serif',
+              fontFamily: 'Lexend, sans-serif',
               fontSize: '10.5px',
               fontWeight: 900,
               letterSpacing: '0.04em',
@@ -356,7 +357,7 @@ export default function WalletModal({
               border: 'none',
               backgroundColor: activeTab === 'redeem' ? '#E026D8' : 'transparent',
               color: activeTab === 'redeem' ? '#FFFFFF' : '#9A91A8',
-              fontFamily: 'Sora, sans-serif',
+              fontFamily: 'Lexend, sans-serif',
               fontSize: '10.5px',
               fontWeight: 900,
               letterSpacing: '0.04em',
@@ -382,7 +383,7 @@ export default function WalletModal({
               border: 'none',
               backgroundColor: activeTab === 'history' ? '#00F0FF' : 'transparent',
               color: activeTab === 'history' ? '#070514' : '#9A91A8',
-              fontFamily: 'Sora, sans-serif',
+              fontFamily: 'Lexend, sans-serif',
               fontSize: '10.5px',
               fontWeight: 900,
               letterSpacing: '0.04em',
@@ -410,7 +411,7 @@ export default function WalletModal({
               padding: '10px 14px',
               borderRadius: '12px',
               fontSize: '12px',
-              fontFamily: 'DM Sans, sans-serif',
+              fontFamily: 'Lexend, sans-serif',
               marginBottom: '16px',
               textAlign: 'center',
             }}
@@ -427,7 +428,7 @@ export default function WalletModal({
               padding: '10px 14px',
               borderRadius: '12px',
               fontSize: '12px',
-              fontFamily: 'DM Sans, sans-serif',
+              fontFamily: 'Lexend, sans-serif',
               marginBottom: '16px',
               textAlign: 'center',
             }}
@@ -441,7 +442,7 @@ export default function WalletModal({
           <form onSubmit={handleDepositSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {/* Step 1: Select Payment Gateway */}
             <div>
-              <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '8px', letterSpacing: '0.05em' }}>
+              <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '8px', letterSpacing: '0.05em' }}>
                 1. SELECT PAYMENT METHOD
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px' }}>
@@ -466,7 +467,7 @@ export default function WalletModal({
                         justifyContent: 'space-between',
                       }}
                     >
-                      <span style={{ fontSize: '12px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: isSel ? '#00F0FF' : '#C8C1D4' }}>
+                      <span style={{ fontSize: '12px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: isSel ? '#00F0FF' : '#C8C1D4' }}>
                         {m.name}
                       </span>
                       <span style={{ fontSize: '10px', color: '#00F0FF', fontWeight: 700, marginTop: '4px' }}>
@@ -481,10 +482,10 @@ export default function WalletModal({
             {/* Step 2: Amount Presets */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '8px' }}>
-                <label style={{ fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#C8C1D4', letterSpacing: '0.05em' }}>
+                <label style={{ fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', letterSpacing: '0.05em' }}>
                   2. SELECT AMOUNT
                 </label>
-                <span style={{ fontSize: '11px', color: '#00F0FF', fontFamily: 'Sora, sans-serif', fontWeight: 800 }}>
+                <span style={{ fontSize: '11px', color: '#00F0FF', fontFamily: 'Lexend, sans-serif', fontWeight: 800 }}>
                   Bonus: +{(depositAmount * 10000).toLocaleString()} GC FREE
                 </span>
               </div>
@@ -500,7 +501,7 @@ export default function WalletModal({
                       backgroundColor: depositAmount === amt ? '#00F0FF' : '#070514',
                       color: depositAmount === amt ? '#070514' : '#C8C1D4',
                       border: depositAmount === amt ? '1px solid #00F0FF' : '1px solid rgba(255, 255, 255, 0.08)',
-                      fontFamily: 'Sora, sans-serif',
+                      fontFamily: 'Lexend, sans-serif',
                       fontWeight: 900,
                       fontSize: '12px',
                       cursor: 'pointer',
@@ -526,7 +527,7 @@ export default function WalletModal({
                   borderRadius: '12px',
                   padding: '10px 14px',
                   color: '#FFFFFF',
-                  fontFamily: 'Sora, sans-serif',
+                  fontFamily: 'Lexend, sans-serif',
                   fontWeight: 800,
                   fontSize: '14px',
                   boxSizing: 'border-box',
@@ -545,7 +546,7 @@ export default function WalletModal({
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <span style={{ fontSize: '10px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#A69FB3', textTransform: 'uppercase' }}>
+                  <span style={{ fontSize: '10px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#A69FB3', textTransform: 'uppercase' }}>
                     Send Payment To Official Cashier:
                   </span>
                   <button
@@ -556,7 +557,7 @@ export default function WalletModal({
                       border: 'none',
                       color: '#00F0FF',
                       fontSize: '11px',
-                      fontFamily: 'Sora, sans-serif',
+                      fontFamily: 'Lexend, sans-serif',
                       fontWeight: 800,
                       cursor: 'pointer',
                       display: 'flex',
@@ -584,7 +585,7 @@ export default function WalletModal({
                 >
                   {selectedMethod.accountDetails}
                 </div>
-                <p style={{ margin: 0, fontSize: '11px', color: '#9A91A8', lineHeight: 1.4, fontFamily: 'DM Sans, sans-serif' }}>
+                <p style={{ margin: 0, fontSize: '11px', color: '#9A91A8', lineHeight: 1.4, fontFamily: 'Lexend, sans-serif' }}>
                   {selectedMethod.instructions}
                 </p>
               </div>
@@ -592,7 +593,7 @@ export default function WalletModal({
 
             {/* Step 4: Receipt Proof Screenshot Upload */}
             <div>
-              <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '6px', letterSpacing: '0.05em' }}>
+              <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '6px', letterSpacing: '0.05em' }}>
                 3. ATTACH PAYMENT PROOF RECEIPT
               </label>
               <div
@@ -675,7 +676,7 @@ export default function WalletModal({
           <form onSubmit={handleRedeemSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {/* Payout Method */}
             <div>
-              <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '8px', letterSpacing: '0.05em' }}>
+              <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '8px', letterSpacing: '0.05em' }}>
                 1. SELECT PAYOUT DESTINATION
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
@@ -690,7 +691,7 @@ export default function WalletModal({
                       backgroundColor: payoutMethod === method ? '#14B8A6' : '#0E0816',
                       color: payoutMethod === method ? '#0E0816' : '#C8C1D4',
                       border: payoutMethod === method ? '1px solid #14B8A6' : '1px solid rgba(255, 255, 255, 0.08)',
-                      fontFamily: 'Sora, sans-serif',
+                      fontFamily: 'Lexend, sans-serif',
                       fontWeight: 800,
                       fontSize: '11px',
                       cursor: 'pointer',
@@ -705,7 +706,7 @@ export default function WalletModal({
 
             {/* Destination Handle / Address */}
             <div>
-              <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '6px', letterSpacing: '0.05em' }}>
+              <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '6px', letterSpacing: '0.05em' }}>
                 2. YOUR {payoutMethod.toUpperCase()} HANDLE / ADDRESS
               </label>
               <input
@@ -729,7 +730,7 @@ export default function WalletModal({
                   borderRadius: '12px',
                   padding: '12px 14px',
                   color: '#FFFFFF',
-                  fontFamily: 'DM Sans, sans-serif',
+                  fontFamily: 'Lexend, sans-serif',
                   fontSize: '13px',
                   boxSizing: 'border-box',
                 }}
@@ -739,7 +740,7 @@ export default function WalletModal({
             {/* Amount */}
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '6px' }}>
-                <label style={{ fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#C8C1D4', letterSpacing: '0.05em' }}>
+                <label style={{ fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', letterSpacing: '0.05em' }}>
                   3. REDEMPTION AMOUNT (MIN: 20 SC)
                 </label>
                 {user && (
@@ -751,7 +752,7 @@ export default function WalletModal({
                       border: 'none',
                       color: '#14B8A6',
                       fontSize: '11px',
-                      fontFamily: 'Sora, sans-serif',
+                      fontFamily: 'Lexend, sans-serif',
                       fontWeight: 800,
                       cursor: 'pointer',
                     }}
@@ -775,7 +776,7 @@ export default function WalletModal({
                   borderRadius: '12px',
                   padding: '12px 14px',
                   color: '#FFFFFF',
-                  fontFamily: 'Sora, sans-serif',
+                  fontFamily: 'Lexend, sans-serif',
                   fontWeight: 800,
                   fontSize: '14px',
                   boxSizing: 'border-box',
@@ -823,10 +824,10 @@ export default function WalletModal({
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
               <div>
-                <h3 style={{ fontFamily: 'Sora, sans-serif', fontSize: '13px', fontWeight: 800, color: '#FFFFFF', margin: 0 }}>
+                <h3 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '13px', fontWeight: 800, color: '#FFFFFF', margin: 0 }}>
                   Vault Activity & Payout History
                 </h3>
-                <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#9A91A8', fontFamily: 'DM Sans, sans-serif' }}>
+                <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
                   Live ledger of deposits, redemptions & staff audit decisions
                 </p>
               </div>
@@ -841,7 +842,7 @@ export default function WalletModal({
                   padding: '6px 12px',
                   color: '#C8C1D4',
                   fontSize: '11px',
-                  fontFamily: 'Sora, sans-serif',
+                  fontFamily: 'Lexend, sans-serif',
                   fontWeight: 700,
                   cursor: 'pointer',
                   display: 'flex',
@@ -855,7 +856,7 @@ export default function WalletModal({
             </div>
 
             {loadingHistory ? (
-              <div style={{ textAlign: 'center', padding: '36px 0', color: '#9A91A8', fontSize: '12px', fontFamily: 'DM Sans, sans-serif' }}>
+              <div style={{ textAlign: 'center', padding: '36px 0', color: '#9A91A8', fontSize: '12px', fontFamily: 'Lexend, sans-serif' }}>
                 <Clock size={20} className="animate-spin" style={{ margin: '0 auto 8px auto', display: 'block', color: '#00F0FF' }} />
                 Fetching vault transaction logs...
               </div>
@@ -870,10 +871,10 @@ export default function WalletModal({
                 }}
               >
                 <Wallet size={28} color="#6E6280" style={{ margin: '0 auto 10px auto', display: 'block' }} />
-                <p style={{ margin: 0, fontFamily: 'Sora, sans-serif', fontSize: '13px', fontWeight: 700, color: '#C8C1D4' }}>
+                <p style={{ margin: 0, fontFamily: 'Lexend, sans-serif', fontSize: '13px', fontWeight: 700, color: '#C8C1D4' }}>
                   No Transaction Records Found
                 </p>
-                <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#6E6280', fontFamily: 'DM Sans, sans-serif' }}>
+                <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#6E6280', fontFamily: 'Lexend, sans-serif' }}>
                   Make your first deposit to fund your sweepstakes wallet.
                 </p>
               </div>
@@ -918,10 +919,10 @@ export default function WalletModal({
                             {isDeposit ? <ArrowDownCircle size={16} color="#00F0FF" /> : <ArrowUpCircle size={16} color="#E026D8" />}
                           </div>
                           <div>
-                            <span style={{ fontSize: '12px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#FFFFFF' }}>
+                            <span style={{ fontSize: '12px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#FFFFFF' }}>
                               {isDeposit ? 'Deposit' : 'Redemption'} · {item.methodName || item.payoutMethod || 'Cash'}
                             </span>
-                            <p style={{ margin: '2px 0 0 0', fontSize: '10px', color: '#6E6280', fontFamily: 'DM Sans, sans-serif' }}>
+                            <p style={{ margin: '2px 0 0 0', fontSize: '10px', color: '#6E6280', fontFamily: 'Lexend, sans-serif' }}>
                               {item.createdAt ? new Date(item.createdAt).toLocaleString() : 'Recent'}
                             </p>
                           </div>
@@ -930,7 +931,7 @@ export default function WalletModal({
                         <div style={{ textAlign: 'right' }}>
                           <span
                             style={{
-                              fontFamily: 'Sora, sans-serif',
+                              fontFamily: 'Lexend, sans-serif',
                               fontSize: '14px',
                               fontWeight: 900,
                               color: isDeposit ? '#00F0FF' : '#E026D8',
@@ -944,7 +945,7 @@ export default function WalletModal({
                                 display: 'inline-block',
                                 marginTop: '3px',
                                 fontSize: '9.5px',
-                                fontFamily: 'Sora, sans-serif',
+                                fontFamily: 'Lexend, sans-serif',
                                 fontWeight: 800,
                                 padding: '2px 8px',
                                 borderRadius: '9999px',
@@ -971,7 +972,7 @@ export default function WalletModal({
 
                       {/* Destination handle for redemptions */}
                       {!isDeposit && item.destinationAddress && (
-                        <div style={{ fontSize: '11px', color: '#9A91A8', fontFamily: 'DM Sans, sans-serif', wordBreak: 'break-all' }}>
+                        <div style={{ fontSize: '11px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif', wordBreak: 'break-all' }}>
                           Payout Handle: <span style={{ color: '#E2E8F0', fontWeight: 600 }}>{item.destinationAddress}</span>
                         </div>
                       )}
@@ -987,11 +988,11 @@ export default function WalletModal({
                             marginTop: '4px',
                           }}
                         >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#F87171', fontSize: '10.5px', fontWeight: 800, fontFamily: 'Sora, sans-serif' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#F87171', fontSize: '10.5px', fontWeight: 800, fontFamily: 'Lexend, sans-serif' }}>
                             <AlertCircle size={13} />
                             <span>STAFF REJECTION NOTE / REASON:</span>
                           </div>
-                          <p style={{ margin: '4px 0 0 0', fontSize: '11.5px', color: '#FECACA', fontFamily: 'DM Sans, sans-serif', lineHeight: 1.4 }}>
+                          <p style={{ margin: '4px 0 0 0', fontSize: '11.5px', color: '#FECACA', fontFamily: 'Lexend, sans-serif', lineHeight: 1.4 }}>
                             {item.rejectReason}
                           </p>
                         </div>

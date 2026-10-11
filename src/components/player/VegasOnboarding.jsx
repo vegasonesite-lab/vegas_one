@@ -47,7 +47,7 @@ export default function VegasOnboarding({ onOpenAuth, onOpenWallet }) {
             alignItems: 'center',
             gap: '6px',
             fontSize: '11px',
-            fontFamily: 'Sora, sans-serif',
+            fontFamily: 'Lexend, sans-serif',
             fontWeight: 800,
             color: '#00F0FF',
             textTransform: 'uppercase',
@@ -61,7 +61,7 @@ export default function VegasOnboarding({ onOpenAuth, onOpenWallet }) {
 
         <h2
           style={{
-            fontFamily: 'Sora, sans-serif',
+            fontFamily: 'Lexend, sans-serif',
             fontSize: '32px',
             fontWeight: 900,
             color: '#FFFFFF',
@@ -74,7 +74,7 @@ export default function VegasOnboarding({ onOpenAuth, onOpenWallet }) {
 
         <p
           style={{
-            fontFamily: 'DM Sans, sans-serif',
+            fontFamily: 'Lexend, sans-serif',
             fontSize: '14px',
             color: '#A69FB3',
             margin: 0,
@@ -113,7 +113,7 @@ export default function VegasOnboarding({ onOpenAuth, onOpenWallet }) {
                   position: 'absolute',
                   top: '12px',
                   right: '18px',
-                  fontFamily: 'Sora, sans-serif',
+                  fontFamily: 'Lexend, sans-serif',
                   fontWeight: 900,
                   fontSize: '56px',
                   color: 'rgba(255, 255, 255, 0.03)',
@@ -146,7 +146,7 @@ export default function VegasOnboarding({ onOpenAuth, onOpenWallet }) {
 
                 <h3
                   style={{
-                    fontFamily: 'Sora, sans-serif',
+                    fontFamily: 'Lexend, sans-serif',
                     fontWeight: 800,
                     fontSize: '16px',
                     color: '#FFFFFF',
@@ -158,7 +158,7 @@ export default function VegasOnboarding({ onOpenAuth, onOpenWallet }) {
 
                 <p
                   style={{
-                    fontFamily: 'DM Sans, sans-serif',
+                    fontFamily: 'Lexend, sans-serif',
                     fontSize: '12.5px',
                     color: '#A69FB3',
                     lineHeight: 1.6,
@@ -177,7 +177,7 @@ export default function VegasOnboarding({ onOpenAuth, onOpenWallet }) {
                     alignItems: 'center',
                     gap: '6px',
                     fontSize: '10.5px',
-                    fontFamily: 'Sora, sans-serif',
+                    fontFamily: 'Lexend, sans-serif',
                     fontWeight: 800,
                     textTransform: 'uppercase',
                     letterSpacing: '0.06em',

@@ -20,7 +20,7 @@ export default function MobileBottomNav({
     color: isActive ? '#00F0FF' : '#9A91A8',
     textDecoration: 'none',
     fontSize: '10px',
-    fontFamily: 'Sora, sans-serif',
+    fontFamily: 'Lexend, sans-serif',
     fontWeight: isActive ? 800 : 600,
     transition: 'color 0.15s',
   });
@@ -82,7 +82,7 @@ export default function MobileBottomNav({
         >
           <Wallet size={20} color="#070514" />
         </div>
-        <span style={{ fontSize: '10px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#00F0FF', marginTop: '2px' }}>
+        <span style={{ fontSize: '10px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#00F0FF', marginTop: '2px' }}>
           Vault
         </span>
       </Link>

@@ -199,7 +199,7 @@ export default function VegasGameHubStation({
           <div>
             <h2
               style={{
-                fontFamily: 'Sora, sans-serif',
+                fontFamily: 'Lexend, sans-serif',
                 fontSize: '22px',
                 fontWeight: 900,
                 color: '#FFFFFF',
@@ -213,7 +213,7 @@ export default function VegasGameHubStation({
               <span>{game.title.toUpperCase()}</span>
               <span style={{ color: '#00F0FF', fontSize: '16px' }}>STATION</span>
             </h2>
-            <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#A69FB3', fontFamily: 'DM Sans, sans-serif' }}>
+            <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#A69FB3', fontFamily: 'Lexend, sans-serif' }}>
               Dedicated Sweepstakes Gaming Terminal & Account Management
             </p>
           </div>
@@ -230,7 +230,7 @@ export default function VegasGameHubStation({
                 backgroundColor: 'rgba(0, 240, 255, 0.15)',
                 border: '1px solid rgba(0, 240, 255, 0.4)',
                 color: '#00F0FF',
-                fontFamily: 'Sora, sans-serif',
+                fontFamily: 'Lexend, sans-serif',
                 fontWeight: 800,
                 fontSize: '12px',
                 padding: '6px 16px',
@@ -250,7 +250,7 @@ export default function VegasGameHubStation({
                 backgroundColor: 'rgba(224, 38, 216, 0.15)',
                 border: '1px solid rgba(224, 38, 216, 0.4)',
                 color: '#E026D8',
-                fontFamily: 'Sora, sans-serif',
+                fontFamily: 'Lexend, sans-serif',
                 fontWeight: 800,
                 fontSize: '12px',
                 padding: '6px 16px',
@@ -270,7 +270,7 @@ export default function VegasGameHubStation({
                 backgroundColor: 'rgba(0, 240, 255, 0.15)',
                 border: '1px solid rgba(0, 240, 255, 0.4)',
                 color: '#00F0FF',
-                fontFamily: 'Sora, sans-serif',
+                fontFamily: 'Lexend, sans-serif',
                 fontWeight: 800,
                 fontSize: '12px',
                 padding: '6px 16px',
@@ -335,7 +335,7 @@ export default function VegasGameHubStation({
               alignItems: 'center',
               gap: '6px',
               fontSize: '11px',
-              fontFamily: 'Sora, sans-serif',
+              fontFamily: 'Lexend, sans-serif',
               fontWeight: 800,
               color: '#00F0FF',
               textTransform: 'uppercase',
@@ -348,7 +348,7 @@ export default function VegasGameHubStation({
 
           <h2
             style={{
-              fontFamily: 'Sora, sans-serif',
+              fontFamily: 'Lexend, sans-serif',
               fontSize: '32px',
               fontWeight: 900,
               color: '#FFFFFF',
@@ -362,7 +362,7 @@ export default function VegasGameHubStation({
 
           <p
             style={{
-              fontFamily: 'DM Sans, sans-serif',
+              fontFamily: 'Lexend, sans-serif',
               fontSize: '14px',
               color: '#A69FB3',
               margin: '0 0 20px 0',
@@ -436,11 +436,11 @@ export default function VegasGameHubStation({
                 gap: '8px',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#F43F5E', fontFamily: 'Sora, sans-serif', fontWeight: 800, fontSize: '13px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#F43F5E', fontFamily: 'Lexend, sans-serif', fontWeight: 800, fontSize: '13px' }}>
                 <AlertCircle size={18} />
                 <span>PREVIOUS ACCOUNT REQUEST CANCELLED</span>
               </div>
-              <p style={{ margin: 0, fontSize: '12px', color: '#E2E8F0', fontFamily: 'DM Sans, sans-serif', lineHeight: 1.5 }}>
+              <p style={{ margin: 0, fontSize: '12px', color: '#E2E8F0', fontFamily: 'Lexend, sans-serif', lineHeight: 1.5 }}>
                 <strong>Staff Note:</strong> {rejectionReason || 'Platform currently unavailable or request cancelled.'}
               </p>
               <div style={{ marginTop: '4px' }}>
@@ -474,15 +474,15 @@ export default function VegasGameHubStation({
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
             <div>
-              <h3 style={{ fontFamily: 'Sora, sans-serif', fontSize: '18px', fontWeight: 900, color: '#FFFFFF', margin: 0 }}>
+              <h3 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '18px', fontWeight: 900, color: '#FFFFFF', margin: 0 }}>
                 Account Provisioning in Progress
               </h3>
-              <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#A69FB3', fontFamily: 'DM Sans, sans-serif' }}>
+              <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#A69FB3', fontFamily: 'Lexend, sans-serif' }}>
                 Please wait ~30 seconds while our 24/7 staff sets up your secure credentials
               </p>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#00F0FF', fontFamily: 'Sora, sans-serif', fontWeight: 800, fontSize: '13px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#00F0FF', fontFamily: 'Lexend, sans-serif', fontWeight: 800, fontSize: '13px' }}>
               <Clock size={16} />
               <span>Est: ~30s</span>
             </div>
@@ -511,7 +511,7 @@ export default function VegasGameHubStation({
                 <CheckCircle2 size={18} />
               </div>
               <div>
-                <p style={{ margin: 0, fontFamily: 'Sora, sans-serif', fontWeight: 800, fontSize: '12px', color: '#FFFFFF' }}>
+                <p style={{ margin: 0, fontFamily: 'Lexend, sans-serif', fontWeight: 800, fontSize: '12px', color: '#FFFFFF' }}>
                   1. Request Submitted
                 </p>
                 <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#00F0FF' }}>Queued with 24/7 staff</p>
@@ -524,7 +524,7 @@ export default function VegasGameHubStation({
                 <RefreshCw size={16} className="animate-spin" />
               </div>
               <div>
-                <p style={{ margin: 0, fontFamily: 'Sora, sans-serif', fontWeight: 800, fontSize: '12px', color: '#FFFFFF' }}>
+                <p style={{ margin: 0, fontFamily: 'Lexend, sans-serif', fontWeight: 800, fontSize: '12px', color: '#FFFFFF' }}>
                   2. Allocating Terminal
                 </p>
                 <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#E026D8' }}>Generating secure vault</p>
@@ -537,7 +537,7 @@ export default function VegasGameHubStation({
                 <Key size={16} />
               </div>
               <div>
-                <p style={{ margin: 0, fontFamily: 'Sora, sans-serif', fontWeight: 800, fontSize: '12px', color: '#FFFFFF' }}>
+                <p style={{ margin: 0, fontFamily: 'Lexend, sans-serif', fontWeight: 800, fontSize: '12px', color: '#FFFFFF' }}>
                   3. Issuing Credentials
                 </p>
                 <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#A69FB3' }}>Admin approval required</p>
@@ -567,14 +567,14 @@ export default function VegasGameHubStation({
               boxShadow: '0 12px 36px rgba(0, 0, 0, 0.4)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#14B8A6', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#14B8A6', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               <Key size={16} color="#14B8A6" />
               <span>PLATFORM LOGIN CREDENTIALS</span>
             </div>
 
             {/* Username Field with Copy */}
             <div>
-              <label style={{ display: 'block', fontSize: '11px', color: '#A69FB3', fontFamily: 'Sora, sans-serif', fontWeight: 700, marginBottom: '6px' }}>
+              <label style={{ display: 'block', fontSize: '11px', color: '#A69FB3', fontFamily: 'Lexend, sans-serif', fontWeight: 700, marginBottom: '6px' }}>
                 GAME USERNAME
               </label>
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -607,7 +607,7 @@ export default function VegasGameHubStation({
 
             {/* Password Field with Copy */}
             <div>
-              <label style={{ display: 'block', fontSize: '11px', color: '#A69FB3', fontFamily: 'Sora, sans-serif', fontWeight: 700, marginBottom: '6px' }}>
+              <label style={{ display: 'block', fontSize: '11px', color: '#A69FB3', fontFamily: 'Lexend, sans-serif', fontWeight: 700, marginBottom: '6px' }}>
                 GAME PASSWORD
               </label>
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -654,11 +654,11 @@ export default function VegasGameHubStation({
             }}
           >
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
                 <Coins size={16} color="#00F0FF" />
                 <span>TERMINAL COIN OPERATIONS</span>
               </div>
-              <p style={{ margin: 0, fontSize: '13px', color: '#A69FB3', fontFamily: 'DM Sans, sans-serif', lineHeight: 1.5 }}>
+              <p style={{ margin: 0, fontSize: '13px', color: '#A69FB3', fontFamily: 'Lexend, sans-serif', lineHeight: 1.5 }}>
                 Load coins to play this sweepstakes terminal instantly, or redeem won cash prizes to your Cash App, Venmo, or Crypto wallet.
               </p>
             </div>
@@ -706,10 +706,10 @@ export default function VegasGameHubStation({
               <Clock size={16} color="#00F0FF" />
             </div>
             <div>
-              <h3 style={{ fontFamily: 'Sora, sans-serif', fontSize: '15px', fontWeight: 800, color: '#FFFFFF', margin: 0 }}>
+              <h3 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '15px', fontWeight: 800, color: '#FFFFFF', margin: 0 }}>
                 {game?.title || 'Game'} Activity &amp; Audit Trail
               </h3>
-              <p style={{ margin: 0, fontSize: '11.5px', color: '#9A91A8', fontFamily: 'DM Sans, sans-serif' }}>
+              <p style={{ margin: 0, fontSize: '11.5px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
                 Your dedicated credentials, provisioning records, and status notes for this platform
               </p>
             </div>
@@ -718,7 +718,7 @@ export default function VegasGameHubStation({
           <span
             style={{
               fontSize: '10.5px',
-              fontFamily: 'Sora, sans-serif',
+              fontFamily: 'Lexend, sans-serif',
               fontWeight: 800,
               padding: '4px 10px',
               borderRadius: '9999px',
@@ -771,7 +771,7 @@ export default function VegasGameHubStation({
                     <span
                       style={{
                         fontSize: '10px',
-                        fontFamily: 'Sora, sans-serif',
+                        fontFamily: 'Lexend, sans-serif',
                         fontWeight: 900,
                         padding: '2px 8px',
                         borderRadius: '9999px',

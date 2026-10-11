@@ -174,7 +174,7 @@ export default function ReferralsPage() {
                 border: '1px solid rgba(0, 240, 255, 0.35)',
                 color: '#00F0FF',
                 fontSize: '11px',
-                fontFamily: 'Sora, sans-serif',
+                fontFamily: 'Lexend, sans-serif',
                 fontWeight: 800,
                 letterSpacing: '0.05em',
                 textTransform: 'uppercase',
@@ -187,7 +187,7 @@ export default function ReferralsPage() {
 
             <h1
               style={{
-                fontFamily: 'Sora, sans-serif',
+                fontFamily: 'Lexend, sans-serif',
                 fontSize: '36px',
                 fontWeight: 900,
                 color: '#FFFFFF',
@@ -233,7 +233,7 @@ export default function ReferralsPage() {
                   borderRadius: '9999px',
                   backgroundColor: '#271E36',
                   color: '#FFFFFF',
-                  fontFamily: 'Sora, sans-serif',
+                  fontFamily: 'Lexend, sans-serif',
                   fontWeight: 800,
                   fontSize: '12px',
                   border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -252,7 +252,7 @@ export default function ReferralsPage() {
           {/* Referral Link & Code Inputs */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px', marginBottom: '28px' }}>
             <div style={{ backgroundColor: '#0E0A24', border: '1px solid rgba(0, 240, 255, 0.18)', borderRadius: '20px', padding: '20px' }}>
-              <div style={{ fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>
+              <div style={{ fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>
                 YOUR PERSONAL REFERRAL LINK
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -280,7 +280,7 @@ export default function ReferralsPage() {
                     border: 'none',
                     borderRadius: '12px',
                     padding: '0 18px',
-                    fontFamily: 'Sora, sans-serif',
+                    fontFamily: 'Lexend, sans-serif',
                     fontWeight: 900,
                     fontSize: '11px',
                     cursor: 'pointer',
@@ -292,7 +292,7 @@ export default function ReferralsPage() {
             </div>
 
             <div style={{ backgroundColor: '#0E0A24', border: '1px solid rgba(0, 240, 255, 0.18)', borderRadius: '20px', padding: '20px' }}>
-              <div style={{ fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>
+              <div style={{ fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px' }}>
                 YOUR REFERRAL CODE
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -322,7 +322,7 @@ export default function ReferralsPage() {
                     border: 'none',
                     borderRadius: '12px',
                     padding: '0 18px',
-                    fontFamily: 'Sora, sans-serif',
+                    fontFamily: 'Lexend, sans-serif',
                     fontWeight: 900,
                     fontSize: '11px',
                     cursor: 'pointer',
@@ -337,29 +337,29 @@ export default function ReferralsPage() {
           {/* Stats Cards */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '32px' }}>
             <div style={{ backgroundColor: '#0E0A24', border: '1px solid rgba(0, 240, 255, 0.15)', borderRadius: '20px', padding: '22px' }}>
-              <span style={{ fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 700, color: '#A69FB3', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 700, color: '#A69FB3', textTransform: 'uppercase' }}>
                 Total Friends Invited
               </span>
-              <p style={{ margin: '8px 0 0 0', fontFamily: 'Sora, sans-serif', fontSize: '32px', fontWeight: 900, color: '#FFFFFF' }}>
+              <p style={{ margin: '8px 0 0 0', fontFamily: 'Lexend, sans-serif', fontSize: '32px', fontWeight: 900, color: '#FFFFFF' }}>
                 {stats.totalReferrals || 0}
               </p>
             </div>
 
             <div style={{ backgroundColor: '#0E0A24', border: '1px solid rgba(0, 240, 255, 0.15)', borderRadius: '20px', padding: '22px' }}>
-              <span style={{ fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 700, color: '#A69FB3', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 700, color: '#A69FB3', textTransform: 'uppercase' }}>
                 Lifetime Commissions
               </span>
-              <p style={{ margin: '8px 0 0 0', fontFamily: 'Sora, sans-serif', fontSize: '32px', fontWeight: 900, color: '#00F0FF' }}>
+              <p style={{ margin: '8px 0 0 0', fontFamily: 'Lexend, sans-serif', fontSize: '32px', fontWeight: 900, color: '#00F0FF' }}>
                 ${Number(stats.commissionsEarned || 0).toFixed(2)} <span style={{ fontSize: '14px', color: '#A69FB3' }}>SC</span>
               </p>
             </div>
 
             <div style={{ backgroundColor: '#0E0A24', border: '1px solid rgba(224, 38, 216, 0.35)', borderRadius: '20px', padding: '22px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               <div>
-                <span style={{ fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 700, color: '#E026D8', textTransform: 'uppercase' }}>
+                <span style={{ fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 700, color: '#E026D8', textTransform: 'uppercase' }}>
                   Unclaimed Commission Pool
                 </span>
-                <p style={{ margin: '8px 0 0 0', fontFamily: 'Sora, sans-serif', fontSize: '32px', fontWeight: 900, color: '#E026D8' }}>
+                <p style={{ margin: '8px 0 0 0', fontFamily: 'Lexend, sans-serif', fontSize: '32px', fontWeight: 900, color: '#E026D8' }}>
                   ${Number(stats.commissionsUnpaid || 0).toFixed(2)} <span style={{ fontSize: '14px', color: '#A69FB3' }}>SC</span>
                 </p>
               </div>

@@ -171,7 +171,7 @@ export default function GameDetailPage() {
               <span
                 style={{
                   fontSize: '11px',
-                  fontFamily: 'Sora, sans-serif',
+                  fontFamily: 'Lexend, sans-serif',
                   fontWeight: 800,
                   padding: '4px 10px',
                   borderRadius: '9999px',
@@ -211,7 +211,7 @@ export default function GameDetailPage() {
                   margin: '0 auto 16px',
                 }}
               />
-              <p style={{ color: '#F8FAFC', fontFamily: 'Sora, sans-serif', fontWeight: 700 }}>
+              <p style={{ color: '#F8FAFC', fontFamily: 'Lexend, sans-serif', fontWeight: 700 }}>
                 Initializing Sovereign Station...
               </p>
             </div>
@@ -232,7 +232,7 @@ export default function GameDetailPage() {
                 borderRadius: '24px',
               }}
             >
-              <h2 style={{ color: '#FFFFFF', fontFamily: 'Sora, sans-serif' }}>Platform Not Found</h2>
+              <h2 style={{ color: '#FFFFFF', fontFamily: 'Lexend, sans-serif' }}>Platform Not Found</h2>
               <p style={{ color: '#9A91A8', marginBottom: '20px' }}>The requested game terminal is currently offline.</p>
               <Link href="/" className="btn-sovereign-coral">
                 Return to Grand Collection

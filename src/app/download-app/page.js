@@ -84,7 +84,7 @@ export default function DownloadAppPage() {
                 border: '1px solid rgba(0, 240, 255, 0.35)',
                 color: '#00F0FF',
                 fontSize: '11px',
-                fontFamily: 'Sora, sans-serif',
+                fontFamily: 'Lexend, sans-serif',
                 fontWeight: 800,
                 letterSpacing: '0.06em',
                 textTransform: 'uppercase',
@@ -97,7 +97,7 @@ export default function DownloadAppPage() {
 
             <h1
               style={{
-                fontFamily: 'Sora, sans-serif',
+                fontFamily: 'Lexend, sans-serif',
                 fontSize: '38px',
                 fontWeight: 900,
                 color: '#FFFFFF',
@@ -147,7 +147,7 @@ export default function DownloadAppPage() {
                     <Smartphone size={24} color="#00F0FF" />
                   </div>
                   <div>
-                    <h2 style={{ fontFamily: 'Sora, sans-serif', fontSize: '20px', fontWeight: 900, color: '#FFFFFF', margin: 0 }}>
+                    <h2 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '20px', fontWeight: 900, color: '#FFFFFF', margin: 0 }}>
                       Android Release APK
                     </h2>
                     <span style={{ fontSize: '11px', color: '#00F0FF', fontWeight: 700 }}>
@@ -226,7 +226,7 @@ export default function DownloadAppPage() {
                     <Apple size={24} color="#E026D8" />
                   </div>
                   <div>
-                    <h2 style={{ fontFamily: 'Sora, sans-serif', fontSize: '20px', fontWeight: 900, color: '#FFFFFF', margin: 0 }}>
+                    <h2 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '20px', fontWeight: 900, color: '#FFFFFF', margin: 0 }}>
                       Apple iOS Web App
                     </h2>
                     <span style={{ fontSize: '11px', color: '#E026D8', fontWeight: 700 }}>
@@ -236,7 +236,7 @@ export default function DownloadAppPage() {
                 </div>
 
                 <div style={{ backgroundColor: '#070514', borderRadius: '14px', padding: '16px', marginBottom: '20px', border: '1px solid rgba(224, 38, 216, 0.2)' }}>
-                  <p style={{ fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#E026D8', textTransform: 'uppercase', margin: '0 0 8px 0' }}>
+                  <p style={{ fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#E026D8', textTransform: 'uppercase', margin: '0 0 8px 0' }}>
                     3-STEP SETUP FOR IPHONE &amp; IPAD:
                   </p>
                   <ol style={{ paddingLeft: '18px', margin: 0, fontSize: '12px', color: '#B3A9C0', lineHeight: 1.6, display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -272,7 +272,7 @@ export default function DownloadAppPage() {
 
           {/* Mobile FAQs */}
           <div style={{ maxWidth: '780px', margin: '0 auto' }}>
-            <h3 style={{ fontFamily: 'Sora, sans-serif', fontSize: '22px', fontWeight: 900, color: '#FFFFFF', marginBottom: '16px', textAlign: 'center' }}>
+            <h3 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '22px', fontWeight: 900, color: '#FFFFFF', marginBottom: '16px', textAlign: 'center' }}>
               Frequently Asked Mobile Questions
             </h3>
 
@@ -301,7 +301,7 @@ export default function DownloadAppPage() {
                         background: 'transparent',
                         border: 'none',
                         color: '#FFFFFF',
-                        fontFamily: 'Sora, sans-serif',
+                        fontFamily: 'Lexend, sans-serif',
                         fontWeight: 800,
                         fontSize: '13px',
                         cursor: 'pointer',

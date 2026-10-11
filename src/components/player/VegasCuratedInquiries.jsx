@@ -39,7 +39,7 @@ export default function VegasCuratedInquiries() {
             alignItems: 'center',
             gap: '6px',
             fontSize: '11px',
-            fontFamily: 'Sora, sans-serif',
+            fontFamily: 'Lexend, sans-serif',
             fontWeight: 800,
             color: '#00F0FF',
             textTransform: 'uppercase',
@@ -51,11 +51,11 @@ export default function VegasCuratedInquiries() {
           <span>CONCIERGE DESK</span>
         </div>
 
-        <h2 style={{ fontFamily: 'Sora, sans-serif', fontSize: '36px', fontWeight: 900, color: '#FFFFFF', letterSpacing: '-0.02em', margin: '0 0 8px 0' }}>
+        <h2 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '36px', fontWeight: 900, color: '#FFFFFF', letterSpacing: '-0.02em', margin: '0 0 8px 0' }}>
           Curated Inquiries
         </h2>
 
-        <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '15px', color: '#A69FB3', margin: 0, lineHeight: 1.6 }}>
+        <p style={{ fontFamily: 'Lexend, sans-serif', fontSize: '15px', color: '#A69FB3', margin: 0, lineHeight: 1.6 }}>
           Essential knowledge for high-roller accounts and platform integrity.
         </p>
       </div>
@@ -87,7 +87,7 @@ export default function VegasCuratedInquiries() {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   gap: '16px',
-                  fontFamily: 'Sora, sans-serif',
+                  fontFamily: 'Lexend, sans-serif',
                   fontWeight: 700,
                   fontSize: '15px',
                   color: '#FFFFFF',
@@ -114,7 +114,7 @@ export default function VegasCuratedInquiries() {
                     padding: '0 24px 24px 24px',
                     fontSize: '13px',
                     color: '#A69FB3',
-                    fontFamily: 'DM Sans, sans-serif',
+                    fontFamily: 'Lexend, sans-serif',
                     lineHeight: 1.6,
                     borderTop: '1px solid rgba(255, 255, 255, 0.04)',
                     paddingTop: '16px',

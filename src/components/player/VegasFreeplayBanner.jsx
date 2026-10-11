@@ -117,7 +117,7 @@ export default function VegasFreeplayBanner({ user, onOpenAuth, onBalanceUpdated
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span
               style={{
-                fontFamily: 'Sora, sans-serif',
+                fontFamily: 'Lexend, sans-serif',
                 fontWeight: 900,
                 fontSize: '16px',
                 color: '#FFFFFF',
@@ -132,7 +132,7 @@ export default function VegasFreeplayBanner({ user, onOpenAuth, onBalanceUpdated
                 color: '#14B8A6',
                 border: '1px solid rgba(20, 184, 166, 0.4)',
                 fontSize: '10px',
-                fontFamily: 'Sora, sans-serif',
+                fontFamily: 'Lexend, sans-serif',
                 fontWeight: 800,
                 padding: '2px 8px',
                 borderRadius: '9999px',
@@ -143,12 +143,12 @@ export default function VegasFreeplayBanner({ user, onOpenAuth, onBalanceUpdated
             </span>
           </div>
 
-          <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#A69FB3', fontFamily: 'DM Sans, sans-serif' }}>
+          <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#A69FB3', fontFamily: 'Lexend, sans-serif' }}>
             Every patron can request 3 Freeplay coins upon registration. Usable on any sweepstakes terminal!
           </p>
 
           {message && (
-            <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#10B981', fontWeight: 700, fontFamily: 'Sora, sans-serif' }}>
+            <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#10B981', fontWeight: 700, fontFamily: 'Lexend, sans-serif' }}>
               {message}
             </p>
           )}
@@ -168,7 +168,7 @@ export default function VegasFreeplayBanner({ user, onOpenAuth, onBalanceUpdated
               color: '#14B8A6',
               padding: '10px 22px',
               borderRadius: '9999px',
-              fontFamily: 'Sora, sans-serif',
+              fontFamily: 'Lexend, sans-serif',
               fontWeight: 800,
               fontSize: '12px',
               textTransform: 'uppercase',

@@ -67,7 +67,7 @@ export default function HowToPlayPage() {
                   backgroundColor: 'rgba(0, 240, 255, 0.15)',
                   color: '#00F0FF',
                   fontSize: '11px',
-                  fontFamily: 'Sora, sans-serif',
+                  fontFamily: 'Lexend, sans-serif',
                   fontWeight: 800,
                   textTransform: 'uppercase',
                   marginBottom: '12px',
@@ -76,7 +76,7 @@ export default function HowToPlayPage() {
                 <Sparkles size={13} />
                 <span>SWEEPSTAKES MASTERCLASS</span>
               </div>
-              <h1 style={{ fontFamily: 'Sora, sans-serif', fontSize: '36px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 12px 0' }}>
+              <h1 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '36px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 12px 0' }}>
                 How Sweepstakes Gaming Works
               </h1>
               <p style={{ fontSize: '15px', color: '#B3A9C0', lineHeight: 1.6, margin: 0 }}>
@@ -95,10 +95,10 @@ export default function HowToPlayPage() {
                     padding: '24px',
                   }}
                 >
-                  <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '28px', fontWeight: 900, color: '#00F0FF', display: 'block', marginBottom: '8px' }}>
+                  <span style={{ fontFamily: 'Lexend, sans-serif', fontSize: '28px', fontWeight: 900, color: '#00F0FF', display: 'block', marginBottom: '8px' }}>
                     {s.num}
                   </span>
-                  <h3 style={{ fontFamily: 'Sora, sans-serif', fontSize: '18px', fontWeight: 800, color: '#FFFFFF', margin: '0 0 8px 0' }}>
+                  <h3 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '18px', fontWeight: 800, color: '#FFFFFF', margin: '0 0 8px 0' }}>
                     {s.title}
                   </h3>
                   <p style={{ fontSize: '13px', color: '#B3A9C0', lineHeight: 1.6, margin: 0 }}>

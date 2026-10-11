@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Sora:wght@400;500;600;700;800;900&family=Outfit:wght@400;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Sora:wght@400;500;600;700;800;900&family=Outfit:wght@400;600;700;800;900&display=swap');
 
 :root {
   /* Neon Vegas One Marquee Design Tokens (Exact Logo Palette) */
@@ -25,15 +25,16 @@
   --royal-gradient: linear-gradient(135deg, #E026D8 0%, #00F0FF 100%);
   --marquee-glow: 0 0 25px rgba(0, 240, 255, 0.4), 0 0 45px rgba(224, 38, 216, 0.25);
 
-  --font-heading: 'Sora', 'Outfit', sans-serif;
-  --font-body: 'DM Sans', sans-serif;
+  --font-heading: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-* {
+*, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
   -webkit-tap-highlight-color: transparent;
+  font-family: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 html, body {
@@ -41,11 +42,16 @@ html, body {
   min-height: 100vh;
   background-color: var(--bg-main);
   color: #f8fafc;
-  font-family: var(--font-body);
+  font-family: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+}
+
+button, input, select, textarea {
+  font-family: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 /* Custom Scrollbars */
@@ -185,7 +191,7 @@ button:active {
 }
 
 .sovereign-hero-title {
-  font-family: 'Sora', sans-serif;
+  font-family: 'Lexend', sans-serif;
   font-size: 54px;
   font-weight: 900;
   line-height: 1.08;
@@ -204,7 +210,7 @@ button:active {
 }
 
 .sovereign-hero-subtitle {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Lexend', sans-serif;
   font-size: 15px;
   line-height: 1.6;
   color: #B3A9C0;
@@ -240,7 +246,7 @@ button:active {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: 'Sora', sans-serif;
+  font-family: 'Lexend', sans-serif;
   font-size: 11px;
   font-weight: 700;
   color: #00F0FF;
@@ -250,7 +256,7 @@ button:active {
 }
 
 .sovereign-welcome-amount {
-  font-family: 'Sora', sans-serif;
+  font-family: 'Lexend', sans-serif;
   font-size: 38px;
   font-weight: 900;
   color: #FFFFFF;
@@ -301,7 +307,7 @@ button:active {
   border-radius: 9999px;
   backdrop-filter: blur(8px);
   color: #00F0FF;
-  font-family: 'Sora', sans-serif;
+  font-family: 'Lexend', sans-serif;
   font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
@@ -317,7 +323,7 @@ button:active {
 }
 
 .sovereign-jackpot-value {
-  font-family: 'Sora', sans-serif;
+  font-family: 'Lexend', sans-serif;
   font-size: 36px;
   font-weight: 900;
   color: #00F0FF;
@@ -353,7 +359,7 @@ button:active {
 .btn-sovereign-coral {
   background: linear-gradient(135deg, #E026D8 0%, #9333EA 45%, #00F0FF 100%);
   color: #FFFFFF;
-  font-family: 'Sora', sans-serif;
+  font-family: 'Lexend', sans-serif;
   font-weight: 800;
   font-size: 13px;
   letter-spacing: 0.04em;
@@ -378,7 +384,7 @@ button:active {
 .btn-sovereign-teal {
   background: #00F0FF;
   color: #070514;
-  font-family: 'Sora', sans-serif;
+  font-family: 'Lexend', sans-serif;
   font-weight: 800;
   font-size: 13px;
   letter-spacing: 0.04em;
@@ -403,7 +409,7 @@ button:active {
 .btn-sovereign-dark {
   background: #140E33;
   color: #F8FAFC;
-  font-family: 'Sora', sans-serif;
+  font-family: 'Lexend', sans-serif;
   font-weight: 600;
   font-size: 13px;
   letter-spacing: 0.02em;
@@ -427,7 +433,7 @@ button:active {
   background: rgba(0, 240, 255, 0.15);
   color: #00F0FF;
   border: 1px solid rgba(0, 240, 255, 0.4);
-  font-family: 'Sora', sans-serif;
+  font-family: 'Lexend', sans-serif;
   font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
@@ -1145,7 +1151,7 @@ input:focus, select:focus, textarea:focus {
 .btn-gold {
   background: linear-gradient(135deg, #E026D8 0%, #00F0FF 100%) !important;
   color: #FFFFFF !important;
-  font-family: 'Sora', sans-serif !important;
+  font-family: 'Lexend', sans-serif !important;
   font-weight: 900 !important;
   border: none !important;
   border-radius: 10px !important;
@@ -1163,7 +1169,7 @@ input:focus, select:focus, textarea:focus {
   background: #0E0A24 !important;
   border: 1px solid rgba(0, 240, 255, 0.45) !important;
   color: #00F0FF !important;
-  font-family: 'Sora', sans-serif !important;
+  font-family: 'Lexend', sans-serif !important;
   font-weight: 800 !important;
   border-radius: 8px !important;
   cursor: pointer !important;

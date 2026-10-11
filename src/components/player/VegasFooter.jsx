@@ -20,7 +20,7 @@ export default function VegasFooter({ onSelectTab, onOpenSupport }) {
         paddingTop: '60px',
         paddingBottom: '60px',
         color: '#A39BB8',
-        fontFamily: 'DM Sans, sans-serif',
+        fontFamily: 'Lexend, sans-serif',
         position: 'relative',
         overflow: 'hidden',
       }}
@@ -68,10 +68,11 @@ export default function VegasFooter({ onSelectTab, onOpenSupport }) {
                 src="/images/logo.png"
                 alt="Vegas One Luxury Casino"
                 style={{
-                  height: '52px',
+                  height: '76px',
                   width: 'auto',
+                  maxHeight: '82px',
                   objectFit: 'contain',
-                  filter: 'drop-shadow(0 0 14px rgba(0, 240, 255, 0.45)) drop-shadow(0 0 20px rgba(224, 38, 216, 0.35))',
+                  filter: 'drop-shadow(0 0 16px rgba(0, 240, 255, 0.5)) drop-shadow(0 0 25px rgba(224, 38, 216, 0.4))',
                 }}
               />
             </Link>
@@ -87,7 +88,7 @@ export default function VegasFooter({ onSelectTab, onOpenSupport }) {
                   alignItems: 'center',
                   gap: '8px',
                   fontSize: '11px',
-                  fontFamily: 'Sora, sans-serif',
+                  fontFamily: 'Lexend, sans-serif',
                   fontWeight: 800,
                   letterSpacing: '0.06em',
                   color: '#00F0FF',
@@ -102,7 +103,7 @@ export default function VegasFooter({ onSelectTab, onOpenSupport }) {
 
           {/* Column 2: Gaming & Treasury */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <h4 style={{ fontFamily: 'Sora, sans-serif', fontSize: '14px', fontWeight: 800, color: '#FFFFFF', margin: 0, letterSpacing: '0.04em' }}>
+            <h4 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '14px', fontWeight: 800, color: '#FFFFFF', margin: 0, letterSpacing: '0.04em' }}>
               Gaming &amp; Vault
             </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -129,7 +130,7 @@ export default function VegasFooter({ onSelectTab, onOpenSupport }) {
 
           {/* Column 3: Excellence & Compliance */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <h4 style={{ fontFamily: 'Sora, sans-serif', fontSize: '14px', fontWeight: 800, color: '#FFFFFF', margin: 0, letterSpacing: '0.04em' }}>
+            <h4 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '14px', fontWeight: 800, color: '#FFFFFF', margin: 0, letterSpacing: '0.04em' }}>
               Excellence &amp; Rules
             </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -174,7 +175,7 @@ export default function VegasFooter({ onSelectTab, onOpenSupport }) {
                   alignItems: 'center',
                   gap: '8px',
                   fontSize: '11px',
-                  fontFamily: 'Sora, sans-serif',
+                  fontFamily: 'Lexend, sans-serif',
                   fontWeight: 800,
                   color: '#E026D8',
                   textTransform: 'uppercase',
@@ -203,7 +204,7 @@ export default function VegasFooter({ onSelectTab, onOpenSupport }) {
             justifyContent: 'space-between',
             gap: '16px',
             fontSize: '11px',
-            fontFamily: 'Sora, sans-serif',
+            fontFamily: 'Lexend, sans-serif',
             color: '#7E758C',
           }}
         >
@@ -221,7 +222,7 @@ export default function VegasFooter({ onSelectTab, onOpenSupport }) {
             </span>
           </div>
 
-          <p style={{ margin: 0, fontFamily: 'DM Sans, sans-serif', color: '#94A3B8' }}>
+          <p style={{ margin: 0, fontFamily: 'Lexend, sans-serif', color: '#94A3B8' }}>
             © 2026 Vegas One Sovereign Entertainment. All Rights Reserved.
           </p>
         </div>

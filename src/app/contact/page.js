@@ -49,7 +49,7 @@ export default function ContactPage() {
                   backgroundColor: 'rgba(0, 240, 255, 0.15)',
                   color: '#00F0FF',
                   fontSize: '11px',
-                  fontFamily: 'Sora, sans-serif',
+                  fontFamily: 'Lexend, sans-serif',
                   fontWeight: 800,
                   textTransform: 'uppercase',
                   marginBottom: '12px',
@@ -58,7 +58,7 @@ export default function ContactPage() {
                 <Headphones size={13} />
                 <span>24/7/365 DEDICATED CONCIERGE</span>
               </div>
-              <h1 style={{ fontFamily: 'Sora, sans-serif', fontSize: '36px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 10px 0' }}>
+              <h1 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '36px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 10px 0' }}>
                 Contact Support Desk
               </h1>
               <p style={{ fontSize: '15px', color: '#B3A9C0', margin: 0 }}>
@@ -95,7 +95,7 @@ export default function ContactPage() {
                   >
                     <MessageSquare size={26} color="#00F0FF" />
                   </div>
-                  <h3 style={{ fontFamily: 'Sora, sans-serif', fontSize: '18px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 6px 0' }}>
+                  <h3 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '18px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 6px 0' }}>
                     Instant Live Chat
                   </h3>
                   <p style={{ fontSize: '13px', color: '#B3A9C0', margin: '0 0 20px 0' }}>
@@ -140,7 +140,7 @@ export default function ContactPage() {
                   >
                     <Mail size={26} color="#00F0FF" />
                   </div>
-                  <h3 style={{ fontFamily: 'Sora, sans-serif', fontSize: '18px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 6px 0' }}>
+                  <h3 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '18px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 6px 0' }}>
                     Email Concierge
                   </h3>
                   <p style={{ fontSize: '13px', color: '#B3A9C0', margin: '0 0 20px 0' }}>

@@ -55,7 +55,7 @@ export default function VegasNavbar({
       <div
         className="sovereign-container"
         style={{
-          height: '76px',
+          height: '82px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -71,17 +71,18 @@ export default function VegasNavbar({
             cursor: 'pointer',
             userSelect: 'none',
             textDecoration: 'none',
+            padding: '2px 0',
           }}
         >
           <img
             src="/images/logo.png"
             alt="Vegas One Luxury Casino"
             style={{
-              height: '48px',
+              height: '66px',
               width: 'auto',
-              maxMaxWidth: '190px',
+              maxHeight: '70px',
               objectFit: 'contain',
-              filter: 'drop-shadow(0 0 16px rgba(0, 240, 255, 0.5)) drop-shadow(0 0 25px rgba(224, 38, 216, 0.35))',
+              filter: 'drop-shadow(0 0 16px rgba(0, 240, 255, 0.55)) drop-shadow(0 0 25px rgba(224, 38, 216, 0.4))',
               transition: 'transform 0.2s ease',
             }}
             className="hover:scale-105"
@@ -102,7 +103,7 @@ export default function VegasNavbar({
               borderRadius: '9999px',
               color: '#FFFFFF',
               textDecoration: 'none',
-              fontFamily: 'Sora, sans-serif',
+              fontFamily: 'Lexend, sans-serif',
               fontSize: '12px',
               fontWeight: 800,
               letterSpacing: '0.04em',
@@ -155,7 +156,7 @@ export default function VegasNavbar({
                 </div>
                 <span
                   style={{
-                    fontFamily: 'Sora, sans-serif',
+                    fontFamily: 'Lexend, sans-serif',
                     fontWeight: 900,
                     fontSize: '13.5px',
                     color: '#14B8A6',
@@ -209,7 +210,7 @@ export default function VegasNavbar({
                     backgroundColor: '#0E0A24',
                     border: '2px solid rgba(0, 240, 255, 0.7)',
                     color: '#00F0FF',
-                    fontFamily: 'Sora, sans-serif',
+                    fontFamily: 'Lexend, sans-serif',
                     fontWeight: 800,
                     fontSize: '12px',
                     display: 'flex',
@@ -238,7 +239,7 @@ export default function VegasNavbar({
                   >
                     <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}>
                       <p style={{ margin: 0, fontSize: '11px', color: '#9A91A8', textTransform: 'uppercase' }}>Sovereign Patron</p>
-                      <p style={{ margin: '3px 0 0 0', fontFamily: 'Sora, sans-serif', fontWeight: 800, fontSize: '14px', color: '#FFFFFF' }}>{user.username}</p>
+                      <p style={{ margin: '3px 0 0 0', fontFamily: 'Lexend, sans-serif', fontWeight: 800, fontSize: '14px', color: '#FFFFFF' }}>{user.username}</p>
                     </div>
 
                     <div style={{ padding: '6px 0' }}>

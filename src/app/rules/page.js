@@ -44,7 +44,7 @@ export default function RulesPage() {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
               <Scale size={28} color="#00F0FF" />
-              <h1 style={{ fontFamily: 'Sora, sans-serif', fontSize: '28px', fontWeight: 900, color: '#FFFFFF', margin: 0 }}>
+              <h1 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '28px', fontWeight: 900, color: '#FFFFFF', margin: 0 }}>
                 Official Sweepstakes Rules
               </h1>
             </div>
@@ -57,7 +57,7 @@ export default function RulesPage() {
               </div>
 
               <section>
-                <h3 style={{ color: '#FFFFFF', fontFamily: 'Sora, sans-serif', fontSize: '16px', margin: '0 0 8px 0' }}>
+                <h3 style={{ color: '#FFFFFF', fontFamily: 'Lexend, sans-serif', fontSize: '16px', margin: '0 0 8px 0' }}>
                   1. Sponsor &amp; Legal Framework
                 </h3>
                 <p style={{ margin: 0 }}>
@@ -66,7 +66,7 @@ export default function RulesPage() {
               </section>
 
               <section>
-                <h3 style={{ color: '#FFFFFF', fontFamily: 'Sora, sans-serif', fontSize: '16px', margin: '0 0 8px 0' }}>
+                <h3 style={{ color: '#FFFFFF', fontFamily: 'Lexend, sans-serif', fontSize: '16px', margin: '0 0 8px 0' }}>
                   2. Eligibility
                 </h3>
                 <p style={{ margin: 0 }}>
@@ -75,7 +75,7 @@ export default function RulesPage() {
               </section>
 
               <section>
-                <h3 style={{ color: '#FFFFFF', fontFamily: 'Sora, sans-serif', fontSize: '16px', margin: '0 0 8px 0' }}>
+                <h3 style={{ color: '#FFFFFF', fontFamily: 'Lexend, sans-serif', fontSize: '16px', margin: '0 0 8px 0' }}>
                   3. How to Obtain Sweeps Coins (SC)
                 </h3>
                 <p style={{ margin: 0 }}>
@@ -90,7 +90,7 @@ export default function RulesPage() {
               </section>
 
               <section>
-                <h3 style={{ color: '#FFFFFF', fontFamily: 'Sora, sans-serif', fontSize: '16px', margin: '0 0 8px 0' }}>
+                <h3 style={{ color: '#FFFFFF', fontFamily: 'Lexend, sans-serif', fontSize: '16px', margin: '0 0 8px 0' }}>
                   4. Prize Redemptions
                 </h3>
                 <p style={{ margin: 0 }}>

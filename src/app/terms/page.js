@@ -44,7 +44,7 @@ export default function TermsPage() {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
               <FileText size={28} color="#00F0FF" />
-              <h1 style={{ fontFamily: 'Sora, sans-serif', fontSize: '28px', fontWeight: 900, color: '#FFFFFF', margin: 0 }}>
+              <h1 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '28px', fontWeight: 900, color: '#FFFFFF', margin: 0 }}>
                 Terms &amp; Conditions
               </h1>
             </div>
@@ -55,7 +55,7 @@ export default function TermsPage() {
               </p>
 
               <section>
-                <h3 style={{ color: '#FFFFFF', fontFamily: 'Sora, sans-serif', fontSize: '16px', margin: '0 0 6px 0' }}>
+                <h3 style={{ color: '#FFFFFF', fontFamily: 'Lexend, sans-serif', fontSize: '16px', margin: '0 0 6px 0' }}>
                   1. Agreement to Terms
                 </h3>
                 <p style={{ margin: 0 }}>
@@ -64,7 +64,7 @@ export default function TermsPage() {
               </section>
 
               <section>
-                <h3 style={{ color: '#FFFFFF', fontFamily: 'Sora, sans-serif', fontSize: '16px', margin: '0 0 6px 0' }}>
+                <h3 style={{ color: '#FFFFFF', fontFamily: 'Lexend, sans-serif', fontSize: '16px', margin: '0 0 6px 0' }}>
                   2. Virtual Currency Mechanics
                 </h3>
                 <p style={{ margin: 0 }}>
@@ -73,7 +73,7 @@ export default function TermsPage() {
               </section>
 
               <section>
-                <h3 style={{ color: '#FFFFFF', fontFamily: 'Sora, sans-serif', fontSize: '16px', margin: '0 0 6px 0' }}>
+                <h3 style={{ color: '#FFFFFF', fontFamily: 'Lexend, sans-serif', fontSize: '16px', margin: '0 0 6px 0' }}>
                   3. Account Integrity &amp; Security
                 </h3>
                 <p style={{ margin: 0 }}>

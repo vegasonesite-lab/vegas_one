@@ -98,7 +98,7 @@ export default function VegasHeroBanner({
             <span
               style={{
                 fontSize: '11px',
-                fontFamily: 'Sora, sans-serif',
+                fontFamily: 'Lexend, sans-serif',
                 fontWeight: 800,
                 letterSpacing: '0.06em',
                 textTransform: 'uppercase',
@@ -158,7 +158,7 @@ export default function VegasHeroBanner({
               </div>
             </div>
 
-            <p style={{ margin: 0, paddingTop: '12px', fontSize: '12px', color: '#CBD5E1', fontFamily: 'DM Sans, sans-serif', lineHeight: 1.5 }}>
+            <p style={{ margin: 0, paddingTop: '12px', fontSize: '12px', color: '#CBD5E1', fontFamily: 'Lexend, sans-serif', lineHeight: 1.5 }}>
               Includes <strong style={{ color: '#00F0FF' }}>+150 Neon Free Spins</strong> and instantaneous Tier II Sovereign Status upgrade.
             </p>
           </div>
@@ -192,7 +192,7 @@ export default function VegasHeroBanner({
           </div>
 
           {/* Trust Ribbons */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '20px', paddingTop: '6px', fontSize: '12px', color: '#9A91A8', fontFamily: 'DM Sans, sans-serif' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '20px', paddingTop: '6px', fontSize: '12px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Lock size={14} color="#00F0FF" />
               <span>Instant Crypto & Fiat Settlements</span>
@@ -252,11 +252,11 @@ export default function VegasHeroBanner({
           {/* Overlay Mega Jackpot Box */}
           <div className="sovereign-jackpot-box">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#00F0FF', letterSpacing: '0.06em' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#00F0FF', letterSpacing: '0.06em' }}>
                 <Crown size={14} color="#00F0FF" />
                 <span>CURRENT MEGA JACKPOT</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#E026D8' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#E026D8' }}>
                 <span
                   style={{
                     width: '6px',
@@ -279,7 +279,7 @@ export default function VegasHeroBanner({
               <span
                 style={{
                   fontSize: '11px',
-                  fontFamily: 'Sora, sans-serif',
+                  fontFamily: 'Lexend, sans-serif',
                   fontWeight: 700,
                   color: '#A69FB3',
                   backgroundColor: '#231C30',

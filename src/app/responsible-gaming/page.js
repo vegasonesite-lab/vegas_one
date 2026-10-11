@@ -44,7 +44,7 @@ export default function ResponsibleGamingPage() {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
               <HeartHandshake size={28} color="#00F0FF" />
-              <h1 style={{ fontFamily: 'Sora, sans-serif', fontSize: '28px', fontWeight: 900, color: '#FFFFFF', margin: 0 }}>
+              <h1 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '28px', fontWeight: 900, color: '#FFFFFF', margin: 0 }}>
                 Responsible Social &amp; Sweepstakes Gaming
               </h1>
             </div>
@@ -55,7 +55,7 @@ export default function ResponsibleGamingPage() {
               </p>
 
               <section>
-                <h3 style={{ color: '#FFFFFF', fontFamily: 'Sora, sans-serif', fontSize: '16px', margin: '0 0 8px 0' }}>
+                <h3 style={{ color: '#FFFFFF', fontFamily: 'Lexend, sans-serif', fontSize: '16px', margin: '0 0 8px 0' }}>
                   Player Protection Tools
                 </h3>
                 <ul style={{ paddingLeft: '20px', margin: 0 }}>
@@ -66,7 +66,7 @@ export default function ResponsibleGamingPage() {
               </section>
 
               <section>
-                <h3 style={{ color: '#FFFFFF', fontFamily: 'Sora, sans-serif', fontSize: '16px', margin: '0 0 8px 0' }}>
+                <h3 style={{ color: '#FFFFFF', fontFamily: 'Lexend, sans-serif', fontSize: '16px', margin: '0 0 8px 0' }}>
                   Need Assistance?
                 </h3>
                 <p style={{ margin: 0 }}>

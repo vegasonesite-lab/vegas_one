@@ -144,18 +144,19 @@ export default function SubscriptionPromoModal({
             src="/images/logo.png"
             alt="Vegas One"
             style={{
-              height: '46px',
+              height: '72px',
               width: 'auto',
+              maxHeight: '78px',
               objectFit: 'contain',
-              marginBottom: '8px',
-              filter: 'drop-shadow(0 0 12px rgba(0, 240, 255, 0.45)) drop-shadow(0 0 16px rgba(224, 38, 216, 0.35))',
+              marginBottom: '10px',
+              filter: 'drop-shadow(0 0 16px rgba(0, 240, 255, 0.5)) drop-shadow(0 0 22px rgba(224, 38, 216, 0.4))',
             }}
           />
 
-          <h2 style={{ fontFamily: 'Sora, sans-serif', fontSize: '20px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 4px 0' }}>
+          <h2 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '20px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 4px 0' }}>
             VIP Promo &amp; Freeplay Alerts
           </h2>
-          <p style={{ fontSize: '12px', color: '#CBD5E1', margin: 0, fontFamily: 'DM Sans, sans-serif', lineHeight: 1.4 }}>
+          <p style={{ fontSize: '12px', color: '#CBD5E1', margin: 0, fontFamily: 'Lexend, sans-serif', lineHeight: 1.4 }}>
             Never miss instant freeplay drops, reload bonuses, and secret Facebook promo vouchers.
           </p>
         </div>
@@ -177,7 +178,7 @@ export default function SubscriptionPromoModal({
               <Bell size={15} color="#00F0FF" />
             </div>
             <div style={{ flex: 1 }}>
-              <p style={{ margin: 0, fontSize: '11.5px', fontWeight: 800, color: '#FFFFFF', fontFamily: 'Sora, sans-serif' }}>Chrome &amp; Web Push Alerts</p>
+              <p style={{ margin: 0, fontSize: '11.5px', fontWeight: 800, color: '#FFFFFF', fontFamily: 'Lexend, sans-serif' }}>Chrome &amp; Web Push Alerts</p>
               <p style={{ margin: 0, fontSize: '10.5px', color: '#9A91A8' }}>Instant notifications when high-roller codes drop</p>
             </div>
           </div>
@@ -197,7 +198,7 @@ export default function SubscriptionPromoModal({
               <Mail size={15} color="#E026D8" />
             </div>
             <div style={{ flex: 1 }}>
-              <p style={{ margin: 0, fontSize: '11.5px', fontWeight: 800, color: '#FFFFFF', fontFamily: 'Sora, sans-serif' }}>VIP Email Promos</p>
+              <p style={{ margin: 0, fontSize: '11.5px', fontWeight: 800, color: '#FFFFFF', fontFamily: 'Lexend, sans-serif' }}>VIP Email Promos</p>
               <p style={{ margin: 0, fontSize: '10.5px', color: '#9A91A8' }}>Exclusive 50% deposit match and zero-loss perks</p>
             </div>
           </div>
@@ -213,7 +214,7 @@ export default function SubscriptionPromoModal({
               padding: '12px',
               color: '#00F0FF',
               fontSize: '12px',
-              fontFamily: 'Sora, sans-serif',
+              fontFamily: 'Lexend, sans-serif',
               fontWeight: 800,
               textAlign: 'center',
               marginBottom: '14px',
@@ -250,7 +251,7 @@ export default function SubscriptionPromoModal({
         {!success && (
           <form onSubmit={handleSubscribe} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '10px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '4px', letterSpacing: '0.04em' }}>
+              <label style={{ display: 'block', fontSize: '10px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '4px', letterSpacing: '0.04em' }}>
                 VIP EMAIL FOR PROMO DROPS
               </label>
               <div style={{ position: 'relative' }}>
@@ -269,7 +270,7 @@ export default function SubscriptionPromoModal({
                     padding: '9px 12px 9px 34px',
                     color: '#FFFFFF',
                     fontSize: '12px',
-                    fontFamily: 'DM Sans, sans-serif',
+                    fontFamily: 'Lexend, sans-serif',
                     outline: 'none',
                     boxSizing: 'border-box',
                   }}
@@ -293,14 +294,14 @@ export default function SubscriptionPromoModal({
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Bell size={14} color={pushGranted ? '#00F0FF' : '#00F0FF'} />
-                <span style={{ fontSize: '11px', color: '#FFFFFF', fontFamily: 'Sora, sans-serif', fontWeight: 700 }}>
+                <span style={{ fontSize: '11px', color: '#FFFFFF', fontFamily: 'Lexend, sans-serif', fontWeight: 700 }}>
                   {pushGranted ? 'Browser Notifications Enabled' : 'Enable Chrome Instant Notifications'}
                 </span>
               </div>
               <span
                 style={{
                   fontSize: '10px',
-                  fontFamily: 'Sora, sans-serif',
+                  fontFamily: 'Lexend, sans-serif',
                   fontWeight: 800,
                   color: pushGranted ? '#00F0FF' : '#E026D8',
                   textTransform: 'uppercase',

@@ -83,7 +83,7 @@ export default function PlayerProfileTab({ user, onOpenKyc }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ backgroundColor: '#0E0816', border: '1px solid rgba(20, 184, 166, 0.3)', borderRadius: '12px', padding: '12px 20px', textAlign: 'center', minWidth: '160px' }}>
             <p style={{ fontSize: '10px', color: '#9A91A8', textTransform: 'uppercase', fontWeight: 800, margin: 0 }}>Sovereign Vault Balance</p>
-            <p style={{ fontSize: '20px', fontWeight: 900, color: '#14B8A6', margin: '2px 0 0 0', fontFamily: 'Sora, sans-serif' }}>
+            <p style={{ fontSize: '20px', fontWeight: 900, color: '#14B8A6', margin: '2px 0 0 0', fontFamily: 'Lexend, sans-serif' }}>
               ${Number(user?.balanceSC ?? user?.balance ?? 0).toFixed(2)}
             </p>
           </div>

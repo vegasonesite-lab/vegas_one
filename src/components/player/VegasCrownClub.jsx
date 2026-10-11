@@ -41,7 +41,7 @@ export default function VegasCrownClub({ user, onOpenVIPDetails }) {
               padding: '6px 14px',
               borderRadius: '9999px',
               fontSize: '11px',
-              fontFamily: 'Sora, sans-serif',
+              fontFamily: 'Lexend, sans-serif',
               fontWeight: 800,
               color: '#00F0FF',
               textTransform: 'uppercase',
@@ -55,7 +55,7 @@ export default function VegasCrownClub({ user, onOpenVIPDetails }) {
 
           <h2
             style={{
-              fontFamily: 'Sora, sans-serif',
+              fontFamily: 'Lexend, sans-serif',
               fontSize: '36px',
               fontWeight: 900,
               color: '#FFFFFF',
@@ -68,7 +68,7 @@ export default function VegasCrownClub({ user, onOpenVIPDetails }) {
 
           <p
             style={{
-              fontFamily: 'DM Sans, sans-serif',
+              fontFamily: 'Lexend, sans-serif',
               fontSize: '15px',
               color: '#A69FB3',
               maxWidth: '650px',
@@ -97,10 +97,10 @@ export default function VegasCrownClub({ user, onOpenVIPDetails }) {
           >
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '20px', fontWeight: 900, color: '#FFFFFF' }}>
+                <span style={{ fontFamily: 'Lexend, sans-serif', fontSize: '20px', fontWeight: 900, color: '#FFFFFF' }}>
                   Sovereign Tier III
                 </span>
-                <span style={{ fontFamily: 'Sora, sans-serif', fontSize: '13px', fontWeight: 700, color: '#A69FB3' }}>
+                <span style={{ fontFamily: 'Lexend, sans-serif', fontSize: '13px', fontWeight: 700, color: '#A69FB3' }}>
                   {points.toLocaleString()} / {target.toLocaleString()} Crown Points
                 </span>
               </div>
@@ -129,7 +129,7 @@ export default function VegasCrownClub({ user, onOpenVIPDetails }) {
               </div>
 
               {/* Status Labels */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px', color: '#9A91A8', fontFamily: 'DM Sans, sans-serif', marginTop: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif', marginTop: '12px' }}>
                 <span>Tier II Master</span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#00F0FF' }}>
                   <Lock size={12} color="#00F0FF" />
@@ -148,7 +148,7 @@ export default function VegasCrownClub({ user, onOpenVIPDetails }) {
                 justifyContent: 'space-between',
                 fontSize: '12px',
                 color: '#9A91A8',
-                fontFamily: 'DM Sans, sans-serif',
+                fontFamily: 'Lexend, sans-serif',
               }}
             >
               <span>Active Multiplier: <strong style={{ color: '#FFFFFF', fontWeight: 700 }}>1.85x Rebates</strong></span>
@@ -192,10 +192,10 @@ export default function VegasCrownClub({ user, onOpenVIPDetails }) {
                 <Compass size={20} color="#00F0FF" />
               </div>
               <div>
-                <h4 style={{ fontFamily: 'Sora, sans-serif', fontSize: '14px', fontWeight: 700, color: '#FFFFFF', margin: '0 0 6px 0' }}>
+                <h4 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '14px', fontWeight: 700, color: '#FFFFFF', margin: '0 0 6px 0' }}>
                   Dedicated Concierge
                 </h4>
-                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: '#9A91A8', lineHeight: 1.5, margin: 0 }}>
+                <p style={{ fontFamily: 'Lexend, sans-serif', fontSize: '12px', color: '#9A91A8', lineHeight: 1.5, margin: 0 }}>
                   Personal Salon host on WhatsApp and Signal 24/7 for tailored limits.
                 </p>
               </div>
@@ -229,10 +229,10 @@ export default function VegasCrownClub({ user, onOpenVIPDetails }) {
                 <Zap size={20} color="#00F0FF" />
               </div>
               <div>
-                <h4 style={{ fontFamily: 'Sora, sans-serif', fontSize: '14px', fontWeight: 700, color: '#FFFFFF', margin: '0 0 6px 0' }}>
+                <h4 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '14px', fontWeight: 700, color: '#FFFFFF', margin: '0 0 6px 0' }}>
                   Zero-Fee Liquidity
                 </h4>
-                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: '#9A91A8', lineHeight: 1.5, margin: 0 }}>
+                <p style={{ fontFamily: 'Lexend, sans-serif', fontSize: '12px', color: '#9A91A8', lineHeight: 1.5, margin: 0 }}>
                   Instant vault withdrawals without processing caps or tier delays.
                 </p>
               </div>
@@ -266,10 +266,10 @@ export default function VegasCrownClub({ user, onOpenVIPDetails }) {
                 <Plane size={20} color="#E026D8" />
               </div>
               <div>
-                <h4 style={{ fontFamily: 'Sora, sans-serif', fontSize: '14px', fontWeight: 700, color: '#FFFFFF', margin: '0 0 6px 0' }}>
+                <h4 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '14px', fontWeight: 700, color: '#FFFFFF', margin: '0 0 6px 0' }}>
                   Monaco & Macao
                 </h4>
-                <p style={{ fontFamily: 'DM Sans, sans-serif', fontSize: '12px', color: '#9A91A8', lineHeight: 1.5, margin: 0 }}>
+                <p style={{ fontFamily: 'Lexend, sans-serif', fontSize: '12px', color: '#9A91A8', lineHeight: 1.5, margin: 0 }}>
                   All-expenses luxury grand prix suites and land-based VIP access.
                 </p>
               </div>
@@ -292,7 +292,7 @@ export default function VegasCrownClub({ user, onOpenVIPDetails }) {
             gap: '16px',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12px', color: '#C9C2D4', fontFamily: 'DM Sans, sans-serif' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12px', color: '#C9C2D4', fontFamily: 'Lexend, sans-serif' }}>
             <ShieldCheck size={18} color="#14B8A6" />
             <span>All status tiers are perpetually protected with quarterly grace resets.</span>
           </div>

@@ -112,7 +112,7 @@ export default function AuthModal({
     padding: '8px 12px 8px 34px',
     color: '#FFFFFF',
     fontSize: '12px',
-    fontFamily: 'DM Sans, sans-serif',
+    fontFamily: 'Lexend, sans-serif',
     outline: 'none',
     boxSizing: 'border-box',
     transition: 'border-color 0.2s',
@@ -178,17 +178,18 @@ export default function AuthModal({
             src="/images/logo.png"
             alt="Vegas One"
             style={{
-              height: '46px',
+              height: '74px',
               width: 'auto',
+              maxHeight: '80px',
               objectFit: 'contain',
-              marginBottom: '6px',
-              filter: 'drop-shadow(0 0 12px rgba(0, 240, 255, 0.45)) drop-shadow(0 0 18px rgba(224, 38, 216, 0.3))',
+              marginBottom: '10px',
+              filter: 'drop-shadow(0 0 16px rgba(0, 240, 255, 0.5)) drop-shadow(0 0 24px rgba(224, 38, 216, 0.35))',
             }}
           />
-          <h2 style={{ fontFamily: 'Sora, sans-serif', fontSize: '18px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 2px 0' }}>
+          <h2 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '18px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 2px 0' }}>
             {tab === 'login' ? 'Welcome Back to Vegas One' : 'Create Sovereign Vault'}
           </h2>
-          <p style={{ fontSize: '11.5px', color: '#A69FB3', margin: 0, fontFamily: 'DM Sans, sans-serif' }}>
+          <p style={{ fontSize: '11.5px', color: '#A69FB3', margin: 0, fontFamily: 'Lexend, sans-serif' }}>
             {tab === 'login'
               ? 'Access your sweepstakes accounts & balances'
               : 'Sign up now & unlock 3.00 Freeplay instantly'}
@@ -216,7 +217,7 @@ export default function AuthModal({
               border: 'none',
               backgroundColor: tab === 'login' ? '#00F0FF' : 'transparent',
               color: tab === 'login' ? '#070514' : '#9A91A8',
-              fontFamily: 'Sora, sans-serif',
+              fontFamily: 'Lexend, sans-serif',
               fontSize: '10.5px',
               fontWeight: 900,
               letterSpacing: '0.04em',
@@ -237,7 +238,7 @@ export default function AuthModal({
               border: 'none',
               backgroundColor: tab === 'register' ? '#00F0FF' : 'transparent',
               color: tab === 'register' ? '#070514' : '#9A91A8',
-              fontFamily: 'Sora, sans-serif',
+              fontFamily: 'Lexend, sans-serif',
               fontSize: '10.5px',
               fontWeight: 900,
               letterSpacing: '0.04em',
@@ -260,7 +261,7 @@ export default function AuthModal({
               padding: '8px 12px',
               borderRadius: '10px',
               fontSize: '11.5px',
-              fontFamily: 'DM Sans, sans-serif',
+              fontFamily: 'Lexend, sans-serif',
               marginBottom: '12px',
               textAlign: 'center',
             }}
@@ -273,7 +274,7 @@ export default function AuthModal({
         {tab === 'login' ? (
           <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '10px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '3px', letterSpacing: '0.04em' }}>
+              <label style={{ display: 'block', fontSize: '10px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '3px', letterSpacing: '0.04em' }}>
                 USERNAME OR EMAIL
               </label>
               <div style={{ position: 'relative' }}>
@@ -290,7 +291,7 @@ export default function AuthModal({
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '10px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '3px', letterSpacing: '0.04em' }}>
+              <label style={{ display: 'block', fontSize: '10px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '3px', letterSpacing: '0.04em' }}>
                 PASSWORD
               </label>
               <div style={{ position: 'relative' }}>
@@ -379,7 +380,7 @@ export default function AuthModal({
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '9.5px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '2px', letterSpacing: '0.04em' }}>
+              <label style={{ display: 'block', fontSize: '9.5px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '2px', letterSpacing: '0.04em' }}>
                 USERNAME
               </label>
               <div style={{ position: 'relative' }}>
@@ -396,7 +397,7 @@ export default function AuthModal({
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '9.5px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '2px', letterSpacing: '0.04em' }}>
+              <label style={{ display: 'block', fontSize: '9.5px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '2px', letterSpacing: '0.04em' }}>
                 EMAIL ADDRESS
               </label>
               <div style={{ position: 'relative' }}>
@@ -414,7 +415,7 @@ export default function AuthModal({
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '9.5px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '2px', letterSpacing: '0.04em' }}>
+                <label style={{ display: 'block', fontSize: '9.5px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '2px', letterSpacing: '0.04em' }}>
                   PASSWORD
                 </label>
                 <div style={{ position: 'relative' }}>
@@ -431,7 +432,7 @@ export default function AuthModal({
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '9.5px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '2px', letterSpacing: '0.04em' }}>
+                <label style={{ display: 'block', fontSize: '9.5px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '2px', letterSpacing: '0.04em' }}>
                   US STATE
                 </label>
                 <div style={{ position: 'relative' }}>
@@ -450,7 +451,7 @@ export default function AuthModal({
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '9.5px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '2px', letterSpacing: '0.04em' }}>
+              <label style={{ display: 'block', fontSize: '9.5px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '2px', letterSpacing: '0.04em' }}>
                 REFERRAL CODE (OPTIONAL)
               </label>
               <div style={{ position: 'relative' }}>

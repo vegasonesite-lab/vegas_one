@@ -399,7 +399,7 @@ export default function AdminPortal({ initialTab }) {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#070514', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F8FAFC', fontFamily: 'Sora, sans-serif', fontWeight: 800 }}>
+      <div style={{ minHeight: '100vh', backgroundColor: '#070514', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#F8FAFC', fontFamily: 'Lexend, sans-serif', fontWeight: 800 }}>
         Loading Vegas One Staff Portal...
       </div>
     );
@@ -408,21 +408,22 @@ export default function AdminPortal({ initialTab }) {
   // Not Logged In as Staff Form
   if (!user) {
     return (
-      <div style={{ minHeight: '100vh', backgroundColor: '#070514', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', fontFamily: 'DM Sans, sans-serif' }}>
+      <div style={{ minHeight: '100vh', backgroundColor: '#070514', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', fontFamily: 'Lexend, sans-serif' }}>
         <div style={{ maxWidth: '420px', width: '100%', backgroundColor: '#0E0A24', border: '1px solid rgba(0, 240, 255, 0.35)', borderRadius: '20px', padding: '32px 28px', boxShadow: '0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(0, 240, 255, 0.16)' }}>
           <div style={{ textAlign: 'center', marginBottom: '24px' }}>
             <img
               src="/images/logo.png"
               alt="Vegas One"
               style={{
-                height: '52px',
+                height: '84px',
                 width: 'auto',
+                maxHeight: '90px',
                 objectFit: 'contain',
-                marginBottom: '10px',
-                filter: 'drop-shadow(0 0 14px rgba(0, 240, 255, 0.45)) drop-shadow(0 0 20px rgba(224, 38, 216, 0.35))',
+                marginBottom: '14px',
+                filter: 'drop-shadow(0 0 16px rgba(0, 240, 255, 0.5)) drop-shadow(0 0 25px rgba(224, 38, 216, 0.4))',
               }}
             />
-            <h2 style={{ fontFamily: 'Sora, sans-serif', fontSize: '20px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 4px 0' }}>
+            <h2 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '20px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 4px 0' }}>
               Staff Management Terminal
             </h2>
             <p style={{ fontSize: '12px', color: '#A69FB3', margin: 0 }}>
@@ -438,7 +439,7 @@ export default function AdminPortal({ initialTab }) {
 
           <form onSubmit={handleAdminLogin} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '10px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '4px', letterSpacing: '0.04em' }}>
+              <label style={{ display: 'block', fontSize: '10px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '4px', letterSpacing: '0.04em' }}>
                 STAFF USERNAME OR EMAIL
               </label>
               <input
@@ -452,7 +453,7 @@ export default function AdminPortal({ initialTab }) {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '10px', fontFamily: 'Sora, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '4px', letterSpacing: '0.04em' }}>
+              <label style={{ display: 'block', fontSize: '10px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '4px', letterSpacing: '0.04em' }}>
                 PASSWORD
               </label>
               <input
@@ -525,7 +526,7 @@ export default function AdminPortal({ initialTab }) {
   const visibleTabs = allTabs.filter(t => isAllowed(t.id));
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#070514', color: '#F8FAFC', display: 'flex', flexDirection: 'column', fontFamily: 'DM Sans, sans-serif' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#070514', color: '#F8FAFC', display: 'flex', flexDirection: 'column', fontFamily: 'Lexend, sans-serif' }}>
       {/* Top Staff Navbar */}
       <header
         style={{
@@ -545,10 +546,11 @@ export default function AdminPortal({ initialTab }) {
               src="/images/logo.png"
               alt="Vegas One"
               style={{
-                height: '42px',
+                height: '64px',
                 width: 'auto',
+                maxHeight: '68px',
                 objectFit: 'contain',
-                filter: 'drop-shadow(0 0 10px rgba(0, 240, 255, 0.45)) drop-shadow(0 0 16px rgba(224, 38, 216, 0.35))',
+                filter: 'drop-shadow(0 0 14px rgba(0, 240, 255, 0.5)) drop-shadow(0 0 20px rgba(224, 38, 216, 0.4))',
               }}
             />
           </Link>
@@ -560,7 +562,7 @@ export default function AdminPortal({ initialTab }) {
               border: '1px solid rgba(0, 240, 255, 0.35)',
               color: '#00F0FF',
               fontSize: '10.5px',
-              fontFamily: 'Sora, sans-serif',
+              fontFamily: 'Lexend, sans-serif',
               fontWeight: 800,
               textTransform: 'uppercase',
               letterSpacing: '0.06em',
@@ -588,7 +590,7 @@ export default function AdminPortal({ initialTab }) {
               border: `1px solid ${audioAlertsEnabled ? 'rgba(20, 184, 166, 0.35)' : 'rgba(239, 68, 68, 0.35)'}`,
               color: audioAlertsEnabled ? '#5EEAD4' : '#F87171',
               fontSize: '11px',
-              fontFamily: 'Sora, sans-serif',
+              fontFamily: 'Lexend, sans-serif',
               fontWeight: 800,
               cursor: 'pointer',
               transition: 'all 0.15s ease',
@@ -600,7 +602,7 @@ export default function AdminPortal({ initialTab }) {
           </button>
 
           <div style={{ textAlign: 'right' }} className="hidden sm:block">
-            <p style={{ margin: 0, fontSize: '12px', fontWeight: 800, color: '#FFFFFF', fontFamily: 'Sora, sans-serif' }}>{user.username}</p>
+            <p style={{ margin: 0, fontSize: '12px', fontWeight: 800, color: '#FFFFFF', fontFamily: 'Lexend, sans-serif' }}>{user.username}</p>
             <p style={{ margin: 0, fontSize: '10.5px', color: '#9A91A8' }}>{user.email}</p>
           </div>
 
@@ -612,7 +614,7 @@ export default function AdminPortal({ initialTab }) {
               backgroundColor: '#0E0816',
               border: '1px solid rgba(255, 255, 255, 0.12)',
               fontSize: '11px',
-              fontFamily: 'Sora, sans-serif',
+              fontFamily: 'Lexend, sans-serif',
               fontWeight: 800,
               color: '#D1CADB',
               textDecoration: 'none',
@@ -676,7 +678,7 @@ export default function AdminPortal({ initialTab }) {
                     padding: '10px 14px',
                     borderRadius: '12px',
                     fontSize: '11.5px',
-                    fontFamily: 'Sora, sans-serif',
+                    fontFamily: 'Lexend, sans-serif',
                     fontWeight: isActive ? 900 : 700,
                     border: 'none',
                     cursor: 'pointer',
@@ -697,7 +699,7 @@ export default function AdminPortal({ initialTab }) {
                         backgroundColor: isActive ? '#070514' : '#EF4444',
                         color: isActive ? '#00F0FF' : '#FFFFFF',
                         fontSize: '9.5px',
-                        fontFamily: 'Sora, sans-serif',
+                        fontFamily: 'Lexend, sans-serif',
                         fontWeight: 900,
                         padding: '2px 7px',
                         borderRadius: '9999px',
@@ -722,7 +724,7 @@ export default function AdminPortal({ initialTab }) {
               color: '#9A91A8',
             }}
           >
-            <p style={{ fontWeight: 800, color: '#FFFFFF', margin: '0 0 2px 0', fontFamily: 'Sora, sans-serif' }}>Role Access</p>
+            <p style={{ fontWeight: 800, color: '#FFFFFF', margin: '0 0 2px 0', fontFamily: 'Lexend, sans-serif' }}>Role Access</p>
             <p style={{ margin: 0 }}>Logged as {user.role}</p>
           </div>
         </aside>
