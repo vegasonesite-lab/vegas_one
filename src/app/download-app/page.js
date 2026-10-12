@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
   Smartphone,
@@ -16,12 +17,28 @@ import {
   ChevronUp
 } from 'lucide-react';
 import VegasNavbar from '@/components/player/VegasNavbar';
+import VegasSidebar from '@/components/player/VegasSidebar';
 import MobileBottomNav from '@/components/player/MobileBottomNav';
 import VegasFooter from '@/components/player/VegasFooter';
 import LiveChatWidget from '@/components/LiveChatWidget';
+import AuthModal from '@/components/AuthModal';
 
 export default function DownloadAppPage() {
+  const router = useRouter();
+  const [user, setUser] = useState(null);
   const [activeFaq, setActiveFaq] = useState(null);
+  const [authModal, setAuthModal] = useState({ open: false, tab: 'login' });
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then(res => res.json())
+      .then(data => {
+        if (data.authenticated && data.user) setUser(data.user);
+        else setUser(null);
+      })
+      .catch(() => setUser(null));
+  }, []);
 
   const faqs = [
     {
@@ -45,9 +62,36 @@ export default function DownloadAppPage() {
   return (
     <div className="min-h-screen bg-[#070514] text-[#F8FAFC] selection:bg-[#00F0FF] selection:text-[#070514] flex flex-col justify-between font-body antialiased">
       <div>
-        <VegasNavbar activeTab="download-app" onSelectTab={() => {}} />
+        <VegasNavbar
+          user={user}
+          activeTab="download-app"
+          onSelectTab={(tab) => {
+            if (tab === 'main') router.push('/');
+            else router.push(`/${tab}`);
+          }}
+          onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
+          onOpenWallet={() => {
+            if (!user) setAuthModal({ open: true, tab: 'login' });
+            else router.push('/wallet');
+          }}
+          onToggleMobileSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+        />
 
-        <main className="sovereign-container" style={{ paddingTop: '24px', paddingBottom: '70px' }}>
+        <div style={{ display: 'flex', minHeight: 'calc(100vh - 82px)' }}>
+          <VegasSidebar
+            user={user}
+            activeTab="download-app"
+            onSelectTab={(t) => {
+              if (t === 'main') router.push('/');
+              else if (t.startsWith('/')) router.push(t);
+            }}
+            onOpenAuth={(t) => setAuthModal({ open: true, tab: t })}
+            mobileOpen={mobileSidebarOpen}
+            onCloseMobile={() => setMobileSidebarOpen(false)}
+          />
+
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <main className="sovereign-container" style={{ paddingTop: '24px', paddingBottom: '70px', width: '100%' }}>
           <Link
             href="/"
             style={{
@@ -321,12 +365,31 @@ export default function DownloadAppPage() {
               })}
             </div>
           </div>
-        </main>
+            </main>
+          </div>
+        </div>
       </div>
 
       <VegasFooter onSelectTab={() => {}} />
       <MobileBottomNav activeTab="download-app" onSelectTab={() => {}} />
       <LiveChatWidget />
+
+      {authModal.open && (
+        <AuthModal
+          initialTab={authModal.tab}
+          isOpen={authModal.open}
+          onClose={() => setAuthModal({ open: false, tab: 'login' })}
+          onSuccess={() => {
+            setAuthModal({ open: false, tab: 'login' });
+            fetch('/api/auth/me')
+              .then(res => res.json())
+              .then(data => {
+                if (data.authenticated && data.user) setUser(data.user);
+              })
+              .catch(() => {});
+          }}
+        />
+      )}
     </div>
   );
 }

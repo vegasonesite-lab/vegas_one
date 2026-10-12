@@ -12,6 +12,7 @@ import GameCard from '@/components/GameCard';
 import LiveChatWidget from '@/components/LiveChatWidget';
 import AuthModal from '@/components/AuthModal';
 import WalletModal from '@/components/WalletModal';
+import VegasSidebar from '@/components/player/VegasSidebar';
 
 export default function GamesPage() {
   const router = useRouter();
@@ -24,6 +25,7 @@ export default function GamesPage() {
   const [walletOpen, setWalletOpen] = useState(false);
   const [activeCurrency, setActiveCurrency] = useState('SC');
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // 1. Fetch user session
   const refreshUser = async () => {
@@ -96,16 +98,34 @@ export default function GamesPage() {
             else router.push(`/${tab}`);
           }}
           onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
-          onOpenWallet={() => setWalletOpen(true)}
+          onOpenWallet={() => {
+            if (!user) setAuthModal({ open: true, tab: 'login' });
+            else router.push('/wallet');
+          }}
+          onToggleMobileSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
           activeCurrency={activeCurrency}
           setActiveCurrency={setActiveCurrency}
           soundEnabled={soundEnabled}
           setSoundEnabled={setSoundEnabled}
         />
 
-        <main className="sovereign-container" style={{ paddingTop: '24px', paddingBottom: '70px' }}>
-          {/* Breadcrumb & Header */}
-          <div style={{ marginBottom: '24px' }}>
+        <div style={{ display: 'flex', minHeight: 'calc(100vh - 82px)' }}>
+          <VegasSidebar
+            user={user}
+            activeTab="games"
+            onSelectTab={(t) => {
+              if (t === 'main') router.push('/');
+              else if (t.startsWith('/')) router.push(t);
+            }}
+            onOpenAuth={(t) => setAuthModal({ open: true, tab: t })}
+            mobileOpen={mobileSidebarOpen}
+            onCloseMobile={() => setMobileSidebarOpen(false)}
+          />
+
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <main className="sovereign-container" style={{ paddingTop: '24px', paddingBottom: '70px', width: '100%' }}>
+              {/* Breadcrumb & Header */}
+              <div style={{ marginBottom: '24px' }}>
             <Link
               href="/"
               style={{
@@ -193,7 +213,13 @@ export default function GamesPage() {
                   <GameCard
                     key={gameKey}
                     game={game}
-                    onPlay={(g) => router.push(`/game/${g.gameId || g.id || g._id}`)}
+                    onPlay={(g) => {
+                      if (!user) {
+                        setAuthModal({ open: true, tab: 'login' });
+                        return;
+                      }
+                      router.push(`/game/${g.gameId || g.id || g._id}`);
+                    }}
                     isFavorite={favorites.includes(gameKey)}
                     onToggleFavorite={() => toggleFavorite(gameKey)}
                   />
@@ -202,6 +228,8 @@ export default function GamesPage() {
             </div>
           )}
         </main>
+          </div>
+        </div>
       </div>
 
       <VegasFooter onSelectTab={(tab) => router.push(`/${tab}`)} />
@@ -212,7 +240,7 @@ export default function GamesPage() {
           if (tab === 'main') router.push('/');
           else router.push(`/${tab}`);
         }}
-        onOpenWallet={() => setWalletOpen(true)}
+        onOpenWallet={() => router.push('/wallet')}
         onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
         user={user}
       />
@@ -227,13 +255,6 @@ export default function GamesPage() {
           setUser(u);
           refreshUser();
         }}
-      />
-
-      <WalletModal
-        isOpen={walletOpen}
-        onClose={() => setWalletOpen(false)}
-        user={user}
-        onBalanceUpdated={refreshUser}
       />
     </div>
   );

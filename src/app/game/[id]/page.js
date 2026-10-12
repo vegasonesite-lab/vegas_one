@@ -19,6 +19,7 @@ import VegasNavbar from '@/components/player/VegasNavbar';
 import MobileBottomNav from '@/components/player/MobileBottomNav';
 import VegasFooter from '@/components/player/VegasFooter';
 import VegasGameHubStation from '@/components/player/VegasGameHubStation';
+import VegasSidebar from '@/components/player/VegasSidebar';
 import AuthModal from '@/components/AuthModal';
 import WalletModal from '@/components/WalletModal';
 import LiveChatWidget from '@/components/LiveChatWidget';
@@ -35,6 +36,7 @@ export default function GameDetailPage() {
   const [walletOpen, setWalletOpen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [activeCurrency, setActiveCurrency] = useState('SC');
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // 1. Fetch user session
   const refreshUser = async () => {
@@ -125,26 +127,44 @@ export default function GameDetailPage() {
           activeTab="main"
           onSelectTab={() => router.push('/')}
           onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
-          onOpenWallet={() => setWalletOpen(true)}
+          onOpenWallet={() => {
+            if (!user) setAuthModal({ open: true, tab: 'login' });
+            else router.push('/wallet');
+          }}
+          onToggleMobileSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
           activeCurrency={activeCurrency}
           setActiveCurrency={setActiveCurrency}
           soundEnabled={soundEnabled}
           setSoundEnabled={setSoundEnabled}
         />
 
-        {/* Main Content Area */}
-        <main className="sovereign-container" style={{ paddingTop: '24px', paddingBottom: '70px' }}>
-          {/* Breadcrumbs Navigation */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: '20px',
-              flexWrap: 'wrap',
-              gap: '12px',
+        <div style={{ display: 'flex', minHeight: 'calc(100vh - 82px)' }}>
+          <VegasSidebar
+            user={user}
+            activeTab="games"
+            onSelectTab={(t) => {
+              if (t === 'main') router.push('/');
+              else if (t.startsWith('/')) router.push(t);
             }}
-          >
+            onOpenAuth={(t) => setAuthModal({ open: true, tab: t })}
+            mobileOpen={mobileSidebarOpen}
+            onCloseMobile={() => setMobileSidebarOpen(false)}
+          />
+
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {/* Main Content Area */}
+            <main className="sovereign-container" style={{ paddingTop: '24px', paddingBottom: '70px', width: '100%' }}>
+              {/* Breadcrumbs Navigation */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '20px',
+                  flexWrap: 'wrap',
+                  gap: '12px',
+                }}
+              >
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#9A91A8' }}>
               <Link
                 href="/"
@@ -241,6 +261,8 @@ export default function GameDetailPage() {
           )}
         </main>
       </div>
+    </div>
+  </div>
 
       {/* Footer */}
       <VegasFooter onSelectTab={() => router.push('/')} />

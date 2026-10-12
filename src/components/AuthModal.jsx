@@ -27,6 +27,7 @@ export default function AuthModal({
   onClose,
   initialTab = 'login',
   onAuthSuccess,
+  onSuccess,
 }) {
   const [tab, setTab] = useState(initialTab);
   const [identifier, setIdentifier] = useState('');
@@ -69,6 +70,7 @@ export default function AuthModal({
 
       if (data.success) {
         if (onAuthSuccess) onAuthSuccess(data.user);
+        if (onSuccess) onSuccess(data.user);
         onClose();
       } else {
         setErrorMsg(data.error || 'Invalid credentials.');
@@ -113,6 +115,7 @@ export default function AuthModal({
 
       if (data.success) {
         if (onAuthSuccess) onAuthSuccess(data.user);
+        if (onSuccess) onSuccess(data.user);
         onClose();
       } else {
         setErrorMsg(data.error || 'Registration failed.');

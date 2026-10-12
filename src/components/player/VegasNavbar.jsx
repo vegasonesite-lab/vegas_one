@@ -12,7 +12,8 @@ import {
   Clock,
   Sparkles,
   Users,
-  Flame
+  Flame,
+  Menu
 } from 'lucide-react';
 
 export default function VegasNavbar({
@@ -25,6 +26,7 @@ export default function VegasNavbar({
   onOpenDailyBonus,
   onOpenPromo,
   onOpenNotifications,
+  onToggleMobileSidebar,
   activeCurrency = 'SC',
   setActiveCurrency,
 }) {
@@ -122,26 +124,51 @@ export default function VegasNavbar({
       }}
     >
       <div className="sovereign-container vegas-navbar-container">
-        {/* Left: Neon Vegas One Marquee Badge Logo */}
-        <Link
-          href="/"
-          onClick={handleLogoClick}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            cursor: 'pointer',
-            userSelect: 'none',
-            textDecoration: 'none',
-            padding: '2px 0',
-            flexShrink: 0,
-          }}
-        >
-          <img
-            src="/images/logo.png"
-            alt="Vegas One Luxury Casino"
-            className="vegas-navbar-logo hover:scale-105"
-          />
-        </Link>
+        {/* Left: Mobile Drawer Trigger + Neon Vegas One Marquee Badge Logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {onToggleMobileSidebar && (
+            <button
+              type="button"
+              onClick={onToggleMobileSidebar}
+              aria-label="Open Casino Menu"
+              className="lg:hidden"
+              style={{
+                background: 'rgba(255, 255, 255, 0.06)',
+                border: '1px solid rgba(0, 240, 255, 0.3)',
+                borderRadius: '8px',
+                width: '32px',
+                height: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#00F0FF',
+                cursor: 'pointer',
+              }}
+            >
+              <Menu size={18} />
+            </button>
+          )}
+
+          <Link
+            href="/"
+            onClick={handleLogoClick}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              cursor: 'pointer',
+              userSelect: 'none',
+              textDecoration: 'none',
+              padding: '2px 0',
+              flexShrink: 0,
+            }}
+          >
+            <img
+              src="/images/logo.png"
+              alt="Vegas One Luxury Casino"
+              className="vegas-navbar-logo hover:scale-105"
+            />
+          </Link>
+        </div>
 
         {/* Center: Single Elegant Sweepstakes Games Pill */}
         <div className="hidden md:flex" style={{ alignItems: 'center' }}>

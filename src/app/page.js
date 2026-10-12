@@ -19,6 +19,8 @@ import LiveChatWidget from '@/components/LiveChatWidget';
 import BonusAlertToast from '@/components/BonusAlertToast';
 import VegasFreeplayBanner from '@/components/player/VegasFreeplayBanner';
 import VegasGameHubStation from '@/components/player/VegasGameHubStation';
+import VegasSidebar from '@/components/player/VegasSidebar';
+import PlayerGameAccountsHub from '@/components/player/PlayerGameAccountsHub';
 
 // Modals
 import AuthModal from '@/components/AuthModal';
@@ -38,12 +40,13 @@ export default function Home() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
-  const [activeTab, setActiveTab] = useState('main'); // 'main' | 'ledger' | 'referrals' | 'profile' | 'rules'
+  const [activeTab, setActiveTab] = useState('main'); // 'main' | 'ledger' | 'referrals' | 'profile' | 'rules' | 'accounts'
   const [activeFilter, setActiveFilter] = useState('all'); // 'all' | 'favorites'
   const [favorites, setFavorites] = useState([]);
   const [activeGameStation, setActiveGameStation] = useState(null);
   const [activeCurrency, setActiveCurrency] = useState('SC');
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // Modals state
   const [authModal, setAuthModal] = useState({ open: false, tab: 'login' });
@@ -167,8 +170,12 @@ export default function Home() {
       })
     : games;
 
-  // Handle Game Play -> navigates to dedicated /game/[id] page URL
+  // Handle Game Play -> Protected: Opens AuthModal if guest, navigates to /game/[id] if logged in
   const handlePlayGame = (game) => {
+    if (!user) {
+      setAuthModal({ open: true, tab: 'login' });
+      return;
+    }
     const slug = game.gameId || game.id || game._id;
     router.push(`/game/${slug}`);
   };
@@ -184,142 +191,206 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#070514] text-[#F8FAFC] selection:bg-[#00F0FF] selection:text-[#070514] flex flex-col justify-between font-body antialiased">
       <div>
-        {/* 1. Sovereign Luxury Navigation Bar (Image 2) */}
+        {/* 1. Sovereign Luxury Navigation Bar */}
         <VegasNavbar
           user={user}
           activeTab={activeTab}
           onSelectTab={setActiveTab}
           onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
-          onOpenWallet={() => setWalletOpen(true)}
-          onOpenKyc={() => setKycOpen(true)}
-          onOpenDailyBonus={() => setDailyBonusOpen(true)}
+          onOpenWallet={() => {
+            if (!user) setAuthModal({ open: true, tab: 'login' });
+            else router.push('/wallet');
+          }}
+          onOpenKyc={() => {
+            if (!user) setAuthModal({ open: true, tab: 'login' });
+            else setKycOpen(true);
+          }}
+          onOpenDailyBonus={() => {
+            if (!user) setAuthModal({ open: true, tab: 'login' });
+            else setDailyBonusOpen(true);
+          }}
           onOpenPromo={() => setPromoOpen(true)}
           onOpenNotifications={() => setNotificationsOpen(true)}
+          onToggleMobileSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
           activeCurrency={activeCurrency}
           setActiveCurrency={setActiveCurrency}
           soundEnabled={soundEnabled}
           setSoundEnabled={setSoundEnabled}
         />
 
-        {/* 2. Main Player Portal Content Area */}
-        <main className="sovereign-container" style={{ paddingTop: '18px', paddingBottom: '60px' }}>
-          {/* TAB 1: CASINO LOBBY */}
-          {activeTab === 'main' && (
-            <div>
-              {/* Hero Banner: Left Royal Hall Headline + Right Salon Privé Frame & Mega Jackpot (Image 2) */}
-              <VegasHeroBanner
-                user={user}
-                onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
-                onOpenWallet={() => setWalletOpen(true)}
-                onOpenDailyBonus={() => setDailyBonusOpen(true)}
-                onOpenReferrals={() => setActiveTab('referrals')}
-                onPlayGame={handlePlayGame}
-              />
+        {/* 2. Split Screen Layout: Fixed Left Sidebar + Main Casino Hub */}
+        <div style={{ display: 'flex', minHeight: 'calc(100vh - 82px)' }}>
+          <VegasSidebar
+            user={user}
+            activeTab={activeTab}
+            onSelectTab={setActiveTab}
+            onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
+            onOpenDailyBonus={() => {
+              if (!user) setAuthModal({ open: true, tab: 'login' });
+              else setDailyBonusOpen(true);
+            }}
+            mobileOpen={mobileSidebarOpen}
+            onCloseMobile={() => setMobileSidebarOpen(false)}
+          />
 
-              {/* Real-Time Live Wins Strip (Image 2 Spec) */}
-              <LatestWinsTicker />
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <main className="sovereign-container" style={{ paddingTop: '18px', paddingBottom: '60px', width: '100%' }}>
+              {/* TAB 1: CASINO LOBBY */}
+              {activeTab === 'main' && (
+                <div>
+                  {/* Hero Banner: Left Royal Hall Headline + Right Salon Privé Frame & Mega Jackpot */}
+                  <VegasHeroBanner
+                    user={user}
+                    onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
+                    onOpenWallet={() => {
+                      if (!user) setAuthModal({ open: true, tab: 'login' });
+                      else router.push('/wallet');
+                    }}
+                    onOpenDailyBonus={() => {
+                      if (!user) setAuthModal({ open: true, tab: 'login' });
+                      else setDailyBonusOpen(true);
+                    }}
+                    onOpenReferrals={() => setActiveTab('referrals')}
+                    onPlayGame={handlePlayGame}
+                  />
 
-              {/* 3 Freeplay Signup Bonus Banner ($3 SC Once Claimed) */}
-              <VegasFreeplayBanner
-                user={user}
-                onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
-                onBalanceUpdated={refreshUser}
-              />
+                  {/* Real-Time Live Wins Strip */}
+                  <LatestWinsTicker />
 
-              {/* The Grand Collection - Sweepstakes Games */}
-              <section id="grand-collection" style={{ marginBottom: '56px' }}>
-                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px', marginBottom: '28px' }}>
-                  <div>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
-                      <span>⧉ PREMIER SWEEPSTAKES</span>
+                  {/* 3 Freeplay Signup Bonus Banner ($3 SC Once Claimed) */}
+                  <VegasFreeplayBanner
+                    user={user}
+                    onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
+                    onBalanceUpdated={refreshUser}
+                  />
+
+                  {/* Player Game Accounts Hub: Active Platform IDs vs Available Platforms to Request */}
+                  <PlayerGameAccountsHub
+                    user={user}
+                    games={games}
+                    onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
+                    onPlayGame={handlePlayGame}
+                    onDeposit={() => {
+                      if (!user) setAuthModal({ open: true, tab: 'login' });
+                      else router.push('/wallet?tab=deposit');
+                    }}
+                  />
+
+                  {/* The Grand Collection - Sweepstakes Games */}
+                  <section id="grand-collection" style={{ marginBottom: '56px' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px', marginBottom: '28px' }}>
+                      <div>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
+                          <span>⧉ PREMIER SWEEPSTAKES</span>
+                        </div>
+                        <h2 style={{ fontFamily: 'Lexend, sans-serif', fontSize: 'clamp(22px, 5vw, 36px)', fontWeight: 900, color: '#FFFFFF', letterSpacing: '-0.02em', margin: 0 }}>
+                          The Grand Collection
+                        </h2>
+                      </div>
+
+                      {/* Filter: All Sweepstakes vs Favorites */}
+                      <CategoryTabs
+                        activeFilter={activeFilter}
+                        setActiveFilter={setActiveFilter}
+                        favoritesCount={favorites.length}
+                      />
                     </div>
-                    <h2 style={{ fontFamily: 'Lexend, sans-serif', fontSize: 'clamp(22px, 5vw, 36px)', fontWeight: 900, color: '#FFFFFF', letterSpacing: '-0.02em', margin: 0 }}>
-                      The Grand Collection
-                    </h2>
-                  </div>
 
-                  {/* Filter: All Sweepstakes vs Favorites */}
-                  <CategoryTabs
-                    activeFilter={activeFilter}
-                    setActiveFilter={setActiveFilter}
-                    favoritesCount={favorites.length}
+                    {displayedGames.length === 0 ? (
+                      <div
+                        style={{
+                          padding: '60px 24px',
+                          textAlign: 'center',
+                          backgroundColor: '#171124',
+                          borderRadius: '16px',
+                          border: '1px dashed rgba(255, 255, 255, 0.1)',
+                        }}
+                      >
+                        <p style={{ color: '#9A91A8', fontFamily: 'Lexend, sans-serif', fontSize: '16px', margin: 0 }}>
+                          No favorite games pinned yet.
+                        </p>
+                        <p style={{ color: '#5F5472', fontSize: '13px', marginTop: '6px' }}>
+                          Tap the heart icon on any sweepstakes title to add it to your favorites.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="grand-collection-grid">
+                        {displayedGames.map(game => {
+                          const gameKey = game.id || game.gameId || game._id;
+                          return (
+                            <GameCard
+                              key={gameKey}
+                              game={game}
+                              onPlay={handlePlayGame}
+                              isFavorite={favorites.includes(gameKey)}
+                              onToggleFavorite={() => toggleFavorite(gameKey)}
+                            />
+                          );
+                        })}
+                      </div>
+                    )}
+                  </section>
+
+                  {/* The Crown Club VIP Section */}
+                  <VegasCrownClub
+                    user={user}
+                    onOpenVIPDetails={() => setActiveTab('referrals')}
+                  />
+
+                  {/* Your Path to Sovereignty Onboarding */}
+                  <VegasOnboarding
+                    onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
+                    onOpenWallet={() => {
+                      if (!user) setAuthModal({ open: true, tab: 'login' });
+                      else router.push('/wallet');
+                    }}
+                  />
+
+                  {/* Curated Inquiries FAQ Accordion */}
+                  <VegasCuratedInquiries />
+                </div>
+              )}
+
+              {/* TAB 2: MY GAME ACCOUNTS */}
+              {activeTab === 'accounts' && (
+                <div>
+                  <PlayerGameAccountsHub
+                    user={user}
+                    games={games}
+                    onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
+                    onPlayGame={handlePlayGame}
+                    onDeposit={() => {
+                      if (!user) setAuthModal({ open: true, tab: 'login' });
+                      else router.push('/wallet?tab=deposit');
+                    }}
                   />
                 </div>
+              )}
 
-                {displayedGames.length === 0 ? (
-                  <div
-                    style={{
-                      padding: '60px 24px',
-                      textAlign: 'center',
-                      backgroundColor: '#171124',
-                      borderRadius: '16px',
-                      border: '1px dashed rgba(255, 255, 255, 0.1)',
-                    }}
-                  >
-                    <p style={{ color: '#9A91A8', fontFamily: 'Lexend, sans-serif', fontSize: '16px', margin: 0 }}>
-                      No favorite games pinned yet.
-                    </p>
-                    <p style={{ color: '#5F5472', fontSize: '13px', marginTop: '6px' }}>
-                      Tap the heart icon on any sweepstakes title to add it to your favorites.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grand-collection-grid">
-                    {displayedGames.map(game => {
-                      const gameKey = game.id || game.gameId || game._id;
-                      return (
-                        <GameCard
-                          key={gameKey}
-                          game={game}
-                          onPlay={handlePlayGame}
-                          isFavorite={favorites.includes(gameKey)}
-                          onToggleFavorite={() => toggleFavorite(gameKey)}
-                        />
-                      );
-                    })}
-                  </div>
-                )}
-              </section>
+              {/* TAB 3: PLAYER LEDGER */}
+              {activeTab === 'ledger' && (
+                <PlayerLedgerTab user={user} />
+              )}
 
-              {/* The Crown Club VIP Section (Image 3) */}
-              <VegasCrownClub
-                user={user}
-                onOpenVIPDetails={() => setActiveTab('referrals')}
-              />
+              {/* TAB 4: REFERRAL CENTER */}
+              {activeTab === 'referrals' && (
+                <ReferralCenterTab user={user} onRefreshUser={refreshUser} />
+              )}
 
-              {/* Your Path to Sovereignty Onboarding (Image 4) */}
-              <VegasOnboarding
-                onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
-                onOpenWallet={() => setWalletOpen(true)}
-              />
+              {/* TAB 5: PLAYER PROFILE & KYC */}
+              {activeTab === 'profile' && (
+                <PlayerProfileTab user={user} onOpenKyc={() => setKycOpen(true)} />
+              )}
 
-              {/* Curated Inquiries FAQ Accordion (Image 4) */}
-              <VegasCuratedInquiries />
-            </div>
-          )}
-
-          {/* TAB 2: PLAYER LEDGER */}
-          {activeTab === 'ledger' && (
-            <PlayerLedgerTab user={user} />
-          )}
-
-          {/* TAB 3: REFERRAL CENTER */}
-          {activeTab === 'referrals' && (
-            <ReferralCenterTab user={user} onRefreshUser={refreshUser} />
-          )}
-
-          {/* TAB 4: PLAYER PROFILE & KYC */}
-          {activeTab === 'profile' && (
-            <PlayerProfileTab user={user} onOpenKyc={() => setKycOpen(true)} />
-          )}
-
-          {/* TAB 5: SWEEPSTAKES RULES & INQUIRIES */}
-          {activeTab === 'rules' && (
-            <div>
-              <VegasCuratedInquiries />
-            </div>
-          )}
-        </main>
+              {/* TAB 6: SWEEPSTAKES RULES & INQUIRIES */}
+              {activeTab === 'rules' && (
+                <div>
+                  <VegasCuratedInquiries />
+                </div>
+              )}
+            </main>
+          </div>
+        </div>
       </div>
 
       {/* 3. Prestige Footer (Image 5) */}

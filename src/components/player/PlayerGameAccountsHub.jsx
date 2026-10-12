@@ -1,0 +1,742 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
+import {
+  Key,
+  Copy,
+  Check,
+  Eye,
+  EyeOff,
+  Sparkles,
+  Clock,
+  Play,
+  ArrowDownCircle,
+  PlusCircle,
+  ShieldCheck,
+  CheckCircle2,
+  AlertCircle,
+  RefreshCw,
+  ExternalLink
+} from 'lucide-react';
+
+export default function PlayerGameAccountsHub({
+  user,
+  games = [],
+  onOpenAuth,
+  onPlayGame,
+  onDeposit,
+}) {
+  const [activeAccounts, setActiveAccounts] = useState([]);
+  const [pendingRequests, setPendingRequests] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [copiedKey, setCopiedKey] = useState(null);
+  const [showPasswordMap, setShowPasswordMap] = useState({});
+  const [requestingGameId, setRequestingGameId] = useState(null);
+  const [requestSuccessMsg, setRequestSuccessMsg] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
+
+  const fetchAccountsAndRequests = async () => {
+    if (!user?.email) return;
+
+    setLoading(true);
+    try {
+      const [credRes, reqRes] = await Promise.all([
+        fetch(`/api/game-accounts?email=${encodeURIComponent(user.email)}`),
+        fetch(`/api/account-requests?email=${encodeURIComponent(user.email)}`),
+      ]);
+
+      const credData = await credRes.json();
+      const reqData = await reqRes.json();
+
+      const readyList = [];
+      const pendingList = [];
+
+      // Add verified ready credentials
+      if (credData.success && credData.gameAccounts) {
+        readyList.push(...credData.gameAccounts);
+      }
+
+      // Check account requests
+      if (reqData.success && reqData.accountRequests) {
+        reqData.accountRequests.forEach((req) => {
+          if (req.status === 'READY') {
+            const alreadyExists = readyList.some(
+              (a) => a.gameTitle?.toLowerCase() === req.gameTitle?.toLowerCase()
+            );
+            if (!alreadyExists) {
+              readyList.push({
+                gameTitle: req.gameTitle,
+                gameId: req.gameId,
+                username: req.gameAccountUsername,
+                password: req.gameAccountPassword,
+                status: 'READY',
+              });
+            }
+          } else if (req.status === 'PENDING') {
+            pendingList.push(req);
+          }
+        });
+      }
+
+      setActiveAccounts(readyList);
+      setPendingRequests(pendingList);
+    } catch (err) {
+      console.error('Error fetching game accounts:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.email) {
+      fetchAccountsAndRequests();
+      const interval = setInterval(fetchAccountsAndRequests, 6000);
+      return () => clearInterval(interval);
+    } else {
+      setActiveAccounts([]);
+      setPendingRequests([]);
+    }
+  }, [user?.email]);
+
+  const handleCopy = (text, key) => {
+    navigator.clipboard?.writeText(text);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 2000);
+  };
+
+  const togglePasswordVisibility = (key) => {
+    setShowPasswordMap((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
+  const handleRequestAccount = async (game) => {
+    if (!user) {
+      if (onOpenAuth) onOpenAuth('login');
+      return;
+    }
+
+    const gameTitle = game.title || game.name;
+    const gameId = game.gameId || game.id || game._id;
+
+    setRequestingGameId(gameId);
+    setErrorMsg(null);
+    setRequestSuccessMsg(null);
+
+    try {
+      const res = await fetch('/api/account-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          gameTitle,
+          gameId,
+          userEmail: user.email,
+          userName: user.username,
+        }),
+      });
+
+      const data = await res.json();
+      setRequestingGameId(null);
+
+      if (data.success) {
+        setRequestSuccessMsg(`🎉 Account request for "${gameTitle}" submitted! Our financial desk is generating your credentials.`);
+        fetchAccountsAndRequests();
+        setTimeout(() => setRequestSuccessMsg(null), 6000);
+      } else {
+        setErrorMsg(data.message || 'Failed to submit request.');
+      }
+    } catch {
+      setRequestingGameId(null);
+      setErrorMsg('Network error. Could not request game account.');
+    }
+  };
+
+  // Compute available platforms (Platforms where user does NOT have an active account or pending request)
+  const availablePlatforms = games.filter((game) => {
+    const title = (game.title || game.name || '').toLowerCase().trim();
+    const hasActive = activeAccounts.some((a) => (a.gameTitle || '').toLowerCase().trim() === title);
+    const hasPending = pendingRequests.some((p) => (p.gameTitle || '').toLowerCase().trim() === title);
+    return !hasActive && !hasPending;
+  });
+
+  return (
+    <section id="my-game-accounts-section" style={{ marginBottom: '50px' }}>
+      {/* Section Header */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px', marginBottom: '24px' }}>
+        <div>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+            <Key size={13} />
+            <span>PLAYER PLATFORM MANAGER</span>
+          </div>
+          <h2 style={{ fontFamily: 'Lexend, sans-serif', fontSize: 'clamp(22px, 4vw, 32px)', fontWeight: 900, color: '#FFFFFF', margin: 0, letterSpacing: '-0.02em' }}>
+            My Game Accounts &amp; Platform IDs
+          </h2>
+        </div>
+
+        {user && (
+          <button
+            type="button"
+            onClick={fetchAccountsAndRequests}
+            disabled={loading}
+            style={{
+              backgroundColor: '#140E33',
+              border: '1px solid rgba(0, 240, 255, 0.3)',
+              color: '#00F0FF',
+              borderRadius: '9999px',
+              padding: '7px 16px',
+              fontSize: '11.5px',
+              fontFamily: 'Lexend, sans-serif',
+              fontWeight: 800,
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
+            <span>Sync Accounts</span>
+          </button>
+        )}
+      </div>
+
+      {/* Success Notification Alert */}
+      {requestSuccessMsg && (
+        <div
+          style={{
+            backgroundColor: 'rgba(16, 185, 129, 0.15)',
+            border: '1px solid rgba(16, 185, 129, 0.4)',
+            color: '#A7F3D0',
+            padding: '12px 16px',
+            borderRadius: '14px',
+            fontSize: '12.5px',
+            fontFamily: 'Lexend, sans-serif',
+            marginBottom: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+          }}
+        >
+          <CheckCircle2 size={18} color="#10B981" />
+          <span>{requestSuccessMsg}</span>
+        </div>
+      )}
+
+      {/* Error Alert */}
+      {errorMsg && (
+        <div
+          style={{
+            backgroundColor: 'rgba(239, 68, 68, 0.15)',
+            border: '1px solid rgba(239, 68, 68, 0.4)',
+            color: '#FCA5A5',
+            padding: '12px 16px',
+            borderRadius: '14px',
+            fontSize: '12.5px',
+            fontFamily: 'Lexend, sans-serif',
+            marginBottom: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+          }}
+        >
+          <AlertCircle size={18} color="#EF4444" />
+          <span>{errorMsg}</span>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* 1. MY ACTIVE GAME ACCOUNTS (Approved & Ready)             */}
+      {/* ======================================================== */}
+      <div style={{ marginBottom: '36px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10B981', boxShadow: '0 0 10px #10B981' }} />
+          <h3 style={{ margin: 0, fontFamily: 'Lexend, sans-serif', fontSize: '18px', fontWeight: 900, color: '#FFFFFF' }}>
+            Active Accounts ({activeAccounts.length})
+          </h3>
+          <span style={{ fontSize: '11px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
+            — Direct credentials ready to play
+          </span>
+        </div>
+
+        {!user ? (
+          /* Guest Lock Card */
+          <div
+            style={{
+              background: 'linear-gradient(135deg, rgba(20, 14, 51, 0.7) 0%, rgba(10, 6, 26, 0.7) 100%)',
+              border: '1px dashed rgba(0, 240, 255, 0.3)',
+              borderRadius: '18px',
+              padding: '30px 20px',
+              textAlign: 'center',
+            }}
+          >
+            <Key size={36} color="#00F0FF" style={{ margin: '0 auto 12px auto', opacity: 0.8 }} />
+            <h4 style={{ margin: '0 0 6px 0', fontFamily: 'Lexend, sans-serif', fontSize: '16px', fontWeight: 900, color: '#FFFFFF' }}>
+              Sign in to view your game accounts
+            </h4>
+            <p style={{ margin: '0 0 16px 0', fontSize: '12.5px', color: '#A69FB3', fontFamily: 'Lexend, sans-serif', maxWidth: '420px', marginLeft: 'auto', marginRight: 'auto' }}>
+              Your usernames, passwords, and balances for Fire Kirin, Orion Stars, and Juwa will appear here once authenticated.
+            </p>
+            <button
+              type="button"
+              onClick={() => onOpenAuth && onOpenAuth('login')}
+              style={{
+                background: 'linear-gradient(135deg, #E026D8 0%, #00F0FF 100%)',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: '9999px',
+                padding: '10px 28px',
+                fontFamily: 'Lexend, sans-serif',
+                fontSize: '12px',
+                fontWeight: 900,
+                cursor: 'pointer',
+                boxShadow: '0 4px 18px rgba(0, 240, 255, 0.35)',
+              }}
+            >
+              SIGN IN / REGISTER
+            </button>
+          </div>
+        ) : activeAccounts.length === 0 ? (
+          /* User has 0 active accounts yet */
+          <div
+            style={{
+              backgroundColor: '#0F0924',
+              border: '1px dashed rgba(255, 255, 255, 0.1)',
+              borderRadius: '18px',
+              padding: '28px 20px',
+              textAlign: 'center',
+            }}
+          >
+            <Sparkles size={28} color="#00F0FF" style={{ margin: '0 auto 10px auto', opacity: 0.8 }} />
+            <p style={{ margin: '0 0 6px 0', fontFamily: 'Lexend, sans-serif', fontSize: '14.5px', fontWeight: 800, color: '#FFFFFF' }}>
+              No Active Platform IDs Yet
+            </p>
+            <p style={{ margin: 0, fontSize: '12px', color: '#8E849E', fontFamily: 'Lexend, sans-serif' }}>
+              Browse the available platforms below and click <strong>"Request New ID"</strong> to generate your instant credentials!
+            </p>
+          </div>
+        ) : (
+          /* Active Accounts Grid */
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: '16px',
+            }}
+          >
+            {activeAccounts.map((acc, index) => {
+              const matchedGame = games.find(
+                (g) => (g.title || g.name || '').toLowerCase().trim() === (acc.gameTitle || '').toLowerCase().trim()
+              );
+              const thumb = matchedGame?.thumbnail || '/images/vegas-777.webp';
+              const isPasswordVisible = showPasswordMap[`acc_${index}`];
+
+              return (
+                <div
+                  key={`acc_${index}`}
+                  style={{
+                    backgroundColor: '#120B2E',
+                    border: '1px solid rgba(0, 240, 255, 0.35)',
+                    borderRadius: '18px',
+                    padding: '16px',
+                    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.6), 0 0 16px rgba(0, 240, 255, 0.1)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <div>
+                    {/* Top Row: Thumbnail + Title + Ready Badge */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
+                      <div
+                        style={{
+                          width: '48px',
+                          height: '48px',
+                          borderRadius: '12px',
+                          overflow: 'hidden',
+                          position: 'relative',
+                          backgroundColor: '#070514',
+                          border: '1px solid rgba(0, 240, 255, 0.3)',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Image
+                          src={thumb}
+                          alt={acc.gameTitle}
+                          fill
+                          style={{ objectFit: 'cover' }}
+                        />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <h4
+                          style={{
+                            margin: '0 0 3px 0',
+                            fontFamily: 'Lexend, sans-serif',
+                            fontSize: '15px',
+                            fontWeight: 900,
+                            color: '#FFFFFF',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                          }}
+                        >
+                          {acc.gameTitle}
+                        </h4>
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            fontSize: '9.5px',
+                            fontFamily: 'Lexend, sans-serif',
+                            fontWeight: 900,
+                            color: '#10B981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                            border: '1px solid rgba(16, 185, 129, 0.35)',
+                            padding: '2px 7px',
+                            borderRadius: '4px',
+                          }}
+                        >
+                          <CheckCircle2 size={10} />
+                          READY TO PLAY
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Credentials Box */}
+                    <div
+                      style={{
+                        backgroundColor: '#070514',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        borderRadius: '12px',
+                        padding: '10px 12px',
+                        marginBottom: '14px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px',
+                      }}
+                    >
+                      {/* Username Row */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div>
+                          <p style={{ margin: 0, fontSize: '9px', color: '#8E849E', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                            USERNAME / ID
+                          </p>
+                          <p style={{ margin: '2px 0 0 0', fontFamily: 'Lexend, sans-serif', fontSize: '13px', fontWeight: 800, color: '#00F0FF' }}>
+                            {acc.username || 'VIP Patron'}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(acc.username, `user_${index}`)}
+                          style={{
+                            background: 'rgba(0, 240, 255, 0.12)',
+                            border: '1px solid rgba(0, 240, 255, 0.3)',
+                            borderRadius: '6px',
+                            padding: '4px 8px',
+                            color: '#00F0FF',
+                            fontSize: '10px',
+                            fontFamily: 'Lexend, sans-serif',
+                            fontWeight: 800,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          {copiedKey === `user_${index}` ? <Check size={11} /> : <Copy size={11} />}
+                          <span>{copiedKey === `user_${index}` ? 'Copied' : 'Copy'}</span>
+                        </button>
+                      </div>
+
+                      <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.06)' }} />
+
+                      {/* Password Row */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div>
+                          <p style={{ margin: 0, fontSize: '9px', color: '#8E849E', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                            PIN / PASSWORD
+                          </p>
+                          <p style={{ margin: '2px 0 0 0', fontFamily: 'Lexend, sans-serif', fontSize: '13px', fontWeight: 800, color: '#FFFFFF' }}>
+                            {isPasswordVisible ? acc.password : '••••••••'}
+                          </p>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <button
+                            type="button"
+                            onClick={() => togglePasswordVisibility(`acc_${index}`)}
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              color: '#8E849E',
+                              cursor: 'pointer',
+                              padding: '2px',
+                            }}
+                          >
+                            {isPasswordVisible ? <EyeOff size={14} /> : <Eye size={14} />}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleCopy(acc.password, `pass_${index}`)}
+                            style={{
+                              background: 'rgba(0, 240, 255, 0.12)',
+                              border: '1px solid rgba(0, 240, 255, 0.3)',
+                              borderRadius: '6px',
+                              padding: '4px 8px',
+                              color: '#00F0FF',
+                              fontSize: '10px',
+                              fontFamily: 'Lexend, sans-serif',
+                              fontWeight: 800,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                            }}
+                          >
+                            {copiedKey === `pass_${index}` ? <Check size={11} /> : <Copy size={11} />}
+                            <span>{copiedKey === `pass_${index}` ? 'Copied' : 'Copy'}</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions: Launch + Top Up */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => matchedGame && onPlayGame ? onPlayGame(matchedGame) : window.open(`/game/${matchedGame?.gameId || matchedGame?.id}`, '_self')}
+                      style={{
+                        background: 'linear-gradient(135deg, #E026D8 0%, #00F0FF 100%)',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        borderRadius: '10px',
+                        padding: '9px 0',
+                        fontFamily: 'Lexend, sans-serif',
+                        fontSize: '11.5px',
+                        fontWeight: 900,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        boxShadow: '0 4px 14px rgba(0, 240, 255, 0.3)',
+                      }}
+                    >
+                      <Play size={13} fill="#0E0816" />
+                      <span>LAUNCH GAME</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => onDeposit ? onDeposit() : window.open('/wallet?tab=deposit', '_self')}
+                      style={{
+                        backgroundColor: '#140E33',
+                        border: '1px solid rgba(0, 240, 255, 0.4)',
+                        color: '#00F0FF',
+                        borderRadius: '10px',
+                        padding: '9px 0',
+                        fontFamily: 'Lexend, sans-serif',
+                        fontSize: '11px',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '4px',
+                      }}
+                    >
+                      <ArrowDownCircle size={13} />
+                      <span>DEPOSIT</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* ======================================================== */}
+      {/* 2. PENDING REQUESTS (Desk Preparing Credentials)         */}
+      {/* ======================================================== */}
+      {pendingRequests.length > 0 && (
+        <div style={{ marginBottom: '36px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#F59E0B', boxShadow: '0 0 10px #F59E0B' }} />
+            <h3 style={{ margin: 0, fontFamily: 'Lexend, sans-serif', fontSize: '18px', fontWeight: 900, color: '#FFFFFF' }}>
+              Pending Credentials ({pendingRequests.length})
+            </h3>
+            <span style={{ fontSize: '11px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
+              — Desk is generating your player ID (typically 2-5 mins)
+            </span>
+          </div>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+              gap: '14px',
+            }}
+          >
+            {pendingRequests.map((req, index) => (
+              <div
+                key={`pend_${index}`}
+                style={{
+                  backgroundColor: '#0F0924',
+                  border: '1px solid rgba(245, 158, 11, 0.35)',
+                  borderRadius: '16px',
+                  padding: '14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  boxShadow: '0 6px 18px rgba(0, 0, 0, 0.5)',
+                }}
+              >
+                <div>
+                  <h4 style={{ margin: '0 0 3px 0', fontFamily: 'Lexend, sans-serif', fontSize: '14.5px', fontWeight: 800, color: '#FFFFFF' }}>
+                    {req.gameTitle}
+                  </h4>
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      fontSize: '9.5px',
+                      fontFamily: 'Lexend, sans-serif',
+                      fontWeight: 800,
+                      color: '#F59E0B',
+                      backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                    }}
+                  >
+                    <Clock size={10} className="animate-spin" />
+                    GENERATING CREDENTIALS
+                  </span>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ fontSize: '10px', color: '#8E849E', fontFamily: 'Lexend, sans-serif' }}>
+                    In Queue ⏳
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* 3. AVAILABLE PLATFORMS (Jin k accounts nahi bane huwe)   */}
+      {/* ======================================================== */}
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#00F0FF', boxShadow: '0 0 10px #00F0FF' }} />
+          <h3 style={{ margin: 0, fontFamily: 'Lexend, sans-serif', fontSize: '18px', fontWeight: 900, color: '#FFFFFF' }}>
+            Available Platforms ({availablePlatforms.length})
+          </h3>
+          <span style={{ fontSize: '11px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
+            — Request a new player account with 1-click
+          </span>
+        </div>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+            gap: '14px',
+          }}
+        >
+          {availablePlatforms.map((game) => {
+            const gameId = game.gameId || game.id || game._id;
+            const isRequestingThis = requestingGameId === gameId;
+
+            return (
+              <div
+                key={gameId}
+                style={{
+                  backgroundColor: '#0E0922',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderRadius: '16px',
+                  padding: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '10px',
+                  transition: 'all 0.2s ease',
+                }}
+                className="hover:border-[#00F0FF]/50"
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                  <div
+                    style={{
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '10px',
+                      overflow: 'hidden',
+                      position: 'relative',
+                      backgroundColor: '#070514',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Image
+                      src={game.thumbnail || '/images/vegas-777.webp'}
+                      alt={game.title}
+                      fill
+                      style={{ objectFit: 'cover' }}
+                    />
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <h5
+                      style={{
+                        margin: 0,
+                        fontFamily: 'Lexend, sans-serif',
+                        fontSize: '13px',
+                        fontWeight: 800,
+                        color: '#FFFFFF',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      {game.title}
+                    </h5>
+                    <p style={{ margin: '2px 0 0 0', fontSize: '9.5px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
+                      RTP {game.rtp ? `${Number(game.rtp).toFixed(1)}%` : '99.4%'}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleRequestAccount(game)}
+                  disabled={isRequestingThis}
+                  style={{
+                    backgroundColor: '#140E33',
+                    border: '1px solid rgba(0, 240, 255, 0.4)',
+                    color: '#00F0FF',
+                    borderRadius: '8px',
+                    padding: '7px 12px',
+                    fontFamily: 'Lexend, sans-serif',
+                    fontSize: '10.5px',
+                    fontWeight: 900,
+                    cursor: isRequestingThis ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    flexShrink: 0,
+                    transition: 'all 0.15s ease',
+                  }}
+                  className="hover:scale-105"
+                >
+                  <PlusCircle size={12} />
+                  <span>{isRequestingThis ? 'REQUESTING...' : 'REQUEST ID'}</span>
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}

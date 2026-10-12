@@ -23,6 +23,7 @@ import VegasFooter from '@/components/player/VegasFooter';
 import LiveChatWidget from '@/components/LiveChatWidget';
 import AuthModal from '@/components/AuthModal';
 import WalletModal from '@/components/WalletModal';
+import VegasSidebar from '@/components/player/VegasSidebar';
 
 export default function ReferralsPage() {
   const router = useRouter();
@@ -33,6 +34,7 @@ export default function ReferralsPage() {
   const [claimSuccess, setClaimSuccess] = useState(false);
   const [authModal, setAuthModal] = useState({ open: false, tab: 'login' });
   const [walletOpen, setWalletOpen] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [stats, setStats] = useState({
     referralCode: '',
     totalReferrals: 0,
@@ -128,12 +130,30 @@ export default function ReferralsPage() {
             else router.push(`/${tab}`);
           }}
           onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
-          onOpenWallet={() => setWalletOpen(true)}
+          onOpenWallet={() => {
+            if (!user) setAuthModal({ open: true, tab: 'login' });
+            else router.push('/wallet');
+          }}
+          onToggleMobileSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
         />
 
-        <main className="sovereign-container" style={{ paddingTop: '24px', paddingBottom: '70px' }}>
-          {/* Back link */}
-          <Link
+        <div style={{ display: 'flex', minHeight: 'calc(100vh - 82px)' }}>
+          <VegasSidebar
+            user={user}
+            activeTab="referrals"
+            onSelectTab={(t) => {
+              if (t === 'main') router.push('/');
+              else if (t.startsWith('/')) router.push(t);
+            }}
+            onOpenAuth={(t) => setAuthModal({ open: true, tab: t })}
+            mobileOpen={mobileSidebarOpen}
+            onCloseMobile={() => setMobileSidebarOpen(false)}
+          />
+
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <main className="sovereign-container" style={{ paddingTop: '24px', paddingBottom: '70px', width: '100%' }}>
+              {/* Back link */}
+              <Link
             href="/"
             style={{
               display: 'inline-flex',
@@ -382,6 +402,8 @@ export default function ReferralsPage() {
             </div>
           </div>
         </main>
+          </div>
+        </div>
       </div>
 
       <VegasFooter onSelectTab={(tab) => router.push(`/${tab}`)} />
@@ -391,7 +413,7 @@ export default function ReferralsPage() {
           if (tab === 'main') router.push('/');
           else router.push(`/${tab}`);
         }}
-        onOpenWallet={() => setWalletOpen(true)}
+        onOpenWallet={() => router.push('/wallet')}
         onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
         user={user}
       />
@@ -401,12 +423,6 @@ export default function ReferralsPage() {
         initialTab={authModal.tab}
         onClose={() => setAuthModal({ open: false, tab: 'login' })}
         onAuthSuccess={refreshUser}
-      />
-      <WalletModal
-        isOpen={walletOpen}
-        onClose={() => setWalletOpen(false)}
-        user={user}
-        onBalanceUpdated={refreshUser}
       />
     </div>
   );
