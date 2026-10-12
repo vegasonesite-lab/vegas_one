@@ -64,7 +64,7 @@ function WalletContent() {
   const [historyItems, setHistoryItems] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
-  const presetAmounts = [20, 50, 100, 250, 500];
+  const presetAmounts = [20, 50, 100, 250, 500, 1000];
 
   const refreshUser = async () => {
     try {
@@ -270,587 +270,585 @@ function WalletContent() {
           }}
           onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
           onOpenWallet={() => {}}
+          onToggleMobileSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
         />
 
         {/* Main Vault Content */}
-        <main style={{ padding: '24px 20px 80px 20px', maxWidth: '960px', margin: '0 auto', width: '100%' }}>
-          {/* Top Breadcrumb & Header */}
-            <div style={{ marginBottom: '22px' }}>
-              <Link
-                href="/"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  color: '#00F0FF',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  textDecoration: 'none',
-                  marginBottom: '10px',
-                }}
-              >
-                <ArrowLeft size={14} />
-                <span>Back to Casino Lobby</span>
-              </Link>
+        <main className="sovereign-container" style={{ paddingTop: '20px', paddingBottom: '80px', width: '100%', maxWidth: '960px' }}>
+          {/* Top Breadcrumb Navigation */}
+          <div style={{ marginBottom: '16px' }}>
+            <Link
+              href="/"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                color: '#00F0FF',
+                fontSize: '12px',
+                fontWeight: 800,
+                fontFamily: 'Lexend, sans-serif',
+                textDecoration: 'none',
+                padding: '7px 14px',
+                borderRadius: '10px',
+                backgroundColor: 'rgba(0, 240, 255, 0.08)',
+                border: '1px solid rgba(0, 240, 255, 0.22)',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <ArrowLeft size={14} />
+              <span>Back to Casino Lobby</span>
+            </Link>
+          </div>
 
-              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '14px' }}>
-                <div>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '4px' }}>
-                    <ShieldCheck size={14} />
-                    <span>SOVEREIGN FINANCIAL VAULT</span>
-                  </div>
-                  <h1 style={{ fontFamily: 'Lexend, sans-serif', fontSize: 'clamp(24px, 4vw, 34px)', fontWeight: 900, color: '#FFFFFF', margin: 0, letterSpacing: '-0.02em' }}>
-                    Cashier &amp; Redemptions
-                  </h1>
+          {/* Full-Width Luxury Vault Hero Banner */}
+          <div
+            style={{
+              background: 'linear-gradient(135deg, #130C35 0%, #09051E 50%, #060314 100%)',
+              border: '1px solid rgba(0, 240, 255, 0.35)',
+              borderRadius: '20px',
+              padding: '20px 24px',
+              marginBottom: '20px',
+              boxShadow: '0 15px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 240, 255, 0.1)',
+              position: 'relative',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Ambient Cyan Glow */}
+            <div
+              style={{
+                position: 'absolute',
+                top: '-50px',
+                right: '-50px',
+                width: '180px',
+                height: '180px',
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, rgba(0, 240, 255, 0.22) 0%, transparent 70%)',
+                pointerEvents: 'none',
+              }}
+            />
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px', position: 'relative', zIndex: 1 }}>
+              <div>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
+                  <ShieldCheck size={14} />
+                  <span>SOVEREIGN FINANCIAL VAULT</span>
                 </div>
-
-                {user && (
-                  <div
-                    style={{
-                      backgroundColor: '#0E0A24',
-                      border: '1px solid rgba(0, 240, 255, 0.45)',
-                      borderRadius: '16px',
-                      padding: '10px 18px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '12px',
-                      boxShadow: '0 6px 20px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 240, 255, 0.15)',
-                    }}
-                  >
-                    <div>
-                      <p style={{ margin: 0, fontSize: '9.5px', color: '#9A91A8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        AVAILABLE BALANCE
-                      </p>
-                      <p style={{ margin: '2px 0 0 0', fontFamily: 'Lexend, sans-serif', fontSize: '20px', fontWeight: 900, color: '#00F0FF' }}>
-                        ${Number(user.balanceSC ?? user.balance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* If user is not logged in, show Gatekeeper prompt */}
-            {!user ? (
-              <div
-                style={{
-                  background: 'linear-gradient(145deg, #120A2E 0%, #080416 100%)',
-                  border: '1px solid rgba(0, 240, 255, 0.35)',
-                  borderRadius: '24px',
-                  padding: '48px 24px',
-                  textAlign: 'center',
-                  boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 240, 255, 0.15)',
-                }}
-              >
-                <Wallet size={44} color="#00F0FF" style={{ margin: '0 auto 16px auto', opacity: 0.85 }} />
-                <h2 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '22px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 8px 0' }}>
-                  Sign In to Access Your Cashier Vault
-                </h2>
-                <p style={{ fontSize: '13px', color: '#BDB4CB', fontFamily: 'Lexend, sans-serif', maxWidth: '460px', margin: '0 auto 24px auto', lineHeight: 1.5 }}>
-                  Access instant Cash App deposits, direct Bitcoin/Crypto redemptions, and view your complete ledger balance history.
+                <h1 style={{ fontFamily: 'Lexend, sans-serif', fontSize: 'clamp(22px, 3.5vw, 30px)', fontWeight: 900, color: '#FFFFFF', margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
+                  Cashier &amp; Redemptions
+                </h1>
+                <p style={{ margin: 0, fontSize: '12px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
+                  Instant 24/7 Verified Sweepstakes Settlements • 0% Processing Fees
                 </p>
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                  <button
-                    type="button"
-                    onClick={() => setAuthModal({ open: true, tab: 'login' })}
-                    style={{
-                      background: 'linear-gradient(135deg, #E026D8 0%, #00F0FF 100%)',
-                      color: '#FFFFFF',
-                      border: 'none',
-                      borderRadius: '12px',
-                      padding: '12px 32px',
-                      fontFamily: 'Lexend, sans-serif',
-                      fontSize: '12.5px',
-                      fontWeight: 900,
-                      cursor: 'pointer',
-                      boxShadow: '0 4px 20px rgba(0, 240, 255, 0.4)',
-                    }}
-                  >
-                    SIGN IN TO VAULT
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAuthModal({ open: true, tab: 'register' })}
-                    style={{
-                      backgroundColor: '#140E33',
-                      border: '1px solid rgba(0, 240, 255, 0.4)',
-                      color: '#FFFFFF',
-                      borderRadius: '12px',
-                      padding: '12px 28px',
-                      fontFamily: 'Lexend, sans-serif',
-                      fontSize: '12.5px',
-                      fontWeight: 800,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    CREATE NEW VAULT
-                  </button>
-                </div>
               </div>
-            ) : (
-              /* Authenticated Cashier Experience */
-              <div
-                style={{
-                  backgroundColor: '#0E0A24',
-                  border: '1px solid rgba(0, 240, 255, 0.35)',
-                  borderRadius: '24px',
-                  padding: '24px',
-                  boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 240, 255, 0.12)',
-                }}
-              >
-                {/* 3-Way Tab Switcher */}
+
+              {user ? (
                 <div
                   style={{
+                    background: 'rgba(7, 5, 20, 0.88)',
+                    border: '1px solid rgba(0, 240, 255, 0.45)',
+                    borderRadius: '16px',
+                    padding: '12px 22px',
                     display: 'flex',
-                    backgroundColor: '#070514',
-                    borderRadius: '14px',
-                    padding: '4px',
-                    marginBottom: '22px',
-                    border: '1px solid rgba(0, 240, 255, 0.2)',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    minWidth: '180px',
+                    boxShadow: '0 6px 25px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 240, 255, 0.15)',
                   }}
                 >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveTab('deposit');
-                      setErrorMsg(null);
-                      setMessage(null);
-                    }}
-                    style={{
-                      flex: 1,
-                      padding: '11px 0',
-                      borderRadius: '10px',
-                      border: 'none',
-                      backgroundColor: activeTab === 'deposit' ? '#00F0FF' : 'transparent',
-                      color: activeTab === 'deposit' ? '#070514' : '#9A91A8',
-                      fontFamily: 'Lexend, sans-serif',
-                      fontSize: '12px',
-                      fontWeight: 900,
-                      letterSpacing: '0.04em',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '6px',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    <ArrowDownCircle size={15} />
-                    <span>DEPOSIT FUNDS</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveTab('redeem');
-                      setErrorMsg(null);
-                      setMessage(null);
-                    }}
-                    style={{
-                      flex: 1,
-                      padding: '11px 0',
-                      borderRadius: '10px',
-                      border: 'none',
-                      backgroundColor: activeTab === 'redeem' ? '#00F0FF' : 'transparent',
-                      color: activeTab === 'redeem' ? '#070514' : '#9A91A8',
-                      fontFamily: 'Lexend, sans-serif',
-                      fontSize: '12px',
-                      fontWeight: 900,
-                      letterSpacing: '0.04em',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '6px',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    <ArrowUpCircle size={15} />
-                    <span>INSTANT CASHOUT</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveTab('history');
-                      setErrorMsg(null);
-                      setMessage(null);
-                    }}
-                    style={{
-                      flex: 1,
-                      padding: '11px 0',
-                      borderRadius: '10px',
-                      border: 'none',
-                      backgroundColor: activeTab === 'history' ? '#00F0FF' : 'transparent',
-                      color: activeTab === 'history' ? '#070514' : '#9A91A8',
-                      fontFamily: 'Lexend, sans-serif',
-                      fontSize: '12px',
-                      fontWeight: 900,
-                      letterSpacing: '0.04em',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '6px',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    <Clock size={15} />
-                    <span>VAULT HISTORY</span>
-                  </button>
+                  <span style={{ fontSize: '10px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                    AVAILABLE BALANCE
+                  </span>
+                  <span style={{ fontFamily: 'Lexend, sans-serif', fontSize: '28px', fontWeight: 900, color: '#00F0FF', letterSpacing: '-0.02em', margin: '2px 0' }}>
+                    ${Number(user.balanceSC ?? user.balance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '10px', color: '#10B981', fontFamily: 'Lexend, sans-serif', fontWeight: 800 }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10B981' }} />
+                    LIVE INSTANT VAULT
+                  </span>
                 </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setAuthModal({ open: true, tab: 'login' })}
+                  className="btn-sovereign-coral"
+                  style={{ padding: '12px 24px', fontSize: '12.5px' }}
+                >
+                  SIGN IN TO VAULT
+                </button>
+              )}
+            </div>
+          </div>
 
-                {/* Feedback Alerts */}
-                {message && (
-                  <div
-                    style={{
-                      backgroundColor: 'rgba(16, 185, 129, 0.15)',
-                      border: '1px solid rgba(16, 185, 129, 0.4)',
-                      color: '#A7F3D0',
-                      padding: '12px 16px',
-                      borderRadius: '12px',
-                      fontSize: '12.5px',
-                      fontFamily: 'Lexend, sans-serif',
-                      marginBottom: '20px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                    }}
-                  >
-                    <CheckCircle2 size={18} color="#10B981" />
-                    <span>{message}</span>
-                  </div>
-                )}
+          {/* Unauthenticated Gatekeeper */}
+          {!user ? (
+            <div
+              style={{
+                background: 'linear-gradient(145deg, #120A2E 0%, #080416 100%)',
+                border: '1px solid rgba(0, 240, 255, 0.35)',
+                borderRadius: '24px',
+                padding: '48px 24px',
+                textAlign: 'center',
+                boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 240, 255, 0.15)',
+              }}
+            >
+              <Wallet size={44} color="#00F0FF" style={{ margin: '0 auto 16px auto', opacity: 0.85 }} />
+              <h2 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '22px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 8px 0' }}>
+                Sign In to Access Your Cashier Vault
+              </h2>
+              <p style={{ fontSize: '13px', color: '#BDB4CB', fontFamily: 'Lexend, sans-serif', maxWidth: '460px', margin: '0 auto 24px auto', lineHeight: 1.5 }}>
+                Access instant Cash App deposits, direct Bitcoin/Crypto redemptions, and view your complete ledger balance history.
+              </p>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={() => setAuthModal({ open: true, tab: 'login' })}
+                  className="btn-sovereign-coral"
+                  style={{ padding: '12px 32px' }}
+                >
+                  SIGN IN TO VAULT
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAuthModal({ open: true, tab: 'register' })}
+                  style={{
+                    backgroundColor: '#140E33',
+                    border: '1px solid rgba(0, 240, 255, 0.4)',
+                    color: '#FFFFFF',
+                    borderRadius: '12px',
+                    padding: '12px 28px',
+                    fontFamily: 'Lexend, sans-serif',
+                    fontSize: '12.5px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                  }}
+                >
+                  CREATE NEW VAULT
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* Authenticated Cashier Experience */
+            <div
+              style={{
+                backgroundColor: '#0E0A24',
+                border: '1px solid rgba(0, 240, 255, 0.3)',
+                borderRadius: '24px',
+                padding: '24px',
+                boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 240, 255, 0.1)',
+              }}
+            >
+              {/* 3-Way Equal Segmented Control */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  gap: '6px',
+                  backgroundColor: '#070514',
+                  borderRadius: '14px',
+                  padding: '5px',
+                  marginBottom: '22px',
+                  border: '1px solid rgba(0, 240, 255, 0.2)',
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('deposit');
+                    setErrorMsg(null);
+                    setMessage(null);
+                  }}
+                  style={{
+                    padding: '12px 6px',
+                    borderRadius: '10px',
+                    border: 'none',
+                    background: activeTab === 'deposit' ? 'linear-gradient(135deg, #00F0FF 0%, #00B4D8 100%)' : 'transparent',
+                    color: activeTab === 'deposit' ? '#070514' : '#9A91A8',
+                    fontFamily: 'Lexend, sans-serif',
+                    fontSize: '12px',
+                    fontWeight: 900,
+                    letterSpacing: '0.03em',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    transition: 'all 0.15s ease',
+                    boxShadow: activeTab === 'deposit' ? '0 4px 18px rgba(0, 240, 255, 0.35)' : 'none',
+                  }}
+                >
+                  <ArrowDownCircle size={15} />
+                  <span>DEPOSIT</span>
+                </button>
 
-                {errorMsg && (
-                  <div
-                    style={{
-                      backgroundColor: 'rgba(239, 68, 68, 0.15)',
-                      border: '1px solid rgba(239, 68, 68, 0.4)',
-                      color: '#FCA5A5',
-                      padding: '12px 16px',
-                      borderRadius: '12px',
-                      fontSize: '12.5px',
-                      fontFamily: 'Lexend, sans-serif',
-                      marginBottom: '20px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                    }}
-                  >
-                    <AlertCircle size={18} color="#EF4444" />
-                    <span>{errorMsg}</span>
-                  </div>
-                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('redeem');
+                    setErrorMsg(null);
+                    setMessage(null);
+                  }}
+                  style={{
+                    padding: '12px 6px',
+                    borderRadius: '10px',
+                    border: 'none',
+                    background: activeTab === 'redeem' ? 'linear-gradient(135deg, #00F0FF 0%, #00B4D8 100%)' : 'transparent',
+                    color: activeTab === 'redeem' ? '#070514' : '#9A91A8',
+                    fontFamily: 'Lexend, sans-serif',
+                    fontSize: '12px',
+                    fontWeight: 900,
+                    letterSpacing: '0.03em',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    transition: 'all 0.15s ease',
+                    boxShadow: activeTab === 'redeem' ? '0 4px 18px rgba(0, 240, 255, 0.35)' : 'none',
+                  }}
+                >
+                  <ArrowUpCircle size={15} />
+                  <span>CASHOUT</span>
+                </button>
 
-                {/* ======================================================== */}
-                {/* 1. DEPOSIT TAB                                           */}
-                {/* ======================================================== */}
-                {activeTab === 'deposit' && (
-                  <form onSubmit={handleDepositSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    {/* Amount Chips */}
-                    <div>
-                      <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '8px', letterSpacing: '0.04em' }}>
-                        1. SELECT DEPOSIT AMOUNT
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('history');
+                    setErrorMsg(null);
+                    setMessage(null);
+                  }}
+                  style={{
+                    padding: '12px 6px',
+                    borderRadius: '10px',
+                    border: 'none',
+                    background: activeTab === 'history' ? 'linear-gradient(135deg, #00F0FF 0%, #00B4D8 100%)' : 'transparent',
+                    color: activeTab === 'history' ? '#070514' : '#9A91A8',
+                    fontFamily: 'Lexend, sans-serif',
+                    fontSize: '12px',
+                    fontWeight: 900,
+                    letterSpacing: '0.03em',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    transition: 'all 0.15s ease',
+                    boxShadow: activeTab === 'history' ? '0 4px 18px rgba(0, 240, 255, 0.35)' : 'none',
+                  }}
+                >
+                  <Clock size={15} />
+                  <span>HISTORY</span>
+                </button>
+              </div>
+
+              {/* Feedback Alerts */}
+              {message && (
+                <div
+                  style={{
+                    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                    border: '1px solid rgba(16, 185, 129, 0.4)',
+                    color: '#A7F3D0',
+                    padding: '12px 16px',
+                    borderRadius: '12px',
+                    fontSize: '12.5px',
+                    fontFamily: 'Lexend, sans-serif',
+                    marginBottom: '20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                  }}
+                >
+                  <CheckCircle2 size={18} color="#10B981" />
+                  <span>{message}</span>
+                </div>
+              )}
+
+              {errorMsg && (
+                <div
+                  style={{
+                    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                    border: '1px solid rgba(239, 68, 68, 0.4)',
+                    color: '#FCA5A5',
+                    padding: '12px 16px',
+                    borderRadius: '12px',
+                    fontSize: '12.5px',
+                    fontFamily: 'Lexend, sans-serif',
+                    marginBottom: '20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                  }}
+                >
+                  <AlertCircle size={18} color="#EF4444" />
+                  <span>{errorMsg}</span>
+                </div>
+              )}
+
+              {/* ======================================================== */}
+              {/* 1. DEPOSIT TAB                                           */}
+              {/* ======================================================== */}
+              {activeTab === 'deposit' && (
+                <form onSubmit={handleDepositSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+                  {/* Amount Selection */}
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                      <label style={{ fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#C8C1D4', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                        1. Select Deposit Amount
                       </label>
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '10px' }}>
-                        {presetAmounts.map((amt) => (
+                      <span style={{ fontSize: '10.5px', color: '#10B981', fontFamily: 'Lexend, sans-serif', fontWeight: 800 }}>
+                        ⚡ 100% Instant Approval
+                      </span>
+                    </div>
+
+                    {/* 3x2 Grid for 6 Presets */}
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(3, 1fr)',
+                        gap: '10px',
+                        marginBottom: '12px',
+                      }}
+                    >
+                      {[
+                        { amt: 20, badge: null },
+                        { amt: 50, badge: 'POPULAR' },
+                        { amt: 100, badge: '+10% FREE' },
+                        { amt: 250, badge: 'VIP PICK' },
+                        { amt: 500, badge: '+20% VIP' },
+                        { amt: 1000, badge: 'MAX PRO' },
+                      ].map(({ amt, badge }) => {
+                        const isSel = depositAmount === amt;
+                        return (
                           <button
                             key={amt}
                             type="button"
                             onClick={() => setDepositAmount(amt)}
                             style={{
-                              flex: '1 0 70px',
-                              padding: '10px 0',
-                              borderRadius: '10px',
-                              border: depositAmount === amt ? '2px solid #00F0FF' : '1px solid rgba(255, 255, 255, 0.12)',
-                              backgroundColor: depositAmount === amt ? 'rgba(0, 240, 255, 0.15)' : '#070514',
-                              color: depositAmount === amt ? '#00F0FF' : '#FFFFFF',
-                              fontFamily: 'Lexend, sans-serif',
-                              fontSize: '13px',
-                              fontWeight: 900,
-                              cursor: 'pointer',
-                              transition: 'all 0.15s ease',
-                            }}
-                          >
-                            ${amt}
-                          </button>
-                        ))}
-                      </div>
-
-                      <div style={{ position: 'relative' }}>
-                        <span style={{ position: 'absolute', top: '12px', left: '14px', color: '#00F0FF', fontWeight: 900, fontSize: '15px' }}>$</span>
-                        <input
-                          type="number"
-                          min="10"
-                          max="10000"
-                          value={depositAmount}
-                          onChange={(e) => setDepositAmount(Number(e.target.value))}
-                          style={{
-                            width: '100%',
-                            backgroundColor: '#070514',
-                            border: '1px solid rgba(0, 240, 255, 0.3)',
-                            borderRadius: '12px',
-                            padding: '12px 14px 12px 32px',
-                            color: '#FFFFFF',
-                            fontSize: '15px',
-                            fontFamily: 'Lexend, sans-serif',
-                            fontWeight: 800,
-                            outline: 'none',
-                            boxSizing: 'border-box',
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Payment Method Selector */}
-                    <div>
-                      <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '8px', letterSpacing: '0.04em' }}>
-                        2. CHOOSE PAYMENT METHOD
-                      </label>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '10px' }}>
-                        {methods.map((m) => {
-                          const isSel = selectedMethod?.methodId === m.methodId;
-                          return (
-                            <div
-                              key={m.methodId}
-                              onClick={() => setSelectedMethod(m)}
-                              style={{
-                                backgroundColor: isSel ? 'rgba(0, 240, 255, 0.12)' : '#070514',
-                                border: isSel ? '2px solid #00F0FF' : '1px solid rgba(255, 255, 255, 0.1)',
-                                borderRadius: '12px',
-                                padding: '12px',
-                                cursor: 'pointer',
-                                transition: 'all 0.15s ease',
-                              }}
-                            >
-                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                <span style={{ fontFamily: 'Lexend, sans-serif', fontWeight: 900, fontSize: '13px', color: '#FFFFFF' }}>
-                                  {m.name}
-                                </span>
-                                {m.badge && (
-                                  <span style={{ fontSize: '9px', padding: '2px 6px', borderRadius: '4px', backgroundColor: 'rgba(0, 240, 255, 0.2)', color: '#00F0FF', fontWeight: 900 }}>
-                                    {m.badge}
-                                  </span>
-                                )}
-                              </div>
-                              <p style={{ margin: 0, fontSize: '11px', color: '#8E849E', fontFamily: 'Lexend, sans-serif' }}>
-                                Instant Settlement
-                              </p>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Method Details & Cashtag / Address Display */}
-                    {selectedMethod && (
-                      <div
-                        style={{
-                          backgroundColor: '#070514',
-                          border: '1px solid rgba(0, 240, 255, 0.35)',
-                          borderRadius: '16px',
-                          padding: '16px',
-                        }}
-                      >
-                        <p style={{ margin: '0 0 4px 0', fontSize: '10px', color: '#8E849E', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                          SEND TRANSFER TO THIS {selectedMethod.name.toUpperCase()} ADDRESS:
-                        </p>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', marginTop: '6px' }}>
-                          <span
-                            style={{
+                              position: 'relative',
+                              padding: '14px 8px',
+                              borderRadius: '12px',
+                              border: isSel ? '2px solid #00F0FF' : '1px solid rgba(255, 255, 255, 0.12)',
+                              backgroundColor: isSel ? 'rgba(0, 240, 255, 0.16)' : '#070514',
+                              color: isSel ? '#00F0FF' : '#FFFFFF',
                               fontFamily: 'Lexend, sans-serif',
                               fontSize: '15px',
                               fontWeight: 900,
-                              color: '#00F0FF',
-                              wordBreak: 'break-all',
-                            }}
-                          >
-                            {selectedMethod.cashtag || selectedMethod.address || 'Contact 24/7 Live Support'}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => handleCopy(selectedMethod.cashtag || selectedMethod.address)}
-                            style={{
-                              backgroundColor: 'rgba(0, 240, 255, 0.15)',
-                              border: '1px solid rgba(0, 240, 255, 0.4)',
-                              borderRadius: '8px',
-                              padding: '6px 12px',
-                              color: '#00F0FF',
-                              fontSize: '11px',
-                              fontFamily: 'Lexend, sans-serif',
-                              fontWeight: 800,
                               cursor: 'pointer',
                               display: 'flex',
+                              flexDirection: 'column',
                               alignItems: 'center',
-                              gap: '4px',
-                              flexShrink: 0,
+                              justifyContent: 'center',
+                              gap: '2px',
+                              boxShadow: isSel ? '0 0 20px rgba(0, 240, 255, 0.25)' : 'none',
+                              transition: 'all 0.15s ease',
                             }}
                           >
-                            {copied ? <Check size={13} /> : <Copy size={13} />}
-                            <span>{copied ? 'Copied' : 'Copy'}</span>
+                            {badge && (
+                              <span
+                                style={{
+                                  position: 'absolute',
+                                  top: '-7px',
+                                  right: '6px',
+                                  backgroundColor: isSel ? '#00F0FF' : '#FF0055',
+                                  color: isSel ? '#070514' : '#FFFFFF',
+                                  fontSize: '8.5px',
+                                  fontFamily: 'Lexend, sans-serif',
+                                  fontWeight: 900,
+                                  padding: '1px 6px',
+                                  borderRadius: '9999px',
+                                  letterSpacing: '0.03em',
+                                }}
+                              >
+                                {badge}
+                              </span>
+                            )}
+                            <span>${amt}</span>
                           </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Sender Details & Screenshot Proof */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '10.5px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '4px', letterSpacing: '0.04em' }}>
-                          YOUR CASHTAG / SENDER NOTE
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="$YourCashTag or Name"
-                          value={senderNote}
-                          onChange={(e) => setSenderNote(e.target.value)}
-                          required
-                          style={{
-                            width: '100%',
-                            backgroundColor: '#070514',
-                            border: '1px solid rgba(0, 240, 255, 0.25)',
-                            borderRadius: '10px',
-                            padding: '11px 14px',
-                            color: '#FFFFFF',
-                            fontSize: '12.5px',
-                            fontFamily: 'Lexend, sans-serif',
-                            outline: 'none',
-                            boxSizing: 'border-box',
-                          }}
-                        />
-                      </div>
-
-                      <div>
-                        <label style={{ display: 'block', fontSize: '10.5px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '4px', letterSpacing: '0.04em' }}>
-                          PAYMENT SCREENSHOT PROOF (OPTIONAL)
-                        </label>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageUpload}
-                          style={{
-                            width: '100%',
-                            backgroundColor: '#070514',
-                            border: '1px solid rgba(0, 240, 255, 0.25)',
-                            borderRadius: '10px',
-                            padding: '8px 12px',
-                            color: '#FFFFFF',
-                            fontSize: '11.5px',
-                            fontFamily: 'Lexend, sans-serif',
-                            boxSizing: 'border-box',
-                          }}
-                        />
-                      </div>
+                        );
+                      })}
                     </div>
 
-                    {/* Submit Button */}
-                    <button
-                      type="submit"
-                      disabled={loading}
+                    {/* Custom Amount Input */}
+                    <div style={{ position: 'relative' }}>
+                      <span style={{ position: 'absolute', top: '13px', left: '16px', color: '#00F0FF', fontWeight: 900, fontSize: '16px' }}>$</span>
+                      <input
+                        type="number"
+                        min="10"
+                        max="10000"
+                        placeholder="Or enter custom amount (Min $10)"
+                        value={depositAmount || ''}
+                        onChange={(e) => setDepositAmount(e.target.value === '' ? '' : Number(e.target.value))}
+                        style={{
+                          width: '100%',
+                          backgroundColor: '#070514',
+                          border: '1px solid rgba(0, 240, 255, 0.3)',
+                          borderRadius: '12px',
+                          padding: '13px 16px 13px 36px',
+                          color: '#FFFFFF',
+                          fontSize: '14px',
+                          fontFamily: 'Lexend, sans-serif',
+                          fontWeight: 800,
+                          outline: 'none',
+                          boxSizing: 'border-box',
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Payment Method Selector */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#C8C1D4', marginBottom: '10px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                      2. Choose Payment Method
+                    </label>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
+                      {methods.map((m) => {
+                        const isSel = selectedMethod?.methodId === m.methodId;
+                        const isCashApp = m.name?.toLowerCase().includes('cash');
+                        const isZelle = m.name?.toLowerCase().includes('zelle');
+                        const badgeBg = isCashApp ? '#00D632' : isZelle ? '#7414CA' : '#00F0FF';
+
+                        return (
+                          <div
+                            key={m.methodId}
+                            onClick={() => setSelectedMethod(m)}
+                            style={{
+                              backgroundColor: isSel ? 'rgba(0, 240, 255, 0.14)' : '#070514',
+                              border: isSel ? '2px solid #00F0FF' : '1px solid rgba(255, 255, 255, 0.1)',
+                              borderRadius: '14px',
+                              padding: '14px',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease',
+                              position: 'relative',
+                              boxShadow: isSel ? '0 0 20px rgba(0, 240, 255, 0.2)' : 'none',
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <div
+                                  style={{
+                                    width: '24px',
+                                    height: '24px',
+                                    borderRadius: '6px',
+                                    backgroundColor: badgeBg,
+                                    color: isZelle ? '#FFFFFF' : '#070514',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontWeight: 900,
+                                    fontSize: '12px',
+                                  }}
+                                >
+                                  {isCashApp ? '$' : isZelle ? 'Z' : '⚡'}
+                                </div>
+                                <span style={{ fontFamily: 'Lexend, sans-serif', fontWeight: 900, fontSize: '13.5px', color: '#FFFFFF' }}>
+                                  {m.name}
+                                </span>
+                              </div>
+                              {isSel && (
+                                <div
+                                  style={{
+                                    width: '18px',
+                                    height: '18px',
+                                    borderRadius: '50%',
+                                    backgroundColor: '#00F0FF',
+                                    color: '#070514',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                  }}
+                                >
+                                  <Check size={12} strokeWidth={3} />
+                                </div>
+                              )}
+                            </div>
+                            <p style={{ margin: 0, fontSize: '11px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
+                              Instant 24/7 Processing
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Method Details & Cashtag Display */}
+                  {selectedMethod && (
+                    <div
                       style={{
-                        width: '100%',
-                        background: 'linear-gradient(135deg, #E026D8 0%, #00F0FF 100%)',
-                        color: '#FFFFFF',
-                        fontFamily: 'Lexend, sans-serif',
-                        fontWeight: 900,
-                        fontSize: '13px',
-                        letterSpacing: '0.05em',
-                        textTransform: 'uppercase',
-                        padding: '14px 0',
-                        borderRadius: '12px',
-                        border: 'none',
-                        cursor: loading ? 'not-allowed' : 'pointer',
-                        boxShadow: '0 4px 22px rgba(0, 240, 255, 0.35)',
+                        background: 'linear-gradient(145deg, #130D33 0%, #080416 100%)',
+                        border: '1px solid rgba(0, 240, 255, 0.4)',
+                        borderRadius: '16px',
+                        padding: '16px 18px',
+                        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.5)',
                       }}
                     >
-                      {loading ? 'SUBMITTING TO FINANCIAL DESK...' : `CONFIRM $${depositAmount} DEPOSIT`}
-                    </button>
-                  </form>
-                )}
-
-                {/* ======================================================== */}
-                {/* 2. REDEEM / CASHOUT TAB                                  */}
-                {/* ======================================================== */}
-                {activeTab === 'redeem' && (
-                  <form onSubmit={handleRedeemSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '8px', letterSpacing: '0.04em' }}>
-                        1. ENTER CASHOUT AMOUNT (MIN $20)
-                      </label>
-                      <div style={{ position: 'relative' }}>
-                        <span style={{ position: 'absolute', top: '12px', left: '14px', color: '#00F0FF', fontWeight: 900, fontSize: '15px' }}>$</span>
-                        <input
-                          type="number"
-                          min="20"
-                          max={Number(user.balanceSC ?? user.balance ?? 10000)}
-                          value={redeemAmount}
-                          onChange={(e) => setRedeemAmount(Number(e.target.value))}
-                          required
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '10.5px', color: '#C8C1D4', fontFamily: 'Lexend, sans-serif', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          OFFICIAL {selectedMethod.name.toUpperCase()} RECIPIENT:
+                        </span>
+                        <span style={{ fontSize: '10px', color: '#10B981', fontFamily: 'Lexend, sans-serif', fontWeight: 800 }}>
+                          VERIFIED OFFICIAL DESK
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+                        <span
                           style={{
-                            width: '100%',
-                            backgroundColor: '#070514',
-                            border: '1px solid rgba(0, 240, 255, 0.3)',
-                            borderRadius: '12px',
-                            padding: '12px 14px 12px 32px',
-                            color: '#FFFFFF',
-                            fontSize: '15px',
+                            fontFamily: 'Lexend, sans-serif',
+                            fontSize: '18px',
+                            fontWeight: 900,
+                            color: '#00F0FF',
+                            letterSpacing: '0.02em',
+                            wordBreak: 'break-all',
+                          }}
+                        >
+                          {selectedMethod.cashtag || selectedMethod.address || 'Contact 24/7 Live Support'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(selectedMethod.cashtag || selectedMethod.address)}
+                          style={{
+                            backgroundColor: copied ? '#10B981' : 'rgba(0, 240, 255, 0.18)',
+                            border: copied ? '1px solid #10B981' : '1px solid rgba(0, 240, 255, 0.5)',
+                            borderRadius: '10px',
+                            padding: '8px 16px',
+                            color: copied ? '#FFFFFF' : '#00F0FF',
+                            fontSize: '12px',
                             fontFamily: 'Lexend, sans-serif',
                             fontWeight: 800,
-                            outline: 'none',
-                            boxSizing: 'border-box',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            transition: 'all 0.15s ease',
+                            flexShrink: 0,
                           }}
-                        />
+                        >
+                          {copied ? <Check size={14} /> : <Copy size={14} />}
+                          <span>{copied ? 'Copied!' : 'Copy Cashtag'}</span>
+                        </button>
                       </div>
+                      <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#8E849E', fontFamily: 'Lexend, sans-serif' }}>
+                        💡 Tip: Include your player username in the payment note to ensure instant automatic credit.
+                      </p>
                     </div>
+                  )}
 
+                  {/* Sender Details & Screenshot Proof */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '8px', letterSpacing: '0.04em' }}>
-                        2. SELECT CASHOUT METHOD
-                      </label>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '10px' }}>
-                        {['Cash App', 'Bitcoin (BTC)', 'Ethereum (ETH)', 'USDT (Tether)'].map((methodName) => {
-                          const isSel = payoutMethod === methodName;
-                          return (
-                            <div
-                              key={methodName}
-                              onClick={() => setPayoutMethod(methodName)}
-                              style={{
-                                backgroundColor: isSel ? 'rgba(0, 240, 255, 0.12)' : '#070514',
-                                border: isSel ? '2px solid #00F0FF' : '1px solid rgba(255, 255, 255, 0.1)',
-                                borderRadius: '12px',
-                                padding: '12px',
-                                cursor: 'pointer',
-                                transition: 'all 0.15s ease',
-                              }}
-                            >
-                              <span style={{ fontFamily: 'Lexend, sans-serif', fontWeight: 900, fontSize: '13px', color: '#FFFFFF' }}>
-                                {methodName}
-                              </span>
-                              <p style={{ margin: '4px 0 0 0', fontSize: '10.5px', color: '#10B981', fontFamily: 'Lexend, sans-serif' }}>
-                                Instant Settlement
-                              </p>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label style={{ display: 'block', fontSize: '10.5px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '4px', letterSpacing: '0.04em' }}>
-                        3. YOUR DESTINATION CASHTAG / CRYPTO ADDRESS
+                      <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '6px', letterSpacing: '0.04em' }}>
+                        3. YOUR CASHTAG / SENDER NOTE
                       </label>
                       <input
                         type="text"
-                        placeholder={payoutMethod.includes('Cash App') ? '$YourCashTag' : 'Enter Wallet Address'}
-                        value={destinationAddress}
-                        onChange={(e) => setDestinationAddress(e.target.value)}
+                        placeholder="$YourCashTag or Your Name"
+                        value={senderNote}
+                        onChange={(e) => setSenderNote(e.target.value)}
                         required
                         style={{
                           width: '100%',
                           backgroundColor: '#070514',
-                          border: '1px solid rgba(0, 240, 255, 0.25)',
-                          borderRadius: '10px',
+                          border: '1px solid rgba(0, 240, 255, 0.3)',
+                          borderRadius: '12px',
                           padding: '12px 14px',
                           color: '#FFFFFF',
                           fontSize: '13px',
@@ -861,147 +859,346 @@ function WalletContent() {
                       />
                     </div>
 
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      style={{
-                        width: '100%',
-                        background: 'linear-gradient(135deg, #10B981 0%, #00F0FF 100%)',
-                        color: '#070514',
-                        fontFamily: 'Lexend, sans-serif',
-                        fontWeight: 900,
-                        fontSize: '13px',
-                        letterSpacing: '0.05em',
-                        textTransform: 'uppercase',
-                        padding: '14px 0',
-                        borderRadius: '12px',
-                        border: 'none',
-                        cursor: loading ? 'not-allowed' : 'pointer',
-                        boxShadow: '0 4px 22px rgba(16, 185, 129, 0.35)',
-                      }}
-                    >
-                      {loading ? 'SUBMITTING CASHOUT REQUEST...' : `REQUEST $${redeemAmount} CASHOUT`}
-                    </button>
-                  </form>
-                )}
-
-                {/* ======================================================== */}
-                {/* 3. VAULT HISTORY TAB                                     */}
-                {/* ======================================================== */}
-                {activeTab === 'history' && (
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-                      <span style={{ fontSize: '12px', fontFamily: 'Lexend, sans-serif', color: '#9A91A8' }}>
-                        Showing recent deposits and cashouts
-                      </span>
-                      <button
-                        type="button"
-                        onClick={fetchHistory}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '6px', letterSpacing: '0.04em' }}>
+                        PAYMENT SCREENSHOT PROOF (OPTIONAL)
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
                         style={{
-                          background: 'transparent',
-                          border: 'none',
-                          color: '#00F0FF',
-                          fontSize: '12px',
+                          width: '100%',
+                          backgroundColor: '#070514',
+                          border: '1px solid rgba(0, 240, 255, 0.3)',
+                          borderRadius: '12px',
+                          padding: '10px 14px',
+                          color: '#FFFFFF',
+                          fontSize: '11.5px',
                           fontFamily: 'Lexend, sans-serif',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
+                          boxSizing: 'border-box',
                         }}
-                      >
-                        <RefreshCw size={13} className={loadingHistory ? 'animate-spin' : ''} />
-                        <span>Refresh</span>
-                      </button>
+                      />
+                    </div>
+                  </div>
+
+                  {/* Submit Button */}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="btn-sovereign-coral"
+                    style={{
+                      width: '100%',
+                      padding: '16px 0',
+                      borderRadius: '14px',
+                      fontSize: '14px',
+                      letterSpacing: '0.05em',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      cursor: loading ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    <Zap size={18} />
+                    <span>{loading ? 'SUBMITTING TO FINANCIAL DESK...' : `CONFIRM $${depositAmount} DEPOSIT REQUEST`}</span>
+                  </button>
+                </form>
+              )}
+
+              {/* ======================================================== */}
+              {/* 2. REDEEM / CASHOUT TAB                                  */}
+              {/* ======================================================== */}
+              {activeTab === 'redeem' && (
+                <form onSubmit={handleRedeemSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                      <label style={{ fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#C8C1D4', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                        1. Enter Cashout Amount (Min $20)
+                      </label>
+                      <span style={{ fontSize: '10.5px', color: '#00F0FF', fontFamily: 'Lexend, sans-serif', fontWeight: 800 }}>
+                        Balance: ${Number(user.balanceSC ?? user.balance ?? 0).toFixed(2)}
+                      </span>
                     </div>
 
-                    {loadingHistory ? (
-                      <div style={{ padding: '40px', textAlign: 'center', color: '#9A91A8' }}>
-                        Loading transaction ledger...
-                      </div>
-                    ) : historyItems.length === 0 ? (
-                      <div style={{ padding: '40px', textAlign: 'center', backgroundColor: '#070514', borderRadius: '16px' }}>
-                        <p style={{ margin: 0, fontFamily: 'Lexend, sans-serif', fontSize: '14px', color: '#FFFFFF' }}>
-                          No transactions recorded yet.
-                        </p>
-                      </div>
-                    ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        {historyItems.map((item, idx) => {
-                          const isDep = item.kind === 'DEPOSIT';
-                          const statusColor =
-                            item.status === 'APPROVED' || item.status === 'COMPLETED'
-                              ? '#10B981'
-                              : item.status === 'PENDING'
-                              ? '#F59E0B'
-                              : '#EF4444';
+                    {/* Quick Cashout Presets */}
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(4, 1fr)',
+                        gap: '8px',
+                        marginBottom: '12px',
+                      }}
+                    >
+                      {[25, 50, 100, 250].map((amt) => {
+                        const isSel = redeemAmount === amt;
+                        return (
+                          <button
+                            key={amt}
+                            type="button"
+                            onClick={() => setRedeemAmount(amt)}
+                            style={{
+                              padding: '12px 6px',
+                              borderRadius: '10px',
+                              border: isSel ? '2px solid #00F0FF' : '1px solid rgba(255, 255, 255, 0.12)',
+                              backgroundColor: isSel ? 'rgba(0, 240, 255, 0.16)' : '#070514',
+                              color: isSel ? '#00F0FF' : '#FFFFFF',
+                              fontFamily: 'Lexend, sans-serif',
+                              fontSize: '14px',
+                              fontWeight: 900,
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease',
+                            }}
+                          >
+                            ${amt}
+                          </button>
+                        );
+                      })}
+                    </div>
 
-                          return (
-                            <div
-                              key={item._id || item.id || idx}
-                              style={{
-                                backgroundColor: '#070514',
-                                border: '1px solid rgba(255, 255, 255, 0.08)',
-                                borderRadius: '14px',
-                                padding: '12px 16px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                              }}
-                            >
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ position: 'relative' }}>
+                      <span style={{ position: 'absolute', top: '13px', left: '16px', color: '#00F0FF', fontWeight: 900, fontSize: '16px' }}>$</span>
+                      <input
+                        type="number"
+                        min="20"
+                        max={Number(user.balanceSC ?? user.balance ?? 10000)}
+                        value={redeemAmount}
+                        onChange={(e) => setRedeemAmount(Number(e.target.value))}
+                        required
+                        style={{
+                          width: '100%',
+                          backgroundColor: '#070514',
+                          border: '1px solid rgba(0, 240, 255, 0.3)',
+                          borderRadius: '12px',
+                          padding: '13px 16px 13px 36px',
+                          color: '#FFFFFF',
+                          fontSize: '14px',
+                          fontFamily: 'Lexend, sans-serif',
+                          fontWeight: 800,
+                          outline: 'none',
+                          boxSizing: 'border-box',
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#C8C1D4', marginBottom: '10px', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                      2. Select Cashout Method
+                    </label>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
+                      {['Cash App', 'Bitcoin (BTC)', 'Ethereum (ETH)', 'USDT (Tether)'].map((methodName) => {
+                        const isSel = payoutMethod === methodName;
+                        return (
+                          <div
+                            key={methodName}
+                            onClick={() => setPayoutMethod(methodName)}
+                            style={{
+                              backgroundColor: isSel ? 'rgba(0, 240, 255, 0.14)' : '#070514',
+                              border: isSel ? '2px solid #00F0FF' : '1px solid rgba(255, 255, 255, 0.1)',
+                              borderRadius: '14px',
+                              padding: '14px',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease',
+                              position: 'relative',
+                              boxShadow: isSel ? '0 0 20px rgba(0, 240, 255, 0.2)' : 'none',
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <span style={{ fontFamily: 'Lexend, sans-serif', fontWeight: 900, fontSize: '13.5px', color: '#FFFFFF' }}>
+                                {methodName}
+                              </span>
+                              {isSel && (
                                 <div
                                   style={{
-                                    width: '36px',
-                                    height: '36px',
-                                    borderRadius: '10px',
-                                    backgroundColor: isDep ? 'rgba(0, 240, 255, 0.15)' : 'rgba(224, 38, 216, 0.15)',
+                                    width: '18px',
+                                    height: '18px',
+                                    borderRadius: '50%',
+                                    backgroundColor: '#00F0FF',
+                                    color: '#070514',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    color: isDep ? '#00F0FF' : '#E026D8',
                                   }}
                                 >
-                                  {isDep ? <ArrowDownCircle size={18} /> : <ArrowUpCircle size={18} />}
+                                  <Check size={12} strokeWidth={3} />
                                 </div>
-                                <div>
-                                  <p style={{ margin: '0 0 2px 0', fontFamily: 'Lexend, sans-serif', fontSize: '13px', fontWeight: 800, color: '#FFFFFF' }}>
-                                    {isDep ? 'Deposit Transfer' : 'Prize Redemption'}
-                                  </p>
-                                  <p style={{ margin: 0, fontSize: '11px', color: '#8E849E', fontFamily: 'Lexend, sans-serif' }}>
-                                    {new Date(item.createdAt).toLocaleString()} • {item.methodName || item.payoutMethod || 'Cash App'}
-                                  </p>
-                                </div>
-                              </div>
+                              )}
+                            </div>
+                            <p style={{ margin: '4px 0 0 0', fontSize: '10.5px', color: '#10B981', fontFamily: 'Lexend, sans-serif' }}>
+                              Instant 24/7 Settlement
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
 
-                              <div style={{ textAlign: 'right' }}>
-                                <p style={{ margin: '0 0 2px 0', fontFamily: 'Lexend, sans-serif', fontSize: '15px', fontWeight: 900, color: isDep ? '#00F0FF' : '#10B981' }}>
-                                  {isDep ? '+' : '-'}${Number(item.amount || 0).toFixed(2)}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '6px', letterSpacing: '0.04em' }}>
+                      3. YOUR DESTINATION CASHTAG / CRYPTO WALLET ADDRESS
+                    </label>
+                    <input
+                      type="text"
+                      placeholder={payoutMethod.includes('Cash App') ? '$YourCashTag' : 'Enter Crypto Receiving Address'}
+                      value={destinationAddress}
+                      onChange={(e) => setDestinationAddress(e.target.value)}
+                      required
+                      style={{
+                        width: '100%',
+                        backgroundColor: '#070514',
+                        border: '1px solid rgba(0, 240, 255, 0.3)',
+                        borderRadius: '12px',
+                        padding: '12px 14px',
+                        color: '#FFFFFF',
+                        fontSize: '13px',
+                        fontFamily: 'Lexend, sans-serif',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                      }}
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="btn-sovereign-coral"
+                    style={{
+                      width: '100%',
+                      padding: '16px 0',
+                      borderRadius: '14px',
+                      fontSize: '14px',
+                      letterSpacing: '0.05em',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      cursor: loading ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    <Zap size={18} />
+                    <span>{loading ? 'SUBMITTING CASHOUT REQUEST...' : `REQUEST $${redeemAmount} CASHOUT`}</span>
+                  </button>
+                </form>
+              )}
+
+              {/* ======================================================== */}
+              {/* 3. VAULT HISTORY TAB                                     */}
+              {/* ======================================================== */}
+              {activeTab === 'history' && (
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                    <span style={{ fontSize: '12px', fontFamily: 'Lexend, sans-serif', color: '#9A91A8' }}>
+                      Recent deposit transfers and redemption requests
+                    </span>
+                    <button
+                      type="button"
+                      onClick={fetchHistory}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#00F0FF',
+                        fontSize: '12px',
+                        fontFamily: 'Lexend, sans-serif',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      <RefreshCw size={13} className={loadingHistory ? 'animate-spin' : ''} />
+                      <span>Refresh</span>
+                    </button>
+                  </div>
+
+                  {loadingHistory ? (
+                    <div style={{ padding: '50px 20px', textAlign: 'center', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
+                      Loading transaction ledger...
+                    </div>
+                  ) : historyItems.length === 0 ? (
+                    <div style={{ padding: '50px 20px', textAlign: 'center', backgroundColor: '#070514', borderRadius: '16px' }}>
+                      <p style={{ margin: 0, fontFamily: 'Lexend, sans-serif', fontSize: '14px', color: '#FFFFFF' }}>
+                        No transactions recorded yet in this vault.
+                      </p>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      {historyItems.map((item, idx) => {
+                        const isDep = item.kind === 'DEPOSIT';
+                        const statusColor =
+                          item.status === 'APPROVED' || item.status === 'COMPLETED'
+                            ? '#10B981'
+                            : item.status === 'PENDING'
+                            ? '#F59E0B'
+                            : '#EF4444';
+
+                        return (
+                          <div
+                            key={item._id || item.id || idx}
+                            style={{
+                              backgroundColor: '#070514',
+                              border: '1px solid rgba(255, 255, 255, 0.08)',
+                              borderRadius: '14px',
+                              padding: '14px 16px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                              <div
+                                style={{
+                                  width: '38px',
+                                  height: '38px',
+                                  borderRadius: '10px',
+                                  backgroundColor: isDep ? 'rgba(0, 240, 255, 0.15)' : 'rgba(255, 0, 85, 0.15)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  color: isDep ? '#00F0FF' : '#FF0055',
+                                }}
+                              >
+                                {isDep ? <ArrowDownCircle size={18} /> : <ArrowUpCircle size={18} />}
+                              </div>
+                              <div>
+                                <p style={{ margin: '0 0 2px 0', fontFamily: 'Lexend, sans-serif', fontSize: '13.5px', fontWeight: 800, color: '#FFFFFF' }}>
+                                  {isDep ? 'Deposit Transfer' : 'Prize Redemption'}
                                 </p>
-                                <span
-                                  style={{
-                                    fontSize: '9.5px',
-                                    fontFamily: 'Lexend, sans-serif',
-                                    fontWeight: 900,
-                                    padding: '2px 8px',
-                                    borderRadius: '4px',
-                                    backgroundColor: `${statusColor}22`,
-                                    color: statusColor,
-                                    border: `1px solid ${statusColor}44`,
-                                  }}
-                                >
-                                  {item.status || 'PENDING'}
-                                </span>
+                                <p style={{ margin: 0, fontSize: '11px', color: '#8E849E', fontFamily: 'Lexend, sans-serif' }}>
+                                  {new Date(item.createdAt).toLocaleString()} • {item.methodName || item.payoutMethod || 'Cash App'}
+                                </p>
                               </div>
                             </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+
+                            <div style={{ textAlign: 'right' }}>
+                              <p style={{ margin: '0 0 2px 0', fontFamily: 'Lexend, sans-serif', fontSize: '15px', fontWeight: 900, color: isDep ? '#00F0FF' : '#10B981' }}>
+                                {isDep ? '+' : '-'}${Number(item.amount || 0).toFixed(2)}
+                              </p>
+                              <span
+                                style={{
+                                  fontSize: '9.5px',
+                                  fontFamily: 'Lexend, sans-serif',
+                                  fontWeight: 900,
+                                  padding: '2px 8px',
+                                  borderRadius: '4px',
+                                  backgroundColor: `${statusColor}22`,
+                                  color: statusColor,
+                                  border: `1px solid ${statusColor}44`,
+                                }}
+                              >
+                                {item.status || 'PENDING'}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </main>
 
         <VegasFooter onSelectTab={(tab) => router.push(`/${tab}`)} />
