@@ -157,7 +157,7 @@ export default function VegasSidebar({
     },
   ];
 
-  const content = (
+  const renderSidebar = (isDrawer = false) => (
     <div
       style={{
         display: 'flex',
@@ -168,8 +168,8 @@ export default function VegasSidebar({
         boxShadow: '4px 0 24px rgba(0, 0, 0, 0.4)',
       }}
     >
-      {/* 1. Header / Mobile Close Bar */}
-      {mobileOpen && (
+      {/* 1. Drawer Header (Only when drawer modal is open) */}
+      {isDrawer && (
         <div
           style={{
             padding: '16px',
@@ -204,9 +204,14 @@ export default function VegasSidebar({
         </div>
       )}
 
-      {/* 2. Player Vault Status Card */}
-      <div style={{ padding: '16px 14px 12px 14px' }}>
-        {user ? (
+      {/* 2. Player Vault Status Card (Only shown if user is logged in; NO guest login/signup in sidebar) */}
+      {user && (
+        <div
+          style={{
+            padding: isDrawer ? '16px 14px 12px 14px' : '12px 8px 10px 8px',
+          }}
+          className={isDrawer ? 'block' : 'hidden sm:block'}
+        >
           <div
             style={{
               background: 'linear-gradient(145deg, #120A2E 0%, #080416 100%)',
@@ -305,82 +310,8 @@ export default function VegasSidebar({
               </button>
             </div>
           </div>
-        ) : (
-          /* Guest Welcome Box */
-          <div
-            style={{
-              background: 'linear-gradient(145deg, #160D38 0%, #0A051A 100%)',
-              border: '1px solid rgba(0, 240, 255, 0.35)',
-              borderRadius: '16px',
-              padding: '14px',
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.6)',
-              textAlign: 'center',
-            }}
-          >
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '5px',
-                backgroundColor: 'rgba(0, 240, 255, 0.15)',
-                border: '1px solid rgba(0, 240, 255, 0.4)',
-                borderRadius: '9999px',
-                padding: '3px 10px',
-                marginBottom: '8px',
-              }}
-            >
-              <Sparkles size={11} color="#00F0FF" />
-              <span style={{ fontSize: '9.5px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#00F0FF' }}>
-                $3.00 FREEPLAY BONUS
-              </span>
-            </div>
-
-            <p style={{ margin: '0 0 10px 0', fontSize: '11px', color: '#D1CADB', fontFamily: 'Lexend, sans-serif', lineHeight: 1.35 }}>
-              Sign up today and unlock instant sweepstakes play &amp; redemptions.
-            </p>
-
-            <button
-              type="button"
-              onClick={() => handleNav('register', 'auth')}
-              style={{
-                width: '100%',
-                background: 'linear-gradient(135deg, #E026D8 0%, #00F0FF 100%)',
-                color: '#FFFFFF',
-                border: 'none',
-                borderRadius: '10px',
-                padding: '9px 0',
-                fontFamily: 'Lexend, sans-serif',
-                fontSize: '11.5px',
-                fontWeight: 900,
-                cursor: 'pointer',
-                marginBottom: '6px',
-                boxShadow: '0 4px 16px rgba(0, 240, 255, 0.3)',
-              }}
-            >
-              JOIN &amp; CLAIM $3
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleNav('login', 'auth')}
-              style={{
-                width: '100%',
-                background: '#070514',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                color: '#FFFFFF',
-                borderRadius: '10px',
-                padding: '7px 0',
-                fontFamily: 'Lexend, sans-serif',
-                fontSize: '11px',
-                fontWeight: 700,
-                cursor: 'pointer',
-              }}
-            >
-              SIGN IN
-            </button>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* 3. Navigation Links List */}
       <div
@@ -388,13 +319,16 @@ export default function VegasSidebar({
         style={{
           flex: 1,
           overflowY: 'auto',
-          padding: '4px 10px',
+          padding: isDrawer ? '8px 12px' : '8px 6px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '3px',
+          gap: '4px',
         }}
       >
-        <div style={{ padding: '6px 10px 4px 10px' }}>
+        <div
+          style={{ padding: '6px 8px 4px 8px' }}
+          className={isDrawer ? 'block' : 'hidden sm:block'}
+        >
           <p style={{ margin: 0, fontSize: '9.5px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#796E8A', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
             CASINO MENU
           </p>
@@ -408,6 +342,7 @@ export default function VegasSidebar({
             <button
               key={item.id}
               type="button"
+              title={item.label}
               onClick={() => {
                 if (item.requiresAuth && !user) {
                   handleNav('login', 'auth');
@@ -421,12 +356,8 @@ export default function VegasSidebar({
               }}
               style={{
                 width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '9px 12px',
                 borderRadius: '10px',
-                border: 'none',
+                border: isSelected ? '1px solid rgba(0, 240, 255, 0.4)' : '1px solid transparent',
                 backgroundColor: isSelected ? 'rgba(0, 240, 255, 0.12)' : 'transparent',
                 color: isSelected ? '#00F0FF' : '#E2E8F0',
                 fontFamily: 'Lexend, sans-serif',
@@ -436,6 +367,11 @@ export default function VegasSidebar({
                 textAlign: 'left',
                 transition: 'all 0.15s ease',
               }}
+              className={
+                isDrawer
+                  ? 'flex items-center justify-between py-2.5 px-3'
+                  : 'flex items-center justify-center sm:justify-between py-2.5 px-1 sm:px-3'
+              }
               onMouseEnter={(e) => {
                 if (!isSelected) {
                   e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
@@ -449,13 +385,23 @@ export default function VegasSidebar({
                 }
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Icon size={16} color={isSelected ? '#00F0FF' : '#9A91A8'} />
-                <span>{item.label}</span>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                }}
+                className={isDrawer ? 'flex items-center' : 'justify-center sm:justify-start w-full sm:w-auto flex items-center'}
+              >
+                <Icon size={17} color={isSelected ? '#00F0FF' : '#9A91A8'} className="shrink-0" />
+                <span className={isDrawer ? 'inline' : 'hidden sm:inline'}>
+                  {item.label}
+                </span>
               </div>
 
               {item.badge && (
                 <span
+                  className={isDrawer ? 'inline-block' : 'hidden sm:inline-block'}
                   style={{
                     fontSize: '9px',
                     fontFamily: 'Lexend, sans-serif',
@@ -479,13 +425,14 @@ export default function VegasSidebar({
       {/* 4. Support & Trust Footer */}
       <div
         style={{
-          padding: '12px 14px',
+          padding: isDrawer ? '12px 14px' : '10px 8px',
           borderTop: '1px solid rgba(255, 255, 255, 0.08)',
           backgroundColor: '#070514',
         }}
       >
         <button
           type="button"
+          title="24/7 VIP Live Support"
           onClick={() => handleNav(null, 'support')}
           style={{
             width: '100%',
@@ -496,20 +443,31 @@ export default function VegasSidebar({
             backgroundColor: '#140E33',
             border: '1px solid rgba(0, 240, 255, 0.3)',
             borderRadius: '10px',
-            padding: '9px 12px',
+            padding: isDrawer ? '9px 12px' : '8px 4px',
             color: '#00F0FF',
             fontFamily: 'Lexend, sans-serif',
-            fontSize: '11.5px',
+            fontSize: '11px',
             fontWeight: 800,
             cursor: 'pointer',
             transition: 'all 0.2s ease',
           }}
         >
-          <Headphones size={15} />
-          <span>24/7 VIP LIVE SUPPORT</span>
+          <Headphones size={15} className="shrink-0" />
+          <span className={isDrawer ? 'inline' : 'hidden sm:inline'}>
+            24/7 VIP LIVE SUPPORT
+          </span>
         </button>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', marginTop: '8px', opacity: 0.6 }}>
+        <div
+          className={isDrawer ? 'flex' : 'hidden sm:flex'}
+          style={{
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '5px',
+            marginTop: '8px',
+            opacity: 0.6,
+          }}
+        >
           <ShieldCheck size={12} color="#10B981" />
           <span style={{ fontSize: '9.5px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
             100% Legal US Sweepstakes
@@ -521,22 +479,21 @@ export default function VegasSidebar({
 
   return (
     <>
-      {/* Desktop Sticky Sidebar (Hidden on mobile <1024px) */}
+      {/* Permanent Pinned Sidebar (Always visible: 58px on mobile, 240px on tablet/laptop/desktop) */}
       <aside
-        className="hidden lg:block"
+        className="w-[58px] min-w-[58px] sm:w-[240px] sm:min-w-[240px]"
         style={{
-          width: '260px',
-          minWidth: '260px',
           height: 'calc(100vh - 82px)',
           position: 'sticky',
           top: '82px',
           zIndex: 40,
+          flexShrink: 0,
         }}
       >
-        {content}
+        {renderSidebar(false)}
       </aside>
 
-      {/* Mobile Slide-Out Drawer (Visible when mobileOpen === true) */}
+      {/* Mobile Slide-Out Drawer (When user taps hamburger button on mobile for full text overlay) */}
       {mobileOpen && (
         <div
           style={{
@@ -558,7 +515,7 @@ export default function VegasSidebar({
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {content}
+            {renderSidebar(true)}
           </div>
         </div>
       )}
