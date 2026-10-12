@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import {
   X,
   Lock,
@@ -13,9 +14,11 @@ import {
   Sparkles,
   AlertCircle,
   CheckCircle2,
-  ChevronDown,
+  ArrowRight,
   ShieldCheck,
-  ArrowRight
+  Zap,
+  TrendingUp,
+  Coins
 } from 'lucide-react';
 import { getOrCreateDeviceId } from '@/lib/deviceClient';
 
@@ -68,18 +71,18 @@ export default function AuthModal({
         if (onAuthSuccess) onAuthSuccess(data.user);
         onClose();
       } else {
-        setErrorMsg(data.error || 'Invalid username or password.');
+        setErrorMsg(data.error || 'Invalid credentials.');
       }
     } catch {
       setLoading(false);
-      setErrorMsg('Network error. Please verify your connection.');
+      setErrorMsg('Login connection failed. Please try again.');
     }
   };
 
   const handleRegister = async (e) => {
     e.preventDefault();
     if (!ageVerified) {
-      setErrorMsg('You must certify that you are 18+ and a legal US resident.');
+      setErrorMsg('You must certify that you are 18+ and a US resident.');
       return;
     }
 
@@ -116,7 +119,7 @@ export default function AuthModal({
       }
     } catch {
       setLoading(false);
-      setErrorMsg('Network error during registration. Please try again.');
+      setErrorMsg('Registration failed. Please try again.');
     }
   };
 
@@ -134,36 +137,37 @@ export default function AuthModal({
         position: 'fixed',
         inset: 0,
         zIndex: 9999,
-        backgroundColor: 'rgba(5, 2, 14, 0.88)',
-        backdropFilter: 'blur(16px)',
+        backgroundColor: 'rgba(5, 2, 14, 0.92)',
+        backdropFilter: 'blur(18px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '12px',
-        animation: 'fadeIn 0.2s ease-out',
+        padding: '14px',
+        animation: 'fadeIn 0.25s ease-out',
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
+      {/* Main Split-Screen Architecture Modal Container */}
       <div
         className="modal-scrollable"
         style={{
           width: '100%',
-          maxWidth: '420px',
+          maxWidth: '820px',
           backgroundColor: '#0E0A24',
-          borderRadius: '24px',
-          border: '1px solid rgba(0, 240, 255, 0.35)',
-          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(0, 240, 255, 0.18), inset 0 0 20px rgba(224, 38, 216, 0.08)',
-          padding: '22px 20px 20px 20px',
+          borderRadius: '26px',
+          border: '1px solid rgba(0, 240, 255, 0.4)',
+          boxShadow: '0 30px 80px rgba(0, 0, 0, 0.95), 0 0 45px rgba(0, 240, 255, 0.2), inset 0 0 25px rgba(224, 38, 216, 0.1)',
           position: 'relative',
           color: '#F8FAFC',
           maxHeight: '94vh',
+          display: 'flex',
+          overflow: 'hidden',
           boxSizing: 'border-box',
-          overflowY: 'auto',
         }}
       >
-        {/* Close Button */}
+        {/* Absolute Close Button */}
         <button
           onClick={onClose}
           type="button"
@@ -172,312 +176,931 @@ export default function AuthModal({
             position: 'absolute',
             top: '16px',
             right: '16px',
-            background: 'rgba(255, 255, 255, 0.07)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
+            background: 'rgba(255, 255, 255, 0.08)',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
             borderRadius: '50%',
-            width: '32px',
-            height: '32px',
+            width: '34px',
+            height: '34px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#A69FB3',
+            color: '#D1CADB',
             cursor: 'pointer',
+            zIndex: 30,
+            backdropFilter: 'blur(10px)',
             transition: 'all 0.2s ease',
           }}
           className="hover:scale-105"
         >
-          <X size={16} />
+          <X size={17} />
         </button>
 
-        {/* Modal Brand Header */}
-        <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-          <img
-            src="/images/logo.png"
-            alt="Vegas One Luxury Casino"
-            style={{
-              height: '52px',
-              width: 'auto',
-              maxHeight: '56px',
-              objectFit: 'contain',
-              margin: '0 auto 8px auto',
-              display: 'block',
-              filter: 'drop-shadow(0 0 14px rgba(0, 240, 255, 0.55)) drop-shadow(0 0 20px rgba(224, 38, 216, 0.4))',
-            }}
-          />
-          <h2
-            style={{
-              fontFamily: 'Lexend, sans-serif',
-              fontSize: '18px',
-              fontWeight: 900,
-              color: '#FFFFFF',
-              margin: '0 0 3px 0',
-              letterSpacing: '-0.01em',
-            }}
-          >
-            {tab === 'login' ? 'Sign In to Sovereign Vault' : 'Join Vegas One VIP'}
-          </h2>
-          <p
-            style={{
-              fontSize: '11.5px',
-              color: '#A69FB3',
-              margin: 0,
-              fontFamily: 'Lexend, sans-serif',
-              lineHeight: 1.4,
-            }}
-          >
-            {tab === 'login'
-              ? 'Access your balances, live games & instant rewards'
-              : 'Claim $3.00 Freeplay bonus instantly upon joining'}
-          </p>
-        </div>
-
-        {/* Segmented Tab Switcher */}
+        {/* ======================================================== */}
+        {/* LEFT COLUMN: VIP EXPERIENCE & SHOWCASE (Desktop Only)     */}
+        {/* ======================================================== */}
         <div
+          className="hidden md:flex"
           style={{
-            display: 'flex',
-            backgroundColor: '#070514',
-            borderRadius: '9999px',
-            padding: '3px',
-            marginBottom: '14px',
-            border: '1px solid rgba(0, 240, 255, 0.22)',
+            width: '42%',
+            background: 'linear-gradient(160deg, #160D38 0%, #0A051A 100%)',
+            borderRight: '1px solid rgba(0, 240, 255, 0.22)',
+            padding: '32px 28px',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
             position: 'relative',
+            overflow: 'hidden',
           }}
         >
-          <button
-            type="button"
-            onClick={() => {
-              setTab('login');
-              setErrorMsg(null);
-            }}
-            style={{
-              flex: 1,
-              padding: '8px 0',
-              borderRadius: '9999px',
-              border: 'none',
-              backgroundColor: tab === 'login' ? '#00F0FF' : 'transparent',
-              color: tab === 'login' ? '#070514' : '#9A91A8',
-              fontFamily: 'Lexend, sans-serif',
-              fontSize: '11px',
-              fontWeight: 900,
-              letterSpacing: '0.04em',
-              textTransform: 'uppercase',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              boxShadow: tab === 'login' ? '0 0 16px rgba(0, 240, 255, 0.4)' : 'none',
-            }}
-          >
-            SIGN IN
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setTab('register');
-              setErrorMsg(null);
-            }}
-            style={{
-              flex: 1,
-              padding: '8px 0',
-              borderRadius: '9999px',
-              border: 'none',
-              backgroundColor: tab === 'register' ? '#00F0FF' : 'transparent',
-              color: tab === 'register' ? '#070514' : '#9A91A8',
-              fontFamily: 'Lexend, sans-serif',
-              fontSize: '11px',
-              fontWeight: 900,
-              letterSpacing: '0.04em',
-              textTransform: 'uppercase',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              boxShadow: tab === 'register' ? '0 0 16px rgba(0, 240, 255, 0.4)' : 'none',
-            }}
-          >
-            REGISTER
-          </button>
-        </div>
-
-        {/* Error Alert Box */}
-        {errorMsg && (
+          {/* Subtle Ambient Glows */}
           <div
             style={{
-              backgroundColor: 'rgba(239, 68, 68, 0.15)',
-              border: '1px solid rgba(239, 68, 68, 0.4)',
-              color: '#FCA5A5',
-              padding: '9px 12px',
-              borderRadius: '12px',
-              fontSize: '11.5px',
-              fontFamily: 'Lexend, sans-serif',
-              marginBottom: '14px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              lineHeight: 1.35,
+              position: 'absolute',
+              top: '-10%',
+              left: '-20%',
+              width: '260px',
+              height: '260px',
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(0, 240, 255, 0.25) 0%, transparent 70%)',
+              pointerEvents: 'none',
+              filter: 'blur(30px)',
             }}
-          >
-            <AlertCircle size={15} style={{ flexShrink: 0 }} />
-            <span>{errorMsg}</span>
-          </div>
-        )}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              bottom: '-10%',
+              right: '-10%',
+              width: '240px',
+              height: '240px',
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(224, 38, 216, 0.25) 0%, transparent 70%)',
+              pointerEvents: 'none',
+              filter: 'blur(30px)',
+            }}
+          />
 
-        {/* TAB 1: LOGIN FORM */}
-        {tab === 'login' ? (
-          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {/* Username / Email Field */}
-            <div>
-              <label
-                style={{
-                  display: 'block',
-                  fontSize: '10px',
-                  fontFamily: 'Lexend, sans-serif',
-                  fontWeight: 800,
-                  color: '#C8C1D4',
-                  marginBottom: '4px',
-                  letterSpacing: '0.04em',
-                }}
-              >
-                USERNAME OR EMAIL
-              </label>
-              <div style={{ position: 'relative' }}>
-                <User
-                  size={15}
-                  color="#00F0FF"
-                  style={{ position: 'absolute', top: '12px', left: '12px', opacity: 0.8 }}
-                />
-                <input
-                  type="text"
-                  placeholder="Enter username or email"
-                  value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
-                  required
-                  autoFocus
-                  style={{
-                    width: '100%',
-                    backgroundColor: '#070514',
-                    border: '1px solid rgba(0, 240, 255, 0.25)',
-                    borderRadius: '10px',
-                    padding: '10px 14px 10px 38px',
-                    color: '#FFFFFF',
-                    fontSize: '12.5px',
-                    fontFamily: 'Lexend, sans-serif',
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                    transition: 'border-color 0.2s, box-shadow 0.2s',
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = '#00F0FF';
-                    e.target.style.boxShadow = '0 0 12px rgba(0, 240, 255, 0.25)';
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = 'rgba(0, 240, 255, 0.25)';
-                    e.target.style.boxShadow = 'none';
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Password Field */}
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                <label
-                  style={{
-                    fontSize: '10px',
-                    fontFamily: 'Lexend, sans-serif',
-                    fontWeight: 800,
-                    color: '#C8C1D4',
-                    letterSpacing: '0.04em',
-                  }}
-                >
-                  PASSWORD
-                </label>
-              </div>
-              <div style={{ position: 'relative' }}>
-                <Lock
-                  size={15}
-                  color="#00F0FF"
-                  style={{ position: 'absolute', top: '12px', left: '12px', opacity: 0.8 }}
-                />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  style={{
-                    width: '100%',
-                    backgroundColor: '#070514',
-                    border: '1px solid rgba(0, 240, 255, 0.25)',
-                    borderRadius: '10px',
-                    padding: '10px 40px 10px 38px',
-                    color: '#FFFFFF',
-                    fontSize: '12.5px',
-                    fontFamily: 'Lexend, sans-serif',
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                    transition: 'border-color 0.2s, box-shadow 0.2s',
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = '#00F0FF';
-                    e.target.style.boxShadow = '0 0 12px rgba(0, 240, 255, 0.25)';
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = 'rgba(0, 240, 255, 0.25)';
-                    e.target.style.boxShadow = 'none';
-                  }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  style={{
-                    position: 'absolute',
-                    top: '10px',
-                    right: '12px',
-                    background: 'transparent',
-                    border: 'none',
-                    color: '#9A91A8',
-                    cursor: 'pointer',
-                    padding: '2px',
-                  }}
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-            </div>
-
-            {/* Login Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
+          {/* Top Brand Showcase */}
+          <div style={{ position: 'relative', zIndex: 2 }}>
+            <img
+              src="/images/logo.png"
+              alt="Vegas One Luxury Casino"
               style={{
-                width: '100%',
-                background: 'linear-gradient(135deg, #E026D8 0%, #00F0FF 100%)',
-                color: '#FFFFFF',
-                fontFamily: 'Lexend, sans-serif',
-                fontWeight: 900,
-                fontSize: '12.5px',
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-                padding: '12px 0',
-                borderRadius: '12px',
-                border: 'none',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                boxShadow: '0 4px 20px rgba(0, 240, 255, 0.35)',
-                display: 'flex',
+                height: '56px',
+                width: 'auto',
+                maxHeight: '60px',
+                objectFit: 'contain',
+                filter: 'drop-shadow(0 0 16px rgba(0, 240, 255, 0.6)) drop-shadow(0 0 24px rgba(224, 38, 216, 0.45))',
+                marginBottom: '16px',
+              }}
+            />
+
+            <div
+              style={{
+                display: 'inline-flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                marginTop: '4px',
-                transition: 'all 0.2s ease',
-                opacity: loading ? 0.75 : 1,
+                gap: '6px',
+                backgroundColor: 'rgba(0, 240, 255, 0.12)',
+                border: '1px solid rgba(0, 240, 255, 0.4)',
+                borderRadius: '9999px',
+                padding: '4px 12px',
+                marginBottom: '14px',
               }}
             >
-              <span>{loading ? 'AUTHENTICATING...' : 'SIGN IN TO SOVEREIGN'}</span>
-              {!loading && <ArrowRight size={15} />}
-            </button>
+              <Sparkles size={12} color="#00F0FF" />
+              <span
+                style={{
+                  fontFamily: 'Lexend, sans-serif',
+                  fontSize: '10px',
+                  fontWeight: 900,
+                  color: '#00F0FF',
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                PREMIER SWEEPSTAKES LOUNGE
+              </span>
+            </div>
 
-            {/* Quick Switch to Register */}
-            <div style={{ textAlign: 'center', marginTop: '6px' }}>
-              <p style={{ fontSize: '11px', color: '#9A91A8', margin: 0, fontFamily: 'Lexend, sans-serif' }}>
-                Don't have an account?{' '}
+            <h3
+              style={{
+                fontFamily: 'Lexend, sans-serif',
+                fontSize: '22px',
+                fontWeight: 900,
+                color: '#FFFFFF',
+                lineHeight: 1.25,
+                margin: '0 0 10px 0',
+                letterSpacing: '-0.02em',
+              }}
+            >
+              Experience True <span style={{ color: '#00F0FF' }}>Sovereign Tier</span> Gaming.
+            </h3>
+
+            <p
+              style={{
+                fontSize: '12px',
+                color: '#BDB4CB',
+                lineHeight: 1.5,
+                margin: 0,
+                fontFamily: 'Lexend, sans-serif',
+              }}
+            >
+              Join thousands of VIP patrons playing official Fire Kirin, Orion Stars, and Ultra Panda sweepstakes games with 100% legal cash prizes.
+            </p>
+          </div>
+
+          {/* Center VIP Perks List */}
+          <div
+            style={{
+              position: 'relative',
+              zIndex: 2,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+              margin: '22px 0',
+              backgroundColor: 'rgba(7, 5, 20, 0.6)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '16px',
+              padding: '16px',
+              backdropFilter: 'blur(10px)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div
+                style={{
+                  width: '30px',
+                  height: '30px',
+                  borderRadius: '8px',
+                  backgroundColor: 'rgba(0, 240, 255, 0.15)',
+                  border: '1px solid rgba(0, 240, 255, 0.4)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <Gift size={15} color="#00F0FF" />
+              </div>
+              <div>
+                <p style={{ margin: 0, fontSize: '11.5px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#FFFFFF' }}>
+                  $3.00 Instant Freeplay
+                </p>
+                <p style={{ margin: 0, fontSize: '10px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
+                  Credited immediately on signup
+                </p>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div
+                style={{
+                  width: '30px',
+                  height: '30px',
+                  borderRadius: '8px',
+                  backgroundColor: 'rgba(224, 38, 216, 0.15)',
+                  border: '1px solid rgba(224, 38, 216, 0.4)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <Zap size={15} color="#E026D8" />
+              </div>
+              <div>
+                <p style={{ margin: 0, fontSize: '11.5px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#FFFFFF' }}>
+                  Instant Cash Redemptions
+                </p>
+                <p style={{ margin: 0, fontSize: '10px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
+                  Direct to Cash App &amp; Crypto
+                </p>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div
+                style={{
+                  width: '30px',
+                  height: '30px',
+                  borderRadius: '8px',
+                  backgroundColor: 'rgba(0, 240, 255, 0.15)',
+                  border: '1px solid rgba(0, 240, 255, 0.4)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <Coins size={15} color="#00F0FF" />
+              </div>
+              <div>
+                <p style={{ margin: 0, fontSize: '11.5px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#FFFFFF' }}>
+                  50% VIP Referral Share
+                </p>
+                <p style={{ margin: 0, fontSize: '10px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
+                  Weekly automated royalty payouts
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Live Player Stat Strip */}
+          <div
+            style={{
+              position: 'relative',
+              zIndex: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingTop: '12px',
+              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span
+                style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  backgroundColor: '#10B981',
+                  boxShadow: '0 0 10px #10B981',
+                }}
+              />
+              <span style={{ fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 700, color: '#FFFFFF' }}>
+                $2,450,000+
+              </span>
+            </div>
+            <span style={{ fontSize: '10.5px', fontFamily: 'Lexend, sans-serif', color: '#8E849E' }}>
+              Redeemed in 2026
+            </span>
+          </div>
+        </div>
+
+        {/* ======================================================== */}
+        {/* RIGHT COLUMN: INTERACTIVE FORM (Sign In / Register)      */}
+        {/* ======================================================== */}
+        <div
+          style={{
+            flex: 1,
+            padding: '28px 24px 24px 24px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            overflowY: 'auto',
+          }}
+          className="modal-scrollable"
+        >
+          <div>
+            {/* Mobile Header Banner (Visible only on <768px) */}
+            <div className="md:hidden" style={{ textAlign: 'center', marginBottom: '16px' }}>
+              <img
+                src="/images/logo.png"
+                alt="Vegas One"
+                style={{
+                  height: '46px',
+                  width: 'auto',
+                  maxHeight: '50px',
+                  objectFit: 'contain',
+                  margin: '0 auto 8px auto',
+                  display: 'block',
+                  filter: 'drop-shadow(0 0 14px rgba(0, 240, 255, 0.55)) drop-shadow(0 0 20px rgba(224, 38, 216, 0.4))',
+                }}
+              />
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  backgroundColor: 'rgba(0, 240, 255, 0.12)',
+                  border: '1px solid rgba(0, 240, 255, 0.35)',
+                  borderRadius: '9999px',
+                  padding: '3px 10px',
+                  marginBottom: '4px',
+                }}
+              >
+                <Sparkles size={11} color="#00F0FF" />
+                <span style={{ fontSize: '9.5px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#00F0FF' }}>
+                  $3.00 FREEPLAY INSTANT SIGNUP BONUS
+                </span>
+              </div>
+            </div>
+
+            {/* Desktop Form Heading */}
+            <div style={{ marginBottom: '18px' }}>
+              <h2
+                style={{
+                  fontFamily: 'Lexend, sans-serif',
+                  fontSize: '22px',
+                  fontWeight: 900,
+                  color: '#FFFFFF',
+                  margin: '0 0 4px 0',
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                {tab === 'login' ? 'Welcome Back, Sovereign Patron' : 'Create Sovereign Vault'}
+              </h2>
+              <p
+                style={{
+                  fontSize: '12px',
+                  color: '#A69FB3',
+                  margin: 0,
+                  fontFamily: 'Lexend, sans-serif',
+                }}
+              >
+                {tab === 'login'
+                  ? 'Enter your credentials to access your balances & sweepstakes games.'
+                  : 'Get started in under 30 seconds with immediate $3 Freeplay access.'}
+              </p>
+            </div>
+
+            {/* Segmented Switcher Pill: SIGN IN vs REGISTER */}
+            <div
+              style={{
+                display: 'flex',
+                backgroundColor: '#070514',
+                borderRadius: '12px',
+                padding: '4px',
+                marginBottom: '16px',
+                border: '1px solid rgba(0, 240, 255, 0.25)',
+                position: 'relative',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  setTab('login');
+                  setErrorMsg(null);
+                }}
+                style={{
+                  flex: 1,
+                  padding: '9px 0',
+                  borderRadius: '9px',
+                  border: 'none',
+                  backgroundColor: tab === 'login' ? '#00F0FF' : 'transparent',
+                  color: tab === 'login' ? '#070514' : '#9A91A8',
+                  fontFamily: 'Lexend, sans-serif',
+                  fontSize: '11.5px',
+                  fontWeight: 900,
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  boxShadow: tab === 'login' ? '0 0 20px rgba(0, 240, 255, 0.45)' : 'none',
+                }}
+              >
+                SIGN IN
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setTab('register');
+                  setErrorMsg(null);
+                }}
+                style={{
+                  flex: 1,
+                  padding: '9px 0',
+                  borderRadius: '9px',
+                  border: 'none',
+                  backgroundColor: tab === 'register' ? '#00F0FF' : 'transparent',
+                  color: tab === 'register' ? '#070514' : '#9A91A8',
+                  fontFamily: 'Lexend, sans-serif',
+                  fontSize: '11.5px',
+                  fontWeight: 900,
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  boxShadow: tab === 'register' ? '0 0 20px rgba(0, 240, 255, 0.45)' : 'none',
+                }}
+              >
+                REGISTER
+              </button>
+            </div>
+
+            {/* Error Banner */}
+            {errorMsg && (
+              <div
+                style={{
+                  backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                  border: '1px solid rgba(239, 68, 68, 0.45)',
+                  color: '#FCA5A5',
+                  padding: '10px 14px',
+                  borderRadius: '12px',
+                  fontSize: '12px',
+                  fontFamily: 'Lexend, sans-serif',
+                  marginBottom: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  lineHeight: 1.35,
+                }}
+              >
+                <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                <span>{errorMsg}</span>
+              </div>
+            )}
+
+            {/* ======================================================== */}
+            {/* TAB: LOGIN FORM                                          */}
+            {/* ======================================================== */}
+            {tab === 'login' ? (
+              <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontSize: '10.5px',
+                      fontFamily: 'Lexend, sans-serif',
+                      fontWeight: 800,
+                      color: '#C8C1D4',
+                      marginBottom: '5px',
+                      letterSpacing: '0.04em',
+                    }}
+                  >
+                    USERNAME OR EMAIL
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <User
+                      size={16}
+                      color="#00F0FF"
+                      style={{ position: 'absolute', top: '13px', left: '14px', opacity: 0.85 }}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Enter username or email address"
+                      value={identifier}
+                      onChange={(e) => setIdentifier(e.target.value)}
+                      required
+                      autoFocus
+                      style={{
+                        width: '100%',
+                        backgroundColor: '#070514',
+                        border: '1px solid rgba(0, 240, 255, 0.28)',
+                        borderRadius: '12px',
+                        padding: '12px 14px 12px 42px',
+                        color: '#FFFFFF',
+                        fontSize: '13px',
+                        fontFamily: 'Lexend, sans-serif',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                        transition: 'all 0.2s ease',
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#00F0FF';
+                        e.target.style.boxShadow = '0 0 16px rgba(0, 240, 255, 0.3)';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = 'rgba(0, 240, 255, 0.28)';
+                        e.target.style.boxShadow = 'none';
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
+                    <label
+                      style={{
+                        fontSize: '10.5px',
+                        fontFamily: 'Lexend, sans-serif',
+                        fontWeight: 800,
+                        color: '#C8C1D4',
+                        letterSpacing: '0.04em',
+                      }}
+                    >
+                      PASSWORD
+                    </label>
+                  </div>
+                  <div style={{ position: 'relative' }}>
+                    <Lock
+                      size={16}
+                      color="#00F0FF"
+                      style={{ position: 'absolute', top: '13px', left: '14px', opacity: 0.85 }}
+                    />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      style={{
+                        width: '100%',
+                        backgroundColor: '#070514',
+                        border: '1px solid rgba(0, 240, 255, 0.28)',
+                        borderRadius: '12px',
+                        padding: '12px 42px 12px 42px',
+                        color: '#FFFFFF',
+                        fontSize: '13px',
+                        fontFamily: 'Lexend, sans-serif',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                        transition: 'all 0.2s ease',
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#00F0FF';
+                        e.target.style.boxShadow = '0 0 16px rgba(0, 240, 255, 0.3)';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = 'rgba(0, 240, 255, 0.28)';
+                        e.target.style.boxShadow = 'none';
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      style={{
+                        position: 'absolute',
+                        top: '11px',
+                        right: '12px',
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#8E849E',
+                        cursor: 'pointer',
+                        padding: '4px',
+                      }}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Login Button */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  style={{
+                    width: '100%',
+                    background: 'linear-gradient(135deg, #E026D8 0%, #00F0FF 100%)',
+                    color: '#FFFFFF',
+                    fontFamily: 'Lexend, sans-serif',
+                    fontWeight: 900,
+                    fontSize: '13px',
+                    letterSpacing: '0.05em',
+                    textTransform: 'uppercase',
+                    padding: '13px 0',
+                    borderRadius: '12px',
+                    border: 'none',
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 4px 22px rgba(0, 240, 255, 0.35)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    marginTop: '6px',
+                    transition: 'all 0.2s ease',
+                    opacity: loading ? 0.75 : 1,
+                  }}
+                  className="hover:scale-[1.01]"
+                >
+                  <span>{loading ? 'AUTHENTICATING...' : 'ENTER SOVEREIGN VAULT'}</span>
+                  {!loading && <ArrowRight size={16} />}
+                </button>
+              </form>
+            ) : (
+              /* ======================================================== */
+              /* TAB: REGISTRATION FORM                                   */
+              /* ======================================================== */
+              <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '11px' }}>
+                {/* 2-Column Grid: Username & Email */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div>
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: '10px',
+                        fontFamily: 'Lexend, sans-serif',
+                        fontWeight: 800,
+                        color: '#C8C1D4',
+                        marginBottom: '4px',
+                        letterSpacing: '0.04em',
+                      }}
+                    >
+                      USERNAME
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <User
+                        size={14}
+                        color="#00F0FF"
+                        style={{ position: 'absolute', top: '12px', left: '12px', opacity: 0.85 }}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Choose username"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        required
+                        style={{
+                          width: '100%',
+                          backgroundColor: '#070514',
+                          border: '1px solid rgba(0, 240, 255, 0.28)',
+                          borderRadius: '11px',
+                          padding: '10px 12px 10px 36px',
+                          color: '#FFFFFF',
+                          fontSize: '12.5px',
+                          fontFamily: 'Lexend, sans-serif',
+                          outline: 'none',
+                          boxSizing: 'border-box',
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: '10px',
+                        fontFamily: 'Lexend, sans-serif',
+                        fontWeight: 800,
+                        color: '#C8C1D4',
+                        marginBottom: '4px',
+                        letterSpacing: '0.04em',
+                      }}
+                    >
+                      EMAIL ADDRESS
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <Mail
+                        size={14}
+                        color="#00F0FF"
+                        style={{ position: 'absolute', top: '12px', left: '12px', opacity: 0.85 }}
+                      />
+                      <input
+                        type="email"
+                        placeholder="name@domain.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        style={{
+                          width: '100%',
+                          backgroundColor: '#070514',
+                          border: '1px solid rgba(0, 240, 255, 0.28)',
+                          borderRadius: '11px',
+                          padding: '10px 12px 10px 36px',
+                          color: '#FFFFFF',
+                          fontSize: '12.5px',
+                          fontFamily: 'Lexend, sans-serif',
+                          outline: 'none',
+                          boxSizing: 'border-box',
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2-Column Grid: Password & US State */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1.25fr 0.75fr', gap: '10px' }}>
+                  <div>
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: '10px',
+                        fontFamily: 'Lexend, sans-serif',
+                        fontWeight: 800,
+                        color: '#C8C1D4',
+                        marginBottom: '4px',
+                        letterSpacing: '0.04em',
+                      }}
+                    >
+                      PASSWORD
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <Lock
+                        size={14}
+                        color="#00F0FF"
+                        style={{ position: 'absolute', top: '12px', left: '12px', opacity: 0.85 }}
+                      />
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="••••••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        style={{
+                          width: '100%',
+                          backgroundColor: '#070514',
+                          border: '1px solid rgba(0, 240, 255, 0.28)',
+                          borderRadius: '11px',
+                          padding: '10px 36px 10px 36px',
+                          color: '#FFFFFF',
+                          fontSize: '12.5px',
+                          fontFamily: 'Lexend, sans-serif',
+                          outline: 'none',
+                          boxSizing: 'border-box',
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        style={{
+                          position: 'absolute',
+                          top: '10px',
+                          right: '10px',
+                          background: 'transparent',
+                          border: 'none',
+                          color: '#8E849E',
+                          cursor: 'pointer',
+                          padding: '2px',
+                        }}
+                      >
+                        {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: '10px',
+                        fontFamily: 'Lexend, sans-serif',
+                        fontWeight: 800,
+                        color: '#C8C1D4',
+                        marginBottom: '4px',
+                        letterSpacing: '0.04em',
+                      }}
+                    >
+                      US STATE
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <MapPin
+                        size={14}
+                        color="#00F0FF"
+                        style={{ position: 'absolute', top: '12px', left: '10px', opacity: 0.85 }}
+                      />
+                      <select
+                        value={state}
+                        onChange={(e) => setState(e.target.value)}
+                        style={{
+                          width: '100%',
+                          backgroundColor: '#070514',
+                          border: '1px solid rgba(0, 240, 255, 0.28)',
+                          borderRadius: '11px',
+                          padding: '10px 8px 10px 30px',
+                          color: '#FFFFFF',
+                          fontSize: '12.5px',
+                          fontFamily: 'Lexend, sans-serif',
+                          outline: 'none',
+                          boxSizing: 'border-box',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {US_STATES.map((s) => (
+                          <option key={s} value={s} style={{ backgroundColor: '#0E0A24', color: '#FFFFFF' }}>
+                            {s}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Referral Code Expandable Switch */}
+                <div>
+                  {!showReferralInput && !referralCode ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowReferralInput(true)}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#00F0FF',
+                        fontFamily: 'Lexend, sans-serif',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        padding: '2px 0',
+                      }}
+                    >
+                      <Sparkles size={13} />
+                      <span>+ Have a VIP Referral or Agent Code?</span>
+                    </button>
+                  ) : (
+                    <div>
+                      <label
+                        style={{
+                          display: 'block',
+                          fontSize: '10px',
+                          fontFamily: 'Lexend, sans-serif',
+                          fontWeight: 800,
+                          color: '#C8C1D4',
+                          marginBottom: '4px',
+                          letterSpacing: '0.04em',
+                        }}
+                      >
+                        REFERRAL / PROMO CODE
+                      </label>
+                      <div style={{ position: 'relative' }}>
+                        <Sparkles
+                          size={14}
+                          color="#00F0FF"
+                          style={{ position: 'absolute', top: '12px', left: '12px', opacity: 0.85 }}
+                        />
+                        <input
+                          type="text"
+                          placeholder="e.g. V1-ROYAL7"
+                          value={referralCode}
+                          onChange={(e) => setReferralCode(e.target.value)}
+                          style={{
+                            width: '100%',
+                            backgroundColor: '#070514',
+                            border: '1px solid rgba(0, 240, 255, 0.28)',
+                            borderRadius: '11px',
+                            padding: '10px 12px 10px 36px',
+                            color: '#FFFFFF',
+                            fontSize: '12.5px',
+                            fontFamily: 'Lexend, sans-serif',
+                            outline: 'none',
+                            boxSizing: 'border-box',
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 18+ Certification Checkbox */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginTop: '2px' }}>
+                  <input
+                    type="checkbox"
+                    id="ageVerifyCheckModal"
+                    checked={ageVerified}
+                    onChange={(e) => setAgeVerified(e.target.checked)}
+                    style={{
+                      accentColor: '#00F0FF',
+                      cursor: 'pointer',
+                      width: '16px',
+                      height: '16px',
+                      marginTop: '1px',
+                      flexShrink: 0,
+                    }}
+                    required
+                  />
+                  <label
+                    htmlFor="ageVerifyCheckModal"
+                    style={{
+                      fontSize: '10.5px',
+                      color: '#B3A9C0',
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                      lineHeight: 1.4,
+                      fontFamily: 'Lexend, sans-serif',
+                    }}
+                  >
+                    I certify that I am at least 18 years old (21+ where applicable) and a legal resident of the United States.
+                  </label>
+                </div>
+
+                {/* Registration Button */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  style={{
+                    width: '100%',
+                    background: 'linear-gradient(135deg, #E026D8 0%, #00F0FF 100%)',
+                    color: '#FFFFFF',
+                    fontFamily: 'Lexend, sans-serif',
+                    fontWeight: 900,
+                    fontSize: '12.5px',
+                    letterSpacing: '0.05em',
+                    textTransform: 'uppercase',
+                    padding: '12.5px 0',
+                    borderRadius: '12px',
+                    border: 'none',
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 4px 22px rgba(0, 240, 255, 0.35)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    marginTop: '4px',
+                    transition: 'all 0.2s ease',
+                    opacity: loading ? 0.75 : 1,
+                  }}
+                  className="hover:scale-[1.01]"
+                >
+                  <span>{loading ? 'CREATING SOVEREIGN VAULT...' : 'CLAIM $3 FREEPLAY & JOIN'}</span>
+                  {!loading && <ArrowRight size={16} />}
+                </button>
+              </form>
+            )}
+          </div>
+
+          {/* Bottom Switcher Footer */}
+          <div
+            style={{
+              paddingTop: '16px',
+              marginTop: '16px',
+              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+              textAlign: 'center',
+            }}
+          >
+            {tab === 'login' ? (
+              <p style={{ fontSize: '11.5px', color: '#9A91A8', margin: 0, fontFamily: 'Lexend, sans-serif' }}>
+                New to Vegas One?{' '}
                 <button
                   type="button"
                   onClick={() => {
@@ -492,361 +1115,14 @@ export default function AuthModal({
                     fontWeight: 800,
                     cursor: 'pointer',
                     textDecoration: 'underline',
-                    padding: '2px 4px',
+                    padding: '0 4px',
                   }}
                 >
-                  Sign Up &amp; Claim $3 Freeplay
+                  Create Account &amp; Claim $3 Freeplay
                 </button>
               </p>
-            </div>
-          </form>
-        ) : (
-          /* TAB 2: REGISTRATION FORM */
-          <form onSubmit={handleRegister} style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
-            {/* Freeplay Welcome Perk Card */}
-            <div
-              style={{
-                background: 'linear-gradient(135deg, rgba(224, 38, 216, 0.15) 0%, rgba(0, 240, 255, 0.15) 100%)',
-                border: '1px solid rgba(0, 240, 255, 0.35)',
-                borderRadius: '10px',
-                padding: '8px 12px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-              }}
-            >
-              <Gift size={16} color="#00F0FF" style={{ flexShrink: 0 }} />
-              <p style={{ fontSize: '10.5px', color: '#FFFFFF', margin: 0, fontFamily: 'Lexend, sans-serif', lineHeight: 1.3 }}>
-                <strong>VIP Member Perk:</strong> Get <strong>$3.00 Freeplay</strong> immediately after registration!
-              </p>
-            </div>
-
-            {/* Username Field */}
-            <div>
-              <label
-                style={{
-                  display: 'block',
-                  fontSize: '9.5px',
-                  fontFamily: 'Lexend, sans-serif',
-                  fontWeight: 800,
-                  color: '#C8C1D4',
-                  marginBottom: '3px',
-                  letterSpacing: '0.04em',
-                }}
-              >
-                USERNAME
-              </label>
-              <div style={{ position: 'relative' }}>
-                <User
-                  size={14}
-                  color="#00F0FF"
-                  style={{ position: 'absolute', top: '11px', left: '12px', opacity: 0.8 }}
-                />
-                <input
-                  type="text"
-                  placeholder="Choose username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  required
-                  style={{
-                    width: '100%',
-                    backgroundColor: '#070514',
-                    border: '1px solid rgba(0, 240, 255, 0.25)',
-                    borderRadius: '10px',
-                    padding: '9px 12px 9px 36px',
-                    color: '#FFFFFF',
-                    fontSize: '12px',
-                    fontFamily: 'Lexend, sans-serif',
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Email Field */}
-            <div>
-              <label
-                style={{
-                  display: 'block',
-                  fontSize: '9.5px',
-                  fontFamily: 'Lexend, sans-serif',
-                  fontWeight: 800,
-                  color: '#C8C1D4',
-                  marginBottom: '3px',
-                  letterSpacing: '0.04em',
-                }}
-              >
-                EMAIL ADDRESS
-              </label>
-              <div style={{ position: 'relative' }}>
-                <Mail
-                  size={14}
-                  color="#00F0FF"
-                  style={{ position: 'absolute', top: '11px', left: '12px', opacity: 0.8 }}
-                />
-                <input
-                  type="email"
-                  placeholder="name@domain.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  style={{
-                    width: '100%',
-                    backgroundColor: '#070514',
-                    border: '1px solid rgba(0, 240, 255, 0.25)',
-                    borderRadius: '10px',
-                    padding: '9px 12px 9px 36px',
-                    color: '#FFFFFF',
-                    fontSize: '12px',
-                    fontFamily: 'Lexend, sans-serif',
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Password & State 2-Col Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '8px' }}>
-              <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '9.5px',
-                    fontFamily: 'Lexend, sans-serif',
-                    fontWeight: 800,
-                    color: '#C8C1D4',
-                    marginBottom: '3px',
-                    letterSpacing: '0.04em',
-                  }}
-                >
-                  PASSWORD
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <Lock
-                    size={14}
-                    color="#00F0FF"
-                    style={{ position: 'absolute', top: '11px', left: '12px', opacity: 0.8 }}
-                  />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    style={{
-                      width: '100%',
-                      backgroundColor: '#070514',
-                      border: '1px solid rgba(0, 240, 255, 0.25)',
-                      borderRadius: '10px',
-                      padding: '9px 34px 9px 34px',
-                      color: '#FFFFFF',
-                      fontSize: '12px',
-                      fontFamily: 'Lexend, sans-serif',
-                      outline: 'none',
-                      boxSizing: 'border-box',
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    style={{
-                      position: 'absolute',
-                      top: '9px',
-                      right: '10px',
-                      background: 'transparent',
-                      border: 'none',
-                      color: '#9A91A8',
-                      cursor: 'pointer',
-                      padding: '2px',
-                    }}
-                  >
-                    {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '9.5px',
-                    fontFamily: 'Lexend, sans-serif',
-                    fontWeight: 800,
-                    color: '#C8C1D4',
-                    marginBottom: '3px',
-                    letterSpacing: '0.04em',
-                  }}
-                >
-                  US STATE
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <MapPin
-                    size={13}
-                    color="#00F0FF"
-                    style={{ position: 'absolute', top: '11px', left: '10px', opacity: 0.8 }}
-                  />
-                  <select
-                    value={state}
-                    onChange={(e) => setState(e.target.value)}
-                    style={{
-                      width: '100%',
-                      backgroundColor: '#070514',
-                      border: '1px solid rgba(0, 240, 255, 0.25)',
-                      borderRadius: '10px',
-                      padding: '9px 8px 9px 28px',
-                      color: '#FFFFFF',
-                      fontSize: '12px',
-                      fontFamily: 'Lexend, sans-serif',
-                      outline: 'none',
-                      boxSizing: 'border-box',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {US_STATES.map((s) => (
-                      <option key={s} value={s} style={{ backgroundColor: '#0E0A24', color: '#FFFFFF' }}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* Optional Referral Code Accordion / Toggle */}
-            <div>
-              {!showReferralInput && !referralCode ? (
-                <button
-                  type="button"
-                  onClick={() => setShowReferralInput(true)}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: '#00F0FF',
-                    fontFamily: 'Lexend, sans-serif',
-                    fontSize: '10.5px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    padding: '2px 0',
-                  }}
-                >
-                  <Sparkles size={12} />
-                  <span>+ Have a referral or invite code?</span>
-                </button>
-              ) : (
-                <div>
-                  <label
-                    style={{
-                      display: 'block',
-                      fontSize: '9.5px',
-                      fontFamily: 'Lexend, sans-serif',
-                      fontWeight: 800,
-                      color: '#C8C1D4',
-                      marginBottom: '3px',
-                      letterSpacing: '0.04em',
-                    }}
-                  >
-                    REFERRAL CODE (OPTIONAL)
-                  </label>
-                  <div style={{ position: 'relative' }}>
-                    <Sparkles
-                      size={13}
-                      color="#00F0FF"
-                      style={{ position: 'absolute', top: '11px', left: '12px', opacity: 0.8 }}
-                    />
-                    <input
-                      type="text"
-                      placeholder="e.g. V1-VIP7"
-                      value={referralCode}
-                      onChange={(e) => setReferralCode(e.target.value)}
-                      style={{
-                        width: '100%',
-                        backgroundColor: '#070514',
-                        border: '1px solid rgba(0, 240, 255, 0.25)',
-                        borderRadius: '10px',
-                        padding: '9px 12px 9px 36px',
-                        color: '#FFFFFF',
-                        fontSize: '12px',
-                        fontFamily: 'Lexend, sans-serif',
-                        outline: 'none',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Legal Certification Checkbox */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginTop: '2px' }}>
-              <input
-                type="checkbox"
-                id="ageVerifyCheck"
-                checked={ageVerified}
-                onChange={(e) => setAgeVerified(e.target.checked)}
-                style={{
-                  accentColor: '#00F0FF',
-                  cursor: 'pointer',
-                  width: '15px',
-                  height: '15px',
-                  marginTop: '1px',
-                  flexShrink: 0,
-                }}
-                required
-              />
-              <label
-                htmlFor="ageVerifyCheck"
-                style={{
-                  fontSize: '10px',
-                  color: '#B3A9C0',
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                  lineHeight: 1.35,
-                  fontFamily: 'Lexend, sans-serif',
-                }}
-              >
-                I certify that I am at least 18 years old (21+ where applicable) and a legal resident of the United States.
-              </label>
-            </div>
-
-            {/* Registration Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                width: '100%',
-                background: 'linear-gradient(135deg, #E026D8 0%, #00F0FF 100%)',
-                color: '#FFFFFF',
-                fontFamily: 'Lexend, sans-serif',
-                fontWeight: 900,
-                fontSize: '12px',
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-                padding: '11px 0',
-                borderRadius: '12px',
-                border: 'none',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                boxShadow: '0 4px 20px rgba(0, 240, 255, 0.35)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                marginTop: '4px',
-                transition: 'all 0.2s ease',
-                opacity: loading ? 0.75 : 1,
-              }}
-            >
-              <span>{loading ? 'CREATING SOVEREIGN VAULT...' : 'CREATE ACCOUNT & CLAIM 3 FREEPLAY'}</span>
-              {!loading && <ArrowRight size={15} />}
-            </button>
-
-            {/* Switch to Sign In */}
-            <div style={{ textAlign: 'center', marginTop: '4px' }}>
-              <p style={{ fontSize: '11px', color: '#9A91A8', margin: 0, fontFamily: 'Lexend, sans-serif' }}>
+            ) : (
+              <p style={{ fontSize: '11.5px', color: '#9A91A8', margin: 0, fontFamily: 'Lexend, sans-serif' }}>
                 Already registered?{' '}
                 <button
                   type="button"
@@ -862,15 +1138,15 @@ export default function AuthModal({
                     fontWeight: 800,
                     cursor: 'pointer',
                     textDecoration: 'underline',
-                    padding: '2px 4px',
+                    padding: '0 4px',
                   }}
                 >
-                  Sign In
+                  Sign In to Sovereign Vault
                 </button>
               </p>
-            </div>
-          </form>
-        )}
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
