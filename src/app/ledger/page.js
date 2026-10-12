@@ -74,12 +74,18 @@ export default function LedgerPage() {
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '6px',
+              gap: '8px',
               color: '#00F0FF',
               fontSize: '12px',
-              fontWeight: 700,
+              fontWeight: 800,
+              fontFamily: 'Lexend, sans-serif',
               textDecoration: 'none',
-              marginBottom: '20px',
+              padding: '7px 14px',
+              borderRadius: '10px',
+              backgroundColor: 'rgba(0, 240, 255, 0.08)',
+              border: '1px solid rgba(0, 240, 255, 0.22)',
+              marginBottom: '18px',
+              transition: 'all 0.2s ease',
             }}
           >
             <ArrowLeft size={14} />

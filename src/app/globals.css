@@ -215,14 +215,15 @@ button:active {
   max-width: 1280px;
   margin-left: auto;
   margin-right: auto;
-  padding-left: 20px;
-  padding-right: 20px;
+  padding-left: 28px;
+  padding-right: 28px;
+  box-sizing: border-box;
 }
 
 @media (max-width: 640px) {
   .sovereign-container {
-    padding-left: 12px;
-    padding-right: 12px;
+    padding-left: 14px;
+    padding-right: 14px;
   }
 }
 
@@ -2469,10 +2470,14 @@ textarea:focus {
 .vegas-page-right-content {
   margin-left: 250px;
   width: calc(100% - 250px);
+  max-width: calc(100% - 250px);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  position: relative;
 }
 
 @media (max-width: 768px) {
