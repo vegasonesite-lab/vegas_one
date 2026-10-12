@@ -124,31 +124,8 @@ export default function VegasNavbar({
       }}
     >
       <div className="sovereign-container vegas-navbar-container">
-        {/* Left: Mobile Drawer Trigger + Neon Vegas One Marquee Badge Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {onToggleMobileSidebar && (
-            <button
-              type="button"
-              onClick={onToggleMobileSidebar}
-              aria-label="Open Casino Menu"
-              className="sm:hidden"
-              style={{
-                background: 'rgba(255, 255, 255, 0.06)',
-                border: '1px solid rgba(0, 240, 255, 0.3)',
-                borderRadius: '8px',
-                width: '32px',
-                height: '32px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#00F0FF',
-                cursor: 'pointer',
-              }}
-            >
-              <Menu size={18} />
-            </button>
-          )}
-
+        {/* Left: Neon Vegas One Marquee Badge Logo (Clean & Prestigious) */}
+        <div style={{ display: 'flex', alignItems: 'center' }}>
           <Link
             href="/"
             onClick={handleLogoClick}
@@ -379,6 +356,30 @@ export default function VegasNavbar({
                 JOIN NOW
               </button>
             </div>
+          )}
+
+          {/* Mobile-Only Menu Button (Hidden on Desktop, Visible on Mobile Far Right) */}
+          {onToggleMobileSidebar && (
+            <button
+              type="button"
+              onClick={onToggleMobileSidebar}
+              aria-label="Open Casino Menu"
+              className="navbar-mobile-menu-btn"
+              style={{
+                background: 'rgba(255, 255, 255, 0.06)',
+                border: '1px solid rgba(0, 240, 255, 0.35)',
+                borderRadius: '10px',
+                width: '36px',
+                height: '36px',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#00F0FF',
+                cursor: 'pointer',
+                marginLeft: '6px',
+              }}
+            >
+              <Menu size={18} />
+            </button>
           )}
         </div>
       </div>

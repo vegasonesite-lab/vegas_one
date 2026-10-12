@@ -18,7 +18,8 @@ import {
   Sparkles,
   Flame,
   ChevronRight,
-  X
+  X,
+  Compass
 } from 'lucide-react';
 
 export default function VegasSidebar({
@@ -65,11 +66,13 @@ export default function VegasSidebar({
         else router.push('/?auth=login');
         return;
       }
-      if (window.location.pathname === '/') {
-        const el = document.getElementById('my-game-accounts-section');
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth' });
-          return;
+      if (typeof window !== 'undefined') {
+        if (window.location.pathname === '/') {
+          const el = document.getElementById('my-game-accounts-section');
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth' });
+            return;
+          }
         }
       }
       router.push('/#my-game-accounts-section');
@@ -89,14 +92,12 @@ export default function VegasSidebar({
       label: 'Casino Lobby',
       icon: Gamepad2,
       path: '/',
-      highlight: false,
     },
     {
       id: 'games',
-      label: 'Sweepstakes Library',
+      label: 'Sweepstakes Games',
       icon: Flame,
       path: '/games',
-      highlight: false,
     },
     {
       id: 'deposit',
@@ -149,43 +150,35 @@ export default function VegasSidebar({
     },
     {
       id: 'download-app',
-      label: 'Download App (APK)',
+      label: 'Download Mobile App',
       icon: Smartphone,
       path: '/download-app',
-      badge: 'ANDROID',
+      badge: 'APK',
       badgeColor: '#00F0FF',
     },
   ];
 
-  const renderSidebar = (isDrawer = false) => (
+  const renderContent = (isDrawer = false) => (
     <div
       style={{
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
-        backgroundColor: '#0A061C',
-        borderRight: '1px solid rgba(0, 240, 255, 0.16)',
-        boxShadow: '4px 0 24px rgba(0, 0, 0, 0.4)',
+        backgroundColor: '#080517',
       }}
     >
-      {/* 1. Drawer Header (Only when drawer modal is open) */}
-      {isDrawer && (
-        <div
-          style={{
-            padding: '16px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-          }}
-        >
-          <img
-            src="/images/logo.png"
-            alt="Vegas One"
-            style={{ height: '36px', width: 'auto', objectFit: 'contain' }}
-          />
+      {/* 1. Sidebar Header */}
+      <div className="vegas-sidebar-header-bar">
+        <div className="vegas-sidebar-heading-text">
+          <Sparkles size={13} color="#00F0FF" />
+          <span>CASINO NAVIGATION</span>
+        </div>
+
+        {isDrawer && (
           <button
+            type="button"
             onClick={onCloseMobile}
+            aria-label="Close Menu"
             style={{
               background: 'rgba(255, 255, 255, 0.08)',
               border: 'none',
@@ -201,23 +194,18 @@ export default function VegasSidebar({
           >
             <X size={18} />
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* 2. Player Vault Status Card (Only shown if user is logged in; NO guest login/signup in sidebar) */}
+      {/* 2. Patron Vault Status Card (Only if User is Logged In; Clean & Non-cluttered) */}
       {user && (
-        <div
-          style={{
-            padding: isDrawer ? '16px 14px 12px 14px' : '12px 8px 10px 8px',
-          }}
-          className={isDrawer ? 'block' : 'hidden sm:block'}
-        >
+        <div style={{ padding: '14px 12px 6px 12px' }}>
           <div
             style={{
               background: 'linear-gradient(145deg, #120A2E 0%, #080416 100%)',
               border: '1px solid rgba(0, 240, 255, 0.35)',
               borderRadius: '16px',
-              padding: '14px',
+              padding: '12px 14px',
               boxShadow: '0 8px 24px rgba(0, 0, 0, 0.6), inset 0 0 15px rgba(0, 240, 255, 0.08)',
             }}
           >
@@ -225,8 +213,8 @@ export default function VegasSidebar({
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <div
                   style={{
-                    width: '30px',
-                    height: '30px',
+                    width: '28px',
+                    height: '28px',
                     borderRadius: '50%',
                     backgroundColor: 'rgba(0, 240, 255, 0.2)',
                     border: '1px solid rgba(0, 240, 255, 0.5)',
@@ -245,24 +233,23 @@ export default function VegasSidebar({
                   <p style={{ margin: 0, fontSize: '12px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#FFFFFF' }}>
                     {user.username}
                   </p>
-                  <p style={{ margin: 0, fontSize: '9.5px', color: '#00F0FF', fontFamily: 'Lexend, sans-serif', textTransform: 'uppercase' }}>
-                    Sovereign Patron
+                  <p style={{ margin: 0, fontSize: '9px', color: '#00F0FF', fontFamily: 'Lexend, sans-serif', textTransform: 'uppercase' }}>
+                    Patron Vault
                   </p>
                 </div>
               </div>
             </div>
 
-            <div style={{ margin: '8px 0 12px 0', padding: '8px 10px', backgroundColor: '#070514', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-              <p style={{ margin: 0, fontSize: '9.5px', color: '#9A91A8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                VAULT BALANCE
+            <div style={{ margin: '6px 0 10px 0', padding: '6px 10px', backgroundColor: '#070514', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
+              <p style={{ margin: 0, fontSize: '9px', color: '#9A91A8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                CURRENT BALANCE
               </p>
-              <p style={{ margin: '2px 0 0 0', fontFamily: 'Lexend, sans-serif', fontSize: '18px', fontWeight: 900, color: '#00F0FF' }}>
+              <p style={{ margin: '2px 0 0 0', fontFamily: 'Lexend, sans-serif', fontSize: '17px', fontWeight: 900, color: '#00F0FF' }}>
                 ${Number(user.balanceSC ?? user.balance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </div>
 
-            {/* Quick Actions Row */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
               <button
                 type="button"
                 onClick={() => handleNav('/wallet?tab=deposit')}
@@ -271,9 +258,9 @@ export default function VegasSidebar({
                   color: '#FFFFFF',
                   border: 'none',
                   borderRadius: '8px',
-                  padding: '8px 0',
+                  padding: '7px 0',
                   fontFamily: 'Lexend, sans-serif',
-                  fontSize: '11px',
+                  fontSize: '10.5px',
                   fontWeight: 900,
                   cursor: 'pointer',
                   display: 'flex',
@@ -282,7 +269,7 @@ export default function VegasSidebar({
                   gap: '4px',
                 }}
               >
-                <ArrowDownCircle size={13} />
+                <ArrowDownCircle size={12} />
                 <span>DEPOSIT</span>
               </button>
 
@@ -294,9 +281,9 @@ export default function VegasSidebar({
                   border: '1px solid rgba(0, 240, 255, 0.4)',
                   color: '#FFFFFF',
                   borderRadius: '8px',
-                  padding: '8px 0',
+                  padding: '7px 0',
                   fontFamily: 'Lexend, sans-serif',
-                  fontSize: '11px',
+                  fontSize: '10.5px',
                   fontWeight: 800,
                   cursor: 'pointer',
                   display: 'flex',
@@ -305,7 +292,7 @@ export default function VegasSidebar({
                   gap: '4px',
                 }}
               >
-                <ArrowUpCircle size={13} color="#00F0FF" />
+                <ArrowUpCircle size={12} color="#00F0FF" />
                 <span>CASHOUT</span>
               </button>
             </div>
@@ -313,27 +300,8 @@ export default function VegasSidebar({
         </div>
       )}
 
-      {/* 3. Navigation Links List */}
-      <div
-        className="modal-scrollable"
-        style={{
-          flex: 1,
-          overflowY: 'auto',
-          padding: isDrawer ? '8px 12px' : '8px 6px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '4px',
-        }}
-      >
-        <div
-          style={{ padding: '6px 8px 4px 8px' }}
-          className={isDrawer ? 'block' : 'hidden sm:block'}
-        >
-          <p style={{ margin: 0, fontSize: '9.5px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#796E8A', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-            CASINO MENU
-          </p>
-        </div>
-
+      {/* 3. Navigation Links List (Proper Typography, Glowing Icons, Badges) */}
+      <div className="vegas-sidebar-menu-list modal-scrollable">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isSelected = activeTab === item.id;
@@ -342,7 +310,7 @@ export default function VegasSidebar({
             <button
               key={item.id}
               type="button"
-              title={item.label}
+              className={`vegas-sidebar-nav-btn ${isSelected ? 'active' : ''}`}
               onClick={() => {
                 if (item.requiresAuth && !user) {
                   handleNav('login', 'auth');
@@ -354,64 +322,23 @@ export default function VegasSidebar({
                   handleNav(item.id);
                 }
               }}
-              style={{
-                width: '100%',
-                borderRadius: '10px',
-                border: isSelected ? '1px solid rgba(0, 240, 255, 0.4)' : '1px solid transparent',
-                backgroundColor: isSelected ? 'rgba(0, 240, 255, 0.12)' : 'transparent',
-                color: isSelected ? '#00F0FF' : '#E2E8F0',
-                fontFamily: 'Lexend, sans-serif',
-                fontSize: '12px',
-                fontWeight: isSelected ? 800 : 600,
-                cursor: 'pointer',
-                textAlign: 'left',
-                transition: 'all 0.15s ease',
-              }}
-              className={
-                isDrawer
-                  ? 'flex items-center justify-between py-2.5 px-3'
-                  : 'flex items-center justify-center sm:justify-between py-2.5 px-1 sm:px-3'
-              }
-              onMouseEnter={(e) => {
-                if (!isSelected) {
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-                  e.currentTarget.style.color = '#FFFFFF';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isSelected) {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = '#E2E8F0';
-                }
-              }}
             >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                }}
-                className={isDrawer ? 'flex items-center' : 'justify-center sm:justify-start w-full sm:w-auto flex items-center'}
-              >
-                <Icon size={17} color={isSelected ? '#00F0FF' : '#9A91A8'} className="shrink-0" />
-                <span className={isDrawer ? 'inline' : 'hidden sm:inline'}>
-                  {item.label}
-                </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '11px' }}>
+                <Icon
+                  size={17}
+                  color={isSelected ? '#00F0FF' : '#9A91A8'}
+                  style={{ flexShrink: 0 }}
+                />
+                <span>{item.label}</span>
               </div>
 
               {item.badge && (
                 <span
-                  className={isDrawer ? 'inline-block' : 'hidden sm:inline-block'}
+                  className="vegas-sidebar-badge"
                   style={{
-                    fontSize: '9px',
-                    fontFamily: 'Lexend, sans-serif',
-                    fontWeight: 900,
-                    letterSpacing: '0.04em',
-                    padding: '2px 6px',
-                    borderRadius: '4px',
                     backgroundColor: `${item.badgeColor}22`,
                     color: item.badgeColor,
-                    border: `1px solid ${item.badgeColor}44`,
+                    borderColor: `${item.badgeColor}55`,
                   }}
                 >
                   {item.badge}
@@ -423,16 +350,9 @@ export default function VegasSidebar({
       </div>
 
       {/* 4. Support & Trust Footer */}
-      <div
-        style={{
-          padding: isDrawer ? '12px 14px' : '10px 8px',
-          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-          backgroundColor: '#070514',
-        }}
-      >
+      <div className="vegas-sidebar-footer-box">
         <button
           type="button"
-          title="24/7 VIP Live Support"
           onClick={() => handleNav(null, 'support')}
           style={{
             width: '100%',
@@ -441,33 +361,30 @@ export default function VegasSidebar({
             justifyContent: 'center',
             gap: '8px',
             backgroundColor: '#140E33',
-            border: '1px solid rgba(0, 240, 255, 0.3)',
+            border: '1px solid rgba(0, 240, 255, 0.35)',
             borderRadius: '10px',
-            padding: isDrawer ? '9px 12px' : '8px 4px',
+            padding: '10px 12px',
             color: '#00F0FF',
             fontFamily: 'Lexend, sans-serif',
-            fontSize: '11px',
+            fontSize: '11.5px',
             fontWeight: 800,
             cursor: 'pointer',
             transition: 'all 0.2s ease',
           }}
-        >
-          <Headphones size={15} className="shrink-0" />
-          <span className={isDrawer ? 'inline' : 'hidden sm:inline'}>
-            24/7 VIP LIVE SUPPORT
-          </span>
-        </button>
-
-        <div
-          className={isDrawer ? 'flex' : 'hidden sm:flex'}
-          style={{
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '5px',
-            marginTop: '8px',
-            opacity: 0.6,
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'rgba(0, 240, 255, 0.15)';
+            e.currentTarget.style.borderColor = '#00F0FF';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#140E33';
+            e.currentTarget.style.borderColor = 'rgba(0, 240, 255, 0.35)';
           }}
         >
+          <Headphones size={15} />
+          <span>24/7 VIP LIVE SUPPORT</span>
+        </button>
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', marginTop: '8px', opacity: 0.65 }}>
           <ShieldCheck size={12} color="#10B981" />
           <span style={{ fontSize: '9.5px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
             100% Legal US Sweepstakes
@@ -479,29 +396,20 @@ export default function VegasSidebar({
 
   return (
     <>
-      {/* Permanent Pinned Sidebar (Always visible: 58px on mobile, 240px on tablet/laptop/desktop) */}
-      <aside
-        className="w-[58px] min-w-[58px] sm:w-[240px] sm:min-w-[240px]"
-        style={{
-          height: 'calc(100vh - 82px)',
-          position: 'sticky',
-          top: '82px',
-          zIndex: 40,
-          flexShrink: 0,
-        }}
-      >
-        {renderSidebar(false)}
+      {/* Permanent Desktop/Laptop Sidebar (Controlled by .vegas-sidebar-container in globals.css) */}
+      <aside className="vegas-sidebar-container">
+        {renderContent(false)}
       </aside>
 
-      {/* Mobile Slide-Out Drawer (When user taps hamburger button on mobile for full text overlay) */}
+      {/* Mobile Slide-Out Drawer (When Mobile User Clicks Mobile Menu Button) */}
       {mobileOpen && (
         <div
           style={{
             position: 'fixed',
             inset: 0,
             zIndex: 9999,
-            backgroundColor: 'rgba(5, 2, 14, 0.85)',
-            backdropFilter: 'blur(10px)',
+            backgroundColor: 'rgba(5, 2, 14, 0.88)',
+            backdropFilter: 'blur(12px)',
             display: 'flex',
           }}
           onClick={onCloseMobile}
@@ -511,11 +419,14 @@ export default function VegasSidebar({
               width: '280px',
               maxWidth: '85vw',
               height: '100%',
-              animation: 'slideInLeft 0.25s ease-out',
+              backgroundColor: '#080517',
+              borderRight: '1px solid rgba(0, 240, 255, 0.25)',
+              boxShadow: '10px 0 35px rgba(0, 0, 0, 0.8)',
+              animation: 'slideInLeft 0.22s ease-out',
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {renderSidebar(true)}
+            {renderContent(true)}
           </div>
         </div>
       )}
