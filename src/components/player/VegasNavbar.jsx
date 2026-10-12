@@ -121,16 +121,7 @@ export default function VegasNavbar({
         boxShadow: '0 4px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 240, 255, 0.08)',
       }}
     >
-      <div
-        className="sovereign-container"
-        style={{
-          height: '82px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '16px',
-        }}
-      >
+      <div className="sovereign-container vegas-navbar-container">
         {/* Left: Neon Vegas One Marquee Badge Logo */}
         <Link
           href="/"
@@ -142,20 +133,13 @@ export default function VegasNavbar({
             userSelect: 'none',
             textDecoration: 'none',
             padding: '2px 0',
+            flexShrink: 0,
           }}
         >
           <img
             src="/images/logo.png"
             alt="Vegas One Luxury Casino"
-            style={{
-              height: '66px',
-              width: 'auto',
-              maxHeight: '70px',
-              objectFit: 'contain',
-              filter: 'drop-shadow(0 0 16px rgba(0, 240, 255, 0.55)) drop-shadow(0 0 25px rgba(224, 38, 216, 0.4))',
-              transition: 'transform 0.2s ease',
-            }}
-            className="hover:scale-105"
+            className="vegas-navbar-logo hover:scale-105"
           />
         </Link>
 
@@ -188,30 +172,19 @@ export default function VegasNavbar({
         </div>
 
         {/* Right Side: Balances + Coral Deposit Button + Avatar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
           {activeUser ? (
             <>
               {/* Single Unified Cash Vault Balance Capsule */}
               <div
                 onClick={handleWalletClick}
-                style={{
-                  cursor: 'pointer',
-                  backgroundColor: '#0E0A24',
-                  border: '1px solid rgba(0, 240, 255, 0.45)',
-                  padding: '7px 16px',
-                  borderRadius: '9999px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.4), 0 0 15px rgba(0, 240, 255, 0.15)',
-                  transition: 'all 0.15s ease',
-                }}
+                className="navbar-balance-capsule"
                 title="Sovereign Vault Balance"
               >
                 <div
                   style={{
-                    width: '20px',
-                    height: '20px',
+                    width: '18px',
+                    height: '18px',
                     borderRadius: '50%',
                     backgroundColor: 'rgba(0, 240, 255, 0.2)',
                     color: '#00F0FF',
@@ -219,7 +192,7 @@ export default function VegasNavbar({
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontWeight: 900,
-                    fontSize: '12px',
+                    fontSize: '11px',
                   }}
                 >
                   $
@@ -228,7 +201,7 @@ export default function VegasNavbar({
                   style={{
                     fontFamily: 'Lexend, sans-serif',
                     fontWeight: 900,
-                    fontSize: '13.5px',
+                    fontSize: '12.5px',
                     color: '#00F0FF',
                     letterSpacing: '-0.01em',
                   }}
@@ -241,27 +214,27 @@ export default function VegasNavbar({
               <button
                 type="button"
                 onClick={handleWalletClick}
-                className="btn-sovereign-coral"
-                style={{ padding: '9px 22px', fontSize: '12px' }}
+                className="btn-sovereign-coral navbar-btn-deposit"
               >
                 DEPOSIT
               </button>
 
-              {/* Quick Wallet Icon Button */}
+              {/* Quick Wallet Icon Button (Hidden on small mobile) */}
               <button
                 type="button"
                 onClick={handleWalletClick}
+                className="hidden sm:flex"
                 style={{
                   width: '38px',
                   height: '38px',
                   borderRadius: '50%',
                   backgroundColor: '#0E0A24',
                   border: '1px solid rgba(0, 240, 255, 0.3)',
-                  display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#00F0FF',
                   cursor: 'pointer',
+                  flexShrink: 0,
                 }}
                 title="My Vault"
               >
@@ -273,16 +246,14 @@ export default function VegasNavbar({
                 <button
                   type="button"
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                  className="navbar-user-avatar"
                   style={{
-                    width: '38px',
-                    height: '38px',
                     borderRadius: '50%',
                     backgroundColor: '#0E0A24',
                     border: '2px solid rgba(0, 240, 255, 0.7)',
                     color: '#00F0FF',
                     fontFamily: 'Lexend, sans-serif',
                     fontWeight: 800,
-                    fontSize: '12px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -364,12 +335,11 @@ export default function VegasNavbar({
             </>
           ) : (
             /* Guest Actions */
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <button
                 type="button"
                 onClick={() => handleAuthClick('login')}
-                className="btn-sovereign-dark"
-                style={{ padding: '8px 18px', fontSize: '12px' }}
+                className="btn-sovereign-dark navbar-btn-guest-login"
               >
                 LOG IN
               </button>
@@ -377,8 +347,7 @@ export default function VegasNavbar({
               <button
                 type="button"
                 onClick={() => handleAuthClick('register')}
-                className="btn-sovereign-coral"
-                style={{ padding: '8px 20px', fontSize: '12px' }}
+                className="btn-sovereign-coral navbar-btn-guest-join"
               >
                 JOIN NOW
               </button>

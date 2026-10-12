@@ -192,6 +192,12 @@ button:active {
   padding-left: 20px;
   padding-right: 20px;
 }
+@media (max-width: 640px) {
+  .sovereign-container {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
 
 /* 1. HERO SPLIT GRID */
 .sovereign-hero-grid {
@@ -454,6 +460,111 @@ button:active {
   color: #FFFFFF;
 }
 
+/* 3.1 VEGAS RESPONSIVE NAVBAR UTILITIES */
+.vegas-navbar-container {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+@media (min-width: 640px) {
+  .vegas-navbar-container {
+    height: 72px;
+    gap: 14px;
+  }
+}
+@media (min-width: 1024px) {
+  .vegas-navbar-container {
+    height: 82px;
+    gap: 16px;
+  }
+}
+
+.vegas-navbar-logo {
+  height: 38px;
+  width: auto;
+  max-height: 42px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 12px rgba(0, 240, 255, 0.55)) drop-shadow(0 0 20px rgba(224, 38, 216, 0.4));
+  transition: transform 0.2s ease;
+}
+@media (min-width: 640px) {
+  .vegas-navbar-logo {
+    height: 52px;
+    max-height: 56px;
+  }
+}
+@media (min-width: 1024px) {
+  .vegas-navbar-logo {
+    height: 64px;
+    max-height: 68px;
+  }
+}
+
+.navbar-balance-capsule {
+  cursor: pointer;
+  background-color: #0E0A24;
+  border: 1px solid rgba(0, 240, 255, 0.45);
+  padding: 5px 10px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), 0 0 15px rgba(0, 240, 255, 0.15);
+  transition: all 0.15s ease;
+  user-select: none;
+}
+@media (min-width: 640px) {
+  .navbar-balance-capsule {
+    padding: 7px 16px;
+    gap: 8px;
+  }
+}
+
+.navbar-btn-deposit {
+  padding: 6px 13px !important;
+  font-size: 11px !important;
+}
+@media (min-width: 640px) {
+  .navbar-btn-deposit {
+    padding: 9px 22px !important;
+    font-size: 12px !important;
+  }
+}
+
+.navbar-btn-guest-login {
+  padding: 6px 12px !important;
+  font-size: 11px !important;
+}
+.navbar-btn-guest-join {
+  padding: 6px 14px !important;
+  font-size: 11px !important;
+}
+@media (min-width: 640px) {
+  .navbar-btn-guest-login {
+    padding: 8px 18px !important;
+    font-size: 12px !important;
+  }
+  .navbar-btn-guest-join {
+    padding: 8px 20px !important;
+    font-size: 12px !important;
+  }
+}
+
+.navbar-user-avatar {
+  width: 32px !important;
+  height: 32px !important;
+  font-size: 11px !important;
+}
+@media (min-width: 640px) {
+  .navbar-user-avatar {
+    width: 38px !important;
+    height: 38px !important;
+    font-size: 12px !important;
+  }
+}
+
 .badge-teal-escrow {
   background: rgba(0, 240, 255, 0.15);
   color: #00F0FF;
@@ -480,17 +591,20 @@ button:active {
 @media (max-width: 1200px) {
   .grand-collection-grid {
     grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
   }
 }
 @media (max-width: 860px) {
   .grand-collection-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+    gap: 14px;
   }
 }
-@media (max-width: 520px) {
+@media (max-width: 540px) {
   .grand-collection-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 30px;
   }
 }
 
@@ -505,10 +619,16 @@ button:active {
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
 }
+@media (max-width: 640px) {
+  .game-card-luxury {
+    padding: 8px;
+    border-radius: 14px;
+  }
+}
 .game-card-luxury:hover {
-  border-color: rgba(255, 122, 89, 0.45);
+  border-color: rgba(224, 38, 216, 0.5);
   transform: translateY(-4px);
-  box-shadow: 0 16px 35px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 16px 35px rgba(0, 0, 0, 0.55), 0 0 20px rgba(0, 240, 255, 0.15);
 }
 
 .game-thumb-box {
@@ -521,6 +641,14 @@ button:active {
   background: #0A0512;
   margin-bottom: 12px;
 }
+@media (max-width: 640px) {
+  .game-thumb-box {
+    height: 125px;
+    min-height: 125px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+  }
+}
 
 .game-thumb-box img {
   width: 100%;
@@ -530,6 +658,106 @@ button:active {
 }
 .game-card-luxury:hover .game-thumb-box img {
   transform: scale(1.05);
+}
+
+.game-card-badge {
+  font-size: 9px;
+  font-family: 'Lexend', sans-serif;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 3px 6px;
+  border-radius: 6px;
+  display: inline-block;
+  backdrop-filter: blur(8px);
+}
+@media (min-width: 640px) {
+  .game-card-badge {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+}
+
+.game-card-stats-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 9.5px;
+  font-family: 'Lexend', sans-serif;
+  color: #9A91A8;
+  margin-bottom: 5px;
+  padding: 0 2px;
+}
+@media (min-width: 640px) {
+  .game-card-stats-row {
+    font-size: 11px;
+    margin-bottom: 8px;
+  }
+}
+
+.game-card-subtitle {
+  font-size: 8.5px;
+  font-family: 'Lexend', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #A69FB3;
+  text-transform: uppercase;
+  margin: 0 0 2px 0;
+}
+@media (min-width: 640px) {
+  .game-card-subtitle {
+    font-size: 10px;
+    margin: 0 0 3px 0;
+  }
+}
+
+.game-card-title-text {
+  font-family: 'Lexend', sans-serif;
+  font-size: 12.5px;
+  font-weight: 900;
+  color: #F8FAFC;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (min-width: 640px) {
+  .game-card-title-text {
+    font-size: 15px;
+  }
+}
+
+.game-card-play-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #E026D8 0%, #00F0FF 100%);
+  color: #FFFFFF;
+  font-family: 'Lexend', sans-serif;
+  font-weight: 900;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 8px 0;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 240, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+@media (min-width: 640px) {
+  .game-card-play-btn {
+    font-size: 12px;
+    padding: 11px 0;
+    border-radius: 12px;
+    gap: 8px;
+  }
+}
+.game-card-play-btn:hover {
+  transform: scale(1.02);
+  box-shadow: 0 6px 20px rgba(0, 240, 255, 0.5);
 }
 
 /* 5. CROWN CLUB & ONBOARDING GRIDS */

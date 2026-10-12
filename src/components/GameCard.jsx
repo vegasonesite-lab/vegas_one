@@ -35,26 +35,18 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
             src={game.thumbnail || '/images/vegas-777.webp'}
             alt={game.title}
             fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             style={{ objectFit: 'cover', objectPosition: 'center' }}
           />
 
           {/* Top Left Badge */}
-          <div style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 10 }}>
+          <div style={{ position: 'absolute', top: '6px', left: '6px', zIndex: 10 }}>
             <span
+              className="game-card-badge"
               style={{
-                fontSize: '10px',
-                fontFamily: 'Lexend, sans-serif',
-                fontWeight: 900,
-                letterSpacing: '0.05em',
-                textTransform: 'uppercase',
-                padding: '4px 8px',
-                borderRadius: '6px',
                 backgroundColor: badge.bg,
                 color: badge.color,
                 border: `1px solid ${badge.border}`,
-                backdropFilter: 'blur(8px)',
-                display: 'inline-block',
               }}
             >
               {badge.label}
@@ -62,7 +54,7 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
           </div>
 
           {/* Top Right: Favorite Heart & Active Count */}
-          <div style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 10, display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ position: 'absolute', top: '6px', right: '6px', zIndex: 10, display: 'flex', alignItems: 'center', gap: '4px' }}>
             <button
               type="button"
               onClick={(e) => {
@@ -70,8 +62,8 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
                 if (onToggleFavorite) onToggleFavorite(game.id || game.gameId);
               }}
               style={{
-                width: '28px',
-                height: '28px',
+                width: '26px',
+                height: '26px',
                 borderRadius: '50%',
                 backgroundColor: 'rgba(14, 8, 22, 0.85)',
                 border: isFavorite ? '1px solid #F43F5E' : '1px solid rgba(255, 255, 255, 0.1)',
@@ -85,7 +77,7 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
               title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
             >
               <Heart
-                size={14}
+                size={13}
                 color={isFavorite ? '#F43F5E' : '#FFFFFF'}
                 fill={isFavorite ? '#F43F5E' : 'none'}
               />
@@ -95,13 +87,13 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '5px',
+                gap: '4px',
                 backgroundColor: 'rgba(14, 8, 22, 0.85)',
                 backdropFilter: 'blur(8px)',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
-                padding: '4px 8px',
+                padding: '3px 6px',
                 borderRadius: '6px',
-                fontSize: '10px',
+                fontSize: '9px',
                 fontFamily: 'Lexend, sans-serif',
                 fontWeight: 700,
                 color: '#E2DCEB',
@@ -109,12 +101,12 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
             >
               <span
                 style={{
-                  width: '6px',
-                  height: '6px',
+                  width: '5px',
+                  height: '5px',
                   borderRadius: '50%',
-                  backgroundColor: '#14B8A6',
+                  backgroundColor: '#00F0FF',
                   display: 'inline-block',
-                  boxShadow: '0 0 6px #14B8A6',
+                  boxShadow: '0 0 6px #00F0FF',
                 }}
               />
               <span>{activeCount}</span>
@@ -133,49 +125,17 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
         </div>
 
         {/* 2. Stats Row */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            fontSize: '11px',
-            fontFamily: 'Lexend, sans-serif',
-            color: '#9A91A8',
-            marginBottom: '8px',
-            padding: '0 2px',
-          }}
-        >
+        <div className="game-card-stats-row">
           <span>RTP: <strong style={{ color: '#F8FAFC', fontWeight: 600 }}>{rtpDisplay}</strong></span>
-          <span>Max Bet: <strong style={{ color: '#00F0FF', fontWeight: 600 }}>{maxBetDisplay}</strong></span>
+          <span>Max: <strong style={{ color: '#00F0FF', fontWeight: 600 }}>{maxBetDisplay}</strong></span>
         </div>
 
         {/* 3. Subcategory and Game Title */}
-        <div style={{ marginBottom: '14px', padding: '0 2px' }}>
-          <p
-            style={{
-              fontSize: '10px',
-              fontFamily: 'Lexend, sans-serif',
-              fontWeight: 700,
-              letterSpacing: '0.06em',
-              color: '#A69FB3',
-              textTransform: 'uppercase',
-              margin: '0 0 3px 0',
-            }}
-          >
+        <div style={{ marginBottom: '10px', padding: '0 2px' }}>
+          <p className="game-card-subtitle">
             SWEEPSTAKES ARENA
           </p>
-          <h3
-            style={{
-              fontFamily: 'Lexend, sans-serif',
-              fontSize: '15px',
-              fontWeight: 900,
-              color: '#F8FAFC',
-              margin: 0,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            }}
-          >
+          <h3 className="game-card-title-text">
             {game.title}
           </h3>
         </div>
@@ -189,28 +149,9 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
             e.stopPropagation();
             onPlay(game);
           }}
-          style={{
-            width: '100%',
-            background: 'linear-gradient(135deg, #E026D8 0%, #00F0FF 100%)',
-            color: '#FFFFFF',
-            fontFamily: 'Lexend, sans-serif',
-            fontWeight: 900,
-            fontSize: '12px',
-            letterSpacing: '0.05em',
-            textTransform: 'uppercase',
-            padding: '11px 0',
-            borderRadius: '12px',
-            border: 'none',
-            cursor: 'pointer',
-            boxShadow: '0 4px 14px rgba(0, 240, 255, 0.3)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            transition: 'all 0.2s ease',
-          }}
+          className="game-card-play-btn"
         >
-          <Play size={14} fill="#0E0816" />
+          <Play size={13} fill="#0E0816" />
           <span>PLAY NOW</span>
         </button>
       </div>
