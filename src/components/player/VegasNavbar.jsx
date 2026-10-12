@@ -123,9 +123,9 @@ export default function VegasNavbar({
         boxShadow: '0 4px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 240, 255, 0.08)',
       }}
     >
-      <div className="sovereign-container vegas-navbar-container">
-        {/* Left: Neon Vegas One Marquee Badge Logo (Clean & Prestigious) */}
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+      <div className="vegas-navbar-full-width">
+        {/* Left: Neon Vegas One Marquee Badge Logo (Directly above 250px Sidebar) */}
+        <div className="vegas-navbar-logo-zone">
           <Link
             href="/"
             onClick={handleLogoClick}
