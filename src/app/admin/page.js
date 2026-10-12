@@ -173,6 +173,42 @@ export default function AdminPortal({ initialTab }) {
 
   // System Settings state
   const [sysSettings, setSysSettings] = useState(null);
+  const [savingBonusSettings, setSavingBonusSettings] = useState(false);
+  const [bonusSaveMessage, setBonusSaveMessage] = useState(null);
+
+  const handleSaveBonusSettings = async (e) => {
+    if (e) e.preventDefault();
+    setSavingBonusSettings(true);
+    setBonusSaveMessage(null);
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          welcomeBonusPercent: Number(sysSettings?.welcomeBonusPercent ?? 300),
+          welcomeBonusMax: Number(sysSettings?.welcomeBonusMax ?? 7500),
+          welcomeBonusSpins: Number(sysSettings?.welcomeBonusSpins ?? 150),
+          welcomeBonusTitle: sysSettings?.welcomeBonusTitle || 'TRIPLE TIER WELCOME PACK',
+          welcomeBonusSubtitle: sysSettings?.welcomeBonusSubtitle || 'Includes +150 Neon Free Spins and instantaneous Tier II Sovereign Status upgrade.',
+          regularBonusPercent: Number(sysSettings?.regularBonusPercent ?? 50),
+          regularBonusMax: Number(sysSettings?.regularBonusMax ?? 2500),
+          regularBonusTitle: sysSettings?.regularBonusTitle || 'REGULAR RELOAD BOOST',
+          regularBonusSubtitle: sysSettings?.regularBonusSubtitle || 'Unlimited reload boost on every subsequent crypto & Cash App deposit.',
+        }),
+      });
+      const data = await res.json();
+      setSavingBonusSettings(false);
+      if (data.success) {
+        setBonusSaveMessage('Bonus configuration saved successfully!');
+        setTimeout(() => setBonusSaveMessage(null), 3500);
+      } else {
+        alert(data.error || 'Failed to save settings.');
+      }
+    } catch (err) {
+      setSavingBonusSettings(false);
+      alert('Error saving settings: ' + err.message);
+    }
+  };
 
   // Account Requests state
   const [accountRequests, setAccountRequests] = useState([]);
@@ -1173,7 +1209,8 @@ export default function AdminPortal({ initialTab }) {
                       <tr>
                         <th className="p-3">Date</th>
                         <th className="p-3">Player</th>
-                        <th className="p-3">Amount</th>
+                        <th className="p-3">Deposit USD</th>
+                        <th className="p-3">Auto-Calculated Coins (To Credit)</th>
                         <th className="p-3">Method</th>
                         <th className="p-3">Cashtag/TXID</th>
                         <th className="p-3">Status</th>
@@ -1181,59 +1218,99 @@ export default function AdminPortal({ initialTab }) {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
-                      {deposits.map(d => (
-                        <tr key={d.id} className="hover:bg-white/5">
-                          <td className="p-3 text-gray-400">{new Date(d.createdAt).toLocaleString()}</td>
-                          <td className="p-3 font-bold text-white">{d.username}</td>
-                          <td className="p-3 font-black text-amber-400">${d.amount} USD</td>
-                          <td className="p-3 text-gray-300">{d.methodName}</td>
-                          <td className="p-3 font-mono text-gray-400">{d.senderNote || d.txHash || 'N/A'}</td>
-                          <td className="p-3">
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                              d.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400' : d.status === 'pending' ? 'bg-amber-500/20 text-amber-400' : 'bg-red-500/20 text-red-400'
-                            }`}>
-                              {d.status}
-                            </span>
-                          </td>
-                          <td className="p-3 text-right space-x-2">
-                            {d.status === 'pending' && (
-                              <>
-                                <button
-                                  onClick={async () => {
-                                    const res = await fetch('/api/payments/deposit', {
-                                      method: 'PUT',
-                                      headers: { 'Content-Type': 'application/json' },
-                                      body: JSON.stringify({ depositId: d.id, action: 'approve' }),
-                                    });
-                                    if ((await res.json()).success) {
-                                      setDeposits(deposits.map(item => item.id === d.id ? { ...item, status: 'approved' } : item));
-                                    }
-                                  }}
-                                  className="btn-gold py-1 px-3 text-[11px] font-bold"
-                                >
-                                  Approve &amp; Credit
-                                </button>
-                                <button
-                                  onClick={async () => {
-                                    const reason = prompt('Rejection reason:');
-                                    if (reason) {
-                                      await fetch('/api/payments/deposit', {
+                      {deposits.map(d => {
+                        const calculatedSC = Number(d.totalSC !== undefined ? d.totalSC : (d.amount + (d.bonusSC || 0))).toFixed(2);
+                        const bonusType = d.bonusType || 'welcome';
+                        const bonusPercent = d.bonusPercent ?? (bonusType === 'welcome' ? 300 : 50);
+                        const bonusSC = Number(d.bonusSC !== undefined ? d.bonusSC : (d.amount * bonusPercent / 100)).toFixed(2);
+                        const calculatedGC = (d.totalGC || d.amount * 10000).toLocaleString();
+
+                        return (
+                          <tr key={d.id} className="hover:bg-white/5">
+                            <td className="p-3 text-gray-400 whitespace-nowrap">{new Date(d.createdAt).toLocaleString()}</td>
+                            <td className="p-3 font-bold text-white whitespace-nowrap">{d.username}</td>
+                            <td className="p-3 font-black text-amber-400 whitespace-nowrap">${d.amount} USD</td>
+                            
+                            {/* Auto-Calculated Coins Column */}
+                            <td className="p-3">
+                              <div className="flex flex-col gap-0.5">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="font-black text-emerald-400 text-sm">
+                                    {calculatedSC} SC
+                                  </span>
+                                  <span className={`text-[10px] px-2 py-0.5 rounded font-extrabold uppercase border ${
+                                    bonusType === 'welcome'
+                                      ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30'
+                                      : 'bg-purple-500/15 text-purple-300 border-purple-500/30'
+                                  }`}>
+                                    {bonusType === 'welcome' ? `+${bonusPercent}% Welcome` : `+${bonusPercent}% Reload`}
+                                  </span>
+                                </div>
+                                <span className="text-[10.5px] text-gray-300">
+                                  Base: ${d.amount} SC + Bonus: {bonusSC} SC
+                                </span>
+                                <span className="text-[10px] text-amber-400 font-mono">
+                                  +{calculatedGC} GC
+                                </span>
+                              </div>
+                            </td>
+
+                            <td className="p-3 text-gray-300 whitespace-nowrap">{d.methodName}</td>
+                            <td className="p-3 font-mono text-gray-400 max-w-[150px] truncate">{d.senderNote || d.txHash || 'N/A'}</td>
+                            <td className="p-3 whitespace-nowrap">
+                              <div className="flex flex-col gap-0.5">
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase w-fit ${
+                                  d.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400' : d.status === 'pending' ? 'bg-amber-500/20 text-amber-400' : 'bg-red-500/20 text-red-400'
+                                }`}>
+                                  {d.status}
+                                </span>
+                                {d.status === 'approved' && d.creditedSC && (
+                                  <span className="text-[10px] text-emerald-300/80 font-mono">
+                                    Credited: {Number(d.creditedSC).toFixed(2)} SC
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="p-3 text-right space-x-2 whitespace-nowrap">
+                              {d.status === 'pending' && (
+                                <>
+                                  <button
+                                    onClick={async () => {
+                                      const res = await fetch('/api/payments/deposit', {
                                         method: 'PUT',
                                         headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ depositId: d.id, action: 'reject', rejectReason: reason }),
+                                        body: JSON.stringify({ depositId: d.id, action: 'approve' }),
                                       });
-                                      setDeposits(deposits.map(item => item.id === d.id ? { ...item, status: 'rejected' } : item));
-                                    }
-                                  }}
-                                  className="px-2.5 py-1 rounded bg-red-500/20 text-red-300 font-bold hover:bg-red-500/30 text-[11px]"
-                                >
-                                  Reject
-                                </button>
-                              </>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
+                                      if ((await res.json()).success) {
+                                        setDeposits(deposits.map(item => item.id === d.id ? { ...item, status: 'approved', creditedSC: Number(calculatedSC) } : item));
+                                      }
+                                    }}
+                                    className="btn-gold py-1 px-3 text-[11px] font-bold"
+                                  >
+                                    Approve &amp; Credit {calculatedSC} SC
+                                  </button>
+                                  <button
+                                    onClick={async () => {
+                                      const reason = prompt('Rejection reason:');
+                                      if (reason) {
+                                        await fetch('/api/payments/deposit', {
+                                          method: 'PUT',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({ depositId: d.id, action: 'reject', rejectReason: reason }),
+                                        });
+                                        setDeposits(deposits.map(item => item.id === d.id ? { ...item, status: 'rejected' } : item));
+                                      }
+                                    }}
+                                    className="px-2.5 py-1 rounded bg-red-500/20 text-red-300 font-bold hover:bg-red-500/30 text-[11px]"
+                                  >
+                                    Reject
+                                  </button>
+                                </>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -1967,6 +2044,189 @@ export default function AdminPortal({ initialTab }) {
                   <label className="text-xs font-bold text-gray-300 block mb-1">Minimum Redemption Payout</label>
                   <p className="text-xs text-emerald-400 font-mono">50.00 SC ($50 USD)</p>
                 </div>
+              </div>
+
+              {/* Dynamic Bonus Configuration (Welcome Pack & Regular Reload) */}
+              <div className="bg-[#0e1122] border border-cyan-500/20 p-6 rounded-2xl space-y-6 max-w-4xl">
+                <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                  <div>
+                    <h3 className="text-lg font-black text-white flex items-center gap-2">
+                      <span className="text-cyan-400">🎁</span> Dynamic Player Bonus Engine
+                    </h3>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Configure first-deposit welcome bonus vs subsequent reload bonus. Changes update the hero banner &amp; automatic deposit coin calculations in real-time.
+                    </p>
+                  </div>
+                  {bonusSaveMessage && (
+                    <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/30">
+                      ✓ {bonusSaveMessage}
+                    </span>
+                  )}
+                </div>
+
+                <form onSubmit={handleSaveBonusSettings} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Welcome Bonus Card */}
+                    <div className="bg-[#070914] border border-cyan-500/30 p-5 rounded-xl space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-extrabold text-cyan-400 uppercase tracking-wider">
+                          1. Welcome Pack (First Deposit)
+                        </span>
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 font-bold uppercase">
+                          New Players Only
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[11px] font-bold text-gray-300 block mb-1">Bonus Match %</label>
+                          <div className="relative">
+                            <input
+                              type="number"
+                              min="0"
+                              max="1000"
+                              value={sysSettings?.welcomeBonusPercent ?? 300}
+                              onChange={(e) => setSysSettings(prev => ({ ...prev, welcomeBonusPercent: e.target.value }))}
+                              className="w-full bg-[#0e1122] border border-white/10 rounded-lg px-3 py-2 text-white font-black text-sm pr-7"
+                              required
+                            />
+                            <span className="absolute right-2.5 top-2 text-xs font-bold text-gray-400">%</span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-[11px] font-bold text-gray-300 block mb-1">Max Cap ($ USD)</label>
+                          <div className="relative">
+                            <span className="absolute left-2.5 top-2 text-xs font-bold text-gray-400">$</span>
+                            <input
+                              type="number"
+                              min="0"
+                              max="100000"
+                              value={sysSettings?.welcomeBonusMax ?? 7500}
+                              onChange={(e) => setSysSettings(prev => ({ ...prev, welcomeBonusMax: e.target.value }))}
+                              className="w-full bg-[#0e1122] border border-white/10 rounded-lg px-3 py-2 text-white font-black text-sm pl-6"
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[11px] font-bold text-gray-300 block mb-1">Free Spins Count</label>
+                          <input
+                            type="number"
+                            min="0"
+                            max="5000"
+                            value={sysSettings?.welcomeBonusSpins ?? 150}
+                            onChange={(e) => setSysSettings(prev => ({ ...prev, welcomeBonusSpins: e.target.value }))}
+                            className="w-full bg-[#0e1122] border border-white/10 rounded-lg px-3 py-2 text-white font-bold text-sm"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[11px] font-bold text-gray-300 block mb-1">Banner Title</label>
+                          <input
+                            type="text"
+                            value={sysSettings?.welcomeBonusTitle || 'TRIPLE TIER WELCOME PACK'}
+                            onChange={(e) => setSysSettings(prev => ({ ...prev, welcomeBonusTitle: e.target.value }))}
+                            className="w-full bg-[#0e1122] border border-white/10 rounded-lg px-3 py-2 text-white font-bold text-sm"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-[11px] font-bold text-gray-300 block mb-1">Banner Subtitle / Description</label>
+                        <textarea
+                          rows={2}
+                          value={sysSettings?.welcomeBonusSubtitle || 'Includes +150 Neon Free Spins and instantaneous Tier II Sovereign Status upgrade.'}
+                          onChange={(e) => setSysSettings(prev => ({ ...prev, welcomeBonusSubtitle: e.target.value }))}
+                          className="w-full bg-[#0e1122] border border-white/10 rounded-lg px-3 py-2 text-white text-xs leading-relaxed"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    {/* Regular Reload Bonus Card */}
+                    <div className="bg-[#070914] border border-purple-500/30 p-5 rounded-xl space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-extrabold text-purple-400 uppercase tracking-wider">
+                          2. Regular Reload (Subsequent Deposits)
+                        </span>
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-purple-500/15 text-purple-300 font-bold uppercase">
+                          After Welcome Claimed
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[11px] font-bold text-gray-300 block mb-1">Reload Match %</label>
+                          <div className="relative">
+                            <input
+                              type="number"
+                              min="0"
+                              max="500"
+                              value={sysSettings?.regularBonusPercent ?? 50}
+                              onChange={(e) => setSysSettings(prev => ({ ...prev, regularBonusPercent: e.target.value }))}
+                              className="w-full bg-[#0e1122] border border-white/10 rounded-lg px-3 py-2 text-white font-black text-sm pr-7"
+                              required
+                            />
+                            <span className="absolute right-2.5 top-2 text-xs font-bold text-gray-400">%</span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-[11px] font-bold text-gray-300 block mb-1">Max Cap ($ USD)</label>
+                          <div className="relative">
+                            <span className="absolute left-2.5 top-2 text-xs font-bold text-gray-400">$</span>
+                            <input
+                              type="number"
+                              min="0"
+                              max="100000"
+                              value={sysSettings?.regularBonusMax ?? 2500}
+                              onChange={(e) => setSysSettings(prev => ({ ...prev, regularBonusMax: e.target.value }))}
+                              className="w-full bg-[#0e1122] border border-white/10 rounded-lg px-3 py-2 text-white font-black text-sm pl-6"
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-[11px] font-bold text-gray-300 block mb-1">Banner Title</label>
+                        <input
+                          type="text"
+                          value={sysSettings?.regularBonusTitle || 'REGULAR RELOAD BOOST'}
+                          onChange={(e) => setSysSettings(prev => ({ ...prev, regularBonusTitle: e.target.value }))}
+                          className="w-full bg-[#0e1122] border border-white/10 rounded-lg px-3 py-2 text-white font-bold text-sm"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[11px] font-bold text-gray-300 block mb-1">Banner Subtitle / Description</label>
+                        <textarea
+                          rows={2}
+                          value={sysSettings?.regularBonusSubtitle || 'Unlimited reload boost on every subsequent crypto & Cash App deposit.'}
+                          onChange={(e) => setSysSettings(prev => ({ ...prev, regularBonusSubtitle: e.target.value }))}
+                          className="w-full bg-[#0e1122] border border-white/10 rounded-lg px-3 py-2 text-white text-xs leading-relaxed"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-3 pt-2">
+                    <button
+                      type="submit"
+                      disabled={savingBonusSettings}
+                      className="btn-gold py-2.5 px-6 text-xs font-black uppercase tracking-wider flex items-center gap-2"
+                    >
+                      {savingBonusSettings ? 'Saving...' : '💾 Save Bonus Configuration'}
+                    </button>
+                  </div>
+                </form>
               </div>
             </div>
           )}

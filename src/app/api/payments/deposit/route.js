@@ -33,20 +33,34 @@ export async function GET(req) {
 
     return NextResponse.json({
       success: true,
-      deposits: deposits.map(d => ({
-        id: d._id.toString(),
-        userId: d.userId,
-        username: d.username,
-        amount: d.amount,
-        methodName: d.methodName,
-        senderNote: d.senderNote || '',
-        proofImage: d.proofImage || null,
-        txHash: d.txHash || '',
-        status: d.status,
-        processedBy: d.processedBy || null,
-        rejectReason: d.rejectReason || null,
-        createdAt: d.createdAt,
-      })),
+      deposits: deposits.map(d => {
+        const bonusType = d.bonusType || 'welcome';
+        const bonusPercent = d.bonusPercent ?? (bonusType === 'welcome' ? 300 : 50);
+        const bonusSC = d.bonusSC !== undefined ? d.bonusSC : Number(((d.amount * bonusPercent) / 100).toFixed(2));
+        const totalSC = d.totalSC !== undefined ? d.totalSC : Number((d.amount + bonusSC).toFixed(2));
+        const totalGC = d.totalGC !== undefined ? d.totalGC : (d.amount * 10000);
+
+        return {
+          id: d._id.toString(),
+          userId: d.userId,
+          username: d.username,
+          amount: d.amount,
+          methodName: d.methodName,
+          senderNote: d.senderNote || '',
+          proofImage: d.proofImage || null,
+          txHash: d.txHash || '',
+          bonusType,
+          bonusPercent,
+          bonusSC,
+          totalSC,
+          totalGC,
+          creditedSC: d.creditedSC || null,
+          status: d.status,
+          processedBy: d.processedBy || null,
+          rejectReason: d.rejectReason || null,
+          createdAt: d.createdAt,
+        };
+      }),
     });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
@@ -74,6 +88,27 @@ export async function POST(req) {
 
     const db = await getDb();
     const depositsCol = db.collection('deposits');
+    const usersCol = db.collection('users');
+    const settingsCol = db.collection('system_settings');
+
+    const [user, settings] = await Promise.all([
+      usersCol.findOne({ _id: new ObjectId(session.userId) }),
+      settingsCol.findOne({ key: 'general' }),
+    ]);
+
+    // Check whether player is claiming Welcome Bonus or Regular Bonus
+    const hasClaimedWelcome = Boolean(user?.welcomeBonusClaimed || (user?.totalDeposited && user.totalDeposited > 0));
+    const bonusType = hasClaimedWelcome ? 'regular' : 'welcome';
+    const bonusPercent = hasClaimedWelcome
+      ? Number(settings?.regularBonusPercent ?? 50)
+      : Number(settings?.welcomeBonusPercent ?? 300);
+    const bonusMax = hasClaimedWelcome
+      ? Number(settings?.regularBonusMax ?? 2500)
+      : Number(settings?.welcomeBonusMax ?? 7500);
+
+    const bonusSC = Number(Math.min((depositAmount * bonusPercent) / 100, bonusMax).toFixed(2));
+    const totalSC = Number((depositAmount + bonusSC).toFixed(2));
+    const totalGC = depositAmount * 10000;
 
     const newDeposit = {
       userId: session.userId,
@@ -84,6 +119,11 @@ export async function POST(req) {
       senderNote: senderNote || '',
       proofImage: proofImage || null,
       txHash: txHash || '',
+      bonusType,
+      bonusPercent,
+      bonusSC,
+      totalSC,
+      totalGC,
       status: 'pending',
       processedBy: null,
       createdAt: new Date(),
@@ -95,6 +135,12 @@ export async function POST(req) {
     return NextResponse.json({
       success: true,
       depositId: res.insertedId.toString(),
+      calculatedCoins: {
+        totalSC,
+        bonusSC,
+        bonusType,
+        totalGC,
+      },
       message: 'Deposit submitted successfully! Our financial desk is verifying your transaction.',
     });
   } catch (error) {
@@ -110,7 +156,7 @@ export async function PUT(req) {
       return NextResponse.json({ success: false, error: 'Unauthorized. Financial Manager access required.' }, { status: 403 });
     }
 
-    const { depositId, action, rejectReason } = await req.json();
+    const { depositId, action, rejectReason, customSC, customGC } = await req.json();
 
     if (!depositId || !action) {
       return NextResponse.json({ success: false, error: 'Deposit ID and action required.' }, { status: 400 });
@@ -136,23 +182,31 @@ export async function PUT(req) {
     }
 
     if (action === 'approve') {
-      const depositSC = deposit.amount; // 1 USD = 1 SC
-      const bonusGC = deposit.amount * 10000; // 10,000 GC per $1
+      // Determine final coins to credit (use custom if provided, otherwise auto-calculated totalSC)
+      const creditedSC = customSC !== undefined && customSC !== null && customSC !== ''
+        ? Number(customSC)
+        : (deposit.totalSC !== undefined ? Number(deposit.totalSC) : Number((deposit.amount + (deposit.bonusSC || 0)).toFixed(2)));
+      const creditedGC = customGC !== undefined && customGC !== null && customGC !== ''
+        ? Number(customGC)
+        : (deposit.totalGC !== undefined ? Number(deposit.totalGC) : deposit.amount * 10000);
 
       const oldSC = user.balanceSC || 0;
-      const newSC = Number((oldSC + depositSC).toFixed(2));
+      const newSC = Number((oldSC + creditedSC).toFixed(2));
 
-      // 1. Credit Player Balance
-      await usersCol.updateOne(
-        { _id: user._id },
-        {
-          $inc: {
-            balanceSC: depositSC,
-            balanceGC: bonusGC,
-            totalDeposited: deposit.amount,
-          },
-        }
-      );
+      // 1. Credit Player Balance & mark welcome bonus claimed if first time
+      const userUpdate = {
+        $inc: {
+          balanceSC: creditedSC,
+          balanceGC: creditedGC,
+          totalDeposited: deposit.amount,
+        },
+      };
+
+      if (!user.welcomeBonusClaimed) {
+        userUpdate.$set = { welcomeBonusClaimed: true };
+      }
+
+      await usersCol.updateOne({ _id: user._id }, userUpdate);
 
       // 2. Mark Deposit as Approved
       await depositsCol.updateOne(
@@ -160,6 +214,8 @@ export async function PUT(req) {
         {
           $set: {
             status: 'approved',
+            creditedSC,
+            creditedGC,
             processedBy: `${session.username} (${session.role})`,
             updatedAt: new Date(),
           },
@@ -172,13 +228,13 @@ export async function PUT(req) {
         username: user.username,
         type: 'deposit',
         currency: 'SC',
-        amount: depositSC,
+        amount: creditedSC,
         balanceBefore: oldSC,
         balanceAfter: newSC,
         performedBy: session.username,
         staffRole: session.role,
         referenceId: depositId,
-        notes: `Deposit approved via ${deposit.methodName}. TXID: ${deposit.txHash || 'N/A'}`,
+        notes: `Deposit $${deposit.amount} approved (${creditedSC} SC credited: $${deposit.amount} base + ${deposit.bonusSC || 0} SC ${deposit.bonusType || 'welcome'} bonus). Method: ${deposit.methodName}. TXID: ${deposit.txHash || 'N/A'}`,
         createdAt: new Date(),
       });
 
@@ -186,7 +242,7 @@ export async function PUT(req) {
       if (user.referredBy && (!user.totalDeposited || user.totalDeposited === 0)) {
         const referrer = await usersCol.findOne({ username: user.referredBy });
         if (referrer) {
-          const commissionSC = Number((depositSC * 0.50).toFixed(2)); // 50% referral bonus
+          const commissionSC = Number((deposit.amount * 0.50).toFixed(2)); // 50% referral bonus based on cash amount
           await usersCol.updateOne(
             { _id: referrer._id },
             {
@@ -205,7 +261,7 @@ export async function PUT(req) {
             balanceBefore: referrer.balanceSC || 0,
             balanceAfter: (referrer.balanceSC || 0) + commissionSC,
             performedBy: 'system',
-            notes: `50% referral commission from player ${user.username}'s first deposit ($${depositSC})`,
+            notes: `50% referral commission from player ${user.username}'s first deposit ($${deposit.amount})`,
             createdAt: new Date(),
           });
         }
@@ -214,11 +270,11 @@ export async function PUT(req) {
       // Send confirmation email
       sendEmail({
         to: user.email,
-        subject: `Deposit Confirmed: $${deposit.amount} SC credited to your Vegas One wallet!`,
-        html: `<p>Hi ${user.username}, your deposit of $${deposit.amount} via ${deposit.methodName} was verified and credited. Best of luck at the tables!</p>`,
+        subject: `Deposit Confirmed: ${creditedSC} SC credited to your Vegas One wallet!`,
+        html: `<p>Hi ${user.username}, your deposit of $${deposit.amount} via ${deposit.methodName} was verified and ${creditedSC} SC (+ ${creditedGC.toLocaleString()} GC) was credited to your account. Best of luck at the tables!</p>`,
       }).catch(() => {});
 
-      return NextResponse.json({ success: true, message: 'Deposit approved and balance credited!' });
+      return NextResponse.json({ success: true, message: `Deposit approved! Credited ${creditedSC} SC to ${user.username}.` });
     } else if (action === 'reject') {
       await depositsCol.updateOne(
         { _id: deposit._id },

@@ -78,6 +78,7 @@ export async function GET() {
         referralCode: user.referralCode || '',
         referredBy: user.referredBy || null,
         totalDeposited: user.totalDeposited || 0,
+        welcomeBonusClaimed: Boolean(user.welcomeBonusClaimed || (user.totalDeposited && user.totalDeposited > 0)),
         affiliateCommissionsUnpaid: user.affiliateCommissionsUnpaid || 0,
         affiliateCommissionsEarned: user.affiliateCommissionsEarned || 0,
         deviceId: user.deviceId || null,

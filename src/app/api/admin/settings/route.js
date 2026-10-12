@@ -6,7 +6,26 @@ export async function GET() {
   try {
     const db = await getDb();
     const settings = await db.collection('system_settings').findOne({ key: 'general' });
-    return NextResponse.json({ success: true, settings });
+    const defaultSettings = {
+      siteName: 'Vegas One',
+      welcomeBonusPercent: 300,
+      welcomeBonusMax: 7500,
+      welcomeBonusSpins: 150,
+      welcomeBonusTitle: 'TRIPLE TIER WELCOME PACK',
+      welcomeBonusSubtitle: 'Includes +150 Neon Free Spins and instantaneous Tier II Sovereign Status upgrade.',
+      regularBonusPercent: 50,
+      regularBonusMax: 2500,
+      regularBonusTitle: 'REGULAR RELOAD BOOST',
+      regularBonusSubtitle: 'Unlimited reload boost on every subsequent crypto & Cash App deposit.',
+      signupBonusSC: 5.0,
+      signupBonusGC: 50000,
+      minRedemptionSC: 50.0,
+      geoRestrictionEnabled: true,
+      restrictedStates: ['WA', 'ID', 'NV', 'MI'],
+      maintenanceMode: false,
+    };
+    const merged = { ...defaultSettings, ...(settings || {}) };
+    return NextResponse.json({ success: true, settings: merged });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
@@ -34,6 +53,18 @@ export async function PUT(req) {
     if (body.signupBonusSC !== undefined) updateFields.signupBonusSC = Number(body.signupBonusSC);
     if (body.signupBonusGC !== undefined) updateFields.signupBonusGC = Number(body.signupBonusGC);
     if (body.minRedemptionSC !== undefined) updateFields.minRedemptionSC = Number(body.minRedemptionSC);
+
+    // Dynamic Welcome & Regular Bonus Settings
+    if (body.welcomeBonusPercent !== undefined) updateFields.welcomeBonusPercent = Number(body.welcomeBonusPercent);
+    if (body.welcomeBonusMax !== undefined) updateFields.welcomeBonusMax = Number(body.welcomeBonusMax);
+    if (body.welcomeBonusSpins !== undefined) updateFields.welcomeBonusSpins = Number(body.welcomeBonusSpins);
+    if (body.welcomeBonusTitle !== undefined) updateFields.welcomeBonusTitle = String(body.welcomeBonusTitle);
+    if (body.welcomeBonusSubtitle !== undefined) updateFields.welcomeBonusSubtitle = String(body.welcomeBonusSubtitle);
+
+    if (body.regularBonusPercent !== undefined) updateFields.regularBonusPercent = Number(body.regularBonusPercent);
+    if (body.regularBonusMax !== undefined) updateFields.regularBonusMax = Number(body.regularBonusMax);
+    if (body.regularBonusTitle !== undefined) updateFields.regularBonusTitle = String(body.regularBonusTitle);
+    if (body.regularBonusSubtitle !== undefined) updateFields.regularBonusSubtitle = String(body.regularBonusSubtitle);
 
     await settingsCol.updateOne(
       { key: 'general' },

@@ -21,7 +21,7 @@ export default function VegasHeroBanner({
 }) {
   // Live ticking progressive mega jackpot
   const [jackpot, setJackpot] = useState(4892150.84);
-  const [copiedCode, setCopiedCode] = useState(false);
+  const [settings, setSettings] = useState(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -30,11 +30,44 @@ export default function VegasHeroBanner({
     return () => clearInterval(timer);
   }, []);
 
-  const handleCopyCode = () => {
-    navigator.clipboard?.writeText('VEGASONE');
-    setCopiedCode(true);
-    setTimeout(() => setCopiedCode(false), 2000);
-  };
+  // Fetch live bonus settings
+  useEffect(() => {
+    fetch('/api/admin/settings')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.settings) {
+          setSettings(data.settings);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // Determine if user has already claimed the welcome bonus
+  const hasClaimedWelcome = Boolean(user?.welcomeBonusClaimed || (user?.totalDeposited && user.totalDeposited > 0));
+
+  const bonusTitle = hasClaimedWelcome
+    ? (settings?.regularBonusTitle || 'REGULAR RELOAD BOOST')
+    : (settings?.welcomeBonusTitle || 'TRIPLE TIER WELCOME PACK');
+
+  const bonusPercent = hasClaimedWelcome
+    ? (settings?.regularBonusPercent ?? 50)
+    : (settings?.welcomeBonusPercent ?? 300);
+
+  const bonusMax = hasClaimedWelcome
+    ? (settings?.regularBonusMax ?? 2500)
+    : (settings?.welcomeBonusMax ?? 7500);
+
+  const bonusBadge = hasClaimedWelcome
+    ? 'UNLIMITED RELOAD BOOST'
+    : 'ZERO WAGERING ESCROW';
+
+  const bonusSubtitle = hasClaimedWelcome
+    ? (settings?.regularBonusSubtitle || `Unlimited ${bonusPercent}% reload boost on every subsequent crypto & Cash App deposit.`)
+    : (settings?.welcomeBonusSubtitle || `Includes +${settings?.welcomeBonusSpins || 150} Neon Free Spins and instantaneous Tier II Sovereign Status upgrade.`);
+
+  const ctaText = hasClaimedWelcome
+    ? 'CLAIM RELOAD BOOST'
+    : 'CLAIM NEON WELCOME';
 
   return (
     <div style={{ position: 'relative', marginBottom: '28px', paddingTop: '8px' }}>
@@ -119,47 +152,31 @@ export default function VegasHeroBanner({
             Step into an unprecedented arena of high-roller rewards, instantaneous vault payouts, and prestige loyalty privileges tailored for discerning sovereign patrons.
           </p>
 
-          {/* Triple Tier Welcome Pack Card */}
+          {/* Dynamic Welcome / Regular Reload Card */}
           <div className="sovereign-welcome-card">
             <div className="sovereign-welcome-header">
-              <div>
+              <div style={{ minWidth: 0, flex: '1 1 auto' }}>
                 <div className="sovereign-welcome-pack-label">
                   <Trophy size={14} color="#00F0FF" />
-                  <span>TRIPLE TIER WELCOME PACK</span>
+                  <span>{bonusTitle}</span>
                 </div>
                 <div className="sovereign-welcome-amount">
-                  300% <span>up to</span> $7,500
+                  <span>{bonusPercent}%</span>
+                  <span className="sovereign-welcome-up-to">up to</span>
+                  <span>${Number(bonusMax).toLocaleString()}</span>
                 </div>
               </div>
 
-              {/* Zero Wagering Escrow Pill & Code */}
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
+              {/* Escrow / Reload Pill */}
+              <div className="sovereign-welcome-badge-wrap">
                 <span className="badge-teal-escrow">
-                  ZERO WAGERING ESCROW
+                  {bonusBadge}
                 </span>
-                <button
-                  type="button"
-                  onClick={handleCopyCode}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: '#A69FB3',
-                    fontSize: '12px',
-                    fontFamily: 'monospace',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                  }}
-                >
-                  Code: <span style={{ color: '#00F0FF', textDecoration: 'underline', fontWeight: 800 }}>VEGASONE</span>
-                  {copiedCode && <span style={{ color: '#00F0FF', fontSize: '10px' }}>✓ Copied</span>}
-                </button>
               </div>
             </div>
 
             <p style={{ margin: 0, paddingTop: '12px', fontSize: '12px', color: '#CBD5E1', fontFamily: 'Lexend, sans-serif', lineHeight: 1.5 }}>
-              Includes <strong style={{ color: '#00F0FF' }}>+150 Neon Free Spins</strong> and instantaneous Tier II Sovereign Status upgrade.
+              {bonusSubtitle}
             </p>
           </div>
 
@@ -175,7 +192,7 @@ export default function VegasHeroBanner({
                 alt="Vegas One"
                 style={{ height: '22px', width: 'auto', objectFit: 'contain' }}
               />
-              <span>CLAIM NEON WELCOME</span>
+              <span>{ctaText}</span>
             </button>
 
             <button

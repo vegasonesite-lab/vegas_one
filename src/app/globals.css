@@ -279,29 +279,26 @@ button:active {
   margin: 0;
 }
 
-/* Triple Tier Welcome Card */
+/* Dynamic Welcome / Regular Reload Card */
 .sovereign-welcome-card {
   background: #171124;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   padding: 24px;
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .sovereign-welcome-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 14px;
   padding-bottom: 14px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-@media (max-width: 640px) {
-  .sovereign-welcome-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+  flex-wrap: wrap;
 }
 
 .sovereign-welcome-pack-label {
@@ -319,17 +316,48 @@ button:active {
 
 .sovereign-welcome-amount {
   font-family: 'Lexend', sans-serif;
-  font-size: 38px;
+  font-size: clamp(22px, 6vw, 36px);
   font-weight: 900;
   color: #FFFFFF;
-  line-height: 1.1;
+  line-height: 1.15;
   letter-spacing: -0.02em;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+  word-break: break-word;
 }
 
-.sovereign-welcome-amount span {
-  font-size: 22px;
+.sovereign-welcome-amount span.sovereign-welcome-up-to {
+  font-size: clamp(13px, 3.5vw, 18px);
   font-weight: 700;
   color: #DDD5E8;
+}
+
+.sovereign-welcome-badge-wrap {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .sovereign-welcome-card {
+    padding: 16px;
+    border-radius: 16px;
+  }
+  .sovereign-welcome-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding-bottom: 12px;
+  }
+  .sovereign-welcome-badge-wrap {
+    align-self: flex-start;
+  }
+  .badge-teal-escrow {
+    font-size: 10px !important;
+    padding: 4px 10px !important;
+  }
 }
 
 /* 2. HERO RIGHT: SALON PRIVÉ LIVE FRAME */

@@ -107,6 +107,19 @@ function WalletContent() {
       .catch(() => {});
   }, []);
 
+  const [sysSettings, setSysSettings] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/admin/settings')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.settings) {
+          setSysSettings(data.settings);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   // Fetch history
   const fetchHistory = async () => {
     setLoadingHistory(true);
@@ -862,6 +875,70 @@ function WalletContent() {
                       />
                     </div>
                   </div>
+
+                  {/* Auto-Calculated Coins Preview Box */}
+                  {(() => {
+                    const hasClaimedWelcome = Boolean(user?.welcomeBonusClaimed || (user?.totalDeposited && user.totalDeposited > 0));
+                    const bonusPercent = hasClaimedWelcome
+                      ? (sysSettings?.regularBonusPercent ?? 50)
+                      : (sysSettings?.welcomeBonusPercent ?? 300);
+                    const bonusMax = hasClaimedWelcome
+                      ? (sysSettings?.regularBonusMax ?? 2500)
+                      : (sysSettings?.welcomeBonusMax ?? 7500);
+                    const amt = Number(depositAmount) || 0;
+                    const bonusSC = Number(Math.min((amt * bonusPercent) / 100, bonusMax).toFixed(2));
+                    const totalSC = Number((amt + bonusSC).toFixed(2));
+                    const totalGC = amt * 10000;
+
+                    return (
+                      <div
+                        style={{
+                          backgroundColor: '#0E0A24',
+                          border: '1px solid rgba(0, 240, 255, 0.3)',
+                          borderRadius: '14px',
+                          padding: '14px 16px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '8px',
+                          boxShadow: '0 4px 20px rgba(0, 240, 255, 0.08)',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#C8C1D4', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                              Auto-Calculated Coins To Receive:
+                            </span>
+                            <span
+                              style={{
+                                fontSize: '9.5px',
+                                fontFamily: 'Lexend, sans-serif',
+                                fontWeight: 800,
+                                padding: '2px 8px',
+                                borderRadius: '9999px',
+                                backgroundColor: hasClaimedWelcome ? 'rgba(168, 85, 247, 0.2)' : 'rgba(0, 240, 255, 0.2)',
+                                color: hasClaimedWelcome ? '#C084FC' : '#00F0FF',
+                                border: hasClaimedWelcome ? '1px solid rgba(168, 85, 247, 0.4)' : '1px solid rgba(0, 240, 255, 0.4)',
+                                textTransform: 'uppercase',
+                              }}
+                            >
+                              {hasClaimedWelcome ? `+${bonusPercent}% Reload Boost` : `+${bonusPercent}% Welcome Pack`}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                            <span style={{ fontFamily: 'Lexend, sans-serif', fontSize: '20px', fontWeight: 900, color: '#10B981' }}>
+                              {totalSC} SC
+                            </span>
+                            <span style={{ fontFamily: 'Lexend, sans-serif', fontSize: '12px', fontWeight: 800, color: '#F59E0B' }}>
+                              +{totalGC.toLocaleString()} GC
+                            </span>
+                          </div>
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
+                          ${amt} USD Base Deposit + {bonusSC} SC Bonus automatically credited directly to your player balance upon approval.
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* Submit Button */}
                   <button
