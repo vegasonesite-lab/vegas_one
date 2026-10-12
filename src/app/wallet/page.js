@@ -301,18 +301,7 @@ function WalletContent() {
           </div>
 
           {/* Full-Width Luxury Vault Hero Banner */}
-          <div
-            style={{
-              background: 'linear-gradient(135deg, #130C35 0%, #09051E 50%, #060314 100%)',
-              border: '1px solid rgba(0, 240, 255, 0.35)',
-              borderRadius: '20px',
-              padding: '20px 24px',
-              marginBottom: '20px',
-              boxShadow: '0 15px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 240, 255, 0.1)',
-              position: 'relative',
-              overflow: 'hidden',
-            }}
-          >
+          <div className="wallet-hero-banner">
             {/* Ambient Cyan Glow */}
             <div
               style={{
@@ -428,25 +417,17 @@ function WalletContent() {
             </div>
           ) : (
             /* Authenticated Cashier Experience */
-            <div
-              style={{
-                backgroundColor: '#0E0A24',
-                border: '1px solid rgba(0, 240, 255, 0.3)',
-                borderRadius: '24px',
-                padding: '24px',
-                boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(0, 240, 255, 0.1)',
-              }}
-            >
+            <div className="wallet-card-container">
               {/* 3-Way Equal Segmented Control */}
               <div
                 style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(3, 1fr)',
-                  gap: '6px',
+                  gap: '5px',
                   backgroundColor: '#070514',
                   borderRadius: '14px',
-                  padding: '5px',
-                  marginBottom: '22px',
+                  padding: '4px',
+                  marginBottom: '20px',
                   border: '1px solid rgba(0, 240, 255, 0.2)',
                 }}
               >
@@ -458,26 +439,26 @@ function WalletContent() {
                     setMessage(null);
                   }}
                   style={{
-                    padding: '12px 6px',
+                    padding: '10px 4px',
                     borderRadius: '10px',
                     border: 'none',
                     background: activeTab === 'deposit' ? 'linear-gradient(135deg, #00F0FF 0%, #00B4D8 100%)' : 'transparent',
                     color: activeTab === 'deposit' ? '#070514' : '#9A91A8',
                     fontFamily: 'Lexend, sans-serif',
                     fontSize: '12px',
-                    fontWeight: 900,
-                    letterSpacing: '0.03em',
+                    fontWeight: 800,
+                    letterSpacing: '0.02em',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '6px',
+                    gap: '5px',
                     transition: 'all 0.15s ease',
                     boxShadow: activeTab === 'deposit' ? '0 4px 18px rgba(0, 240, 255, 0.35)' : 'none',
                   }}
                 >
-                  <ArrowDownCircle size={15} />
-                  <span>DEPOSIT</span>
+                  <ArrowDownCircle size={14} />
+                  <span>Deposit</span>
                 </button>
 
                 <button
@@ -488,26 +469,26 @@ function WalletContent() {
                     setMessage(null);
                   }}
                   style={{
-                    padding: '12px 6px',
+                    padding: '10px 4px',
                     borderRadius: '10px',
                     border: 'none',
                     background: activeTab === 'redeem' ? 'linear-gradient(135deg, #00F0FF 0%, #00B4D8 100%)' : 'transparent',
                     color: activeTab === 'redeem' ? '#070514' : '#9A91A8',
                     fontFamily: 'Lexend, sans-serif',
                     fontSize: '12px',
-                    fontWeight: 900,
-                    letterSpacing: '0.03em',
+                    fontWeight: 800,
+                    letterSpacing: '0.02em',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '6px',
+                    gap: '5px',
                     transition: 'all 0.15s ease',
                     boxShadow: activeTab === 'redeem' ? '0 4px 18px rgba(0, 240, 255, 0.35)' : 'none',
                   }}
                 >
-                  <ArrowUpCircle size={15} />
-                  <span>CASHOUT</span>
+                  <ArrowUpCircle size={14} />
+                  <span>Cashout</span>
                 </button>
 
                 <button
@@ -518,26 +499,26 @@ function WalletContent() {
                     setMessage(null);
                   }}
                   style={{
-                    padding: '12px 6px',
+                    padding: '10px 4px',
                     borderRadius: '10px',
                     border: 'none',
                     background: activeTab === 'history' ? 'linear-gradient(135deg, #00F0FF 0%, #00B4D8 100%)' : 'transparent',
                     color: activeTab === 'history' ? '#070514' : '#9A91A8',
                     fontFamily: 'Lexend, sans-serif',
                     fontSize: '12px',
-                    fontWeight: 900,
-                    letterSpacing: '0.03em',
+                    fontWeight: 800,
+                    letterSpacing: '0.02em',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '6px',
+                    gap: '5px',
                     transition: 'all 0.15s ease',
                     boxShadow: activeTab === 'history' ? '0 4px 18px rgba(0, 240, 255, 0.35)' : 'none',
                   }}
                 >
-                  <Clock size={15} />
-                  <span>HISTORY</span>
+                  <Clock size={14} />
+                  <span>History</span>
                 </button>
               </div>
 
