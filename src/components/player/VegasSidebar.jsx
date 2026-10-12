@@ -51,16 +51,11 @@ export default function VegasSidebar({
         else router.push('/?auth=login');
         return;
       }
-      if (typeof window !== 'undefined') {
-        if (window.location.pathname === '/') {
-          const el = document.getElementById('my-game-accounts-section');
-          if (el) {
-            el.scrollIntoView({ behavior: 'smooth' });
-            return;
-          }
-        }
+      if (typeof onSelectTab === 'function') {
+        onSelectTab('accounts');
+      } else {
+        router.push('/?tab=accounts');
       }
-      router.push('/#my-game-accounts-section');
       return;
     }
 

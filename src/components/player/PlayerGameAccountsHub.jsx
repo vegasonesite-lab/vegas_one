@@ -153,14 +153,6 @@ export default function PlayerGameAccountsHub({
     }
   };
 
-  // Compute available platforms (Platforms where user does NOT have an active account or pending request)
-  const availablePlatforms = games.filter((game) => {
-    const title = (game.title || game.name || '').toLowerCase().trim();
-    const hasActive = activeAccounts.some((a) => (a.gameTitle || '').toLowerCase().trim() === title);
-    const hasPending = pendingRequests.some((p) => (p.gameTitle || '').toLowerCase().trim() === title);
-    return !hasActive && !hasPending;
-  });
-
   return (
     <section id="my-game-accounts-section" style={{ marginBottom: '50px' }}>
       {/* Section Header */}
@@ -312,7 +304,7 @@ export default function PlayerGameAccountsHub({
               No Active Platform IDs Yet
             </p>
             <p style={{ margin: 0, fontSize: '12px', color: '#8E849E', fontFamily: 'Lexend, sans-serif' }}>
-              Browse the available platforms below and click <strong>"Request New ID"</strong> to generate your instant credentials!
+              Your direct credentials and platform accounts will appear here once approved by our desk. Browse our games or make a deposit to activate your accounts.
             </p>
           </div>
         ) : (
@@ -625,118 +617,6 @@ export default function PlayerGameAccountsHub({
           </div>
         </div>
       )}
-
-      {/* ======================================================== */}
-      {/* 3. AVAILABLE PLATFORMS (Jin k accounts nahi bane huwe)   */}
-      {/* ======================================================== */}
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#00F0FF', boxShadow: '0 0 10px #00F0FF' }} />
-          <h3 style={{ margin: 0, fontFamily: 'Lexend, sans-serif', fontSize: '18px', fontWeight: 900, color: '#FFFFFF' }}>
-            Available Platforms ({availablePlatforms.length})
-          </h3>
-          <span style={{ fontSize: '11px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
-            — Request a new player account with 1-click
-          </span>
-        </div>
-
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-            gap: '14px',
-          }}
-        >
-          {availablePlatforms.map((game) => {
-            const gameId = game.gameId || game.id || game._id;
-            const isRequestingThis = requestingGameId === gameId;
-
-            return (
-              <div
-                key={gameId}
-                style={{
-                  backgroundColor: '#0E0922',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  borderRadius: '16px',
-                  padding: '12px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '10px',
-                  transition: 'all 0.2s ease',
-                }}
-                className="hover:border-[#00F0FF]/50"
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-                  <div
-                    style={{
-                      width: '42px',
-                      height: '42px',
-                      borderRadius: '10px',
-                      overflow: 'hidden',
-                      position: 'relative',
-                      backgroundColor: '#070514',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <Image
-                      src={game.thumbnail || '/images/vegas-777.webp'}
-                      alt={game.title}
-                      fill
-                      style={{ objectFit: 'cover' }}
-                    />
-                  </div>
-                  <div style={{ minWidth: 0 }}>
-                    <h5
-                      style={{
-                        margin: 0,
-                        fontFamily: 'Lexend, sans-serif',
-                        fontSize: '13px',
-                        fontWeight: 800,
-                        color: '#FFFFFF',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}
-                    >
-                      {game.title}
-                    </h5>
-                    <p style={{ margin: '2px 0 0 0', fontSize: '9.5px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
-                      RTP {game.rtp ? `${Number(game.rtp).toFixed(1)}%` : '99.4%'}
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => handleRequestAccount(game)}
-                  disabled={isRequestingThis}
-                  style={{
-                    backgroundColor: '#140E33',
-                    border: '1px solid rgba(0, 240, 255, 0.4)',
-                    color: '#00F0FF',
-                    borderRadius: '8px',
-                    padding: '7px 12px',
-                    fontFamily: 'Lexend, sans-serif',
-                    fontSize: '10.5px',
-                    fontWeight: 900,
-                    cursor: isRequestingThis ? 'not-allowed' : 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    flexShrink: 0,
-                    transition: 'all 0.15s ease',
-                  }}
-                  className="hover:scale-105"
-                >
-                  <PlusCircle size={12} />
-                  <span>{isRequestingThis ? 'REQUESTING...' : 'REQUEST ID'}</span>
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      </div>
     </section>
   );
 }

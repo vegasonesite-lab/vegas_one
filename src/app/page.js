@@ -57,13 +57,17 @@ export default function Home() {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [subscriptionModalOpen, setSubscriptionModalOpen] = useState(false);
 
-  // Auto-open Auth modal if redirected with ?auth=login or ?auth=register
+  // Auto-open Auth modal if redirected with ?auth=login or ?auth=register, and switch active tab if ?tab=...
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const authParam = params.get('auth');
       if (authParam === 'login' || authParam === 'register') {
         setAuthModal({ open: true, tab: authParam });
+      }
+      const tabParam = params.get('tab');
+      if (tabParam && ['main', 'accounts', 'ledger', 'referrals', 'profile', 'rules'].includes(tabParam)) {
+        setActiveTab(tabParam);
       }
     }
   }, []);
@@ -256,18 +260,6 @@ export default function Home() {
                     user={user}
                     onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
                     onBalanceUpdated={refreshUser}
-                  />
-
-                  {/* Player Game Accounts Hub: Active Platform IDs vs Available Platforms to Request */}
-                  <PlayerGameAccountsHub
-                    user={user}
-                    games={games}
-                    onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
-                    onPlayGame={handlePlayGame}
-                    onDeposit={() => {
-                      if (!user) setAuthModal({ open: true, tab: 'login' });
-                      else router.push('/wallet?tab=deposit');
-                    }}
                   />
 
                   {/* The Grand Collection - Sweepstakes Games */}
