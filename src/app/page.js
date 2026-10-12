@@ -189,9 +189,19 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070514] text-[#F8FAFC] selection:bg-[#00F0FF] selection:text-[#070514] flex flex-col justify-between font-body antialiased">
-      <div>
-        {/* 1. Sovereign Luxury Navigation Bar */}
+    <div className="min-h-screen bg-[#070514] text-[#F8FAFC] selection:bg-[#00F0FF] selection:text-[#070514] font-body antialiased">
+      {/* 1. Permanent Fixed 100vh Left Sidebar */}
+      <VegasSidebar
+        user={user}
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
+        mobileOpen={mobileSidebarOpen}
+        onCloseMobile={() => setMobileSidebarOpen(false)}
+      />
+
+      {/* 2. Right-Hand Scrollable Content Hub */}
+      <div className="vegas-page-right-content">
         <VegasNavbar
           user={user}
           activeTab={activeTab}
@@ -218,23 +228,7 @@ export default function Home() {
           setSoundEnabled={setSoundEnabled}
         />
 
-        {/* 2. Split Screen Layout: Fixed Left Sidebar + Main Casino Hub */}
-        <div style={{ display: 'flex', minHeight: 'calc(100vh - 82px)' }}>
-          <VegasSidebar
-            user={user}
-            activeTab={activeTab}
-            onSelectTab={setActiveTab}
-            onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
-            onOpenDailyBonus={() => {
-              if (!user) setAuthModal({ open: true, tab: 'login' });
-              else setDailyBonusOpen(true);
-            }}
-            mobileOpen={mobileSidebarOpen}
-            onCloseMobile={() => setMobileSidebarOpen(false)}
-          />
-
-          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-            <main className="sovereign-container" style={{ paddingTop: '18px', paddingBottom: '60px', width: '100%' }}>
+        <main className="sovereign-container" style={{ paddingTop: '18px', paddingBottom: '60px', width: '100%' }}>
               {/* TAB 1: CASINO LOBBY */}
               {activeTab === 'main' && (
                 <div>
@@ -389,27 +383,25 @@ export default function Home() {
                 </div>
               )}
             </main>
+
+            {/* 3. Prestige Footer */}
+            <VegasFooter
+              onSelectTab={setActiveTab}
+              onOpenSupport={() => {
+                const chatBtn = document.querySelector('[aria-label="Open 24/7 Live Support"]');
+                if (chatBtn) chatBtn.click();
+              }}
+            />
+
+            {/* 4. Mobile Bottom Dock Bar */}
+            <MobileBottomNav
+              activeTab={activeTab}
+              onSelectTab={setActiveTab}
+              onOpenWallet={() => setWalletOpen(true)}
+              onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
+              user={user}
+            />
           </div>
-        </div>
-      </div>
-
-      {/* 3. Prestige Footer (Image 5) */}
-      <VegasFooter
-        onSelectTab={setActiveTab}
-        onOpenSupport={() => {
-          const chatBtn = document.querySelector('[aria-label="Open 24/7 Live Support"]');
-          if (chatBtn) chatBtn.click();
-        }}
-      />
-
-      {/* 4. Mobile Bottom Dock Bar */}
-      <MobileBottomNav
-        activeTab={activeTab}
-        onSelectTab={setActiveTab}
-        onOpenWallet={() => setWalletOpen(true)}
-        onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
-        user={user}
-      />
 
       {/* 5. Bonus Alerts Toast Notification */}
       <BonusAlertToast onAllowed={() => setPromoOpen(true)} />

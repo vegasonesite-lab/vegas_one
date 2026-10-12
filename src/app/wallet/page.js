@@ -245,9 +245,22 @@ function WalletContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070514] text-[#F8FAFC] selection:bg-[#00F0FF] selection:text-[#070514] flex flex-col justify-between font-body antialiased">
-      <div>
-        {/* Navigation Bar */}
+    <div className="min-h-screen bg-[#070514] text-[#F8FAFC] selection:bg-[#00F0FF] selection:text-[#070514] font-body antialiased">
+      {/* 1. Permanent Fixed 100vh Left Sidebar */}
+      <VegasSidebar
+        user={user}
+        activeTab={activeTab === 'deposit' ? 'deposit' : activeTab === 'redeem' ? 'redeem' : 'ledger'}
+        onSelectTab={(t) => {
+          if (t === 'main') router.push('/');
+          else if (t.startsWith('/')) router.push(t);
+        }}
+        onOpenAuth={(t) => setAuthModal({ open: true, tab: t })}
+        mobileOpen={mobileSidebarOpen}
+        onCloseMobile={() => setMobileSidebarOpen(false)}
+      />
+
+      {/* 2. Right-Hand Scrollable Content Area */}
+      <div className="vegas-page-right-content">
         <VegasNavbar
           user={user}
           activeTab="wallet"
@@ -259,23 +272,9 @@ function WalletContent() {
           onOpenWallet={() => {}}
         />
 
-        {/* Split Layout: Desktop Left Sidebar + Main Content */}
-        <div style={{ display: 'flex', minHeight: 'calc(100vh - 82px)' }}>
-          <VegasSidebar
-            user={user}
-            activeTab={activeTab === 'deposit' ? 'deposit' : activeTab === 'redeem' ? 'redeem' : 'ledger'}
-            onSelectTab={(t) => {
-              if (t === 'main') router.push('/');
-              else if (t.startsWith('/')) router.push(t);
-            }}
-            onOpenAuth={(t) => setAuthModal({ open: true, tab: t })}
-            mobileOpen={mobileSidebarOpen}
-            onCloseMobile={() => setMobileSidebarOpen(false)}
-          />
-
-          {/* Main Vault Content */}
-          <main style={{ flex: 1, padding: '24px 20px 80px 20px', maxWidth: '960px', margin: '0 auto', width: '100%' }}>
-            {/* Top Breadcrumb & Header */}
+        {/* Main Vault Content */}
+        <main style={{ padding: '24px 20px 80px 20px', maxWidth: '960px', margin: '0 auto', width: '100%' }}>
+          {/* Top Breadcrumb & Header */}
             <div style={{ marginBottom: '22px' }}>
               <Link
                 href="/"
@@ -1003,22 +1002,21 @@ function WalletContent() {
                 )}
               </div>
             )}
-          </main>
-        </div>
+        </main>
+
+        <VegasFooter onSelectTab={(tab) => router.push(`/${tab}`)} />
+
+        <MobileBottomNav
+          activeTab="wallet"
+          onSelectTab={(tab) => {
+            if (tab === 'main') router.push('/');
+            else router.push(`/${tab}`);
+          }}
+          onOpenWallet={() => router.push('/wallet')}
+          onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
+          user={user}
+        />
       </div>
-
-      <VegasFooter onSelectTab={(tab) => router.push(`/${tab}`)} />
-
-      <MobileBottomNav
-        activeTab="wallet"
-        onSelectTab={(tab) => {
-          if (tab === 'main') router.push('/');
-          else router.push(`/${tab}`);
-        }}
-        onOpenWallet={() => router.push('/wallet')}
-        onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
-        user={user}
-      />
 
       <LiveChatWidget user={user} />
 

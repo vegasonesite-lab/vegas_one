@@ -10,17 +10,12 @@ import {
   ArrowUpCircle,
   Clock,
   Key,
-  Gift,
   Users,
   Smartphone,
   Headphones,
   ShieldCheck,
-  Sparkles,
   Flame,
-  ChevronRight,
-  X,
-  Layers,
-  Coins
+  X
 } from 'lucide-react';
 
 export default function VegasSidebar({
@@ -28,7 +23,6 @@ export default function VegasSidebar({
   activeTab = 'main',
   onSelectTab,
   onOpenAuth,
-  onOpenDailyBonus,
   mobileOpen = false,
   onCloseMobile,
 }) {
@@ -43,16 +37,6 @@ export default function VegasSidebar({
         else router.push(`/?auth=${target}`);
         return;
       }
-    }
-
-    if (action === 'dailyBonus') {
-      if (!user) {
-        if (onOpenAuth) onOpenAuth('login');
-        else router.push('/?auth=login');
-        return;
-      }
-      if (onOpenDailyBonus) onOpenDailyBonus();
-      return;
     }
 
     if (action === 'support') {
@@ -89,7 +73,7 @@ export default function VegasSidebar({
 
   const navSections = [
     {
-      title: 'CASINO GAMES',
+      title: 'CASINO ARENA',
       items: [
         {
           id: 'lobby',
@@ -145,17 +129,8 @@ export default function VegasSidebar({
       ],
     },
     {
-      title: 'REWARDS & COMMUNITY',
+      title: 'VIP & APPS',
       items: [
-        {
-          id: 'dailyBonus',
-          label: 'Daily Bonus Wheel',
-          icon: Gift,
-          action: 'dailyBonus',
-          requiresAuth: true,
-          badge: 'FREE',
-          badgeColor: '#E026D8',
-        },
         {
           id: 'referrals',
           label: 'VIP 50% Referrals',
@@ -183,22 +158,29 @@ export default function VegasSidebar({
         backgroundColor: '#070514',
       }}
     >
-      {/* 1. Mobile Drawer Close Bar */}
-      {isDrawer && (
-        <div
+      {/* 1. Top Logo Zone (Fixed at the very top, perfectly matching the 82px navbar line) */}
+      <div className="vegas-sidebar-top-logo">
+        <Link
+          href="/"
+          onClick={() => {
+            if (isDrawer && onCloseMobile) onCloseMobile();
+          }}
           style={{
-            padding: '16px 20px',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+            textDecoration: 'none',
+            flex: 1,
           }}
         >
           <img
             src="/images/logo.png"
-            alt="Vegas One"
-            style={{ height: '36px', width: 'auto', objectFit: 'contain' }}
+            alt="Vegas One Luxury Casino"
+            className="vegas-navbar-logo hover:scale-105"
+            style={{ height: '48px', width: 'auto', objectFit: 'contain' }}
           />
+        </Link>
+
+        {isDrawer && (
           <button
             type="button"
             onClick={onCloseMobile}
@@ -214,125 +196,23 @@ export default function VegasSidebar({
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
+              marginLeft: '8px',
             }}
           >
             <X size={18} />
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* 2. Patron Vault Status Card (Only if User Logged In) */}
-      {user && (
-        <div style={{ padding: '14px 14px 4px 14px' }}>
-          <div
-            style={{
-              background: 'linear-gradient(145deg, #120A2E 0%, #080416 100%)',
-              border: '1px solid rgba(0, 240, 255, 0.35)',
-              borderRadius: '16px',
-              padding: '12px 14px',
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.6), inset 0 0 15px rgba(0, 240, 255, 0.08)',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div
-                  style={{
-                    width: '30px',
-                    height: '30px',
-                    borderRadius: '50%',
-                    backgroundColor: 'rgba(0, 240, 255, 0.2)',
-                    border: '1px solid rgba(0, 240, 255, 0.5)',
-                    color: '#00F0FF',
-                    fontFamily: 'Lexend, sans-serif',
-                    fontWeight: 900,
-                    fontSize: '11px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {user.username ? user.username.substring(0, 2).toUpperCase() : 'VIP'}
-                </div>
-                <div>
-                  <p style={{ margin: 0, fontSize: '12px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#FFFFFF' }}>
-                    {user.username}
-                  </p>
-                  <p style={{ margin: 0, fontSize: '9px', color: '#00F0FF', fontFamily: 'Lexend, sans-serif', textTransform: 'uppercase' }}>
-                    Patron Vault
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div style={{ margin: '6px 0 10px 0', padding: '6px 10px', backgroundColor: '#070514', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-              <p style={{ margin: 0, fontSize: '9px', color: '#9A91A8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                VAULT BALANCE
-              </p>
-              <p style={{ margin: '2px 0 0 0', fontFamily: 'Lexend, sans-serif', fontSize: '18px', fontWeight: 900, color: '#00F0FF' }}>
-                ${Number(user.balanceSC ?? user.balance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </p>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-              <button
-                type="button"
-                onClick={() => handleNav('/wallet?tab=deposit')}
-                style={{
-                  background: 'linear-gradient(135deg, #E026D8 0%, #00F0FF 100%)',
-                  color: '#FFFFFF',
-                  border: 'none',
-                  borderRadius: '8px',
-                  padding: '7px 0',
-                  fontFamily: 'Lexend, sans-serif',
-                  fontSize: '11px',
-                  fontWeight: 900,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '4px',
-                }}
-              >
-                <ArrowDownCircle size={13} />
-                <span>DEPOSIT</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleNav('/wallet?tab=redeem')}
-                style={{
-                  background: '#140E33',
-                  border: '1px solid rgba(0, 240, 255, 0.4)',
-                  color: '#FFFFFF',
-                  borderRadius: '8px',
-                  padding: '7px 0',
-                  fontFamily: 'Lexend, sans-serif',
-                  fontSize: '11px',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '4px',
-                }}
-              >
-                <ArrowUpCircle size={13} color="#00F0FF" />
-                <span>CASHOUT</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 3. Categorized Navigation Links */}
-      <div className="modal-scrollable" style={{ flex: 1, overflowY: 'auto', padding: '8px 10px 16px 10px' }}>
+      {/* 2. Categorized Navigation Links */}
+      <div className="modal-scrollable" style={{ flex: 1, overflowY: 'auto', padding: '14px 10px' }}>
         {navSections.map((section, secIdx) => (
-          <div key={secIdx} style={{ marginBottom: '10px' }}>
+          <div key={secIdx} style={{ marginBottom: '14px' }}>
             <div className="vegas-sidebar-section-header">
               <span>{section.title}</span>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
               {section.items.map((item) => {
                 const Icon = item.icon;
                 const isSelected = activeTab === item.id;
@@ -361,7 +241,7 @@ export default function VegasSidebar({
                           color={isSelected ? '#00F0FF' : '#9A91A8'}
                         />
                       </div>
-                      <span style={{ fontSize: '12px', fontWeight: isSelected ? 800 : 600 }}>
+                      <span style={{ fontSize: '12.5px', fontWeight: isSelected ? 800 : 600 }}>
                         {item.label}
                       </span>
                     </div>
@@ -386,7 +266,7 @@ export default function VegasSidebar({
         ))}
       </div>
 
-      {/* 4. Luxury Support & Trust Footer */}
+      {/* 3. Luxury Support & Trust Footer */}
       <div className="vegas-sidebar-footer-box">
         <button
           type="button"
@@ -400,7 +280,7 @@ export default function VegasSidebar({
             backgroundColor: '#140E33',
             border: '1px solid rgba(0, 240, 255, 0.35)',
             borderRadius: '12px',
-            padding: '10px 14px',
+            padding: '11px 14px',
             color: '#00F0FF',
             fontFamily: 'Lexend, sans-serif',
             fontSize: '11.5px',
@@ -436,12 +316,12 @@ export default function VegasSidebar({
 
   return (
     <>
-      {/* Permanent Desktop/Laptop Sidebar (Controlled by .vegas-sidebar-container in globals.css) */}
+      {/* Permanent Fixed 100vh Desktop Sidebar */}
       <aside className="vegas-sidebar-container">
         {renderContent(false)}
       </aside>
 
-      {/* Mobile Slide-Out Drawer (When Mobile User Clicks Mobile Menu Button) */}
+      {/* Mobile Slide-Out Drawer */}
       {mobileOpen && (
         <div
           style={{

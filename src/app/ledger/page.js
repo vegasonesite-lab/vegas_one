@@ -37,8 +37,22 @@ export default function LedgerPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#070514] text-[#F8FAFC] selection:bg-[#00F0FF] selection:text-[#070514] flex flex-col justify-between font-body antialiased">
-      <div>
+    <div className="min-h-screen bg-[#070514] text-[#F8FAFC] selection:bg-[#00F0FF] selection:text-[#070514] font-body antialiased">
+      {/* 1. Permanent Fixed 100vh Left Sidebar */}
+      <VegasSidebar
+        user={user}
+        activeTab="ledger"
+        onSelectTab={(t) => {
+          if (t === 'main') router.push('/');
+          else if (t.startsWith('/')) router.push(t);
+        }}
+        onOpenAuth={(t) => setAuthModal({ open: true, tab: t })}
+        mobileOpen={mobileSidebarOpen}
+        onCloseMobile={() => setMobileSidebarOpen(false)}
+      />
+
+      {/* 2. Right-Hand Scrollable Content Area */}
+      <div className="vegas-page-right-content">
         <VegasNavbar
           user={user}
           activeTab="ledger"
@@ -54,55 +68,40 @@ export default function LedgerPage() {
           onToggleMobileSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
         />
 
-        <div style={{ display: 'flex', minHeight: 'calc(100vh - 82px)' }}>
-          <VegasSidebar
-            user={user}
-            activeTab="ledger"
-            onSelectTab={(t) => {
-              if (t === 'main') router.push('/');
-              else if (t.startsWith('/')) router.push(t);
+        <main className="sovereign-container" style={{ paddingTop: '24px', paddingBottom: '70px', width: '100%' }}>
+          <Link
+            href="/"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              color: '#00F0FF',
+              fontSize: '12px',
+              fontWeight: 700,
+              textDecoration: 'none',
+              marginBottom: '20px',
             }}
-            onOpenAuth={(t) => setAuthModal({ open: true, tab: t })}
-            mobileOpen={mobileSidebarOpen}
-            onCloseMobile={() => setMobileSidebarOpen(false)}
-          />
+          >
+            <ArrowLeft size={14} />
+            <span>Back to Casino Lobby</span>
+          </Link>
 
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <main className="sovereign-container" style={{ paddingTop: '24px', paddingBottom: '70px', width: '100%' }}>
-              <Link
-                href="/"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  color: '#00F0FF',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  textDecoration: 'none',
-                  marginBottom: '20px',
-                }}
-              >
-                <ArrowLeft size={14} />
-                <span>Back to Casino Lobby</span>
-              </Link>
+          <PlayerLedgerTab user={user} />
+        </main>
 
-              <PlayerLedgerTab user={user} />
-            </main>
-          </div>
-        </div>
+        <VegasFooter onSelectTab={(tab) => router.push(`/${tab}`)} />
+
+        <MobileBottomNav
+          activeTab="ledger"
+          onSelectTab={(tab) => {
+            if (tab === 'main') router.push('/');
+            else router.push(`/${tab}`);
+          }}
+          onOpenWallet={() => router.push('/wallet')}
+          onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
+          user={user}
+        />
       </div>
-
-      <VegasFooter onSelectTab={(tab) => router.push(`/${tab}`)} />
-      <MobileBottomNav
-        activeTab="ledger"
-        onSelectTab={(tab) => {
-          if (tab === 'main') router.push('/');
-          else router.push(`/${tab}`);
-        }}
-        onOpenWallet={() => router.push('/wallet')}
-        onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
-        user={user}
-      />
       <LiveChatWidget user={user} />
       <AuthModal
         isOpen={authModal.open}

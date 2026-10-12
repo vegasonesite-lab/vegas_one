@@ -60,8 +60,22 @@ export default function DownloadAppPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#070514] text-[#F8FAFC] selection:bg-[#00F0FF] selection:text-[#070514] flex flex-col justify-between font-body antialiased">
-      <div>
+    <div className="min-h-screen bg-[#070514] text-[#F8FAFC] selection:bg-[#00F0FF] selection:text-[#070514] font-body antialiased">
+      {/* 1. Permanent Fixed 100vh Left Sidebar */}
+      <VegasSidebar
+        user={user}
+        activeTab="download-app"
+        onSelectTab={(t) => {
+          if (t === 'main') router.push('/');
+          else if (t.startsWith('/')) router.push(t);
+        }}
+        onOpenAuth={(t) => setAuthModal({ open: true, tab: t })}
+        mobileOpen={mobileSidebarOpen}
+        onCloseMobile={() => setMobileSidebarOpen(false)}
+      />
+
+      {/* 2. Right-Hand Scrollable Content Area */}
+      <div className="vegas-page-right-content">
         <VegasNavbar
           user={user}
           activeTab="download-app"
@@ -77,21 +91,7 @@ export default function DownloadAppPage() {
           onToggleMobileSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
         />
 
-        <div style={{ display: 'flex', minHeight: 'calc(100vh - 82px)' }}>
-          <VegasSidebar
-            user={user}
-            activeTab="download-app"
-            onSelectTab={(t) => {
-              if (t === 'main') router.push('/');
-              else if (t.startsWith('/')) router.push(t);
-            }}
-            onOpenAuth={(t) => setAuthModal({ open: true, tab: t })}
-            mobileOpen={mobileSidebarOpen}
-            onCloseMobile={() => setMobileSidebarOpen(false)}
-          />
-
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <main className="sovereign-container" style={{ paddingTop: '24px', paddingBottom: '70px', width: '100%' }}>
+        <main className="sovereign-container" style={{ paddingTop: '24px', paddingBottom: '70px', width: '100%' }}>
           <Link
             href="/"
             style={{
@@ -365,13 +365,12 @@ export default function DownloadAppPage() {
               })}
             </div>
           </div>
-            </main>
-          </div>
-        </div>
+        </main>
+
+        <VegasFooter onSelectTab={() => {}} />
+        <MobileBottomNav activeTab="download-app" onSelectTab={() => {}} />
       </div>
 
-      <VegasFooter onSelectTab={() => {}} />
-      <MobileBottomNav activeTab="download-app" onSelectTab={() => {}} />
       <LiveChatWidget />
 
       {authModal.open && (

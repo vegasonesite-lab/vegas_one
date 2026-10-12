@@ -117,10 +117,23 @@ export default function GameDetailPage() {
 
     fetchGame();
   }, [gameId]);
-
   return (
-    <div className="min-h-screen bg-[#070514] text-[#F8FAFC] selection:bg-[#00F0FF] selection:text-[#070514] flex flex-col justify-between font-body antialiased">
-      <div>
+    <div className="min-h-screen bg-[#070514] text-[#F8FAFC] selection:bg-[#00F0FF] selection:text-[#070514] font-body antialiased">
+      {/* 1. Fixed 100vh Left Sovereign Sidebar */}
+      <VegasSidebar
+        user={user}
+        activeTab="games"
+        onSelectTab={(t) => {
+          if (t === 'main') router.push('/');
+          else if (t.startsWith('/')) router.push(t);
+        }}
+        onOpenAuth={(t) => setAuthModal({ open: true, tab: t })}
+        mobileOpen={mobileSidebarOpen}
+        onCloseMobile={() => setMobileSidebarOpen(false)}
+      />
+
+      {/* 2. Right-Hand Scrollable Content Area */}
+      <div className="vegas-page-right-content">
         {/* Top Sovereign Navbar */}
         <VegasNavbar
           user={user}
@@ -138,33 +151,19 @@ export default function GameDetailPage() {
           setSoundEnabled={setSoundEnabled}
         />
 
-        <div style={{ display: 'flex', minHeight: 'calc(100vh - 82px)' }}>
-          <VegasSidebar
-            user={user}
-            activeTab="games"
-            onSelectTab={(t) => {
-              if (t === 'main') router.push('/');
-              else if (t.startsWith('/')) router.push(t);
+        {/* Main Content Area */}
+        <main className="sovereign-container" style={{ paddingTop: '24px', paddingBottom: '70px', width: '100%' }}>
+          {/* Breadcrumbs Navigation */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '20px',
+              flexWrap: 'wrap',
+              gap: '12px',
             }}
-            onOpenAuth={(t) => setAuthModal({ open: true, tab: t })}
-            mobileOpen={mobileSidebarOpen}
-            onCloseMobile={() => setMobileSidebarOpen(false)}
-          />
-
-          <div style={{ flex: 1, minWidth: 0 }}>
-            {/* Main Content Area */}
-            <main className="sovereign-container" style={{ paddingTop: '24px', paddingBottom: '70px', width: '100%' }}>
-              {/* Breadcrumbs Navigation */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: '20px',
-                  flexWrap: 'wrap',
-                  gap: '12px',
-                }}
-              >
+          >
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#9A91A8' }}>
               <Link
                 href="/"
@@ -260,21 +259,19 @@ export default function GameDetailPage() {
             </div>
           )}
         </main>
+
+        {/* Footer */}
+        <VegasFooter onSelectTab={() => router.push('/')} />
+
+        {/* Mobile Bottom Dock */}
+        <MobileBottomNav
+          activeTab="main"
+          onSelectTab={() => router.push('/')}
+          onOpenWallet={() => setWalletOpen(true)}
+          onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
+          user={user}
+        />
       </div>
-    </div>
-  </div>
-
-      {/* Footer */}
-      <VegasFooter onSelectTab={() => router.push('/')} />
-
-      {/* Mobile Bottom Dock */}
-      <MobileBottomNav
-        activeTab="main"
-        onSelectTab={() => router.push('/')}
-        onOpenWallet={() => setWalletOpen(true)}
-        onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
-        user={user}
-      />
 
       {/* Floating 24/7 Live Support Chat */}
       <LiveChatWidget user={user} soundEnabled={soundEnabled} />

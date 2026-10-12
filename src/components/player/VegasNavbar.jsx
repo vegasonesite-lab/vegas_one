@@ -124,8 +124,8 @@ export default function VegasNavbar({
       }}
     >
       <div className="vegas-navbar-full-width">
-        {/* Left: Neon Vegas One Marquee Badge Logo (Directly above 250px Sidebar) */}
-        <div className="vegas-navbar-logo-zone">
+        {/* Left: Mobile-Only Logo (On desktop, logo is in the 100vh fixed sidebar) */}
+        <div className="navbar-mobile-logo">
           <Link
             href="/"
             onClick={handleLogoClick}
@@ -147,8 +147,8 @@ export default function VegasNavbar({
           </Link>
         </div>
 
-        {/* Center: Single Elegant Sweepstakes Games Pill */}
-        <div className="hidden md:flex" style={{ alignItems: 'center' }}>
+        {/* Desktop Left: Sweepstakes Games Pill */}
+        <div className="navbar-desktop-pill">
           <Link
             href="/games"
             style={{

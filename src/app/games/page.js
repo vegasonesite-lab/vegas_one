@@ -88,8 +88,22 @@ export default function GamesPage() {
     });
 
   return (
-    <div className="min-h-screen bg-[#070514] text-[#F8FAFC] selection:bg-[#00F0FF] selection:text-[#070514] flex flex-col justify-between font-body antialiased">
-      <div>
+    <div className="min-h-screen bg-[#070514] text-[#F8FAFC] selection:bg-[#00F0FF] selection:text-[#070514] font-body antialiased">
+      {/* 1. Permanent Fixed 100vh Left Sidebar */}
+      <VegasSidebar
+        user={user}
+        activeTab="games"
+        onSelectTab={(t) => {
+          if (t === 'main') router.push('/');
+          else if (t.startsWith('/')) router.push(t);
+        }}
+        onOpenAuth={(t) => setAuthModal({ open: true, tab: t })}
+        mobileOpen={mobileSidebarOpen}
+        onCloseMobile={() => setMobileSidebarOpen(false)}
+      />
+
+      {/* 2. Right-Hand Scrollable Content Area */}
+      <div className="vegas-page-right-content">
         <VegasNavbar
           user={user}
           activeTab="games"
@@ -109,22 +123,8 @@ export default function GamesPage() {
           setSoundEnabled={setSoundEnabled}
         />
 
-        <div style={{ display: 'flex', minHeight: 'calc(100vh - 82px)' }}>
-          <VegasSidebar
-            user={user}
-            activeTab="games"
-            onSelectTab={(t) => {
-              if (t === 'main') router.push('/');
-              else if (t.startsWith('/')) router.push(t);
-            }}
-            onOpenAuth={(t) => setAuthModal({ open: true, tab: t })}
-            mobileOpen={mobileSidebarOpen}
-            onCloseMobile={() => setMobileSidebarOpen(false)}
-          />
-
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <main className="sovereign-container" style={{ paddingTop: '24px', paddingBottom: '70px', width: '100%' }}>
-              {/* Breadcrumb & Header */}
+        <main className="sovereign-container" style={{ paddingTop: '24px', paddingBottom: '70px', width: '100%' }}>
+          {/* Breadcrumb & Header */}
               <div style={{ marginBottom: '24px' }}>
             <Link
               href="/"
@@ -228,22 +228,20 @@ export default function GamesPage() {
             </div>
           )}
         </main>
-          </div>
-        </div>
+
+        <VegasFooter onSelectTab={(tab) => router.push(`/${tab}`)} />
+
+        <MobileBottomNav
+          activeTab="games"
+          onSelectTab={(tab) => {
+            if (tab === 'main') router.push('/');
+            else router.push(`/${tab}`);
+          }}
+          onOpenWallet={() => router.push('/wallet')}
+          onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
+          user={user}
+        />
       </div>
-
-      <VegasFooter onSelectTab={(tab) => router.push(`/${tab}`)} />
-
-      <MobileBottomNav
-        activeTab="games"
-        onSelectTab={(tab) => {
-          if (tab === 'main') router.push('/');
-          else router.push(`/${tab}`);
-        }}
-        onOpenWallet={() => router.push('/wallet')}
-        onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
-        user={user}
-      />
 
       <LiveChatWidget user={user} soundEnabled={soundEnabled} />
 
