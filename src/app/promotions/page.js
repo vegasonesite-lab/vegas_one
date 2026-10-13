@@ -91,10 +91,10 @@ export default function PromotionsPage() {
                 <span>FACEBOOK OFFICIAL PROMO HUB</span>
               </div>
               <h2 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '26px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 8px 0' }}>
-                Daily Freeplay Drops &amp; Exclusive Tournament Codes
+                Daily Freeplay Drops &amp; Exclusive Tournament Rewards
               </h2>
               <p style={{ margin: 0, fontSize: '13px', color: '#E3F2FD', lineHeight: 1.5 }}>
-                Follow our official Facebook page and join the VIP community group. We drop exclusive <strong>$5 - $50 Freeplay redeem codes</strong> every 6 hours and host weekly giveaway draws!
+                Follow our official Facebook page and join the VIP community group. We drop exclusive <strong>$5 - $50 Freeplay instant bonuses</strong> every 6 hours and host weekly giveaway draws!
               </p>
             </div>
 
@@ -156,7 +156,7 @@ export default function PromotionsPage() {
                   300% Bonus Up to $7,500
                 </h3>
                 <p style={{ fontSize: '13px', color: '#B3A9C0', lineHeight: 1.5, margin: '0 0 16px 0' }}>
-                  Deposit using Cash App, Zelle, or Venmo and get 300% extra Sweeps Coins plus 150 Free Spins. Code: <strong>VEGASONE</strong>
+                  Deposit using Cash App, Zelle, or Venmo and get 300% extra Sweeps Coins plus 150 Free Spins automatically credited upon deposit.
                 </p>
                 <Link href="/wallet" className="btn-sovereign-coral" style={{ textDecoration: 'none', fontSize: '11px', padding: '10px 20px' }}>
                   LOAD COINS

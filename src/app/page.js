@@ -27,7 +27,6 @@ import AuthModal from '@/components/AuthModal';
 import WalletModal from '@/components/WalletModal';
 import KycModal from '@/components/KycModal';
 import DailyBonusModal from '@/components/DailyBonusModal';
-import PromoModal from '@/components/PromoModal';
 import NotificationsModal from '@/components/NotificationsModal';
 import Vegas777SlotModal from '@/components/games/Vegas777SlotModal';
 import NeonCrashModal from '@/components/games/NeonCrashModal';
@@ -53,7 +52,6 @@ export default function Home() {
   const [walletOpen, setWalletOpen] = useState(false);
   const [kycOpen, setKycOpen] = useState(false);
   const [dailyBonusOpen, setDailyBonusOpen] = useState(false);
-  const [promoOpen, setPromoOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [subscriptionModalOpen, setSubscriptionModalOpen] = useState(false);
 
@@ -223,7 +221,6 @@ export default function Home() {
             if (!user) setAuthModal({ open: true, tab: 'login' });
             else setDailyBonusOpen(true);
           }}
-          onOpenPromo={() => setPromoOpen(true)}
           onOpenNotifications={() => setNotificationsOpen(true)}
           onToggleMobileSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
           activeCurrency={activeCurrency}
@@ -396,7 +393,7 @@ export default function Home() {
           </div>
 
       {/* 5. Bonus Alerts Toast Notification */}
-      <BonusAlertToast onAllowed={() => setPromoOpen(true)} />
+      <BonusAlertToast onAllowed={() => {}} />
 
       {/* 6. Floating 24/7 Live Support Desk ("No Chat Delete") */}
       <LiveChatWidget user={user} soundEnabled={soundEnabled} />
@@ -432,13 +429,6 @@ export default function Home() {
         onClose={() => setDailyBonusOpen(false)}
         user={user}
         onBonusClaimed={refreshUser}
-      />
-
-      <PromoModal
-        isOpen={promoOpen}
-        onClose={() => setPromoOpen(false)}
-        user={user}
-        onPromoRedeemed={refreshUser}
       />
 
       <SubscriptionPromoModal

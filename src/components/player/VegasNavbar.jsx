@@ -24,7 +24,6 @@ export default function VegasNavbar({
   onOpenWallet,
   onOpenKyc,
   onOpenDailyBonus,
-  onOpenPromo,
   onOpenNotifications,
   onToggleMobileSidebar,
   activeCurrency = 'SC',
