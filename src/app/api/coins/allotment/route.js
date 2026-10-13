@@ -3,33 +3,67 @@ import { ObjectId } from 'mongodb';
 import { getSessionUser, ROLES } from '@/lib/auth';
 import { getDb } from '@/lib/mongodb';
 
-// Search player for allotment
+// Search player for allotment or fetch recent allotment history
 export async function GET(req) {
   try {
     const session = await getSessionUser();
-    if (!session || (session.role !== ROLES.SUPER_ADMIN && session.role !== ROLES.COIN_MANAGER)) {
-      return NextResponse.json({ success: false, error: 'Unauthorized. Coin Manager access required.' }, { status: 403 });
+    const authorizedRoles = [
+      ROLES.SUPER_ADMIN,
+      ROLES.OPERATION_ADMIN,
+      ROLES.FINANCIAL_MANAGER,
+      ROLES.COIN_MANAGER,
+    ];
+    if (!session || !authorizedRoles.includes(session.role)) {
+      return NextResponse.json({ success: false, error: 'Unauthorized. Staff allotment access required.' }, { status: 403 });
     }
 
     const { searchParams } = new URL(req.url);
     const query = searchParams.get('q');
-
-    if (!query) {
-      return NextResponse.json({ success: true, players: [] });
-    }
+    const history = searchParams.get('history');
 
     const db = await getDb();
+
+    if (history === 'true') {
+      const ledgerCol = db.collection('ledger');
+      const records = await ledgerCol
+        .find({ type: { $in: ['admin_allotment', 'admin_deduction'] } })
+        .sort({ createdAt: -1 })
+        .limit(50)
+        .toArray();
+
+      return NextResponse.json({
+        success: true,
+        history: records.map(r => ({
+          id: r._id.toString(),
+          userId: r.userId,
+          username: r.username,
+          type: r.type,
+          currency: r.currency || 'SC',
+          amount: r.amount,
+          balanceBefore: r.balanceBefore,
+          balanceAfter: r.balanceAfter,
+          performedBy: r.performedBy,
+          staffRole: r.staffRole,
+          notes: r.notes,
+          createdAt: r.createdAt,
+        })),
+      });
+    }
+
     const usersCol = db.collection('users');
 
+    const filter = { role: ROLES.PLAYER };
+    if (query && query.trim()) {
+      filter.$or = [
+        { username: { $regex: new RegExp(query.trim(), 'i') } },
+        { email: { $regex: new RegExp(query.trim(), 'i') } },
+      ];
+    }
+
     const players = await usersCol
-      .find({
-        role: ROLES.PLAYER,
-        $or: [
-          { username: { $regex: new RegExp(query.trim(), 'i') } },
-          { email: { $regex: new RegExp(query.trim(), 'i') } },
-        ],
-      })
-      .limit(10)
+      .find(filter)
+      .sort({ createdAt: -1 })
+      .limit(15)
       .toArray();
 
     return NextResponse.json({
@@ -53,8 +87,14 @@ export async function GET(req) {
 export async function POST(req) {
   try {
     const session = await getSessionUser();
-    if (!session || (session.role !== ROLES.SUPER_ADMIN && session.role !== ROLES.COIN_MANAGER)) {
-      return NextResponse.json({ success: false, error: 'Unauthorized. Coin Manager access required.' }, { status: 403 });
+    const authorizedRoles = [
+      ROLES.SUPER_ADMIN,
+      ROLES.OPERATION_ADMIN,
+      ROLES.FINANCIAL_MANAGER,
+      ROLES.COIN_MANAGER,
+    ];
+    if (!session || !authorizedRoles.includes(session.role)) {
+      return NextResponse.json({ success: false, error: 'Unauthorized. Staff allotment access required.' }, { status: 403 });
     }
 
     const { playerId, action, currency = 'SC', amount, reason } = await req.json();

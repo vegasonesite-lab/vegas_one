@@ -17,6 +17,8 @@ export const ROLE_PERMISSIONS = {
   [ROLES.SUPER_ADMIN]: [
     'overview',
     'requests',
+    'account_requests',
+    'coins_allotment',
     'games',
     'finance',
     'gateways',
@@ -34,6 +36,8 @@ export const ROLE_PERMISSIONS = {
   [ROLES.OPERATION_ADMIN]: [
     'overview',
     'requests',
+    'account_requests',
+    'coins_allotment',
     'games',
     'finance',
     'gateways',
@@ -49,6 +53,7 @@ export const ROLE_PERMISSIONS = {
   [ROLES.FINANCIAL_MANAGER]: [
     'overview',
     'finance',
+    'coins_allotment',
     'ledger',
     'gateways',
     'tx_search',
@@ -57,6 +62,8 @@ export const ROLE_PERMISSIONS = {
   [ROLES.COIN_MANAGER]: [
     'overview',
     'requests',
+    'account_requests',
+    'coins_allotment',
     'tx_search',
   ],
   [ROLES.CHAT_SUPPORT]: [

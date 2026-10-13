@@ -46,7 +46,7 @@ export default function AdminPortal({ initialTab }) {
     if (tab === 'dashboard') return 'overview';
     if (tab === 'requests') return 'account_requests';
     if (tab === 'support') return 'chat';
-    if (tab === 'coins') return 'account_requests';
+    if (tab === 'coins' || tab === 'coins_allotment') return 'coins_allotment';
     return tab;
   };
 
@@ -276,6 +276,97 @@ export default function AdminPortal({ initialTab }) {
     }
   };
 
+  // Coins Allotment state & handlers
+  const [allotmentSearch, setAllotmentSearch] = useState('');
+  const [allotmentPlayers, setAllotmentPlayers] = useState([]);
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [allotmentAction, setAllotmentAction] = useState('credit'); // 'credit' | 'debit'
+  const [allotmentCurrency, setAllotmentCurrency] = useState('SC'); // 'SC' | 'GC'
+  const [allotmentAmount, setAllotmentAmount] = useState('');
+  const [allotmentReason, setAllotmentReason] = useState('Deposit Match');
+  const [allotmentLoading, setAllotmentLoading] = useState(false);
+  const [allotmentSuccessMsg, setAllotmentSuccessMsg] = useState(null);
+  const [allotmentErrorMsg, setAllotmentErrorMsg] = useState(null);
+  const [allotmentHistory, setAllotmentHistory] = useState([]);
+  const [allotmentLedgerFilter, setAllotmentLedgerFilter] = useState('all');
+
+  const fetchAllotmentData = (searchQuery = allotmentSearch) => {
+    fetch(`/api/coins/allotment?q=${encodeURIComponent(searchQuery)}`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) {
+          const players = d.players || [];
+          setAllotmentPlayers(players);
+          setSelectedPlayer(prev => {
+            if (prev) {
+              const updated = players.find(p => p.id === prev.id);
+              return updated || prev;
+            }
+            return players.length > 0 ? players[0] : null;
+          });
+        }
+      })
+      .catch(() => {});
+
+    fetch('/api/coins/allotment?history=true')
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) setAllotmentHistory(d.history || []);
+      })
+      .catch(() => {});
+  };
+
+  const handleExecuteAllotment = async (e) => {
+    if (e) e.preventDefault();
+    if (!selectedPlayer) {
+      setAllotmentErrorMsg('Please search and select a player first.');
+      return;
+    }
+    const num = Number(allotmentAmount);
+    if (!num || num <= 0) {
+      setAllotmentErrorMsg('Please specify an amount greater than zero.');
+      return;
+    }
+    if (!allotmentReason.trim()) {
+      setAllotmentErrorMsg('Please provide an audit reason.');
+      return;
+    }
+
+    setAllotmentLoading(true);
+    setAllotmentSuccessMsg(null);
+    setAllotmentErrorMsg(null);
+
+    try {
+      const res = await fetch('/api/coins/allotment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          playerId: selectedPlayer.id,
+          action: allotmentAction,
+          currency: allotmentCurrency,
+          amount: num,
+          reason: allotmentReason.trim(),
+        }),
+      });
+      const data = await res.json();
+      setAllotmentLoading(false);
+      if (data.success) {
+        setAllotmentSuccessMsg(data.message || `Successfully executed ${allotmentAction} of ${num} ${allotmentCurrency}.`);
+        setSelectedPlayer(prev => prev ? {
+          ...prev,
+          [allotmentCurrency === 'SC' ? 'balanceSC' : 'balanceGC']: data.newBalance,
+        } : null);
+        setAllotmentAmount('');
+        fetchAllotmentData();
+      } else {
+        setAllotmentErrorMsg(data.error || 'Failed to execute coin allotment.');
+      }
+    } catch (err) {
+      setAllotmentLoading(false);
+      setAllotmentErrorMsg('Network error: ' + err.message);
+    }
+  };
+
   // Check current session
   const fetchSession = async () => {
     try {
@@ -284,7 +375,7 @@ export default function AdminPortal({ initialTab }) {
       if (data.authenticated && data.user && data.user.role !== 'player') {
         setUser(data.user);
         // Default starting tab based on role
-        if (data.user.role === 'coin_manager') setActiveTab('account_requests');
+        if (data.user.role === 'coin_manager') setActiveTab('coins_allotment');
         else if (data.user.role === 'chat_support') setActiveTab('chat');
         else setActiveTab('overview');
       } else {
@@ -330,6 +421,8 @@ export default function AdminPortal({ initialTab }) {
         fetch('/api/admin/staff').then(r => r.json()).then(d => { if (d.success) setStaffList(d.staff); });
       } else if (activeTab === 'account_requests') {
         fetchAccountRequests();
+      } else if (activeTab === 'coins_allotment') {
+        fetchAllotmentData();
       } else if (activeTab === 'users') {
         fetch(`/api/users?search=${encodeURIComponent(userSearchQuery)}`).then(r => r.json()).then(d => { if (d.success) setUsersList(d.users || []); });
       } else if (activeTab === 'gateways') {
@@ -344,7 +437,7 @@ export default function AdminPortal({ initialTab }) {
     loadData();
     const interval = setInterval(loadData, 4000);
     return () => clearInterval(interval);
-  }, [user, activeTab, ledgerFilterUser, ledgerFilterType, accountReqFilter, userSearchQuery]);
+  }, [user, activeTab, ledgerFilterUser, ledgerFilterType, accountReqFilter, userSearchQuery, allotmentSearch]);
 
   // Real-time Audio Chime on new incoming pending items
   const prevCountsRef = React.useRef({ requests: 0, deposits: 0, redemptions: 0 });
@@ -417,12 +510,12 @@ export default function AdminPortal({ initialTab }) {
 
     // Financial Manager (financial_manager / financial_admin)
     if (r === 'financial_manager' || r === 'financial_admin') {
-      return ['overview', 'finance', 'ledger', 'gateways', 'tx_search', 'kyc', 'affiliate_commissions'].includes(tabId);
+      return ['overview', 'finance', 'coins_allotment', 'ledger', 'gateways', 'tx_search', 'kyc', 'affiliate_commissions'].includes(tabId);
     }
 
     // Coins Staff (coin_manager / coins_admin)
     if (r === 'coin_manager' || r === 'coins_admin') {
-      return ['overview', 'account_requests', 'tx_search'].includes(tabId);
+      return ['overview', 'account_requests', 'coins_allotment', 'tx_search'].includes(tabId);
     }
 
     // Live Support Staff (chat_support / support_admin)
@@ -529,6 +622,11 @@ export default function AdminPortal({ initialTab }) {
       label: 'Account Requests',
       icon: Key,
       badge: accountRequests.filter(r => r.status === 'PENDING').length,
+    },
+    {
+      id: 'coins_allotment',
+      label: 'Coins Allotment',
+      icon: Coins,
     },
     { id: 'games', label: 'Games Library', icon: Gamepad2 },
     { id: 'users', label: 'Player Accounts', icon: Users },
@@ -1034,6 +1132,487 @@ export default function AdminPortal({ initialTab }) {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* TAB: COINS ALLOTMENT & DIRECT BALANCE TERMINAL */}
+          {activeTab === 'coins_allotment' && (
+            <div className="space-y-6">
+              {/* Header Banner */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
+                      <Coins size={22} />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-black text-white flex items-center gap-2">
+                        Coins Allotment Terminal
+                        <span className="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded-full font-bold">
+                          LIVE LEDGER SYNC
+                        </span>
+                      </h2>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        Direct player balance credit &amp; debit terminal with immutable compliance logging
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => fetchAllotmentData()}
+                    className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-gray-300 hover:text-white flex items-center gap-2 transition"
+                    title="Refresh Allotment Data"
+                  >
+                    <RefreshCw size={13} className={allotmentLoading ? 'animate-spin text-amber-400' : 'text-amber-400'} />
+                    <span>Refresh Queue</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Dual Column Workstation */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                {/* Column 1: Player Directory & Target Selector */}
+                <div className="lg:col-span-5 bg-[#0e1122] border border-white/10 rounded-2xl p-5 shadow-xl flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-400 text-xs font-black flex items-center justify-center border border-cyan-500/30">
+                        1
+                      </span>
+                      <h3 className="text-sm font-bold text-white uppercase tracking-wider">Target Player</h3>
+                    </div>
+                    <span className="text-[11px] text-gray-400 font-mono">
+                      {allotmentPlayers.length} matches
+                    </span>
+                  </div>
+
+                  {/* Search Input */}
+                  <div className="relative">
+                    <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search username or email..."
+                      value={allotmentSearch}
+                      onChange={(e) => {
+                        setAllotmentSearch(e.target.value);
+                        fetchAllotmentData(e.target.value);
+                      }}
+                      className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 transition"
+                    />
+                  </div>
+
+                  {/* Player Candidates List */}
+                  <div className="max-h-[260px] overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                    {allotmentPlayers.length === 0 ? (
+                      <div className="text-center py-8 text-gray-500 text-xs">
+                        No players found. Type a player username or email above.
+                      </div>
+                    ) : (
+                      allotmentPlayers.map((player) => {
+                        const isSelected = selectedPlayer?.id === player.id;
+                        return (
+                          <div
+                            key={player.id}
+                            onClick={() => setSelectedPlayer(player)}
+                            className={`p-3 rounded-xl border cursor-pointer transition flex items-center justify-between gap-3 ${
+                              isSelected
+                                ? 'bg-gradient-to-r from-cyan-500/15 to-transparent border-cyan-400/60 shadow-[0_0_15px_rgba(0,240,255,0.15)]'
+                                : 'bg-black/30 border-white/5 hover:border-white/20 hover:bg-white/[0.02]'
+                            }`}
+                          >
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-white text-xs truncate">
+                                  @{player.username}
+                                </span>
+                                {player.kycStatus === 'verified' && (
+                                  <span className="text-[9px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.2 rounded font-bold">
+                                    KYC
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-gray-400 truncate mt-0.5">
+                                {player.email}
+                              </p>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <div className="font-black text-amber-400 text-xs">
+                                {Number(player.balanceSC || 0).toFixed(2)} <span className="text-[10px] text-amber-500/80 font-normal">SC</span>
+                              </div>
+                              <div className="text-[10px] text-purple-300 font-medium">
+                                {Number(player.balanceGC || 0).toLocaleString()} <span className="text-purple-400/80">GC</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  {/* Active Selected Player Summary Card */}
+                  {selectedPlayer ? (
+                    <div className="mt-2 p-3.5 rounded-xl bg-gradient-to-br from-black/60 to-[#070514] border border-cyan-500/30">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-black text-xs border border-cyan-500/40">
+                            {selectedPlayer.username.substring(0, 1).toUpperCase()}
+                          </div>
+                          <div>
+                            <div className="text-xs font-black text-white">@{selectedPlayer.username}</div>
+                            <div className="text-[10px] text-gray-400">{selectedPlayer.email}</div>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-mono text-gray-500">
+                          ID: {selectedPlayer.id.slice(-6)}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 mt-3 pt-2.5 border-t border-white/5">
+                        <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-2 text-center">
+                          <div className="text-[10px] text-amber-400/80 uppercase font-bold tracking-wider">Current SC</div>
+                          <div className="text-sm font-black text-amber-300 mt-0.5">
+                            {Number(selectedPlayer.balanceSC || 0).toFixed(2)}
+                          </div>
+                        </div>
+                        <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-2 text-center">
+                          <div className="text-[10px] text-purple-400/80 uppercase font-bold tracking-wider">Current GC</div>
+                          <div className="text-sm font-black text-purple-300 mt-0.5">
+                            {Number(selectedPlayer.balanceGC || 0).toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-3 text-center rounded-xl bg-black/20 border border-dashed border-white/10 text-xs text-gray-500">
+                      Select a player from the list above to begin allotment.
+                    </div>
+                  )}
+                </div>
+
+                {/* Column 2: Allotment Terminal & Execution */}
+                <div className="lg:col-span-7 bg-[#0e1122] border border-white/10 rounded-2xl p-5 shadow-xl flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 text-xs font-black flex items-center justify-center border border-amber-500/30">
+                        2
+                      </span>
+                      <h3 className="text-sm font-bold text-white uppercase tracking-wider">Allotment Controls</h3>
+                    </div>
+                    <span className="text-[11px] text-gray-400">
+                      Operator: <span className="text-white font-bold">{user?.username}</span>
+                    </span>
+                  </div>
+
+                  <form onSubmit={handleExecuteAllotment} className="space-y-4">
+                    {/* Operation Type & Currency Toggles */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {/* Action: Credit or Debit */}
+                      <div>
+                        <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                          Operation Type
+                        </label>
+                        <div className="grid grid-cols-2 gap-1.5 bg-black/40 p-1 rounded-xl border border-white/10">
+                          <button
+                            type="button"
+                            onClick={() => setAllotmentAction('credit')}
+                            className={`py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+                              allotmentAction === 'credit'
+                                ? 'bg-emerald-500 text-black shadow-[0_0_15px_rgba(16,185,129,0.4)]'
+                                : 'text-gray-400 hover:text-white'
+                            }`}
+                          >
+                            <Plus size={14} />
+                            <span>Credit (Add)</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setAllotmentAction('debit')}
+                            className={`py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+                              allotmentAction === 'debit'
+                                ? 'bg-rose-500 text-white shadow-[0_0_15px_rgba(244,63,94,0.4)]'
+                                : 'text-gray-400 hover:text-white'
+                            }`}
+                          >
+                            <UserMinus size={14} />
+                            <span>Debit (Deduct)</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Currency: SC or GC */}
+                      <div>
+                        <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                          Currency Wallet
+                        </label>
+                        <div className="grid grid-cols-2 gap-1.5 bg-black/40 p-1 rounded-xl border border-white/10">
+                          <button
+                            type="button"
+                            onClick={() => setAllotmentCurrency('SC')}
+                            className={`py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+                              allotmentCurrency === 'SC'
+                                ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-black shadow-[0_0_15px_rgba(245,158,11,0.4)]'
+                                : 'text-gray-400 hover:text-white'
+                            }`}
+                          >
+                            <Coins size={14} />
+                            <span>Sweeps (SC)</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setAllotmentCurrency('GC')}
+                            className={`py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+                              allotmentCurrency === 'GC'
+                                ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]'
+                                : 'text-gray-400 hover:text-white'
+                            }`}
+                          >
+                            <Gamepad2 size={14} />
+                            <span>Gold (GC)</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Amount & Presets */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                          Amount ({allotmentCurrency})
+                        </label>
+                        <span className="text-[11px] text-gray-500">Presets:</span>
+                      </div>
+
+                      {/* Quick Presets */}
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        {[10, 20, 50, 100, 250, 500, 1000].map((amt) => (
+                          <button
+                            key={amt}
+                            type="button"
+                            onClick={() => setAllotmentAmount(amt.toString())}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition ${
+                              Number(allotmentAmount) === amt
+                                ? 'bg-amber-400/20 border-amber-400 text-amber-300'
+                                : 'bg-black/30 border-white/10 text-gray-300 hover:border-white/30'
+                            }`}
+                          >
+                            +{amt}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Input */}
+                      <div className="relative">
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-xs text-amber-400">
+                          {allotmentCurrency}
+                        </span>
+                        <input
+                          type="number"
+                          step="any"
+                          min="0.01"
+                          placeholder="Enter exact amount (e.g. 50.00)"
+                          value={allotmentAmount}
+                          onChange={(e) => setAllotmentAmount(e.target.value)}
+                          required
+                          className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 py-2.5 text-sm font-bold text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 transition"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Audit Reason & Quick Templates */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                          Compliance Audit Reason
+                        </label>
+                        <span className="text-[11px] text-gray-500">Quick templates:</span>
+                      </div>
+
+                      {/* Reason Presets */}
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        {[
+                          'Deposit Match',
+                          'Welcome Bonus Credit',
+                          'Game Sync Reload',
+                          'VIP Loyalty Reward',
+                          'Platform Compensation',
+                          'Manual Correction',
+                        ].map((reason) => (
+                          <button
+                            key={reason}
+                            type="button"
+                            onClick={() => setAllotmentReason(reason)}
+                            className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold border transition ${
+                              allotmentReason === reason
+                                ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300'
+                                : 'bg-black/30 border-white/10 text-gray-400 hover:text-white'
+                            }`}
+                          >
+                            {reason}
+                          </button>
+                        ))}
+                      </div>
+
+                      <input
+                        type="text"
+                        placeholder="Enter justification or internal ticket ID..."
+                        value={allotmentReason}
+                        onChange={(e) => setAllotmentReason(e.target.value)}
+                        required
+                        className="w-full bg-black/40 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 transition"
+                      />
+                    </div>
+
+                    {/* Feedback Messages */}
+                    {allotmentSuccessMsg && (
+                      <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 text-xs font-bold flex items-center gap-2">
+                        <Check size={16} className="shrink-0" />
+                        <span>{allotmentSuccessMsg}</span>
+                      </div>
+                    )}
+
+                    {allotmentErrorMsg && (
+                      <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/40 text-rose-400 text-xs font-bold flex items-center gap-2">
+                        <AlertCircle size={16} className="shrink-0" />
+                        <span>{allotmentErrorMsg}</span>
+                      </div>
+                    )}
+
+                    {/* Action Execution Button */}
+                    <button
+                      type="submit"
+                      disabled={allotmentLoading || !selectedPlayer || !allotmentAmount}
+                      className={`w-full py-3 rounded-xl font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 shadow-xl ${
+                        allotmentAction === 'credit'
+                          ? 'bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-black shadow-emerald-500/20 disabled:opacity-50'
+                          : 'bg-gradient-to-r from-rose-600 to-red-500 hover:from-rose-500 hover:to-red-400 text-white shadow-rose-500/20 disabled:opacity-50'
+                      }`}
+                    >
+                      {allotmentLoading ? (
+                        <>
+                          <RefreshCw size={15} className="animate-spin" />
+                          <span>Processing Allotment...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Coins size={16} />
+                          <span>
+                            {allotmentAction === 'credit' ? 'Confirm Credit' : 'Confirm Debit'}{' '}
+                            {allotmentAmount ? `${Number(allotmentAmount).toFixed(2)} ${allotmentCurrency}` : ''}
+                            {selectedPlayer ? ` to @${selectedPlayer.username}` : ''}
+                          </span>
+                        </>
+                      )}
+                    </button>
+                  </form>
+                </div>
+              </div>
+
+              {/* Bottom Card: Recent Allotment Audit Ledger */}
+              <div className="bg-[#0e1122] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+                <div className="p-4 border-b border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-black/20">
+                  <div>
+                    <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                      Recent Allotment Audit Stream
+                      <span className="text-[10px] bg-white/10 text-gray-300 px-2 py-0.5 rounded-full font-mono">
+                        {allotmentHistory.length} logs
+                      </span>
+                    </h3>
+                    <p className="text-[11px] text-gray-400 mt-0.5">
+                      Immutable trail of all staff credit allotments and manual coin adjustments
+                    </p>
+                  </div>
+
+                  {/* Filter Pills */}
+                  <div className="flex items-center gap-1.5 bg-black/40 p-1 rounded-xl border border-white/10">
+                    {[
+                      { id: 'all', label: 'All Operations' },
+                      { id: 'admin_allotment', label: 'Credits (+)' },
+                      { id: 'admin_deduction', label: 'Debits (-)' },
+                    ].map((f) => (
+                      <button
+                        key={f.id}
+                        onClick={() => setAllotmentLedgerFilter(f.id)}
+                        className={`px-3 py-1 rounded-lg text-[11px] font-bold transition ${
+                          allotmentLedgerFilter === f.id
+                            ? 'bg-amber-500 text-black'
+                            : 'text-gray-400 hover:text-white'
+                        }`}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Ledger Table */}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-black/40 text-gray-400 uppercase font-bold text-[10px] tracking-wider border-b border-white/5">
+                      <tr>
+                        <th className="py-3 px-4">Date &amp; Time</th>
+                        <th className="py-3 px-4">Target Player</th>
+                        <th className="py-3 px-4">Operation</th>
+                        <th className="py-3 px-4 text-right">Amount</th>
+                        <th className="py-3 px-4">Balance Shift</th>
+                        <th className="py-3 px-4">Staff Member</th>
+                        <th className="py-3 px-4">Reason / Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5 font-mono">
+                      {allotmentHistory
+                        .filter(item => allotmentLedgerFilter === 'all' || item.type === allotmentLedgerFilter)
+                        .slice(0, 30)
+                        .map((entry) => {
+                          const isCredit = entry.type === 'admin_allotment';
+                          return (
+                            <tr key={entry.id} className="hover:bg-white/[0.02] transition">
+                              <td className="py-3 px-4 text-gray-400 whitespace-nowrap text-[11px]">
+                                {new Date(entry.createdAt).toLocaleDateString()}{' '}
+                                <span className="text-gray-500">{new Date(entry.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                              </td>
+                              <td className="py-3 px-4 font-bold text-white whitespace-nowrap">
+                                @{entry.username}
+                              </td>
+                              <td className="py-3 px-4 whitespace-nowrap">
+                                <span
+                                  className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                    isCredit
+                                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                      : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                                  }`}
+                                >
+                                  {isCredit ? '+ CREDIT' : '- DEBIT'}
+                                </span>
+                              </td>
+                              <td className={`py-3 px-4 text-right font-black whitespace-nowrap ${isCredit ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                {isCredit ? '+' : '-'}{Math.abs(Number(entry.amount || 0)).toFixed(2)} {entry.currency || 'SC'}
+                              </td>
+                              <td className="py-3 px-4 text-gray-400 text-[11px] whitespace-nowrap">
+                                {entry.balanceBefore != null ? Number(entry.balanceBefore).toFixed(2) : '-'} →{' '}
+                                <span className="text-white font-bold">{entry.balanceAfter != null ? Number(entry.balanceAfter).toFixed(2) : '-'}</span>
+                              </td>
+                              <td className="py-3 px-4 text-gray-300 whitespace-nowrap text-[11px]">
+                                <span className="font-bold text-white">{entry.performedBy || 'System'}</span>
+                                {entry.staffRole && <span className="text-[10px] text-gray-500 ml-1">({entry.staffRole})</span>}
+                              </td>
+                              <td className="py-3 px-4 text-gray-400 max-w-xs truncate text-[11px]" title={entry.notes}>
+                                {entry.notes || '-'}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      {allotmentHistory.length === 0 && (
+                        <tr>
+                          <td colSpan="7" className="py-8 text-center text-gray-500 text-xs">
+                            No coin allotment ledger records found yet.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           )}
 
