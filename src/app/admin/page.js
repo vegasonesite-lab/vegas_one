@@ -1142,17 +1142,41 @@ export default function AdminPortal({ initialTab }) {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
+                    <div
+                      style={{
+                        width: '42px',
+                        height: '42px',
+                        borderRadius: '12px',
+                        backgroundColor: 'rgba(0, 240, 255, 0.1)',
+                        border: '1px solid rgba(0, 240, 255, 0.35)',
+                        color: '#00F0FF',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 0 16px rgba(0, 240, 255, 0.25)',
+                      }}
+                    >
                       <Coins size={22} />
                     </div>
                     <div>
                       <h2 className="text-2xl font-black text-white flex items-center gap-2">
                         Coins Allotment Terminal
-                        <span className="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded-full font-bold">
+                        <span
+                          style={{
+                            fontSize: '10px',
+                            backgroundColor: 'rgba(0, 240, 255, 0.12)',
+                            color: '#00F0FF',
+                            border: '1px solid rgba(0, 240, 255, 0.35)',
+                            padding: '2px 8px',
+                            borderRadius: '9999px',
+                            fontWeight: 800,
+                            letterSpacing: '0.04em',
+                          }}
+                        >
                           LIVE LEDGER SYNC
                         </span>
                       </h2>
-                      <p className="text-xs text-gray-400 mt-0.5">
+                      <p className="text-xs text-[#9A91A8] mt-0.5">
                         Direct player balance credit &amp; debit terminal with immutable compliance logging
                       </p>
                     </div>
@@ -1162,10 +1186,23 @@ export default function AdminPortal({ initialTab }) {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => fetchAllotmentData()}
-                    className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-gray-300 hover:text-white flex items-center gap-2 transition"
+                    style={{
+                      padding: '8px 14px',
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(0, 240, 255, 0.2)',
+                      fontSize: '11.5px',
+                      fontWeight: 800,
+                      color: '#00F0FF',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
                     title="Refresh Allotment Data"
                   >
-                    <RefreshCw size={13} className={allotmentLoading ? 'animate-spin text-amber-400' : 'text-amber-400'} />
+                    <RefreshCw size={13} className={allotmentLoading ? 'animate-spin' : ''} />
                     <span>Refresh Queue</span>
                   </button>
                 </div>
@@ -1174,22 +1211,45 @@ export default function AdminPortal({ initialTab }) {
               {/* Dual Column Workstation */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 {/* Column 1: Player Directory & Target Selector */}
-                <div className="lg:col-span-5 bg-[#0e1122] border border-white/10 rounded-2xl p-5 shadow-xl flex flex-col gap-4">
+                <div
+                  style={{
+                    backgroundColor: '#0E0A24',
+                    border: '1px solid rgba(0, 240, 255, 0.18)',
+                    borderRadius: '16px',
+                    padding: '20px',
+                    boxShadow: '0 12px 30px rgba(0, 0, 0, 0.5)',
+                  }}
+                  className="lg:col-span-5 flex flex-col gap-4"
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-400 text-xs font-black flex items-center justify-center border border-cyan-500/30">
+                      <span
+                        style={{
+                          width: '24px',
+                          height: '24px',
+                          borderRadius: '50%',
+                          backgroundColor: 'rgba(0, 240, 255, 0.15)',
+                          color: '#00F0FF',
+                          fontSize: '11px',
+                          fontWeight: 900,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          border: '1px solid #00F0FF',
+                        }}
+                      >
                         1
                       </span>
-                      <h3 className="text-sm font-bold text-white uppercase tracking-wider">Target Player</h3>
+                      <h3 className="text-xs font-black text-white uppercase tracking-wider">Target Player</h3>
                     </div>
-                    <span className="text-[11px] text-gray-400 font-mono">
+                    <span className="text-[11px] text-[#9A91A8] font-mono">
                       {allotmentPlayers.length} matches
                     </span>
                   </div>
 
                   {/* Search Input */}
                   <div className="relative">
-                    <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9A91A8]" />
                     <input
                       type="text"
                       placeholder="Search username or email..."
@@ -1198,14 +1258,24 @@ export default function AdminPortal({ initialTab }) {
                         setAllotmentSearch(e.target.value);
                         fetchAllotmentData(e.target.value);
                       }}
-                      className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 transition"
+                      style={{
+                        width: '100%',
+                        backgroundColor: '#070514',
+                        border: '1px solid rgba(0, 240, 255, 0.22)',
+                        borderRadius: '12px',
+                        padding: '10px 14px 10px 36px',
+                        fontSize: '12px',
+                        color: '#FFFFFF',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                      }}
                     />
                   </div>
 
                   {/* Player Candidates List */}
                   <div className="max-h-[260px] overflow-y-auto space-y-2 pr-1 custom-scrollbar">
                     {allotmentPlayers.length === 0 ? (
-                      <div className="text-center py-8 text-gray-500 text-xs">
+                      <div className="text-center py-8 text-[#9A91A8] text-xs">
                         No players found. Type a player username or email above.
                       </div>
                     ) : (
@@ -1215,33 +1285,51 @@ export default function AdminPortal({ initialTab }) {
                           <div
                             key={player.id}
                             onClick={() => setSelectedPlayer(player)}
-                            className={`p-3 rounded-xl border cursor-pointer transition flex items-center justify-between gap-3 ${
-                              isSelected
-                                ? 'bg-gradient-to-r from-cyan-500/15 to-transparent border-cyan-400/60 shadow-[0_0_15px_rgba(0,240,255,0.15)]'
-                                : 'bg-black/30 border-white/5 hover:border-white/20 hover:bg-white/[0.02]'
-                            }`}
+                            style={{
+                              padding: '12px',
+                              borderRadius: '12px',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              gap: '12px',
+                              backgroundColor: isSelected ? 'rgba(0, 240, 255, 0.08)' : '#070514',
+                              border: isSelected ? '1.5px solid #00F0FF' : '1px solid rgba(255, 255, 255, 0.06)',
+                              boxShadow: isSelected ? '0 0 16px rgba(0, 240, 255, 0.25)' : 'none',
+                            }}
                           >
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-2">
-                                <span className="font-bold text-white text-xs truncate">
+                                <span style={{ fontWeight: 800, color: '#FFFFFF', fontSize: '12px' }} className="truncate">
                                   @{player.username}
                                 </span>
                                 {player.kycStatus === 'verified' && (
-                                  <span className="text-[9px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.2 rounded font-bold">
+                                  <span
+                                    style={{
+                                      fontSize: '9px',
+                                      backgroundColor: 'rgba(0, 240, 255, 0.15)',
+                                      color: '#00F0FF',
+                                      border: '1px solid rgba(0, 240, 255, 0.3)',
+                                      padding: '1px 6px',
+                                      borderRadius: '4px',
+                                      fontWeight: 800,
+                                    }}
+                                  >
                                     KYC
                                   </span>
                                 )}
                               </div>
-                              <p className="text-[11px] text-gray-400 truncate mt-0.5">
+                              <p style={{ fontSize: '11px', color: '#9A91A8', margin: '2px 0 0 0' }} className="truncate">
                                 {player.email}
                               </p>
                             </div>
                             <div className="text-right shrink-0">
-                              <div className="font-black text-amber-400 text-xs">
-                                {Number(player.balanceSC || 0).toFixed(2)} <span className="text-[10px] text-amber-500/80 font-normal">SC</span>
+                              <div style={{ fontWeight: 900, color: '#00F0FF', fontSize: '12.5px' }}>
+                                {Number(player.balanceSC || 0).toFixed(2)} <span style={{ fontSize: '10px', color: '#9A91A8', fontWeight: 600 }}>SC</span>
                               </div>
-                              <div className="text-[10px] text-purple-300 font-medium">
-                                {Number(player.balanceGC || 0).toLocaleString()} <span className="text-purple-400/80">GC</span>
+                              <div style={{ fontSize: '10.5px', color: '#E026D8', fontWeight: 700 }}>
+                                {Number(player.balanceGC || 0).toLocaleString()} <span style={{ fontSize: '9.5px', color: '#9A91A8' }}>GC</span>
                               </div>
                             </div>
                           </div>
@@ -1252,54 +1340,130 @@ export default function AdminPortal({ initialTab }) {
 
                   {/* Active Selected Player Summary Card */}
                   {selectedPlayer ? (
-                    <div className="mt-2 p-3.5 rounded-xl bg-gradient-to-br from-black/60 to-[#070514] border border-cyan-500/30">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-black text-xs border border-cyan-500/40">
+                    <div
+                      style={{
+                        marginTop: '8px',
+                        padding: '14px',
+                        borderRadius: '12px',
+                        backgroundColor: '#070514',
+                        border: '1px solid rgba(0, 240, 255, 0.3)',
+                        boxShadow: '0 0 14px rgba(0, 240, 255, 0.12)',
+                      }}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2.5">
+                          <div
+                            style={{
+                              width: '32px',
+                              height: '32px',
+                              borderRadius: '8px',
+                              backgroundColor: 'rgba(0, 240, 255, 0.15)',
+                              border: '1px solid #00F0FF',
+                              color: '#00F0FF',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontWeight: 900,
+                              fontSize: '13px',
+                            }}
+                          >
                             {selectedPlayer.username.substring(0, 1).toUpperCase()}
                           </div>
                           <div>
-                            <div className="text-xs font-black text-white">@{selectedPlayer.username}</div>
-                            <div className="text-[10px] text-gray-400">{selectedPlayer.email}</div>
+                            <div style={{ fontSize: '12px', fontWeight: 800, color: '#FFFFFF' }}>@{selectedPlayer.username}</div>
+                            <div style={{ fontSize: '10.5px', color: '#9A91A8' }}>{selectedPlayer.email}</div>
                           </div>
                         </div>
-                        <span className="text-[10px] font-mono text-gray-500">
+                        <span style={{ fontSize: '10px', fontFamily: 'monospace', color: '#9A91A8' }}>
                           ID: {selectedPlayer.id.slice(-6)}
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-2 mt-3 pt-2.5 border-t border-white/5">
-                        <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-2 text-center">
-                          <div className="text-[10px] text-amber-400/80 uppercase font-bold tracking-wider">Current SC</div>
-                          <div className="text-sm font-black text-amber-300 mt-0.5">
+                      <div className="grid grid-cols-2 gap-2.5 pt-2.5 border-t border-white/5">
+                        <div
+                          style={{
+                            backgroundColor: 'rgba(0, 240, 255, 0.06)',
+                            border: '1px solid rgba(0, 240, 255, 0.25)',
+                            borderRadius: '10px',
+                            padding: '10px',
+                            textAlign: 'center',
+                          }}
+                        >
+                          <div style={{ fontSize: '10px', color: '#00F0FF', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.04em' }}>
+                            Current SC Balance
+                          </div>
+                          <div style={{ fontSize: '15px', fontWeight: 900, color: '#FFFFFF', marginTop: '2px' }}>
                             {Number(selectedPlayer.balanceSC || 0).toFixed(2)}
                           </div>
                         </div>
-                        <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-2 text-center">
-                          <div className="text-[10px] text-purple-400/80 uppercase font-bold tracking-wider">Current GC</div>
-                          <div className="text-sm font-black text-purple-300 mt-0.5">
+                        <div
+                          style={{
+                            backgroundColor: 'rgba(224, 38, 216, 0.06)',
+                            border: '1px solid rgba(224, 38, 216, 0.25)',
+                            borderRadius: '10px',
+                            padding: '10px',
+                            textAlign: 'center',
+                          }}
+                        >
+                          <div style={{ fontSize: '10px', color: '#E026D8', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.04em' }}>
+                            Current GC Balance
+                          </div>
+                          <div style={{ fontSize: '15px', fontWeight: 900, color: '#FFFFFF', marginTop: '2px' }}>
                             {Number(selectedPlayer.balanceGC || 0).toLocaleString()}
                           </div>
                         </div>
                       </div>
                     </div>
                   ) : (
-                    <div className="p-3 text-center rounded-xl bg-black/20 border border-dashed border-white/10 text-xs text-gray-500">
+                    <div
+                      style={{
+                        padding: '16px',
+                        textAlign: 'center',
+                        borderRadius: '12px',
+                        backgroundColor: '#070514',
+                        border: '1px dashed rgba(255, 255, 255, 0.1)',
+                        fontSize: '11.5px',
+                        color: '#9A91A8',
+                      }}
+                    >
                       Select a player from the list above to begin allotment.
                     </div>
                   )}
                 </div>
 
                 {/* Column 2: Allotment Terminal & Execution */}
-                <div className="lg:col-span-7 bg-[#0e1122] border border-white/10 rounded-2xl p-5 shadow-xl flex flex-col gap-4">
+                <div
+                  style={{
+                    backgroundColor: '#0E0A24',
+                    border: '1px solid rgba(0, 240, 255, 0.18)',
+                    borderRadius: '16px',
+                    padding: '20px',
+                    boxShadow: '0 12px 30px rgba(0, 0, 0, 0.5)',
+                  }}
+                  className="lg:col-span-7 flex flex-col gap-4"
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-full bg-amber-500/20 text-amber-400 text-xs font-black flex items-center justify-center border border-amber-500/30">
+                      <span
+                        style={{
+                          width: '24px',
+                          height: '24px',
+                          borderRadius: '50%',
+                          backgroundColor: 'rgba(224, 38, 216, 0.15)',
+                          color: '#E026D8',
+                          fontSize: '11px',
+                          fontWeight: 900,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          border: '1px solid #E026D8',
+                        }}
+                      >
                         2
                       </span>
-                      <h3 className="text-sm font-bold text-white uppercase tracking-wider">Allotment Controls</h3>
+                      <h3 className="text-xs font-black text-white uppercase tracking-wider">Allotment Controls</h3>
                     </div>
-                    <span className="text-[11px] text-gray-400">
+                    <span className="text-[11px] text-[#9A91A8]">
                       Operator: <span className="text-white font-bold">{user?.username}</span>
                     </span>
                   </div>
@@ -1309,18 +1473,29 @@ export default function AdminPortal({ initialTab }) {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {/* Action: Credit or Debit */}
                       <div>
-                        <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                        <label style={{ display: 'block', fontSize: '10px', fontWeight: 800, color: '#C8C1D4', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '6px' }}>
                           Operation Type
                         </label>
-                        <div className="grid grid-cols-2 gap-1.5 bg-black/40 p-1 rounded-xl border border-white/10">
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', backgroundColor: '#070514', padding: '4px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
                           <button
                             type="button"
                             onClick={() => setAllotmentAction('credit')}
-                            className={`py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${
-                              allotmentAction === 'credit'
-                                ? 'bg-emerald-500 text-black shadow-[0_0_15px_rgba(16,185,129,0.4)]'
-                                : 'text-gray-400 hover:text-white'
-                            }`}
+                            style={{
+                              padding: '8px 0',
+                              borderRadius: '8px',
+                              fontSize: '11px',
+                              fontWeight: 900,
+                              cursor: 'pointer',
+                              border: 'none',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '6px',
+                              transition: 'all 0.15s ease',
+                              backgroundColor: allotmentAction === 'credit' ? '#00F0FF' : 'transparent',
+                              color: allotmentAction === 'credit' ? '#070514' : '#9A91A8',
+                              boxShadow: allotmentAction === 'credit' ? '0 0 14px rgba(0, 240, 255, 0.4)' : 'none',
+                            }}
                           >
                             <Plus size={14} />
                             <span>Credit (Add)</span>
@@ -1328,11 +1503,23 @@ export default function AdminPortal({ initialTab }) {
                           <button
                             type="button"
                             onClick={() => setAllotmentAction('debit')}
-                            className={`py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${
-                              allotmentAction === 'debit'
-                                ? 'bg-rose-500 text-white shadow-[0_0_15px_rgba(244,63,94,0.4)]'
-                                : 'text-gray-400 hover:text-white'
-                            }`}
+                            style={{
+                              padding: '8px 0',
+                              borderRadius: '8px',
+                              fontSize: '11px',
+                              fontWeight: 900,
+                              cursor: 'pointer',
+                              border: 'none',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '6px',
+                              transition: 'all 0.15s ease',
+                              backgroundColor: allotmentAction === 'debit' ? 'linear-gradient(135deg, #E026D8 0%, #F43F5E 100%)' : 'transparent',
+                              background: allotmentAction === 'debit' ? 'linear-gradient(135deg, #E026D8 0%, #F43F5E 100%)' : 'transparent',
+                              color: allotmentAction === 'debit' ? '#FFFFFF' : '#9A91A8',
+                              boxShadow: allotmentAction === 'debit' ? '0 0 14px rgba(224, 38, 216, 0.4)' : 'none',
+                            }}
                           >
                             <UserMinus size={14} />
                             <span>Debit (Deduct)</span>
@@ -1342,18 +1529,29 @@ export default function AdminPortal({ initialTab }) {
 
                       {/* Currency: SC or GC */}
                       <div>
-                        <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+                        <label style={{ display: 'block', fontSize: '10px', fontWeight: 800, color: '#C8C1D4', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '6px' }}>
                           Currency Wallet
                         </label>
-                        <div className="grid grid-cols-2 gap-1.5 bg-black/40 p-1 rounded-xl border border-white/10">
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', backgroundColor: '#070514', padding: '4px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
                           <button
                             type="button"
                             onClick={() => setAllotmentCurrency('SC')}
-                            className={`py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${
-                              allotmentCurrency === 'SC'
-                                ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-black shadow-[0_0_15px_rgba(245,158,11,0.4)]'
-                                : 'text-gray-400 hover:text-white'
-                            }`}
+                            style={{
+                              padding: '8px 0',
+                              borderRadius: '8px',
+                              fontSize: '11px',
+                              fontWeight: 900,
+                              cursor: 'pointer',
+                              border: 'none',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '6px',
+                              transition: 'all 0.15s ease',
+                              backgroundColor: allotmentCurrency === 'SC' ? '#00F0FF' : 'transparent',
+                              color: allotmentCurrency === 'SC' ? '#070514' : '#9A91A8',
+                              boxShadow: allotmentCurrency === 'SC' ? '0 0 14px rgba(0, 240, 255, 0.4)' : 'none',
+                            }}
                           >
                             <Coins size={14} />
                             <span>Sweeps (SC)</span>
@@ -1361,11 +1559,22 @@ export default function AdminPortal({ initialTab }) {
                           <button
                             type="button"
                             onClick={() => setAllotmentCurrency('GC')}
-                            className={`py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${
-                              allotmentCurrency === 'GC'
-                                ? 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]'
-                                : 'text-gray-400 hover:text-white'
-                            }`}
+                            style={{
+                              padding: '8px 0',
+                              borderRadius: '8px',
+                              fontSize: '11px',
+                              fontWeight: 900,
+                              cursor: 'pointer',
+                              border: 'none',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '6px',
+                              transition: 'all 0.15s ease',
+                              background: allotmentCurrency === 'GC' ? 'linear-gradient(135deg, #E026D8 0%, #A855F7 100%)' : 'transparent',
+                              color: allotmentCurrency === 'GC' ? '#FFFFFF' : '#9A91A8',
+                              boxShadow: allotmentCurrency === 'GC' ? '0 0 14px rgba(224, 38, 216, 0.4)' : 'none',
+                            }}
                           >
                             <Gamepad2 size={14} />
                             <span>Gold (GC)</span>
@@ -1377,33 +1586,53 @@ export default function AdminPortal({ initialTab }) {
                     {/* Amount & Presets */}
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
-                        <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                        <label style={{ fontSize: '10px', fontWeight: 800, color: '#C8C1D4', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                           Amount ({allotmentCurrency})
                         </label>
-                        <span className="text-[11px] text-gray-500">Presets:</span>
+                        <span style={{ fontSize: '10.5px', color: '#9A91A8' }}>Presets:</span>
                       </div>
 
                       {/* Quick Presets */}
                       <div className="flex flex-wrap gap-1.5 mb-2">
-                        {[10, 20, 50, 100, 250, 500, 1000].map((amt) => (
-                          <button
-                            key={amt}
-                            type="button"
-                            onClick={() => setAllotmentAmount(amt.toString())}
-                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition ${
-                              Number(allotmentAmount) === amt
-                                ? 'bg-amber-400/20 border-amber-400 text-amber-300'
-                                : 'bg-black/30 border-white/10 text-gray-300 hover:border-white/30'
-                            }`}
-                          >
-                            +{amt}
-                          </button>
-                        ))}
+                        {[10, 20, 50, 100, 250, 500, 1000].map((amt) => {
+                          const isActive = Number(allotmentAmount) === amt;
+                          return (
+                            <button
+                              key={amt}
+                              type="button"
+                              onClick={() => setAllotmentAmount(amt.toString())}
+                              style={{
+                                padding: '5px 10px',
+                                borderRadius: '8px',
+                                fontSize: '11px',
+                                fontWeight: 800,
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease',
+                                backgroundColor: isActive ? 'rgba(0, 240, 255, 0.15)' : '#070514',
+                                border: isActive ? '1.5px solid #00F0FF' : '1px solid rgba(255, 255, 255, 0.08)',
+                                color: isActive ? '#00F0FF' : '#C8C1D4',
+                                boxShadow: isActive ? '0 0 10px rgba(0, 240, 255, 0.25)' : 'none',
+                              }}
+                            >
+                              +{amt}
+                            </button>
+                          );
+                        })}
                       </div>
 
                       {/* Input */}
                       <div className="relative">
-                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-xs text-amber-400">
+                        <span
+                          style={{
+                            position: 'absolute',
+                            left: '14px',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            fontWeight: 900,
+                            fontSize: '12px',
+                            color: '#00F0FF',
+                          }}
+                        >
                           {allotmentCurrency}
                         </span>
                         <input
@@ -1414,7 +1643,18 @@ export default function AdminPortal({ initialTab }) {
                           value={allotmentAmount}
                           onChange={(e) => setAllotmentAmount(e.target.value)}
                           required
-                          className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 py-2.5 text-sm font-bold text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 transition"
+                          style={{
+                            width: '100%',
+                            backgroundColor: '#070514',
+                            border: '1px solid rgba(0, 240, 255, 0.22)',
+                            borderRadius: '12px',
+                            padding: '11px 14px 11px 48px',
+                            fontSize: '13px',
+                            fontWeight: 800,
+                            color: '#FFFFFF',
+                            outline: 'none',
+                            boxSizing: 'border-box',
+                          }}
                         />
                       </div>
                     </div>
@@ -1422,10 +1662,10 @@ export default function AdminPortal({ initialTab }) {
                     {/* Audit Reason & Quick Templates */}
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
-                        <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                        <label style={{ fontSize: '10px', fontWeight: 800, color: '#C8C1D4', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                           Compliance Audit Reason
                         </label>
-                        <span className="text-[11px] text-gray-500">Quick templates:</span>
+                        <span style={{ fontSize: '10.5px', color: '#9A91A8' }}>Quick templates:</span>
                       </div>
 
                       {/* Reason Presets */}
@@ -1437,20 +1677,30 @@ export default function AdminPortal({ initialTab }) {
                           'VIP Loyalty Reward',
                           'Platform Compensation',
                           'Manual Correction',
-                        ].map((reason) => (
-                          <button
-                            key={reason}
-                            type="button"
-                            onClick={() => setAllotmentReason(reason)}
-                            className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold border transition ${
-                              allotmentReason === reason
-                                ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300'
-                                : 'bg-black/30 border-white/10 text-gray-400 hover:text-white'
-                            }`}
-                          >
-                            {reason}
-                          </button>
-                        ))}
+                        ].map((reason) => {
+                          const isActive = allotmentReason === reason;
+                          return (
+                            <button
+                              key={reason}
+                              type="button"
+                              onClick={() => setAllotmentReason(reason)}
+                              style={{
+                                padding: '5px 10px',
+                                borderRadius: '8px',
+                                fontSize: '10.5px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease',
+                                backgroundColor: isActive ? 'rgba(224, 38, 216, 0.15)' : '#070514',
+                                border: isActive ? '1.5px solid #E026D8' : '1px solid rgba(255, 255, 255, 0.08)',
+                                color: isActive ? '#E026D8' : '#9A91A8',
+                                boxShadow: isActive ? '0 0 10px rgba(224, 38, 216, 0.25)' : 'none',
+                              }}
+                            >
+                              {reason}
+                            </button>
+                          );
+                        })}
                       </div>
 
                       <input
@@ -1459,20 +1709,56 @@ export default function AdminPortal({ initialTab }) {
                         value={allotmentReason}
                         onChange={(e) => setAllotmentReason(e.target.value)}
                         required
-                        className="w-full bg-black/40 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 transition"
+                        style={{
+                          width: '100%',
+                          backgroundColor: '#070514',
+                          border: '1px solid rgba(0, 240, 255, 0.22)',
+                          borderRadius: '12px',
+                          padding: '10px 14px',
+                          fontSize: '12px',
+                          color: '#FFFFFF',
+                          outline: 'none',
+                          boxSizing: 'border-box',
+                        }}
                       />
                     </div>
 
                     {/* Feedback Messages */}
                     {allotmentSuccessMsg && (
-                      <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 text-xs font-bold flex items-center gap-2">
+                      <div
+                        style={{
+                          padding: '12px',
+                          borderRadius: '12px',
+                          backgroundColor: 'rgba(0, 240, 255, 0.12)',
+                          border: '1px solid rgba(0, 240, 255, 0.35)',
+                          color: '#00F0FF',
+                          fontSize: '11.5px',
+                          fontWeight: 800,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                        }}
+                      >
                         <Check size={16} className="shrink-0" />
                         <span>{allotmentSuccessMsg}</span>
                       </div>
                     )}
 
                     {allotmentErrorMsg && (
-                      <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/40 text-rose-400 text-xs font-bold flex items-center gap-2">
+                      <div
+                        style={{
+                          padding: '12px',
+                          borderRadius: '12px',
+                          backgroundColor: 'rgba(244, 63, 94, 0.12)',
+                          border: '1px solid rgba(244, 63, 94, 0.35)',
+                          color: '#F43F5E',
+                          fontSize: '11.5px',
+                          fontWeight: 800,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                        }}
+                      >
                         <AlertCircle size={16} className="shrink-0" />
                         <span>{allotmentErrorMsg}</span>
                       </div>
@@ -1482,11 +1768,32 @@ export default function AdminPortal({ initialTab }) {
                     <button
                       type="submit"
                       disabled={allotmentLoading || !selectedPlayer || !allotmentAmount}
-                      className={`w-full py-3 rounded-xl font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 shadow-xl ${
-                        allotmentAction === 'credit'
-                          ? 'bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-black shadow-emerald-500/20 disabled:opacity-50'
-                          : 'bg-gradient-to-r from-rose-600 to-red-500 hover:from-rose-500 hover:to-red-400 text-white shadow-rose-500/20 disabled:opacity-50'
-                      }`}
+                      style={{
+                        width: '100%',
+                        padding: '14px 0',
+                        borderRadius: '12px',
+                        fontWeight: 900,
+                        fontSize: '12px',
+                        letterSpacing: '0.04em',
+                        textTransform: 'uppercase',
+                        border: 'none',
+                        cursor: allotmentLoading || !selectedPlayer || !allotmentAmount ? 'not-allowed' : 'pointer',
+                        opacity: allotmentLoading || !selectedPlayer || !allotmentAmount ? 0.5 : 1,
+                        background:
+                          allotmentAction === 'credit'
+                            ? 'linear-gradient(135deg, #E026D8 0%, #9333EA 45%, #00F0FF 100%)'
+                            : 'linear-gradient(135deg, #F43F5E 0%, #BE123C 100%)',
+                        color: '#FFFFFF',
+                        boxShadow:
+                          allotmentAction === 'credit'
+                            ? '0 4px 20px rgba(0, 240, 255, 0.4), 0 0 25px rgba(224, 38, 216, 0.3)'
+                            : '0 4px 20px rgba(244, 63, 94, 0.4)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        transition: 'all 0.2s ease',
+                      }}
                     >
                       {allotmentLoading ? (
                         <>
@@ -1509,46 +1816,85 @@ export default function AdminPortal({ initialTab }) {
               </div>
 
               {/* Bottom Card: Recent Allotment Audit Ledger */}
-              <div className="bg-[#0e1122] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
-                <div className="p-4 border-b border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-black/20">
+              <div
+                style={{
+                  backgroundColor: '#0E0A24',
+                  border: '1px solid rgba(0, 240, 255, 0.18)',
+                  borderRadius: '16px',
+                  overflow: 'hidden',
+                  boxShadow: '0 12px 30px rgba(0, 0, 0, 0.5)',
+                }}
+              >
+                <div
+                  style={{
+                    padding: '16px 20px',
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                    backgroundColor: '#070514',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                  }}
+                >
                   <div>
-                    <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                    <h3 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2">
                       Recent Allotment Audit Stream
-                      <span className="text-[10px] bg-white/10 text-gray-300 px-2 py-0.5 rounded-full font-mono">
+                      <span
+                        style={{
+                          fontSize: '10px',
+                          backgroundColor: 'rgba(0, 240, 255, 0.12)',
+                          color: '#00F0FF',
+                          border: '1px solid rgba(0, 240, 255, 0.25)',
+                          padding: '2px 8px',
+                          borderRadius: '9999px',
+                          fontFamily: 'monospace',
+                        }}
+                      >
                         {allotmentHistory.length} logs
                       </span>
                     </h3>
-                    <p className="text-[11px] text-gray-400 mt-0.5">
+                    <p className="text-[11px] text-[#9A91A8] mt-0.5">
                       Immutable trail of all staff credit allotments and manual coin adjustments
                     </p>
                   </div>
 
                   {/* Filter Pills */}
-                  <div className="flex items-center gap-1.5 bg-black/40 p-1 rounded-xl border border-white/10">
+                  <div style={{ display: 'flex', gap: '6px', backgroundColor: '#0E0A24', padding: '4px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
                     {[
                       { id: 'all', label: 'All Operations' },
                       { id: 'admin_allotment', label: 'Credits (+)' },
                       { id: 'admin_deduction', label: 'Debits (-)' },
-                    ].map((f) => (
-                      <button
-                        key={f.id}
-                        onClick={() => setAllotmentLedgerFilter(f.id)}
-                        className={`px-3 py-1 rounded-lg text-[11px] font-bold transition ${
-                          allotmentLedgerFilter === f.id
-                            ? 'bg-amber-500 text-black'
-                            : 'text-gray-400 hover:text-white'
-                        }`}
-                      >
-                        {f.label}
-                      </button>
-                    ))}
+                    ].map((f) => {
+                      const isActive = allotmentLedgerFilter === f.id;
+                      return (
+                        <button
+                          key={f.id}
+                          onClick={() => setAllotmentLedgerFilter(f.id)}
+                          style={{
+                            padding: '6px 12px',
+                            borderRadius: '8px',
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            cursor: 'pointer',
+                            border: 'none',
+                            transition: 'all 0.15s ease',
+                            backgroundColor: isActive ? '#00F0FF' : 'transparent',
+                            color: isActive ? '#070514' : '#9A91A8',
+                            boxShadow: isActive ? '0 0 12px rgba(0, 240, 255, 0.4)' : 'none',
+                          }}
+                        >
+                          {f.label}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
                 {/* Ledger Table */}
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs">
-                    <thead className="bg-black/40 text-gray-400 uppercase font-bold text-[10px] tracking-wider border-b border-white/5">
+                    <thead style={{ backgroundColor: '#070514', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', color: '#9A91A8' }} className="uppercase font-bold text-[10px] tracking-wider">
                       <tr>
                         <th className="py-3 px-4">Date &amp; Time</th>
                         <th className="py-3 px-4">Target Player</th>
@@ -1567,7 +1913,7 @@ export default function AdminPortal({ initialTab }) {
                           const isCredit = entry.type === 'admin_allotment';
                           return (
                             <tr key={entry.id} className="hover:bg-white/[0.02] transition">
-                              <td className="py-3 px-4 text-gray-400 whitespace-nowrap text-[11px]">
+                              <td className="py-3 px-4 text-[#9A91A8] whitespace-nowrap text-[11px]">
                                 {new Date(entry.createdAt).toLocaleDateString()}{' '}
                                 <span className="text-gray-500">{new Date(entry.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                               </td>
@@ -1576,27 +1922,37 @@ export default function AdminPortal({ initialTab }) {
                               </td>
                               <td className="py-3 px-4 whitespace-nowrap">
                                 <span
-                                  className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                    isCredit
-                                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                      : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                                  }`}
+                                  style={{
+                                    padding: '2px 8px',
+                                    borderRadius: '6px',
+                                    fontSize: '10px',
+                                    fontWeight: 800,
+                                    backgroundColor: isCredit ? 'rgba(0, 240, 255, 0.12)' : 'rgba(244, 63, 94, 0.12)',
+                                    color: isCredit ? '#00F0FF' : '#F43F5E',
+                                    border: isCredit ? '1px solid rgba(0, 240, 255, 0.35)' : '1px solid rgba(244, 63, 94, 0.35)',
+                                  }}
                                 >
                                   {isCredit ? '+ CREDIT' : '- DEBIT'}
                                 </span>
                               </td>
-                              <td className={`py-3 px-4 text-right font-black whitespace-nowrap ${isCredit ? 'text-emerald-400' : 'text-rose-400'}`}>
+                              <td
+                                style={{
+                                  color: isCredit ? '#00F0FF' : '#F43F5E',
+                                  fontWeight: 900,
+                                }}
+                                className="py-3 px-4 text-right whitespace-nowrap"
+                              >
                                 {isCredit ? '+' : '-'}{Math.abs(Number(entry.amount || 0)).toFixed(2)} {entry.currency || 'SC'}
                               </td>
-                              <td className="py-3 px-4 text-gray-400 text-[11px] whitespace-nowrap">
+                              <td className="py-3 px-4 text-[#9A91A8] text-[11px] whitespace-nowrap">
                                 {entry.balanceBefore != null ? Number(entry.balanceBefore).toFixed(2) : '-'} →{' '}
                                 <span className="text-white font-bold">{entry.balanceAfter != null ? Number(entry.balanceAfter).toFixed(2) : '-'}</span>
                               </td>
                               <td className="py-3 px-4 text-gray-300 whitespace-nowrap text-[11px]">
                                 <span className="font-bold text-white">{entry.performedBy || 'System'}</span>
-                                {entry.staffRole && <span className="text-[10px] text-gray-500 ml-1">({entry.staffRole})</span>}
+                                {entry.staffRole && <span className="text-[10px] text-[#9A91A8] ml-1">({entry.staffRole})</span>}
                               </td>
-                              <td className="py-3 px-4 text-gray-400 max-w-xs truncate text-[11px]" title={entry.notes}>
+                              <td className="py-3 px-4 text-[#9A91A8] max-w-xs truncate text-[11px]" title={entry.notes}>
                                 {entry.notes || '-'}
                               </td>
                             </tr>
@@ -1604,7 +1960,7 @@ export default function AdminPortal({ initialTab }) {
                         })}
                       {allotmentHistory.length === 0 && (
                         <tr>
-                          <td colSpan="7" className="py-8 text-center text-gray-500 text-xs">
+                          <td colSpan="7" className="py-8 text-center text-[#9A91A8] text-xs">
                             No coin allotment ledger records found yet.
                           </td>
                         </tr>
