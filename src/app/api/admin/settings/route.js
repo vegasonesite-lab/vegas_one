@@ -12,11 +12,11 @@ export async function GET() {
       welcomeBonusMax: 7500,
       welcomeBonusSpins: 150,
       welcomeBonusTitle: 'WELCOME BONUS',
-      welcomeBonusSubtitle: 'Get a massive 300% bonus on your first deposit! Fast Cash App & Crypto deposits with instant withdrawals.',
+      welcomeBonusSubtitle: 'Get a 300% bonus on your first deposit! Instant approval & fast cashouts.',
       regularBonusPercent: 50,
       regularBonusMax: 2500,
       regularBonusTitle: 'REGULAR BONUS',
-      regularBonusSubtitle: 'Enjoy a 50% extra bonus on every deposit you make! Instant approval into your wallet.',
+      regularBonusSubtitle: 'Get a 50% reload bonus on every deposit you make! Boost your wallet balance anytime.',
       signupBonusSC: 5.0,
       signupBonusGC: 50000,
       minRedemptionSC: 50.0,
@@ -25,14 +25,35 @@ export async function GET() {
       maintenanceMode: false,
     };
     const merged = { ...defaultSettings, ...(settings || {}) };
-    if (!merged.welcomeBonusTitle || merged.welcomeBonusTitle === 'TRIPLE TIER WELCOME PACK') {
+
+    // Clean up legacy template text from database if present
+    if (merged.welcomeBonusTitle === 'TRIPLE TIER WELCOME PACK') {
       merged.welcomeBonusTitle = 'WELCOME BONUS';
-      merged.welcomeBonusSubtitle = 'Get a massive 300% bonus on your first deposit! Fast Cash App & Crypto deposits with instant withdrawals.';
     }
-    if (!merged.regularBonusTitle || merged.regularBonusTitle === 'REGULAR RELOAD BOOST') {
+    if (merged.welcomeBonusSubtitle?.includes('Sovereign Status')) {
+      merged.welcomeBonusSubtitle = 'Get a 300% bonus on your first deposit! Instant approval & fast cashouts.';
+    }
+    if (merged.regularBonusTitle === 'REGULAR RELOAD BOOST') {
       merged.regularBonusTitle = 'REGULAR BONUS';
-      merged.regularBonusSubtitle = 'Enjoy a 50% extra bonus on every deposit you make! Instant approval into your wallet.';
     }
+    if (merged.regularBonusSubtitle?.includes('Unlimited reload boost')) {
+      merged.regularBonusSubtitle = 'Get a 50% reload bonus on every deposit you make! Boost your wallet balance anytime.';
+    }
+
+    // Persist clean copy to DB
+    await db.collection('system_settings').updateOne(
+      { key: 'general' },
+      {
+        $set: {
+          welcomeBonusTitle: merged.welcomeBonusTitle,
+          welcomeBonusSubtitle: merged.welcomeBonusSubtitle,
+          regularBonusTitle: merged.regularBonusTitle,
+          regularBonusSubtitle: merged.regularBonusSubtitle,
+        },
+      },
+      { upsert: true }
+    );
+
     return NextResponse.json({ success: true, settings: merged });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

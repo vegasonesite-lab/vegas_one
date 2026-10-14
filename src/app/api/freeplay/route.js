@@ -16,8 +16,9 @@ export async function GET(req) {
     let user = null;
     if (userId && ObjectId.isValid(userId)) {
       user = await db.collection('users').findOne({ _id: new ObjectId(userId) });
-    } else if (session.email) {
-      user = await db.collection('users').findOne({ email: session.email });
+    }
+    if (!user && session.email) {
+      user = await db.collection('users').findOne({ email: session.email.toLowerCase().trim() });
     }
 
     const claimed = Boolean(user?.freeplayClaimed);
@@ -47,12 +48,13 @@ export async function POST(req) {
     let user = null;
     if (userId && ObjectId.isValid(userId)) {
       user = await usersCol.findOne({ _id: new ObjectId(userId) });
-    } else if (session.email) {
-      user = await usersCol.findOne({ email: session.email });
+    }
+    if (!user && session.email) {
+      user = await usersCol.findOne({ email: session.email.toLowerCase().trim() });
     }
 
     if (!user) {
-      return NextResponse.json({ success: false, message: 'User account not found. Please log in again.' }, { status: 404 });
+      return NextResponse.json({ success: false, message: 'User not found. Please log in again.' }, { status: 404 });
     }
 
     if (user.freeplayClaimed) {

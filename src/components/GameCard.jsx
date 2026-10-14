@@ -19,6 +19,9 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
   const badge = getBadge();
   const activeCount = Math.floor((game.playsCount || 0) * 3 + (game.title.length * 17) % 350 + 24);
 
+  const maxBetDisplay = game.maxBetSC ? `$${Number(game.maxBetSC).toLocaleString()}` : '$50,000';
+  const rtpDisplay = game.rtp ? `${Number(game.rtp).toFixed(1)}%` : '99.4%';
+
   return (
     <div
       className="game-card-luxury"
@@ -121,10 +124,19 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
           />
         </div>
 
-        {/* 2. Provider / Category and Game Title */}
-        <div style={{ margin: '10px 0', padding: '0 2px' }}>
+        {/* 2. Stats Row */}
+        <div className="game-card-stats-row">
+          <span style={{ color: '#10B981', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10B981' }} />
+            Instant Play
+          </span>
+          <span>Max Win: <strong style={{ color: '#00F0FF', fontWeight: 700 }}>{maxBetDisplay}</strong></span>
+        </div>
+
+        {/* 3. Subcategory and Game Title */}
+        <div style={{ marginBottom: '10px', padding: '0 2px' }}>
           <p className="game-card-subtitle">
-            {game.provider ? game.provider.toUpperCase() : (game.category ? game.category.toUpperCase() : 'VEGAS GAMES')}
+            {(game.category || 'Vegas One').toUpperCase()}
           </p>
           <h3 className="game-card-title-text">
             {game.title}

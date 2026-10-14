@@ -49,6 +49,9 @@ export default function VegasFreeplayBanner({ user, onOpenAuth, onBalanceUpdated
       if (data.success) {
         setClaimed(true);
         setMessage('🎉 $3.00 Freeplay successfully credited to your vault!');
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('balanceUpdated'));
+        }
         if (onBalanceUpdated) onBalanceUpdated();
         setTimeout(() => setMessage(''), 5000);
       } else {

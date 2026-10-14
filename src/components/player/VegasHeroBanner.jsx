@@ -45,7 +45,9 @@ export default function VegasHeroBanner({
   // Determine if user has already claimed the welcome bonus
   const hasClaimedWelcome = Boolean(user?.welcomeBonusClaimed || (user?.totalDeposited && user.totalDeposited > 0));
 
-  const bonusTitle = hasClaimedWelcome ? 'REGULAR BONUS' : 'WELCOME BONUS';
+  const bonusTitle = hasClaimedWelcome
+    ? (settings?.regularBonusTitle || 'REGULAR BONUS')
+    : (settings?.welcomeBonusTitle || 'WELCOME BONUS');
 
   const bonusPercent = hasClaimedWelcome
     ? (settings?.regularBonusPercent ?? 50)
@@ -60,8 +62,8 @@ export default function VegasHeroBanner({
     : 'FIRST DEPOSIT';
 
   const bonusSubtitle = hasClaimedWelcome
-    ? `Enjoy a ${bonusPercent}% extra bonus on every deposit you make! Instant approval into your wallet.`
-    : `Get a massive ${bonusPercent}% bonus on your first deposit! Instant Cash App & Crypto deposits with fast withdrawals.`;
+    ? (settings?.regularBonusSubtitle || `Enjoy a ${bonusPercent}% extra bonus on every deposit you make! Instant approval into your wallet.`)
+    : (settings?.welcomeBonusSubtitle || `Get a massive ${bonusPercent}% bonus on your first deposit! Fast Cash App & Crypto deposits with instant withdrawals.`);
 
   const ctaText = hasClaimedWelcome
     ? 'CLAIM REGULAR BONUS'
@@ -207,7 +209,7 @@ export default function VegasHeroBanner({
               }}
               className="btn-sovereign-dark"
             >
-              <span>Explore All Games</span>
+              <span>Browse All Games</span>
               <ArrowRight size={15} color="#A69FB3" />
             </button>
           </div>
@@ -216,15 +218,15 @@ export default function VegasHeroBanner({
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '20px', paddingTop: '6px', fontSize: '12px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Lock size={14} color="#00F0FF" />
-              <span>Cash App &amp; Crypto Deposits</span>
+              <span>Instant Cash App &amp; Crypto</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <CheckCircle2 size={14} color="#E026D8" />
-              <span>Fast 24/7 Redemptions</span>
+              <span>Fast 24/7 Cashouts</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <ShieldCheck size={14} color="#00F0FF" />
-              <span>100% Fair &amp; Audited Games</span>
+              <span>100% Safe &amp; Verified</span>
             </div>
           </div>
 
@@ -256,7 +258,7 @@ export default function VegasHeroBanner({
                   boxShadow: '0 0 8px #00F0FF',
                 }}
               />
-              <span>LIVE CASINO ARENA</span>
+              <span>SALON PRIVÉ LIVE</span>
             </div>
 
             {/* Subtle bottom vignette gradient */}
@@ -296,6 +298,20 @@ export default function VegasHeroBanner({
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '12px', margin: '4px 0' }}>
               <span className="sovereign-jackpot-value">
                 ${jackpot.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontFamily: 'Lexend, sans-serif',
+                  fontWeight: 700,
+                  color: '#A69FB3',
+                  backgroundColor: '#231C30',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  padding: '3px 10px',
+                  borderRadius: '9999px',
+                }}
+              >
+                +1.4%/hr
               </span>
             </div>
 

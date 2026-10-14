@@ -229,11 +229,11 @@ export default function AdminPortal({ initialTab }) {
           welcomeBonusMax: Number(sysSettings?.welcomeBonusMax ?? 7500),
           welcomeBonusSpins: Number(sysSettings?.welcomeBonusSpins ?? 150),
           welcomeBonusTitle: sysSettings?.welcomeBonusTitle || 'WELCOME BONUS',
-          welcomeBonusSubtitle: sysSettings?.welcomeBonusSubtitle || 'Includes +150 Neon Free Spins and instantaneous Tier II Sovereign Status upgrade.',
+          welcomeBonusSubtitle: sysSettings?.welcomeBonusSubtitle || 'Get a 300% bonus on your first deposit! Instant approval & fast cashouts.',
           regularBonusPercent: Number(sysSettings?.regularBonusPercent ?? 50),
           regularBonusMax: Number(sysSettings?.regularBonusMax ?? 2500),
-          regularBonusTitle: sysSettings?.regularBonusTitle || 'REGULAR RELOAD BOOST',
-          regularBonusSubtitle: sysSettings?.regularBonusSubtitle || 'Unlimited reload boost on every subsequent crypto & Cash App deposit.',
+          regularBonusTitle: sysSettings?.regularBonusTitle || 'REGULAR BONUS',
+          regularBonusSubtitle: sysSettings?.regularBonusSubtitle || 'Get a 50% reload bonus on every deposit you make! Boost your wallet balance anytime.',
         }),
       });
       const data = await res.json();
@@ -3201,7 +3201,7 @@ export default function AdminPortal({ initialTab }) {
                         <label className="text-[11px] font-bold text-gray-300 block mb-1">Banner Subtitle / Description</label>
                         <textarea
                           rows={2}
-                          value={sysSettings?.welcomeBonusSubtitle || 'Get a massive 300% bonus on your first deposit! Fast Cash App & Crypto deposits.'}
+                          value={sysSettings?.welcomeBonusSubtitle || 'Get a 300% bonus on your first deposit! Instant approval & fast cashouts.'}
                           onChange={(e) => setSysSettings(prev => ({ ...prev, welcomeBonusSubtitle: e.target.value }))}
                           className="w-full bg-[#0e1122] border border-white/10 rounded-lg px-3 py-2 text-white text-xs leading-relaxed"
                           required
@@ -3258,7 +3258,7 @@ export default function AdminPortal({ initialTab }) {
                         <label className="text-[11px] font-bold text-gray-300 block mb-1">Banner Title</label>
                         <input
                           type="text"
-                          value={sysSettings?.regularBonusTitle || 'REGULAR RELOAD BOOST'}
+                          value={sysSettings?.regularBonusTitle || 'REGULAR BONUS'}
                           onChange={(e) => setSysSettings(prev => ({ ...prev, regularBonusTitle: e.target.value }))}
                           className="w-full bg-[#0e1122] border border-white/10 rounded-lg px-3 py-2 text-white font-bold text-sm"
                           required
@@ -3269,7 +3269,7 @@ export default function AdminPortal({ initialTab }) {
                         <label className="text-[11px] font-bold text-gray-300 block mb-1">Banner Subtitle / Description</label>
                         <textarea
                           rows={2}
-                          value={sysSettings?.regularBonusSubtitle || 'Unlimited reload boost on every subsequent crypto & Cash App deposit.'}
+                          value={sysSettings?.regularBonusSubtitle || 'Get a 50% reload bonus on every deposit you make! Boost your wallet balance anytime.'}
                           onChange={(e) => setSysSettings(prev => ({ ...prev, regularBonusSubtitle: e.target.value }))}
                           className="w-full bg-[#0e1122] border border-white/10 rounded-lg px-3 py-2 text-white text-xs leading-relaxed"
                           required
