@@ -19,9 +19,6 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
   const badge = getBadge();
   const activeCount = Math.floor((game.playsCount || 0) * 3 + (game.title.length * 17) % 350 + 24);
 
-  const maxBetDisplay = game.maxBetSC ? `$${Number(game.maxBetSC).toLocaleString()}` : '$50,000';
-  const rtpDisplay = game.rtp ? `${Number(game.rtp).toFixed(1)}%` : '99.4%';
-
   return (
     <div
       className="game-card-luxury"
@@ -124,16 +121,10 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
           />
         </div>
 
-        {/* 2. Stats Row */}
-        <div className="game-card-stats-row">
-          <span>RTP: <strong style={{ color: '#F8FAFC', fontWeight: 600 }}>{rtpDisplay}</strong></span>
-          <span>Max: <strong style={{ color: '#00F0FF', fontWeight: 600 }}>{maxBetDisplay}</strong></span>
-        </div>
-
-        {/* 3. Subcategory and Game Title */}
-        <div style={{ marginBottom: '10px', padding: '0 2px' }}>
+        {/* 2. Provider / Category and Game Title */}
+        <div style={{ margin: '10px 0', padding: '0 2px' }}>
           <p className="game-card-subtitle">
-            SWEEPSTAKES ARENA
+            {game.provider ? game.provider.toUpperCase() : (game.category ? game.category.toUpperCase() : 'VEGAS GAMES')}
           </p>
           <h3 className="game-card-title-text">
             {game.title}

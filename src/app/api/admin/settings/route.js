@@ -11,12 +11,12 @@ export async function GET() {
       welcomeBonusPercent: 300,
       welcomeBonusMax: 7500,
       welcomeBonusSpins: 150,
-      welcomeBonusTitle: 'TRIPLE TIER WELCOME PACK',
-      welcomeBonusSubtitle: 'Includes +150 Neon Free Spins and instantaneous Tier II Sovereign Status upgrade.',
+      welcomeBonusTitle: 'WELCOME BONUS',
+      welcomeBonusSubtitle: 'Get a massive 300% bonus on your first deposit! Fast Cash App & Crypto deposits with instant withdrawals.',
       regularBonusPercent: 50,
       regularBonusMax: 2500,
-      regularBonusTitle: 'REGULAR RELOAD BOOST',
-      regularBonusSubtitle: 'Unlimited reload boost on every subsequent crypto & Cash App deposit.',
+      regularBonusTitle: 'REGULAR BONUS',
+      regularBonusSubtitle: 'Enjoy a 50% extra bonus on every deposit you make! Instant approval into your wallet.',
       signupBonusSC: 5.0,
       signupBonusGC: 50000,
       minRedemptionSC: 50.0,
@@ -25,6 +25,14 @@ export async function GET() {
       maintenanceMode: false,
     };
     const merged = { ...defaultSettings, ...(settings || {}) };
+    if (!merged.welcomeBonusTitle || merged.welcomeBonusTitle === 'TRIPLE TIER WELCOME PACK') {
+      merged.welcomeBonusTitle = 'WELCOME BONUS';
+      merged.welcomeBonusSubtitle = 'Get a massive 300% bonus on your first deposit! Fast Cash App & Crypto deposits with instant withdrawals.';
+    }
+    if (!merged.regularBonusTitle || merged.regularBonusTitle === 'REGULAR RELOAD BOOST') {
+      merged.regularBonusTitle = 'REGULAR BONUS';
+      merged.regularBonusSubtitle = 'Enjoy a 50% extra bonus on every deposit you make! Instant approval into your wallet.';
+    }
     return NextResponse.json({ success: true, settings: merged });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

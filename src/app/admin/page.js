@@ -228,7 +228,7 @@ export default function AdminPortal({ initialTab }) {
           welcomeBonusPercent: Number(sysSettings?.welcomeBonusPercent ?? 300),
           welcomeBonusMax: Number(sysSettings?.welcomeBonusMax ?? 7500),
           welcomeBonusSpins: Number(sysSettings?.welcomeBonusSpins ?? 150),
-          welcomeBonusTitle: sysSettings?.welcomeBonusTitle || 'TRIPLE TIER WELCOME PACK',
+          welcomeBonusTitle: sysSettings?.welcomeBonusTitle || 'WELCOME BONUS',
           welcomeBonusSubtitle: sysSettings?.welcomeBonusSubtitle || 'Includes +150 Neon Free Spins and instantaneous Tier II Sovereign Status upgrade.',
           regularBonusPercent: Number(sysSettings?.regularBonusPercent ?? 50),
           regularBonusMax: Number(sysSettings?.regularBonusMax ?? 2500),
@@ -3189,7 +3189,7 @@ export default function AdminPortal({ initialTab }) {
                           <label className="text-[11px] font-bold text-gray-300 block mb-1">Banner Title</label>
                           <input
                             type="text"
-                            value={sysSettings?.welcomeBonusTitle || 'TRIPLE TIER WELCOME PACK'}
+                            value={sysSettings?.welcomeBonusTitle || 'WELCOME BONUS'}
                             onChange={(e) => setSysSettings(prev => ({ ...prev, welcomeBonusTitle: e.target.value }))}
                             className="w-full bg-[#0e1122] border border-white/10 rounded-lg px-3 py-2 text-white font-bold text-sm"
                             required
@@ -3201,7 +3201,7 @@ export default function AdminPortal({ initialTab }) {
                         <label className="text-[11px] font-bold text-gray-300 block mb-1">Banner Subtitle / Description</label>
                         <textarea
                           rows={2}
-                          value={sysSettings?.welcomeBonusSubtitle || 'Includes +150 Neon Free Spins and instantaneous Tier II Sovereign Status upgrade.'}
+                          value={sysSettings?.welcomeBonusSubtitle || 'Get a massive 300% bonus on your first deposit! Fast Cash App & Crypto deposits.'}
                           onChange={(e) => setSysSettings(prev => ({ ...prev, welcomeBonusSubtitle: e.target.value }))}
                           className="w-full bg-[#0e1122] border border-white/10 rounded-lg px-3 py-2 text-white text-xs leading-relaxed"
                           required
