@@ -2460,9 +2460,9 @@ textarea:focus {
    VEGAS ONE 100VH STATIC SIDEBAR & SCROLLABLE CONTENT ARCHITECTURE
    ========================================================================== */
 .vegas-sidebar-container {
-  width: 250px;
-  min-width: 250px;
-  max-width: 250px;
+  width: 275px;
+  min-width: 275px;
+  max-width: 275px;
   background: linear-gradient(180deg, #09061A 0%, #05030E 100%);
   border-right: 1px solid rgba(0, 240, 255, 0.16);
   box-shadow: 4px 0 35px rgba(0, 0, 0, 0.7);
@@ -2496,8 +2496,8 @@ textarea:focus {
 }
 
 .vegas-page-right-content {
-  margin-left: 250px;
-  width: calc(100% - 250px);
+  margin-left: 275px;
+  width: calc(100% - 275px);
   min-height: 100vh;
   display: flex;
   flex-direction: column;

@@ -19,7 +19,10 @@ export async function GET(req) {
     const depositsCol = db.collection('deposits');
 
     const query = {};
-    const isStaff = session.role === ROLES.SUPER_ADMIN || session.role === ROLES.FINANCIAL_MANAGER;
+    const isStaff =
+      session.role === ROLES.SUPER_ADMIN ||
+      session.role === ROLES.FINANCIAL_MANAGER ||
+      session.role === ROLES.OPERATION_ADMIN;
 
     if (!isStaff) {
       query.userId = session.userId;
@@ -151,8 +154,12 @@ export async function POST(req) {
 // PUT: Financial Manager & Super Admin Approve / Reject Deposit
 export async function PUT(req) {
   try {
-    const session = await getSessionUser();
-    if (!session || (session.role !== ROLES.SUPER_ADMIN && session.role !== ROLES.FINANCIAL_MANAGER)) {
+    const authorizedRoles = [
+      ROLES.SUPER_ADMIN,
+      ROLES.FINANCIAL_MANAGER,
+      ROLES.OPERATION_ADMIN,
+    ];
+    if (!session || !authorizedRoles.includes(session.role)) {
       return NextResponse.json({ success: false, error: 'Unauthorized. Financial Manager access required.' }, { status: 403 });
     }
 

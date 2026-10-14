@@ -785,10 +785,12 @@ export default function AdminPortal({ initialTab }) {
         {/* Left Admin Navigation */}
         <aside
           style={{
-            width: '240px',
+            width: '275px',
+            minWidth: '275px',
+            maxWidth: '275px',
             backgroundColor: '#130D1E',
             borderRight: '1px solid rgba(255, 255, 255, 0.08)',
-            padding: '16px 12px',
+            padding: '16px 14px',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',

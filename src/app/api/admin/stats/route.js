@@ -4,9 +4,15 @@ import { getDb } from '@/lib/mongodb';
 
 export async function GET() {
   try {
-    const session = await getSessionUser();
-    if (!session || (session.role !== ROLES.SUPER_ADMIN && session.role !== ROLES.FINANCIAL_MANAGER)) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 403 });
+    const authorizedRoles = [
+      ROLES.SUPER_ADMIN,
+      ROLES.OPERATION_ADMIN,
+      ROLES.FINANCIAL_MANAGER,
+      ROLES.COIN_MANAGER,
+      ROLES.CHAT_SUPPORT,
+    ];
+    if (!session || !authorizedRoles.includes(session.role)) {
+      return NextResponse.json({ success: false, error: 'Unauthorized staff access.' }, { status: 403 });
     }
 
     const db = await getDb();

@@ -73,6 +73,7 @@ export async function GET() {
         email: user.email,
         role: user.role,
         balanceSC: Number((user.balanceSC || 0).toFixed(2)),
+        balanceGC: Number(user.balanceGC || 0),
         balance: Number((user.balanceSC || 0).toFixed(2)),
         kycStatus: user.kycStatus || 'none',
         referralCode: user.referralCode || '',

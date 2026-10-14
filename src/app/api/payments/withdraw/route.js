@@ -18,7 +18,10 @@ export async function GET(req) {
     const db = await getDb();
     const redemptionsCol = db.collection('redemptions');
 
-    const isStaff = session.role === ROLES.SUPER_ADMIN || session.role === ROLES.FINANCIAL_MANAGER;
+    const isStaff =
+      session.role === ROLES.SUPER_ADMIN ||
+      session.role === ROLES.FINANCIAL_MANAGER ||
+      session.role === ROLES.OPERATION_ADMIN;
     const query = {};
 
     if (!isStaff) {
@@ -148,7 +151,12 @@ export async function POST(req) {
 export async function PUT(req) {
   try {
     const session = await getSessionUser();
-    if (!session || (session.role !== ROLES.SUPER_ADMIN && session.role !== ROLES.FINANCIAL_MANAGER)) {
+    const authorizedRoles = [
+      ROLES.SUPER_ADMIN,
+      ROLES.FINANCIAL_MANAGER,
+      ROLES.OPERATION_ADMIN,
+    ];
+    if (!session || !authorizedRoles.includes(session.role)) {
       return NextResponse.json({ success: false, error: 'Unauthorized.' }, { status: 403 });
     }
 

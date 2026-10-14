@@ -110,7 +110,7 @@ export async function POST(req) {
 export async function PUT(req) {
   try {
     const session = await getSessionUser();
-    if (!session || !['super_admin', 'financial_manager', 'coin_manager', 'chat_support'].includes(session.role)) {
+    if (!session || !['super_admin', 'operation_admin', 'financial_manager', 'coin_manager', 'chat_support'].includes(session.role)) {
       return NextResponse.json({ success: false, message: 'Unauthorized staff action.' }, { status: 403 });
     }
 

@@ -20,7 +20,7 @@ export default function VegasCuratedInquiries() {
       a: 'We accept standard US Dollar fiat rails via Cash App, Venmo, Zelle, Visa/Mastercard, as well as institutional cryptocurrencies including Bitcoin (BTC), Ethereum (ETH), Tether (USDT-TRC20/ERC20), and USD Coin (USDC).',
     },
     {
-      q: 'Is Aurelia Crown provably fair and licensed?',
+      q: 'Is Vegas One provably fair and licensed?',
       a: 'Yes. All table suites and reels employ GLI-19 certified cryptographic pseudo-random number generators (PRNG) audited quarterly by independent gaming laboratories, operating in strict compliance under sweepstakes and sovereign gaming regulations.',
     },
   ];

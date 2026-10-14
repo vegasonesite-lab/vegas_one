@@ -17,7 +17,10 @@ export async function GET(req) {
     const db = await getDb();
     const chatCol = db.collection('chat_messages');
 
-    const isStaff = session.role === ROLES.SUPER_ADMIN || session.role === ROLES.CHAT_SUPPORT;
+    const isStaff =
+      session.role === ROLES.SUPER_ADMIN ||
+      session.role === ROLES.CHAT_SUPPORT ||
+      session.role === ROLES.OPERATION_ADMIN;
 
     // Staff Inbox list of conversations
     if (isStaff && inbox) {
@@ -94,7 +97,10 @@ export async function POST(req) {
       return NextResponse.json({ success: false, error: 'Message cannot be empty.' }, { status: 400 });
     }
 
-    const isStaff = session.role === ROLES.SUPER_ADMIN || session.role === ROLES.CHAT_SUPPORT;
+    const isStaff =
+      session.role === ROLES.SUPER_ADMIN ||
+      session.role === ROLES.CHAT_SUPPORT ||
+      session.role === ROLES.OPERATION_ADMIN;
     const resolvedConvId = isStaff && conversationId ? conversationId : session.userId;
 
     const db = await getDb();
