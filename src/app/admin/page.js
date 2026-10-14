@@ -34,6 +34,8 @@ import {
   VolumeX,
   DollarSign,
   UserMinus,
+  Menu,
+  ArrowLeft,
 } from 'lucide-react';
 
 export default function AdminPortal({ initialTab }) {
@@ -171,10 +173,48 @@ export default function AdminPortal({ initialTab }) {
   const [staffList, setStaffList] = useState([]);
   const [newStaff, setNewStaff] = useState({ username: '', email: '', password: '', role: 'financial_manager' });
 
-  // System Settings state
-  const [sysSettings, setSysSettings] = useState(null);
-  const [savingBonusSettings, setSavingBonusSettings] = useState(false);
-  const [bonusSaveMessage, setBonusSaveMessage] = useState(null);
+  // Custom editable deposit coin allotment state
+  const [customDepositSC, setCustomDepositSC] = useState({});
+
+  // Mobile navigation drawer state
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+  // Admin chat mobile keyboard offset
+  const [adminChatKeyboardOffset, setAdminChatKeyboardOffset] = useState(0);
+
+  // Android Native Back Button support for mobile Admin
+  useEffect(() => {
+    const handlePopState = () => {
+      if (activeChatConv) {
+        setActiveChatConv(null);
+      }
+      if (mobileSidebarOpen) {
+        setMobileSidebarOpen(false);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [activeChatConv, mobileSidebarOpen]);
+
+  // Handle mobile keyboard resize in Admin chat
+  useEffect(() => {
+    if (activeTab !== 'chat') {
+      setAdminChatKeyboardOffset(0);
+      return;
+    }
+    const updateOffset = () => {
+      if (typeof window !== 'undefined' && window.visualViewport) {
+        const offset = window.innerHeight - window.visualViewport.height;
+        setAdminChatKeyboardOffset(offset > 80 ? offset : 0);
+      }
+    };
+    window.visualViewport?.addEventListener('resize', updateOffset);
+    window.visualViewport?.addEventListener('scroll', updateOffset);
+    return () => {
+      window.visualViewport?.removeEventListener('resize', updateOffset);
+      window.visualViewport?.removeEventListener('scroll', updateOffset);
+    };
+  }, [activeTab]);
 
   const handleSaveBonusSettings = async (e) => {
     if (e) e.preventDefault();
@@ -777,13 +817,34 @@ export default function AdminPortal({ initialTab }) {
           >
             <LogOut size={16} />
           </button>
+          {/* Mobile Drawer Toggle */}
+          <button
+            onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+            className="md:hidden flex items-center justify-center p-2 rounded-xl text-cyan-400 bg-cyan-500/10 border border-cyan-500/30"
+            aria-label="Toggle navigation drawer"
+          >
+            {mobileSidebarOpen ? <X size={18} /> : <Menu size={18} />}
+          </button>
         </div>
       </header>
 
       {/* Main Admin Body */}
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative' }}>
+        {/* Mobile backdrop */}
+        {mobileSidebarOpen && (
+          <div
+            onClick={() => setMobileSidebarOpen(false)}
+            className="md:hidden fixed inset-0 bg-black/80 z-40 backdrop-blur-sm animate-in fade-in"
+          />
+        )}
+
         {/* Left Admin Navigation */}
         <aside
+          className={`transition-all duration-200 z-50 md:static ${
+            mobileSidebarOpen
+              ? 'fixed inset-y-0 left-0 flex shadow-2xl'
+              : 'hidden md:flex'
+          }`}
           style={{
             width: '275px',
             minWidth: '275px',
@@ -791,7 +852,6 @@ export default function AdminPortal({ initialTab }) {
             backgroundColor: '#130D1E',
             borderRight: '1px solid rgba(255, 255, 255, 0.08)',
             padding: '16px 14px',
-            display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
             overflowY: 'auto',
@@ -805,7 +865,10 @@ export default function AdminPortal({ initialTab }) {
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    setMobileSidebarOpen(false);
+                  }}
                   style={{
                     width: '100%',
                     display: 'flex',
@@ -954,7 +1017,7 @@ export default function AdminPortal({ initialTab }) {
               </div>
 
               {/* Account Requests Table */}
-              <div className="bg-[#0e1122] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+              <div className="bg-[#0e1122] border border-white/10 rounded-2xl overflow-x-auto shadow-xl">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-black/40 text-gray-400 uppercase font-bold text-[10px] tracking-wider border-b border-white/5">
                     <tr>
@@ -982,6 +1045,13 @@ export default function AdminPortal({ initialTab }) {
                           </td>
                           <td className="p-3.5">
                             <span className="font-heading font-black text-amber-400 text-sm">{req.gameTitle}</span>
+                            {Boolean(req.transferAmount && req.transferAmount > 0) && (
+                              <div className="mt-0.5">
+                                <span className="inline-flex items-center gap-1 text-[10.5px] font-black text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded">
+                                  Load: ${Number(req.transferAmount).toFixed(2)} SC
+                                </span>
+                              </div>
+                            )}
                           </td>
                           <td className="p-3.5">
                             {req.status === 'PENDING' ? (
@@ -2140,7 +2210,7 @@ export default function AdminPortal({ initialTab }) {
 
               {/* Sub-tab 1: Deposits */}
               {financeSubTab === 'deposits' && (
-                <div className="bg-[#0e1122] border border-white/10 rounded-2xl overflow-hidden">
+                <div className="bg-[#0e1122] border border-white/10 rounded-2xl overflow-x-auto">
                   <table className="w-full text-left text-xs">
                     <thead className="bg-[#070914] text-gray-400 uppercase border-b border-white/5">
                       <tr>
@@ -2168,9 +2238,9 @@ export default function AdminPortal({ initialTab }) {
                             <td className="p-3 font-bold text-white whitespace-nowrap">{d.username}</td>
                             <td className="p-3 font-black text-amber-400 whitespace-nowrap">${d.amount} USD</td>
                             
-                            {/* Auto-Calculated Coins Column */}
+                            {/* Auto-Calculated Coins Column with Editable SC */}
                             <td className="p-3">
-                              <div className="flex flex-col gap-0.5">
+                              <div className="flex flex-col gap-1">
                                 <div className="flex items-center gap-1.5 flex-wrap">
                                   <span className="font-black text-emerald-400 text-sm">
                                     {calculatedSC} SC
@@ -2186,6 +2256,25 @@ export default function AdminPortal({ initialTab }) {
                                 <span className="text-[10.5px] text-gray-300">
                                   Base: ${d.amount} SC + Bonus: {bonusSC} SC
                                 </span>
+
+                                {d.status === 'pending' && (
+                                  <div className="flex items-center gap-1.5 mt-1">
+                                    <span className="text-[10px] text-gray-400 font-bold uppercase">To Credit:</span>
+                                    <div className="flex items-center bg-black/60 border border-emerald-500/50 rounded px-1.5 py-0.5">
+                                      <span className="text-[11px] text-emerald-400 font-bold mr-1">$</span>
+                                      <input
+                                        type="number"
+                                        step="0.01"
+                                        value={customDepositSC[d.id] !== undefined ? customDepositSC[d.id] : calculatedSC}
+                                        onChange={(e) => setCustomDepositSC({ ...customDepositSC, [d.id]: e.target.value })}
+                                        className="w-16 bg-transparent text-emerald-300 font-mono text-xs font-bold focus:outline-none"
+                                        title="Admin can edit approved coin/dollar amount"
+                                      />
+                                      <span className="text-[10px] text-emerald-400 font-bold ml-1">SC</span>
+                                    </div>
+                                  </div>
+                                )}
+
                                 <span className="text-[10px] text-amber-400 font-mono">
                                   +{calculatedGC} GC
                                 </span>
@@ -2213,18 +2302,19 @@ export default function AdminPortal({ initialTab }) {
                                 <>
                                   <button
                                     onClick={async () => {
+                                      const scToCredit = customDepositSC[d.id] !== undefined ? Number(customDepositSC[d.id]) : Number(calculatedSC);
                                       const res = await fetch('/api/payments/deposit', {
                                         method: 'PUT',
                                         headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ depositId: d.id, action: 'approve' }),
+                                        body: JSON.stringify({ depositId: d.id, action: 'approve', customSC: scToCredit }),
                                       });
                                       if ((await res.json()).success) {
-                                        setDeposits(deposits.map(item => item.id === d.id ? { ...item, status: 'approved', creditedSC: Number(calculatedSC) } : item));
+                                        setDeposits(deposits.map(item => item.id === d.id ? { ...item, status: 'approved', creditedSC: Number(scToCredit) } : item));
                                       }
                                     }}
                                     className="btn-gold py-1 px-3 text-[11px] font-bold"
                                   >
-                                    Approve &amp; Credit {calculatedSC} SC
+                                    Approve &amp; Credit {customDepositSC[d.id] !== undefined ? customDepositSC[d.id] : calculatedSC} SC
                                   </button>
                                   <button
                                     onClick={async () => {
@@ -2255,7 +2345,7 @@ export default function AdminPortal({ initialTab }) {
 
               {/* Sub-tab 2: Redemptions */}
               {financeSubTab === 'redemptions' && (
-                <div className="bg-[#0e1122] border border-white/10 rounded-2xl overflow-hidden">
+                <div className="bg-[#0e1122] border border-white/10 rounded-2xl overflow-x-auto">
                   <table className="w-full text-left text-xs">
                     <thead className="bg-[#070914] text-gray-400 uppercase border-b border-white/5">
                       <tr>
@@ -2495,64 +2585,93 @@ export default function AdminPortal({ initialTab }) {
                 </div>
               </div>
 
-              <div className="flex-1 flex gap-4 overflow-hidden">
-                {/* Inbox conversations list */}
-                <div className="w-80 bg-[#0e1122] border border-white/10 rounded-2xl overflow-y-auto divide-y divide-white/5">
-                  <div className="p-3 bg-[#070914] text-xs font-bold text-gray-400 uppercase">
-                    Active Player Inquiries
+              <div className="flex-1 flex flex-col md:flex-row gap-4 overflow-hidden relative">
+                {/* Inbox conversations list (WhatsApp Style: full width on mobile unless conversation is active) */}
+                <div className={`${activeChatConv ? 'hidden md:flex' : 'flex'} w-full md:w-80 bg-[#0e1122] border border-white/10 rounded-2xl flex-col overflow-hidden`}>
+                  <div className="p-3 bg-[#070914] text-xs font-bold text-gray-400 uppercase flex items-center justify-between border-b border-white/5">
+                    <span>Active Player Inquiries ({chatConversations.length})</span>
+                    <span className="text-[10px] text-cyan-400 font-mono">Live</span>
                   </div>
-                  {chatConversations.map(c => (
-                    <div
-                      key={c._id}
-                      onClick={() => setActiveChatConv(c)}
-                      className={`p-3.5 cursor-pointer transition ${
-                        activeChatConv?._id === c._id ? 'bg-purple-950/40 border-l-4 border-amber-400' : 'hover:bg-white/5'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-bold text-white text-xs">{c.username}</span>
-                        {c.unreadCount > 0 && (
-                          <span className="w-4 h-4 rounded-full bg-red-500 text-white font-bold text-[9px] flex items-center justify-center">
-                            {c.unreadCount}
-                          </span>
-                        )}
+                  <div className="flex-1 overflow-y-auto divide-y divide-white/5">
+                    {chatConversations.length === 0 ? (
+                      <div className="p-8 text-center text-xs text-gray-500">
+                        No active support inquiries.
                       </div>
-                      <p className="text-[11px] text-gray-400 truncate">{c.lastMessage}</p>
-                    </div>
-                  ))}
+                    ) : (
+                      chatConversations.map(c => (
+                        <div
+                          key={c._id}
+                          onClick={() => setActiveChatConv(c)}
+                          className={`p-3.5 cursor-pointer transition ${
+                            activeChatConv?._id === c._id
+                              ? 'bg-cyan-950/40 border-l-4 border-cyan-400'
+                              : 'hover:bg-white/5'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-bold text-white text-xs">{c.username}</span>
+                            {c.unreadCount > 0 && (
+                              <span className="w-4 h-4 rounded-full bg-red-500 text-white font-bold text-[9px] flex items-center justify-center">
+                                {c.unreadCount}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-gray-400 truncate">{c.lastMessage || 'Open inquiry'}</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
 
-                {/* Conversation Body */}
-                <div className="flex-1 bg-[#0e1122] border border-white/10 rounded-2xl flex flex-col overflow-hidden">
+                {/* Conversation Body (WhatsApp Style: shown full width on mobile when inquiry selected) */}
+                <div className={`${activeChatConv ? 'flex' : 'hidden md:flex'} flex-1 bg-[#0e1122] border border-white/10 rounded-2xl flex-col overflow-hidden`}>
                   {activeChatConv ? (
                     <>
                       <div className="p-3.5 bg-[#090b18] border-b border-white/10 flex items-center justify-between">
-                        <div>
-                          <p className="font-black text-white text-xs">{activeChatConv.username}</p>
-                          <p className="text-[10px] text-gray-400 font-mono">ID: {activeChatConv.userId}</p>
+                        <div className="flex items-center gap-2.5">
+                          {/* Back Button for Mobile WhatsApp Flow */}
+                          <button
+                            type="button"
+                            onClick={() => setActiveChatConv(null)}
+                            className="md:hidden px-2 py-1 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/25 flex items-center gap-1 text-xs font-bold transition"
+                            aria-label="Back to inquiries list"
+                          >
+                            <ArrowLeft size={14} />
+                            <span>Inquiries</span>
+                          </button>
+                          <div>
+                            <p className="font-black text-white text-xs">{activeChatConv.username}</p>
+                            <p className="text-[10px] text-gray-400 font-mono">ID: {activeChatConv.userId}</p>
+                          </div>
                         </div>
                       </div>
 
                       <div className="flex-1 p-4 overflow-y-auto space-y-3">
-                        {chatMessages.map(m => (
-                          <div
-                            key={m.id}
-                            className={`flex flex-col ${m.senderRole === 'staff' ? 'items-end' : 'items-start'}`}
-                          >
-                            <div
-                              className={`max-w-[75%] rounded-2xl p-3 text-xs leading-relaxed ${
-                                m.senderRole === 'staff'
-                                  ? 'bg-amber-500 text-black font-semibold'
-                                  : 'bg-[#181c38] text-white border border-white/10'
-                              }`}
-                            >
-                              {m.text}
-                            </div>
-                            <span className="text-[10px] text-gray-500 mt-1">
-                              {new Date(m.createdAt).toLocaleTimeString()}
-                            </span>
+                        {chatMessages.length === 0 ? (
+                          <div className="h-full flex items-center justify-center text-gray-500 text-xs">
+                            No messages in this inquiry yet.
                           </div>
-                        ))}
+                        ) : (
+                          chatMessages.map(m => (
+                            <div
+                              key={m.id}
+                              className={`flex flex-col ${m.senderRole === 'staff' ? 'items-end' : 'items-start'}`}
+                            >
+                              <div
+                                className={`max-w-[78%] rounded-2xl p-3 text-xs leading-relaxed ${
+                                  m.senderRole === 'staff'
+                                    ? 'bg-gradient-to-r from-cyan-400 to-cyan-500 text-black font-extrabold rounded-br-none shadow'
+                                    : 'bg-[#181c38] text-white border border-white/10 rounded-bl-none'
+                                }`}
+                              >
+                                {m.text}
+                              </div>
+                              <span className="text-[10px] text-gray-500 mt-1 font-mono">
+                                {new Date(m.createdAt).toLocaleTimeString()}
+                              </span>
+                            </div>
+                          ))
+                        )}
                       </div>
 
                       <form
@@ -2571,14 +2690,17 @@ export default function AdminPortal({ initialTab }) {
                           });
                           setChatReplyText('');
                         }}
-                        className="p-3 bg-[#070914] border-t border-white/10 flex items-center gap-2"
+                        style={{
+                          paddingBottom: adminChatKeyboardOffset > 0 ? `${adminChatKeyboardOffset + 10}px` : undefined,
+                        }}
+                        className="p-3 bg-[#070914] border-t border-white/10 flex items-center gap-2 transition-all duration-150"
                       >
                         <input
                           type="text"
                           placeholder="Type support reply..."
                           value={chatReplyText}
                           onChange={(e) => setChatReplyText(e.target.value)}
-                          className="flex-1 py-2 px-3 text-xs"
+                          className="flex-1 py-2 px-3 text-xs bg-black/50 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 font-sans"
                         />
                         <button type="submit" className="btn-gold py-2 px-4 text-xs font-black">
                           Send
@@ -2586,8 +2708,10 @@ export default function AdminPortal({ initialTab }) {
                       </form>
                     </>
                   ) : (
-                    <div className="h-full flex items-center justify-center text-gray-500 text-xs">
-                      Select a player inquiry from the inbox to reply
+                    <div className="h-full flex flex-col items-center justify-center text-gray-500 text-xs p-6 text-center">
+                      <MessageSquare size={36} className="text-cyan-400/40 mb-2" />
+                      <p className="font-bold text-white text-sm">Select an inquiry to reply</p>
+                      <p className="text-gray-400 mt-1">Player questions from the live chat will appear here.</p>
                     </div>
                   )}
                 </div>

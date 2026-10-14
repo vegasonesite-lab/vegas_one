@@ -46,8 +46,8 @@ export default function VegasHeroBanner({
   const hasClaimedWelcome = Boolean(user?.welcomeBonusClaimed || (user?.totalDeposited && user.totalDeposited > 0));
 
   const bonusTitle = hasClaimedWelcome
-    ? (settings?.regularBonusTitle || 'REGULAR RELOAD BOOST')
-    : (settings?.welcomeBonusTitle || 'TRIPLE TIER WELCOME PACK');
+    ? (settings?.regularBonusTitle || 'REGULAR BONUS')
+    : (settings?.welcomeBonusTitle || 'WELCOME BONUS');
 
   const bonusPercent = hasClaimedWelcome
     ? (settings?.regularBonusPercent ?? 50)
@@ -58,16 +58,16 @@ export default function VegasHeroBanner({
     : (settings?.welcomeBonusMax ?? 7500);
 
   const bonusBadge = hasClaimedWelcome
-    ? 'UNLIMITED RELOAD BOOST'
-    : 'ZERO WAGERING ESCROW';
+    ? 'EVERY DEPOSIT'
+    : 'FIRST DEPOSIT';
 
   const bonusSubtitle = hasClaimedWelcome
-    ? (settings?.regularBonusSubtitle || `Unlimited ${bonusPercent}% reload boost on every subsequent crypto & Cash App deposit.`)
-    : (settings?.welcomeBonusSubtitle || `Includes +${settings?.welcomeBonusSpins || 150} Neon Free Spins and instantaneous Tier II Sovereign Status upgrade.`);
+    ? (settings?.regularBonusSubtitle || `Enjoy a ${bonusPercent}% extra bonus on every deposit you make! Instant approval into your wallet.`)
+    : (settings?.welcomeBonusSubtitle || `Get a massive ${bonusPercent}% bonus on your first deposit! Fast Cash App & Crypto deposits with instant withdrawals.`);
 
   const ctaText = hasClaimedWelcome
-    ? 'CLAIM RELOAD BOOST'
-    : 'CLAIM NEON WELCOME';
+    ? 'CLAIM REGULAR BONUS'
+    : 'CLAIM WELCOME BONUS';
 
   return (
     <div style={{ position: 'relative', marginBottom: '28px', paddingTop: '8px' }}>
@@ -138,18 +138,24 @@ export default function VegasHeroBanner({
                 color: '#00F0FF',
               }}
             >
-              VEGAS ONE MARQUEE SUITE · VIP SALON
+              {hasClaimedWelcome ? 'VEGAS ONE VIP CLUB · INSTANT PAYOUTS' : 'VEGAS ONE CASINO · WIN REAL CASH'}
             </span>
           </div>
 
           {/* Heading */}
           <h1 className="sovereign-hero-title">
-            Enter the <span className="highlight">Marquee Hall</span>
+            {hasClaimedWelcome ? (
+              <>Your <span className="highlight">VIP Gaming Lounge</span></>
+            ) : (
+              <>Play Top Games &amp; <span className="highlight">Win Real Cash</span></>
+            )}
           </h1>
 
           {/* Subtitle */}
           <p className="sovereign-hero-subtitle">
-            Step into an unprecedented arena of high-roller rewards, instantaneous vault payouts, and prestige loyalty privileges tailored for discerning sovereign patrons.
+            {hasClaimedWelcome
+              ? 'Play Fire Kirin, Orion Stars, Game Vault & Juwa with instant 50% reload bonuses and fast 24-hour payouts.'
+              : 'Join thousands of winners today! Instant Cash App & Crypto deposits, top sweepstakes games, and guaranteed payouts.'}
           </p>
 
           {/* Dynamic Welcome / Regular Reload Card */}

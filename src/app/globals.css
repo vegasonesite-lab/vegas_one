@@ -2689,3 +2689,16 @@ textarea:focus {
     margin-bottom: 14px !important;
   }
 }
+
+/* Responsive Table & Scroll Containers for Mobile */
+.table-responsive-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}

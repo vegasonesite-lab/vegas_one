@@ -47,6 +47,20 @@ export default function AuthModal({
     setErrorMsg(null);
   }, [initialTab, isOpen]);
 
+  // Android Native Back Button Support for APK & Mobile Browser
+  useEffect(() => {
+    if (isOpen) {
+      window.history.pushState({ vegasAuthModalOpen: true }, '');
+      const handlePopState = () => {
+        onClose();
+      };
+      window.addEventListener('popstate', handlePopState);
+      return () => {
+        window.removeEventListener('popstate', handlePopState);
+      };
+    }
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleLogin = async (e) => {

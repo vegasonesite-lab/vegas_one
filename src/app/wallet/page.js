@@ -361,12 +361,16 @@ function WalletContent() {
                     AVAILABLE BALANCE
                   </span>
                   <span style={{ fontFamily: 'Lexend, sans-serif', fontSize: '28px', fontWeight: 900, color: '#00F0FF', letterSpacing: '-0.02em', margin: '2px 0' }}>
-                    ${Number(user.balanceSC ?? user.balance ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    ${Number(user.availableSC !== undefined ? user.availableSC : (user.balanceSC - (user.frozenBalance || 0)) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '10px', color: '#10B981', fontFamily: 'Lexend, sans-serif', fontWeight: 800 }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10B981' }} />
-                    LIVE INSTANT VAULT
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '10.5px', fontFamily: 'Lexend, sans-serif', fontWeight: 700, flexWrap: 'wrap', marginTop: '2px' }}>
+                    <span style={{ color: '#CBD5E1' }}>Total: ${Number(user.balanceSC ?? user.balance ?? 0).toFixed(2)}</span>
+                    {Boolean(user.frozenBalance && user.frozenBalance > 0) && (
+                      <span style={{ color: '#FBBF24', backgroundColor: 'rgba(245, 158, 11, 0.18)', border: '1px solid rgba(245, 158, 11, 0.4)', padding: '1px 6px', borderRadius: '4px' }}>
+                        In Processing: ${Number(user.frozenBalance).toFixed(2)}
+                      </span>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <button
@@ -975,7 +979,7 @@ function WalletContent() {
                         1. Enter Cashout Amount (Min $20)
                       </label>
                       <span style={{ fontSize: '10.5px', color: '#00F0FF', fontFamily: 'Lexend, sans-serif', fontWeight: 800 }}>
-                        Balance: ${Number(user.balanceSC ?? user.balance ?? 0).toFixed(2)}
+                        Available: ${Number(user.availableSC !== undefined ? user.availableSC : (user.balanceSC - (user.frozenBalance || 0)) || 0).toFixed(2)}
                       </span>
                     </div>
 
@@ -1019,7 +1023,7 @@ function WalletContent() {
                       <input
                         type="number"
                         min="20"
-                        max={Number(user.balanceSC ?? user.balance ?? 10000)}
+                        max={Number(user.availableSC !== undefined ? user.availableSC : (user.balanceSC - (user.frozenBalance || 0)) || 10000)}
                         value={redeemAmount}
                         onChange={(e) => setRedeemAmount(Number(e.target.value))}
                         required

@@ -22,6 +22,20 @@ export default function SubscriptionPromoModal({
     }
   }, [user, isOpen]);
 
+  // Android Native Back Button Support for APK & Mobile Browser
+  useEffect(() => {
+    if (isOpen) {
+      window.history.pushState({ vegasPromoModalOpen: true }, '');
+      const handlePopState = () => {
+        onClose();
+      };
+      window.addEventListener('popstate', handlePopState);
+      return () => {
+        window.removeEventListener('popstate', handlePopState);
+      };
+    }
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleRequestPush = async () => {

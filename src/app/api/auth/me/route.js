@@ -65,6 +65,10 @@ export async function GET() {
       }
     }
 
+    const frozenBalance = Math.max(0, Number((user.frozenBalance || 0).toFixed(2)));
+    const balanceSC = Number((user.balanceSC || 0).toFixed(2));
+    const availableSC = Math.max(0, Number((balanceSC - frozenBalance).toFixed(2)));
+
     return NextResponse.json({
       authenticated: true,
       user: {
@@ -72,9 +76,11 @@ export async function GET() {
         username: user.username,
         email: user.email,
         role: user.role,
-        balanceSC: Number((user.balanceSC || 0).toFixed(2)),
+        balanceSC,
         balanceGC: Number(user.balanceGC || 0),
-        balance: Number((user.balanceSC || 0).toFixed(2)),
+        frozenBalance,
+        availableSC,
+        balance: balanceSC,
         kycStatus: user.kycStatus || 'none',
         referralCode: user.referralCode || '',
         referredBy: user.referredBy || null,

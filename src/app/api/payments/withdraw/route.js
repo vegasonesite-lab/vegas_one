@@ -92,25 +92,26 @@ export async function POST(req) {
       }, { status: 403 });
     }
 
-    if ((user.balanceSC || 0) < redeemAmount) {
+    const currentSC = Number(user.balanceSC || 0);
+    const currentFrozen = Math.max(0, Number(user.frozenBalance || 0));
+    const availableSC = Math.max(0, Number((currentSC - currentFrozen).toFixed(2)));
+
+    if (availableSC < redeemAmount) {
       return NextResponse.json({
         success: false,
-        error: `Insufficient SC balance. You have ${(user.balanceSC || 0).toFixed(2)} SC available.`,
+        error: `Insufficient available balance. You have $${availableSC.toFixed(2)} available ($${currentFrozen.toFixed(2)} is currently frozen in processing).`,
       }, { status: 400 });
     }
 
-    const oldSC = user.balanceSC;
-    const newSC = Number((oldSC - redeemAmount).toFixed(2));
-
-    // 1. Deduct SC from player balance into pending escrow
+    // 1. Freeze funds in player account so they cannot be spent or transferred
     await usersCol.updateOne(
       { _id: user._id },
       {
-        $inc: { balanceSC: -redeemAmount },
+        $inc: { frozenBalance: redeemAmount },
       }
     );
 
-    // 2. Create Redemption Record
+    // 2. Create Redemption Record (Pending Processing)
     const insertRes = await redemptionsCol.insertOne({
       userId: user._id.toString(),
       username: user.username,
@@ -123,24 +124,25 @@ export async function POST(req) {
       updatedAt: new Date(),
     });
 
-    // 3. Write Immutable Ledger
+    // 3. Write Immutable Ledger Entry
     await ledgerCol.insertOne({
       userId: user._id.toString(),
       username: user.username,
-      type: 'redemption',
+      type: 'redemption_escrow',
       currency: 'SC',
-      amount: -redeemAmount,
-      balanceBefore: oldSC,
-      balanceAfter: newSC,
+      amount: redeemAmount,
+      balanceBefore: currentSC,
+      balanceAfter: currentSC,
+      frozenAmount: redeemAmount,
       performedBy: 'player',
       referenceId: insertRes.insertedId.toString(),
-      notes: `Redemption requested via ${payoutMethod} to ${destinationAddress} (in escrow)`,
+      notes: `Redemption request submitted via ${payoutMethod} to ${destinationAddress} ($${redeemAmount} frozen in escrow)`,
       createdAt: new Date(),
     });
 
     return NextResponse.json({
       success: true,
-      message: 'Redemption request submitted! Our financial team will process your payout within 24 hours.',
+      message: `Redemption requested successfully! $${redeemAmount.toFixed(2)} is frozen in processing and will be deducted once dispatched by financial desk.`,
     });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
@@ -183,6 +185,9 @@ export async function PUT(req) {
     const user = await usersCol.findOne({ _id: new ObjectId(redemption.userId) });
 
     if (action === 'approve') {
+      const oldSC = user ? user.balanceSC || 0 : 0;
+      const newSC = Number((oldSC - redemption.amount).toFixed(2));
+
       await redemptionsCol.updateOne(
         { _id: redemption._id },
         {
@@ -194,10 +199,33 @@ export async function PUT(req) {
         }
       );
 
+      // Permanently deduct balance and clear frozen amount
       await usersCol.updateOne(
         { _id: new ObjectId(redemption.userId) },
-        { $inc: { totalRedeemed: redemption.amount } }
+        {
+          $inc: {
+            balanceSC: -redemption.amount,
+            frozenBalance: -redemption.amount,
+            totalRedeemed: redemption.amount,
+          },
+        }
       );
+
+      // Record final deduction in ledger
+      await ledgerCol.insertOne({
+        userId: redemption.userId,
+        username: redemption.username,
+        type: 'redemption',
+        currency: 'SC',
+        amount: -redemption.amount,
+        balanceBefore: oldSC,
+        balanceAfter: newSC,
+        performedBy: session.username,
+        staffRole: session.role,
+        referenceId: redemptionId,
+        notes: `Redemption approved & dispatched via ${redemption.payoutMethod}`,
+        createdAt: new Date(),
+      });
 
       // Email notification
       if (user?.email) {
@@ -208,16 +236,12 @@ export async function PUT(req) {
         }).catch(() => {});
       }
 
-      return NextResponse.json({ success: true, message: 'Redemption marked as approved and dispatched.' });
+      return NextResponse.json({ success: true, message: 'Redemption approved! Balance deducted and funds dispatched.' });
     } else if (action === 'reject') {
-      // Refund the coins back to player balance!
-      const currentSC = user ? user.balanceSC || 0 : 0;
-      const refundSC = redemption.amount;
-      const restoredSC = Number((currentSC + refundSC).toFixed(2));
-
+      // Unfreeze player's balance so it is available again
       await usersCol.updateOne(
         { _id: new ObjectId(redemption.userId) },
-        { $inc: { balanceSC: refundSC } }
+        { $inc: { frozenBalance: -redemption.amount } }
       );
 
       await redemptionsCol.updateOne(
@@ -232,23 +256,24 @@ export async function PUT(req) {
         }
       );
 
-      // Log refund in ledger
+      // Log unfreeze in ledger
+      const currentSC = user ? user.balanceSC || 0 : 0;
       await ledgerCol.insertOne({
         userId: redemption.userId,
         username: redemption.username,
-        type: 'admin_allotment',
+        type: 'redemption_rejected',
         currency: 'SC',
-        amount: refundSC,
+        amount: redemption.amount,
         balanceBefore: currentSC,
-        balanceAfter: restoredSC,
+        balanceAfter: currentSC,
         performedBy: session.username,
         staffRole: session.role,
         referenceId: redemptionId,
-        notes: `Redemption rejected & refunded: ${rejectReason || 'Unverified destination'}`,
+        notes: `Redemption rejected ($${redemption.amount} unfrozen & returned to available balance): ${rejectReason || 'Unverified destination'}`,
         createdAt: new Date(),
       });
 
-      return NextResponse.json({ success: true, message: 'Redemption rejected and SC refunded to player balance.' });
+      return NextResponse.json({ success: true, message: 'Redemption rejected and funds unfrozen for player.' });
     }
 
     return NextResponse.json({ success: false, error: 'Invalid action.' }, { status: 400 });

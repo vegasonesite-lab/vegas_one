@@ -37,6 +37,7 @@ export async function GET(req) {
         status: r.status || 'PENDING',
         gameAccountUsername: r.gameAccountUsername || '',
         gameAccountPassword: r.gameAccountPassword || '',
+        transferAmount: Number(r.transferAmount || 0),
         rejectionReason: r.rejectionReason || r.rejectReason || '',
         createdAt: r.createdAt || new Date(),
       })),
@@ -56,12 +57,30 @@ export async function POST(req) {
     const gameTitle = String(body.gameTitle || '').trim();
     const gameId = body.gameId || '';
 
+    const transferAmount = Number(body.transferAmount || 0);
+
     if (!userEmail || !gameTitle) {
       return NextResponse.json({ success: false, message: 'Game title and user email are required.' }, { status: 400 });
     }
 
     const db = await getDb();
     const requestsCol = db.collection('accountRequests');
+    const usersCol = db.collection('users');
+
+    // If player specified a transfer amount to load into the game, verify available funds
+    if (transferAmount > 0) {
+      const user = await usersCol.findOne({ email: userEmail });
+      const currentSC = Number(user?.balanceSC || 0);
+      const frozen = Math.max(0, Number(user?.frozenBalance || 0));
+      const available = Math.max(0, currentSC - frozen);
+
+      if (available < transferAmount) {
+        return NextResponse.json({
+          success: false,
+          message: `Insufficient available funds to transfer $${transferAmount.toFixed(2)}. Available: $${available.toFixed(2)}.`,
+        }, { status: 400 });
+      }
+    }
 
     // Check if player already has a READY or PENDING request for this game
     const existing = await requestsCol.findOne({
@@ -80,6 +99,7 @@ export async function POST(req) {
           gameTitle: existing.gameTitle,
           gameAccountUsername: existing.gameAccountUsername,
           gameAccountPassword: existing.gameAccountPassword,
+          transferAmount: existing.transferAmount || 0,
         },
         message: existing.status === 'READY' ? 'Account already ready.' : 'Account request already pending with staff.',
       });
@@ -90,6 +110,7 @@ export async function POST(req) {
       userName,
       gameTitle,
       gameId,
+      transferAmount,
       status: 'PENDING',
       createdAt: new Date(),
     };
@@ -99,7 +120,7 @@ export async function POST(req) {
     return NextResponse.json({
       success: true,
       requestId: res.insertedId.toString(),
-      message: `Account request for ${gameTitle} submitted to 24/7 staff!`,
+      message: `Account request for ${gameTitle}${transferAmount > 0 ? ` (with $${transferAmount.toFixed(2)} transfer)` : ''} submitted to 24/7 staff!`,
     });
   } catch (err) {
     return NextResponse.json({ success: false, message: err.message }, { status: 500 });
@@ -131,10 +152,41 @@ export async function PUT(req) {
 
     if (action === 'approve') {
       const gameAccountsCol = db.collection('gameAccounts');
+      const usersCol = db.collection('users');
+      const ledgerCol = db.collection('ledger');
       const cleanEmail = targetRequest.userEmail.toLowerCase().trim();
       const cleanTitle = targetRequest.gameTitle;
+      const transferAmount = Number(targetRequest.transferAmount || 0);
 
-      // 1. Update request status to READY
+      // 1. If player transferred funds into this game, deduct from user's wallet
+      if (transferAmount > 0) {
+        const user = await usersCol.findOne({ email: cleanEmail });
+        if (user) {
+          const oldSC = Number(user.balanceSC || 0);
+          const newSC = Number(Math.max(0, oldSC - transferAmount).toFixed(2));
+          await usersCol.updateOne(
+            { _id: user._id },
+            { $inc: { balanceSC: -transferAmount } }
+          );
+
+          await ledgerCol.insertOne({
+            userId: user._id.toString(),
+            username: user.username,
+            type: 'game_transfer',
+            currency: 'SC',
+            amount: -transferAmount,
+            balanceBefore: oldSC,
+            balanceAfter: newSC,
+            performedBy: session.username,
+            staffRole: session.role,
+            referenceId: targetRequest._id.toString(),
+            notes: `Game account load into ${cleanTitle} (Account ID: ${username})`,
+            createdAt: new Date(),
+          });
+        }
+      }
+
+      // 2. Update request status to READY
       await requestsCol.updateOne(
         { _id: targetRequest._id },
         {
@@ -148,7 +200,7 @@ export async function PUT(req) {
         }
       );
 
-      // 2. Insert or update gameAccounts collection
+      // 3. Insert or update gameAccounts collection
       await gameAccountsCol.updateOne(
         { userEmail: cleanEmail, gameTitle: cleanTitle },
         {
@@ -167,7 +219,7 @@ export async function PUT(req) {
 
       return NextResponse.json({
         success: true,
-        message: `Account for ${cleanTitle} approved and credentials issued!`,
+        message: `Account for ${cleanTitle} approved and credentials issued!${transferAmount > 0 ? ` $${transferAmount.toFixed(2)} deducted from player wallet.` : ''}`,
       });
     } else if (action === 'cancel') {
       const reason = body.reason || body.rejectionReason || 'Staff desk cancelled or credentials unavailable.';
