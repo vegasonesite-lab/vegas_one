@@ -4,6 +4,7 @@ import { getDb } from '@/lib/mongodb';
 
 export async function GET() {
   try {
+    const session = await getSessionUser();
     const authorizedRoles = [
       ROLES.SUPER_ADMIN,
       ROLES.OPERATION_ADMIN,

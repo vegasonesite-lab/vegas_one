@@ -14,6 +14,7 @@ export async function GET(req) {
 
     const { searchParams } = new URL(req.url);
     const status = searchParams.get('status');
+    const stage = searchParams.get('stage');
 
     const db = await getDb();
     const redemptionsCol = db.collection('redemptions');
@@ -21,7 +22,8 @@ export async function GET(req) {
     const isStaff =
       session.role === ROLES.SUPER_ADMIN ||
       session.role === ROLES.FINANCIAL_MANAGER ||
-      session.role === ROLES.OPERATION_ADMIN;
+      session.role === ROLES.OPERATION_ADMIN ||
+      session.role === ROLES.COIN_MANAGER;
     const query = {};
 
     if (!isStaff) {
@@ -29,7 +31,15 @@ export async function GET(req) {
     }
 
     if (status && status !== 'all') {
-      query.status = status;
+      if (status.includes(',')) {
+        query.status = { $in: status.split(',') };
+      } else {
+        query.status = status;
+      }
+    }
+
+    if (stage && stage !== 'all') {
+      query.stage = stage;
     }
 
     const items = await redemptionsCol.find(query).sort({ createdAt: -1 }).limit(100).toArray();
@@ -41,11 +51,19 @@ export async function GET(req) {
         userId: r.userId,
         username: r.username,
         amount: r.amount,
+        gameTitle: r.gameTitle || 'Standard Platform',
+        gameScreenshot: r.gameScreenshot || null,
+        qrCodeImage: r.qrCodeImage || null,
         payoutMethod: r.payoutMethod,
         destinationAddress: r.destinationAddress,
         status: r.status,
+        stage: r.stage || (r.status === 'pending_coin' ? 'coin_verification' : 'finance_payout'),
         processedBy: r.processedBy || null,
-        rejectReason: r.rejectReason || null,
+        coinApprovedBy: r.coinApprovedBy || null,
+        coinApprovedAt: r.coinApprovedAt || null,
+        rejectReason: r.rejectReason || r.coinRejectReason || r.financeRejectReason || null,
+        coinRejectReason: r.coinRejectReason || null,
+        financeRejectReason: r.financeRejectReason || null,
         createdAt: r.createdAt,
       })),
     });
@@ -62,11 +80,21 @@ export async function POST(req) {
       return NextResponse.json({ success: false, error: 'Please login.' }, { status: 401 });
     }
 
-    const { amount, payoutMethod, destinationAddress } = await req.json();
+    const body = await req.json();
+    const {
+      amount,
+      payoutMethod,
+      destinationAddress,
+      gameTitle,
+      gameScreenshot,
+      qrCodeImage,
+      resubmitFrom,
+      resubmitOfId,
+    } = body;
 
     const redeemAmount = Number(amount);
     if (!redeemAmount || redeemAmount < 20.0) {
-      return NextResponse.json({ success: false, error: 'Minimum redemption is 20.00 SC.' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Minimum redemption is 20.00 SC ($20.00).' }, { status: 400 });
     }
 
     if (!destinationAddress || !payoutMethod) {
@@ -111,18 +139,46 @@ export async function POST(req) {
       }
     );
 
-    // 2. Create Redemption Record (Pending Processing)
+    // Initial stage: If resubmitted from finance rejection, go directly to finance, else start at coin verification
+    const initialStatus = resubmitFrom === 'finance' ? 'pending' : 'pending_coin';
+    const initialStage = resubmitFrom === 'finance' ? 'finance_payout' : 'coin_verification';
+
+    // 2. Create Redemption Record
     const insertRes = await redemptionsCol.insertOne({
       userId: user._id.toString(),
       username: user.username,
       amount: redeemAmount,
+      gameTitle: gameTitle || 'Standard Platform',
+      gameScreenshot: gameScreenshot || null,
+      qrCodeImage: qrCodeImage || null,
       payoutMethod,
       destinationAddress,
-      status: 'pending',
+      status: initialStatus,
+      stage: initialStage,
       processedBy: null,
+      coinApprovedBy: null,
+      coinApprovedAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
+
+    // 2b. If resubmitted from an earlier rejected request, mark previous as superseded
+    if (resubmitOfId) {
+      try {
+        await redemptionsCol.updateOne(
+          { _id: new ObjectId(resubmitOfId), userId: user._id.toString() },
+          {
+            $set: {
+              status: 'resubmitted',
+              resubmittedAt: new Date(),
+              newRedemptionId: insertRes.insertedId.toString(),
+            },
+          }
+        );
+      } catch (err) {
+        console.warn('Could not update old redemption to resubmitted:', err);
+      }
+    }
 
     // 3. Write Immutable Ledger Entry
     await ledgerCol.insertOne({
@@ -136,20 +192,20 @@ export async function POST(req) {
       frozenAmount: redeemAmount,
       performedBy: 'player',
       referenceId: insertRes.insertedId.toString(),
-      notes: `Redemption request submitted via ${payoutMethod} to ${destinationAddress} ($${redeemAmount} frozen in escrow)`,
+      notes: `Cashout request ($${redeemAmount} SC) submitted for ${gameTitle || 'Platform'} via ${payoutMethod} to ${destinationAddress} ($${redeemAmount} frozen in escrow)`,
       createdAt: new Date(),
     });
 
     return NextResponse.json({
       success: true,
-      message: `Redemption requested successfully! $${redeemAmount.toFixed(2)} is frozen in processing and will be deducted once dispatched by financial desk.`,
+      message: `Cashout requested successfully! $${redeemAmount.toFixed(2)} is held in escrow. Verified payouts are dispatched directly to your account.`,
     });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
 
-// PUT: Approve or Reject Redemption (Financial Manager & Super Admin)
+// PUT: Approve or Reject Redemption (Coin Desk & Finance Desk)
 export async function PUT(req) {
   try {
     const session = await getSessionUser();
@@ -157,9 +213,10 @@ export async function PUT(req) {
       ROLES.SUPER_ADMIN,
       ROLES.FINANCIAL_MANAGER,
       ROLES.OPERATION_ADMIN,
+      ROLES.COIN_MANAGER,
     ];
     if (!session || !authorizedRoles.includes(session.role)) {
-      return NextResponse.json({ success: false, error: 'Unauthorized.' }, { status: 403 });
+      return NextResponse.json({ success: false, error: 'Unauthorized staff action.' }, { status: 403 });
     }
 
     const { redemptionId, action, rejectReason } = await req.json();
@@ -178,13 +235,96 @@ export async function PUT(req) {
       return NextResponse.json({ success: false, error: 'Redemption not found.' }, { status: 404 });
     }
 
-    if (redemption.status !== 'pending') {
-      return NextResponse.json({ success: false, error: `Redemption is already ${redemption.status}.` }, { status: 400 });
-    }
-
     const user = await usersCol.findOne({ _id: new ObjectId(redemption.userId) });
 
-    if (action === 'approve') {
+    // ACTION 1: COIN DESK APPROVAL (Verify game score & forward to Finance / Ledger)
+    if (action === 'coin_approve') {
+      await redemptionsCol.updateOne(
+        { _id: redemption._id },
+        {
+          $set: {
+            status: 'pending',
+            stage: 'finance_payout',
+            coinApprovedBy: `${session.username} (${session.role})`,
+            coinApprovedAt: new Date(),
+            updatedAt: new Date(),
+          },
+        }
+      );
+
+      await ledgerCol.insertOne({
+        userId: redemption.userId,
+        username: redemption.username,
+        type: 'coin_verification_passed',
+        currency: 'SC',
+        amount: redemption.amount,
+        balanceBefore: user ? user.balanceSC : 0,
+        balanceAfter: user ? user.balanceSC : 0,
+        performedBy: session.username,
+        staffRole: session.role,
+        referenceId: redemptionId,
+        notes: `Game score screenshot verified for ${redemption.gameTitle || 'platform'}. Forwarded to Finance Ledger for payout.`,
+        createdAt: new Date(),
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: 'Game score verified! Cashout passed to Finance Ledger for payout.',
+      });
+    }
+
+    // ACTION 2: COIN DESK REJECTION (Invalid screenshot, wrong score, etc.)
+    if (action === 'coin_reject') {
+      const reason = rejectReason || 'Game winning screenshot could not be verified or score mismatch.';
+
+      // Unfreeze player's balance
+      await usersCol.updateOne(
+        { _id: new ObjectId(redemption.userId) },
+        { $inc: { frozenBalance: -redemption.amount } }
+      );
+
+      await redemptionsCol.updateOne(
+        { _id: redemption._id },
+        {
+          $set: {
+            status: 'rejected_by_coin',
+            stage: 'rejected_coin',
+            rejectReason: reason,
+            coinRejectReason: reason,
+            processedBy: `${session.username} (${session.role})`,
+            updatedAt: new Date(),
+          },
+        }
+      );
+
+      const currentSC = user ? user.balanceSC || 0 : 0;
+      await ledgerCol.insertOne({
+        userId: redemption.userId,
+        username: redemption.username,
+        type: 'redemption_rejected_by_coin',
+        currency: 'SC',
+        amount: redemption.amount,
+        balanceBefore: currentSC,
+        balanceAfter: currentSC,
+        performedBy: session.username,
+        staffRole: session.role,
+        referenceId: redemptionId,
+        notes: `Coin Manager rejected cashout ($${redemption.amount} SC unfrozen): ${reason}`,
+        createdAt: new Date(),
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: 'Cashout rejected by Coin Desk. Reason saved and balance unfrozen for player.',
+      });
+    }
+
+    // ACTION 3: FINANCE DESK APPROVE / DISPATCH (Payment sent via Cash App QR / Address)
+    if (action === 'approve' || action === 'finance_dispatch') {
+      if (redemption.status === 'approved') {
+        return NextResponse.json({ success: false, error: 'Redemption is already approved.' }, { status: 400 });
+      }
+
       const oldSC = user ? user.balanceSC || 0 : 0;
       const newSC = Number((oldSC - redemption.amount).toFixed(2));
 
@@ -193,6 +333,7 @@ export async function PUT(req) {
         {
           $set: {
             status: 'approved',
+            stage: 'completed',
             processedBy: `${session.username} (${session.role})`,
             updatedAt: new Date(),
           },
@@ -223,7 +364,7 @@ export async function PUT(req) {
         performedBy: session.username,
         staffRole: session.role,
         referenceId: redemptionId,
-        notes: `Redemption approved & dispatched via ${redemption.payoutMethod}`,
+        notes: `Cashout approved & dispatched via ${redemption.payoutMethod} to ${redemption.destinationAddress}`,
         createdAt: new Date(),
       });
 
@@ -231,13 +372,18 @@ export async function PUT(req) {
       if (user?.email) {
         sendEmail({
           to: user.email,
-          subject: 'Vegas One Redemption Dispatched!',
+          subject: 'Vegas One Cashout Dispatched!',
           html: `<p>Your prize redemption of $${redemption.amount} via ${redemption.payoutMethod} has been sent!</p>`,
         }).catch(() => {});
       }
 
-      return NextResponse.json({ success: true, message: 'Redemption approved! Balance deducted and funds dispatched.' });
-    } else if (action === 'reject') {
+      return NextResponse.json({ success: true, message: 'Cashout dispatched! Balance deducted and funds sent to user.' });
+    }
+
+    // ACTION 4: FINANCE DESK REJECT (Address invalid, QR scan error, etc.)
+    if (action === 'reject' || action === 'finance_reject') {
+      const reason = rejectReason || 'Finance desk payment dispatch failed or invalid recipient details.';
+
       // Unfreeze player's balance so it is available again
       await usersCol.updateOne(
         { _id: new ObjectId(redemption.userId) },
@@ -248,8 +394,10 @@ export async function PUT(req) {
         { _id: redemption._id },
         {
           $set: {
-            status: 'rejected',
-            rejectReason: rejectReason || 'Destination account mismatch or policy violation',
+            status: 'rejected_by_finance',
+            stage: 'rejected_finance',
+            rejectReason: reason,
+            financeRejectReason: reason,
             processedBy: `${session.username} (${session.role})`,
             updatedAt: new Date(),
           },
@@ -261,7 +409,7 @@ export async function PUT(req) {
       await ledgerCol.insertOne({
         userId: redemption.userId,
         username: redemption.username,
-        type: 'redemption_rejected',
+        type: 'redemption_rejected_by_finance',
         currency: 'SC',
         amount: redemption.amount,
         balanceBefore: currentSC,
@@ -269,11 +417,11 @@ export async function PUT(req) {
         performedBy: session.username,
         staffRole: session.role,
         referenceId: redemptionId,
-        notes: `Redemption rejected ($${redemption.amount} unfrozen & returned to available balance): ${rejectReason || 'Unverified destination'}`,
+        notes: `Finance desk rejected payout ($${redemption.amount} unfrozen & returned): ${reason}`,
         createdAt: new Date(),
       });
 
-      return NextResponse.json({ success: true, message: 'Redemption rejected and funds unfrozen for player.' });
+      return NextResponse.json({ success: true, message: 'Payout rejected by Finance. Funds unfrozen and note saved.' });
     }
 
     return NextResponse.json({ success: false, error: 'Invalid action.' }, { status: 400 });

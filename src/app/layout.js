@@ -1,8 +1,8 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'Vegas One - Luxury Sweeps Casino | Win Real Cash Prizes',
-  description: 'Experience premier Las Vegas sweepstakes gaming at Vegas One (vegasone.games). Play slots, rocket crash, roulette & blackjack with daily free SC and instant redemptions.',
+  title: 'Vegas One - Official Gaming Portal | Instant Accounts & Fast Payouts',
+  description: 'Access top gaming platforms like Fire Kirin, Orion Stars, Game Vault, Juwa, and Ultra Panda at Vegas One. Instant accounts, fast deposits via Cash App & Crypto, and 24/7 cashouts.',
   manifest: '/manifest.json',
   icons: {
     icon: '/icons/favicon.png',

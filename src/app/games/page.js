@@ -7,7 +7,6 @@ import { ArrowLeft, Search, Flame, Heart } from 'lucide-react';
 import VegasNavbar from '@/components/player/VegasNavbar';
 import MobileBottomNav from '@/components/player/MobileBottomNav';
 import VegasFooter from '@/components/player/VegasFooter';
-import CategoryTabs from '@/components/CategoryTabs';
 import GameCard from '@/components/GameCard';
 import LiveChatWidget from '@/components/LiveChatWidget';
 import AuthModal from '@/components/AuthModal';
@@ -95,7 +94,9 @@ export default function GamesPage() {
         activeTab="games"
         onSelectTab={(t) => {
           if (t === 'main') router.push('/');
+          else if (t === 'accounts') router.push('/accounts');
           else if (t.startsWith('/')) router.push(t);
+          else router.push(`/${t}`);
         }}
         onOpenAuth={(t) => setAuthModal({ open: true, tab: t })}
         mobileOpen={mobileSidebarOpen}
@@ -146,45 +147,45 @@ export default function GamesPage() {
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px' }}>
               <div>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
-                  <span>⧉ OFFICIAL SWEEPSTAKES LIBRARY</span>
+                  <span>⧉ OFFICIAL GAME LIBRARY &amp; PLATFORMS</span>
                 </div>
                 <h1 style={{ fontFamily: 'Lexend, sans-serif', fontSize: 'clamp(22px, 5vw, 36px)', fontWeight: 900, color: '#FFFFFF', margin: 0, letterSpacing: '-0.02em' }}>
-                  The Grand Collection
+                  All Games &amp; Platforms
                 </h1>
               </div>
 
               {/* Search Bar */}
-              <div style={{ position: 'relative', minWidth: '260px' }}>
-                <Search size={16} color="#796E8A" style={{ position: 'absolute', top: '12px', left: '14px' }} />
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  backgroundColor: '#171124',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '9999px',
+                  padding: '9px 16px',
+                  minWidth: '260px',
+                }}
+              >
+                <Search size={16} color="#796E8A" style={{ flexShrink: 0 }} />
                 <input
                   type="text"
-                  placeholder="Search sweepstakes titles..."
+                  placeholder="Search games or platforms..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   style={{
                     width: '100%',
-                    backgroundColor: '#171124',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    borderRadius: '9999px',
-                    padding: '10px 16px 10px 38px',
+                    backgroundColor: 'transparent',
+                    border: 'none',
                     color: '#FFFFFF',
                     fontSize: '12px',
                     fontFamily: 'Lexend, sans-serif',
                     outline: 'none',
-                    boxSizing: 'border-box',
+                    padding: 0,
                   }}
                 />
               </div>
             </div>
-          </div>
-
-          {/* Filter Tabs: ALL SWEEPSTAKES vs FAVORITES */}
-          <div style={{ marginBottom: '28px' }}>
-            <CategoryTabs
-              activeFilter={activeFilter}
-              setActiveFilter={setActiveFilter}
-              favoritesCount={favorites.length}
-            />
           </div>
 
           {/* Games Grid */}

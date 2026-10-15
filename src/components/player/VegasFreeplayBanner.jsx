@@ -127,7 +127,7 @@ export default function VegasFreeplayBanner({ user, onOpenAuth, onBalanceUpdated
                 letterSpacing: '-0.01em',
               }}
             >
-              $3.00 FREEPLAY SIGNUP REWARD
+              $3.00 FREE PLAY SIGNUP BONUS
             </span>
             <span
               style={{
@@ -147,7 +147,7 @@ export default function VegasFreeplayBanner({ user, onOpenAuth, onBalanceUpdated
           </div>
 
           <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#A69FB3', fontFamily: 'Lexend, sans-serif' }}>
-            Every patron can request 3 Freeplay coins upon registration. Usable on any sweepstakes terminal!
+            New players receive $3.00 complimentary Free Play upon registration. Test any game platform with zero deposit required!
           </p>
 
           {message && (

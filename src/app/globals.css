@@ -2110,7 +2110,7 @@ textarea:focus {
 }
 
 .bg-gradient-to-r {
-  background-image: linear-gradient(to right, var(--tw-gradient-stops, #f59e0b, #d97706));
+  background-image: linear-gradient(to right, var(--tw-gradient-stops, transparent, transparent));
 }
 
 .bg-gradient-to-tr {
@@ -2362,6 +2362,10 @@ textarea:focus {
     display: flex;
   }
 
+  .lg\:block {
+    display: block !important;
+  }
+
   .lg\:translate-x-0 {
     transform: translateX(0);
   }
@@ -2371,7 +2375,7 @@ textarea:focus {
   }
 
   .lg\:hidden {
-    display: none;
+    display: none !important;
   }
 
   .lg\:grid-cols-4 {

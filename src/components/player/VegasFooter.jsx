@@ -78,7 +78,7 @@ export default function VegasFooter({ onSelectTab, onOpenSupport }) {
             </Link>
 
             <p style={{ fontSize: '13px', color: '#9CA3AF', lineHeight: 1.6, margin: 0, maxWidth: '320px' }}>
-              Sovereign sweepstakes prestige. Vault-grade architectural security and elevated social gaming crafted for premier North American players.
+              Vegas One is your all-in-one gaming platform hub. Enjoy instant game accounts, seamless credit reloads, and fast 24/7 cashouts.
             </p>
 
             <div style={{ paddingTop: '6px' }}>
@@ -96,7 +96,7 @@ export default function VegasFooter({ onSelectTab, onOpenSupport }) {
                 }}
               >
                 <Shield size={14} color="#00F0FF" />
-                <span>256-BIT VAULT PROTOCOL ACTIVE</span>
+                <span>SECURE PLAYER PORTAL ACTIVE</span>
               </span>
             </div>
           </div>
@@ -104,26 +104,26 @@ export default function VegasFooter({ onSelectTab, onOpenSupport }) {
           {/* Column 2: Gaming & Treasury */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <h4 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '14px', fontWeight: 800, color: '#FFFFFF', margin: 0, letterSpacing: '0.04em' }}>
-              Gaming &amp; Vault
+              Platforms &amp; Cashier
             </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <Link href="/games" style={linkStyle}>
-                The Grand Collection
+                Supported Game Platforms
               </Link>
               <Link href="/wallet" style={linkStyle}>
-                Sovereign Cashier &amp; Vault
+                Deposit &amp; Cashier
               </Link>
               <Link href="/referrals" style={linkStyle}>
-                VIP Affiliate Lounge (50%)
+                Referral Program
               </Link>
               <Link href="/promotions" style={linkStyle}>
-                Promotions &amp; Facebook Drops
+                Promotions &amp; Bonuses
               </Link>
               <Link href="/download-app" style={linkStyle}>
-                Download Mobile App (APK &amp; iOS)
+                Download Mobile App
               </Link>
               <Link href="/ledger" style={linkStyle}>
-                Player Activity Ledger
+                Activity Ledger
               </Link>
             </div>
           </div>
@@ -131,26 +131,26 @@ export default function VegasFooter({ onSelectTab, onOpenSupport }) {
           {/* Column 3: Excellence & Compliance */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <h4 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '14px', fontWeight: 800, color: '#FFFFFF', margin: 0, letterSpacing: '0.04em' }}>
-              Excellence &amp; Rules
+              Info &amp; Support
             </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <Link href="/how-to-play" style={linkStyle}>
-                How to Play Sweepstakes
+                How to Play &amp; Get Started
               </Link>
               <Link href="/rules" style={linkStyle}>
-                Official Sweepstakes Rules
+                Platform Rules
               </Link>
               <Link href="/responsible-gaming" style={linkStyle}>
-                Responsible Gaming Standard
+                Responsible Gaming
               </Link>
               <Link href="/terms" style={linkStyle}>
                 Terms &amp; Conditions
               </Link>
               <Link href="/privacy" style={linkStyle}>
-                Privacy &amp; Data Security
+                Privacy Policy
               </Link>
               <Link href="/about" style={linkStyle}>
-                About Sovereign Vegas One
+                About Vegas One
               </Link>
               <Link href="/contact" style={linkStyle}>
                 24/7 Support Desk
@@ -184,10 +184,10 @@ export default function VegasFooter({ onSelectTab, onOpenSupport }) {
                 }}
               >
                 <Award size={14} color="#00F0FF" />
-                <span>TIER 1 RESERVE ESCROW</span>
+                <span>24/7 FAST SERVICE</span>
               </div>
               <p style={{ margin: 0, fontSize: '12px', color: '#CBD5E1', lineHeight: 1.5 }}>
-                Instantaneous redemption liquidations supported by our sovereign balance reserves and round-the-clock live host concierge.
+                Prompt deposit approvals, instant game credentials, and secure redemptions with 24/7 dedicated live assistance.
               </p>
             </div>
           </div>
@@ -211,11 +211,11 @@ export default function VegasFooter({ onSelectTab, onOpenSupport }) {
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '16px', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#00F0FF' }}>
               <Shield size={13} color="#00F0FF" />
-              <span>US SWEEPSTAKES REGULATED</span>
+              <span>OFFICIAL GAME PORTAL</span>
             </span>
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#E026D8' }}>
               <Lock size={13} color="#E026D8" />
-              <span>SOC-2 TYPE II AUDITED</span>
+              <span>FAST &amp; SECURE TRANSACTIONS</span>
             </span>
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#00F0FF' }}>
               <span>🔞 18+ PLAY RESPONSIBLY</span>
@@ -223,7 +223,7 @@ export default function VegasFooter({ onSelectTab, onOpenSupport }) {
           </div>
 
           <p style={{ margin: 0, fontFamily: 'Lexend, sans-serif', color: '#94A3B8' }}>
-            © 2026 Vegas One Sovereign Entertainment. All Rights Reserved.
+            © 2026 Vegas One. All Rights Reserved.
           </p>
         </div>
 

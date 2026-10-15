@@ -39,7 +39,7 @@ export default function CategoryTabs({ activeFilter = 'all', setActiveFilter, fa
         }}
       >
         <Flame size={14} color={activeFilter === 'all' ? '#00F0FF' : '#9A91A8'} />
-        <span>ALL SWEEPSTAKES GAMES</span>
+        <span>ALL GAMES &amp; PLATFORMS</span>
       </button>
 
       {/* Tab 2: Favorites */}

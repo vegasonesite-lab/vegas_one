@@ -1,33 +1,17 @@
 import { NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
-import { getSessionUser, ROLES } from '@/lib/auth';
+import { getSessionUser } from '@/lib/auth';
 import { getDb } from '@/lib/mongodb';
 
-// GET: List Promos (Admin or Public)
+// GET: Returns empty list (promo code system removed)
 export async function GET() {
-  try {
-    const db = await getDb();
-    const promosCol = db.collection('promotions');
-    const promos = await promosCol.find({ isActive: true }).toArray();
-
-    return NextResponse.json({
-      success: true,
-      promotions: promos.map(p => ({
-        id: p._id.toString(),
-        code: p.code,
-        title: p.title,
-        rewardSC: p.rewardSC,
-        rewardGC: p.rewardGC,
-        minDeposit: p.minDeposit,
-        expiresAt: p.expiresAt,
-      })),
-    });
-  } catch (error) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
-  }
+  return NextResponse.json({
+    success: true,
+    promotions: [],
+  });
 }
 
-// POST: Redeem Promo Code OR Daily Bonus
+// POST: Handles Player Daily Streak Bonus Claim only (Promo code system removed)
 export async function POST(req) {
   try {
     const session = await getSessionUser();
@@ -35,7 +19,7 @@ export async function POST(req) {
       return NextResponse.json({ success: false, error: 'Unauthorized. Please login.' }, { status: 401 });
     }
 
-    const { action, code } = await req.json();
+    const { action } = await req.json();
     const db = await getDb();
     const usersCol = db.collection('users');
     const ledgerCol = db.collection('ledger');
@@ -45,7 +29,7 @@ export async function POST(req) {
       return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
     }
 
-    // 1. Daily Bonus Claim
+    // Daily Bonus Claim
     if (action === 'daily_bonus') {
       const now = new Date();
       const lastDaily = user.lastDailyClaim ? new Date(user.lastDailyClaim) : null;
@@ -101,74 +85,10 @@ export async function POST(req) {
       });
     }
 
-    // 2. Promo Code Redemption
-    if (!code) {
-      return NextResponse.json({ success: false, error: 'Promo code is required.' }, { status: 400 });
-    }
-
-    const cleanCode = code.trim().toUpperCase();
-    const promosCol = db.collection('promotions');
-    const redemptionsCol = db.collection('promo_redemptions');
-
-    const promo = await promosCol.findOne({ code: cleanCode, isActive: true });
-    if (!promo) {
-      return NextResponse.json({ success: false, error: 'Invalid or expired promo code.' }, { status: 404 });
-    }
-
-    if (promo.expiresAt && new Date(promo.expiresAt) < new Date()) {
-      return NextResponse.json({ success: false, error: 'Promo code has expired.' }, { status: 400 });
-    }
-
-    // Check if user already redeemed this promo
-    const alreadyUsed = await redemptionsCol.findOne({ userId: session.userId, promoCode: cleanCode });
-    if (alreadyUsed) {
-      return NextResponse.json({ success: false, error: 'You have already redeemed this promo code.' }, { status: 400 });
-    }
-
-    const rewardSC = promo.rewardSC || 0;
-    const rewardGC = promo.rewardGC || 0;
-    const oldSC = user.balanceSC || 0;
-    const newSC = Number((oldSC + rewardSC).toFixed(2));
-
-    await usersCol.updateOne(
-      { _id: user._id },
-      { $inc: { balanceSC: rewardSC, balanceGC: rewardGC } }
-    );
-
-    await promosCol.updateOne(
-      { _id: promo._id },
-      { $inc: { timesUsed: 1 } }
-    );
-
-    await redemptionsCol.insertOne({
-      userId: session.userId,
-      username: session.username,
-      promoCode: cleanCode,
-      rewardSC,
-      rewardGC,
-      createdAt: new Date(),
-    });
-
-    await ledgerCol.insertOne({
-      userId: user._id.toString(),
-      username: user.username,
-      type: 'promo_code',
-      currency: 'SC',
-      amount: rewardSC,
-      balanceBefore: oldSC,
-      balanceAfter: newSC,
-      performedBy: 'player',
-      notes: `Promo code ${cleanCode} applied: +${rewardSC} SC & +${rewardGC} GC`,
-      createdAt: new Date(),
-    });
-
     return NextResponse.json({
-      success: true,
-      message: `Promo code ${cleanCode} applied! +${rewardSC} SC and +${rewardGC} GC added.`,
-      rewardSC,
-      rewardGC,
-      newBalance: newSC,
-    });
+      success: false,
+      error: 'Promo code system has been disabled.',
+    }, { status: 400 });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }

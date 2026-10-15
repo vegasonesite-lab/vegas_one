@@ -17,7 +17,7 @@ export async function GET(req) {
 
     const query = {};
     if (!all) {
-      query.isActive = true;
+      query.isActive = { $ne: false };
     }
     if (category && category !== 'all' && category !== 'lobby') {
       query.category = category.toLowerCase();
@@ -31,17 +31,13 @@ export async function GET(req) {
         id: g._id.toString(),
         gameId: g.gameId,
         title: g.title,
-        category: g.category,
-        provider: g.provider,
-        thumbnail: g.thumbnail,
-        type: g.type,
+        category: g.category || 'sweepstakes',
+        provider: g.provider || 'Vegas One Studio',
+        thumbnail: g.thumbnail || '/images/vegas-777.webp',
+        type: g.type || 'internal',
         url: g.url || null,
-        minBetSC: g.minBetSC || 0.2,
-        maxBetSC: g.maxBetSC || 50.0,
-        minBetGC: g.minBetGC || 100,
-        maxBetGC: g.maxBetGC || 25000,
-        rtp: g.rtp || 96.0,
-        isActive: g.isActive ?? true,
+        badge: g.badge || (g.isHot ? 'HOT' : (g.isFeatured ? 'EXCLUSIVE' : '')),
+        isActive: g.isActive !== false,
         isHot: g.isHot ?? false,
         isFeatured: g.isFeatured ?? false,
         playsCount: g.playsCount || 0,
@@ -61,38 +57,40 @@ export async function POST(req) {
     }
 
     const body = await req.json();
-    const { title, category, provider, thumbnail, type = 'internal', url, minBetSC, maxBetSC, rtp } = body;
+    const { title, provider, thumbnail, type = 'internal', url, badge, isActive } = body;
 
-    if (!title || !category) {
-      return NextResponse.json({ success: false, error: 'Title and category are required.' }, { status: 400 });
+    if (!title) {
+      return NextResponse.json({ success: false, error: 'Title is required.' }, { status: 400 });
     }
 
     const db = await getDb();
     const gamesCol = db.collection('games');
 
     const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const normalizedBadge = (badge || '').toUpperCase().trim();
     const newGame = {
       gameId: slug + '-' + Math.floor(Math.random() * 1000),
       title,
-      category: category.toLowerCase(),
-      provider: provider || 'Vegas One Games',
+      category: body.category ? body.category.toLowerCase() : 'sweepstakes',
+      provider: provider || 'Vegas One Studio',
       thumbnail: thumbnail || '/images/vegas-777.webp',
       type: type || 'internal',
       url: url || '',
-      minBetSC: Number(minBetSC) || 0.5,
-      maxBetSC: Number(maxBetSC) || 100.0,
-      minBetGC: 250,
-      maxBetGC: 50000,
-      rtp: Number(rtp) || 96.5,
-      isActive: true,
-      isHot: Boolean(body.isHot),
-      isFeatured: Boolean(body.isFeatured),
+      badge: normalizedBadge,
+      isActive: isActive !== undefined ? Boolean(isActive) : true,
+      isHot: normalizedBadge === 'HOT',
+      isFeatured: normalizedBadge === 'EXCLUSIVE' || normalizedBadge === 'POPULAR',
       playsCount: 0,
       createdAt: new Date(),
     };
 
     const res = await gamesCol.insertOne(newGame);
-    return NextResponse.json({ success: true, gameId: res.insertedId.toString(), message: 'Game added successfully' });
+    return NextResponse.json({
+      success: true,
+      gameId: res.insertedId.toString(),
+      message: 'Game added successfully',
+      game: { ...newGame, id: res.insertedId.toString() }
+    });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
@@ -107,7 +105,7 @@ export async function PUT(req) {
     }
 
     const body = await req.json();
-    const { id, title, category, provider, thumbnail, isActive, isHot, isFeatured, rtp, url, minBetSC, maxBetSC } = body;
+    const { id, title, provider, thumbnail, isActive, badge, url, category } = body;
 
     if (!id) {
       return NextResponse.json({ success: false, error: 'Game ID required' }, { status: 400 });
@@ -118,16 +116,17 @@ export async function PUT(req) {
 
     const updateFields = {};
     if (title !== undefined) updateFields.title = title;
-    if (category !== undefined) updateFields.category = category.toLowerCase();
     if (provider !== undefined) updateFields.provider = provider;
     if (thumbnail !== undefined) updateFields.thumbnail = thumbnail;
-    if (isActive !== undefined) updateFields.isActive = Boolean(isActive);
-    if (isHot !== undefined) updateFields.isHot = Boolean(isHot);
-    if (isFeatured !== undefined) updateFields.isFeatured = Boolean(isFeatured);
-    if (rtp !== undefined) updateFields.rtp = Number(rtp);
     if (url !== undefined) updateFields.url = url;
-    if (minBetSC !== undefined) updateFields.minBetSC = Number(minBetSC);
-    if (maxBetSC !== undefined) updateFields.maxBetSC = Number(maxBetSC);
+    if (category !== undefined) updateFields.category = category.toLowerCase();
+    if (isActive !== undefined) updateFields.isActive = Boolean(isActive);
+    if (badge !== undefined) {
+      const normalizedBadge = (badge || '').toUpperCase().trim();
+      updateFields.badge = normalizedBadge;
+      updateFields.isHot = normalizedBadge === 'HOT';
+      updateFields.isFeatured = normalizedBadge === 'EXCLUSIVE' || normalizedBadge === 'POPULAR';
+    }
 
     await gamesCol.updateOne({ _id: new ObjectId(id) }, { $set: updateFields });
 

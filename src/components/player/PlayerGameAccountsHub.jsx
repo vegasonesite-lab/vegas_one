@@ -17,8 +17,11 @@ import {
   CheckCircle2,
   AlertCircle,
   RefreshCw,
-  ExternalLink
+  ExternalLink,
+  Coins,
+  Lock
 } from 'lucide-react';
+import LoadCoinsModal from '@/components/player/LoadCoinsModal';
 
 export default function PlayerGameAccountsHub({
   user,
@@ -29,6 +32,8 @@ export default function PlayerGameAccountsHub({
 }) {
   const [activeAccounts, setActiveAccounts] = useState([]);
   const [pendingRequests, setPendingRequests] = useState([]);
+  const [rejectedRequests, setRejectedRequests] = useState([]);
+  const [loadCoinsModal, setLoadCoinsModal] = useState({ open: false, game: null });
   const [loading, setLoading] = useState(false);
   const [copiedKey, setCopiedKey] = useState(null);
   const [showPasswordMap, setShowPasswordMap] = useState({});
@@ -51,6 +56,7 @@ export default function PlayerGameAccountsHub({
 
       const readyList = [];
       const pendingList = [];
+      const rejectedList = [];
 
       // Add verified ready credentials
       if (credData.success && credData.gameAccounts) {
@@ -75,12 +81,15 @@ export default function PlayerGameAccountsHub({
             }
           } else if (req.status === 'PENDING') {
             pendingList.push(req);
+          } else if (req.status === 'REJECTED' || req.status === 'CANCELLED') {
+            rejectedList.push(req);
           }
         });
       }
 
       setActiveAccounts(readyList);
       setPendingRequests(pendingList);
+      setRejectedRequests(rejectedList);
     } catch (err) {
       console.error('Error fetching game accounts:', err);
     } finally {
@@ -415,7 +424,7 @@ export default function PlayerGameAccountsHub({
                             USERNAME / ID
                           </p>
                           <p style={{ margin: '2px 0 0 0', fontFamily: 'Lexend, sans-serif', fontSize: '13px', fontWeight: 800, color: '#00F0FF' }}>
-                            {acc.username || 'VIP Patron'}
+                            {acc.username || 'VIP Player'}
                           </p>
                         </div>
                         <button
@@ -521,7 +530,7 @@ export default function PlayerGameAccountsHub({
 
                     <button
                       type="button"
-                      onClick={() => onDeposit ? onDeposit() : window.open('/wallet?tab=deposit', '_self')}
+                      onClick={() => setLoadCoinsModal({ open: true, game: matchedGame || { title: acc.gameTitle, gameId: acc.gameId } })}
                       style={{
                         backgroundColor: '#140E33',
                         border: '1px solid rgba(0, 240, 255, 0.4)',
@@ -536,10 +545,11 @@ export default function PlayerGameAccountsHub({
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '4px',
+                        transition: 'all 0.15s ease',
                       }}
                     >
-                      <ArrowDownCircle size={13} />
-                      <span>DEPOSIT</span>
+                      <Coins size={13} />
+                      <span>LOAD COINS</span>
                     </button>
                   </div>
                 </div>
@@ -608,15 +618,135 @@ export default function PlayerGameAccountsHub({
                   </span>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <span style={{ fontSize: '10px', color: '#8E849E', fontFamily: 'Lexend, sans-serif' }}>
-                    In Queue ⏳
-                  </span>
+                  {req.transferAmount > 0 ? (
+                    <div
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        padding: '3px 8px',
+                        borderRadius: '6px',
+                        backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                        border: '1px solid rgba(245, 158, 11, 0.35)',
+                        color: '#FDE68A',
+                        fontSize: '11px',
+                        fontWeight: 900,
+                      }}
+                    >
+                      <Lock size={10} color="#F59E0B" />
+                      <span>${Number(req.transferAmount).toFixed(2)} SC Frozen</span>
+                    </div>
+                  ) : (
+                    <span style={{ fontSize: '10px', color: '#8E849E', fontFamily: 'Lexend, sans-serif' }}>
+                      In Queue ⏳
+                    </span>
+                  )}
                 </div>
               </div>
             ))}
           </div>
         </div>
       )}
+      {/* ======================================================== */}
+      {/* 3. REJECTED REQUESTS WITH ADMIN REASON NOTES             */}
+      {/* ======================================================== */}
+      {rejectedRequests.length > 0 && (
+        <div style={{ marginBottom: '36px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#EF4444', boxShadow: '0 0 10px #EF4444' }} />
+            <h3 style={{ margin: 0, fontFamily: 'Lexend, sans-serif', fontSize: '18px', fontWeight: 900, color: '#FFFFFF' }}>
+              Requests Requiring Attention ({rejectedRequests.length})
+            </h3>
+            <span style={{ fontSize: '11px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
+              — Staff feedback on your previous requests
+            </span>
+          </div>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: '14px',
+            }}
+          >
+            {rejectedRequests.map((req, index) => (
+              <div
+                key={`rej_${index}`}
+                style={{
+                  backgroundColor: '#0F0924',
+                  border: '1px solid rgba(239, 68, 68, 0.4)',
+                  borderRadius: '16px',
+                  padding: '16px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px',
+                  boxShadow: '0 6px 18px rgba(0, 0, 0, 0.5)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <h4 style={{ margin: 0, fontFamily: 'Lexend, sans-serif', fontSize: '15px', fontWeight: 800, color: '#FFFFFF' }}>
+                    {req.gameTitle}
+                  </h4>
+                  <span
+                    style={{
+                      fontSize: '9.5px',
+                      fontFamily: 'Lexend, sans-serif',
+                      fontWeight: 800,
+                      color: '#EF4444',
+                      backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                      padding: '2px 8px',
+                      borderRadius: '4px',
+                    }}
+                  >
+                    NOT APPROVED
+                  </span>
+                </div>
+
+                <div
+                  style={{
+                    backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                    border: '1px solid rgba(239, 68, 68, 0.25)',
+                    borderRadius: '10px',
+                    padding: '10px',
+                  }}
+                >
+                  <p style={{ margin: 0, fontSize: '12px', color: '#FCA5A5', fontFamily: 'Lexend, sans-serif', lineHeight: 1.4 }}>
+                    <strong>Admin Note:</strong> {req.rejectionReason || 'Game server unavailable or request cancelled.'}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleRequestAccount({ title: req.gameTitle, gameId: req.gameId })}
+                  style={{
+                    width: '100%',
+                    padding: '8px',
+                    borderRadius: '8px',
+                    backgroundColor: 'rgba(239, 68, 68, 0.18)',
+                    border: '1px solid rgba(239, 68, 68, 0.4)',
+                    color: '#FFFFFF',
+                    fontSize: '11px',
+                    fontFamily: 'Lexend, sans-serif',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Retry Request ↻
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Load Coins Modal */}
+      <LoadCoinsModal
+        isOpen={loadCoinsModal.open}
+        game={loadCoinsModal.game}
+        user={user}
+        onClose={() => setLoadCoinsModal({ open: false, game: null })}
+        onSuccess={() => fetchAccountsAndRequests()}
+      />
     </section>
   );
 }

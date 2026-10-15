@@ -3,12 +3,16 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import {
-  Crown,
   ArrowRight,
   ShieldCheck,
   Lock,
   CheckCircle2,
-  Trophy
+  Trophy,
+  Zap,
+  Key,
+  Flame,
+  Clock,
+  Headphones
 } from 'lucide-react';
 
 export default function VegasHeroBanner({
@@ -19,18 +23,9 @@ export default function VegasHeroBanner({
   onOpenReferrals,
   onPlayGame,
 }) {
-  // Live ticking progressive mega jackpot
-  const [jackpot, setJackpot] = useState(4892150.84);
   const [settings, setSettings] = useState(null);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setJackpot(prev => prev + (Math.random() * 0.95 + 0.25));
-    }, 1500);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Fetch live bonus settings
+  // Fetch live bonus settings from admin
   useEffect(() => {
     fetch('/api/admin/settings')
       .then(res => res.json())
@@ -42,32 +37,29 @@ export default function VegasHeroBanner({
       .catch(() => {});
   }, []);
 
-  // Determine if user has already claimed the welcome bonus
   const hasClaimedWelcome = Boolean(user?.welcomeBonusClaimed || (user?.totalDeposited && user.totalDeposited > 0));
-
-  const bonusTitle = hasClaimedWelcome
-    ? (settings?.regularBonusTitle || 'REGULAR BONUS')
-    : (settings?.welcomeBonusTitle || 'WELCOME BONUS');
 
   const bonusPercent = hasClaimedWelcome
     ? (settings?.regularBonusPercent ?? 50)
-    : (settings?.welcomeBonusPercent ?? 300);
+    : (settings?.welcomeBonusPercent ?? 100);
 
-  const bonusMax = hasClaimedWelcome
-    ? (settings?.regularBonusMax ?? 2500)
-    : (settings?.welcomeBonusMax ?? 7500);
-
-  const bonusBadge = hasClaimedWelcome
-    ? 'EVERY DEPOSIT'
-    : 'FIRST DEPOSIT';
+  const bonusTitle = hasClaimedWelcome ? 'RELOAD BONUS' : 'INSTANT LOAD BONUS';
+  const bonusBadge = hasClaimedWelcome ? 'EVERY DEPOSIT' : 'FIRST DEPOSIT';
 
   const bonusSubtitle = hasClaimedWelcome
-    ? (settings?.regularBonusSubtitle || `Enjoy a ${bonusPercent}% extra bonus on every deposit you make! Instant approval into your wallet.`)
-    : (settings?.welcomeBonusSubtitle || `Get a massive ${bonusPercent}% bonus on your first deposit! Fast Cash App & Crypto deposits with instant withdrawals.`);
+    ? `Get an extra ${bonusPercent}% bonus credits on every load into your game account. Instant approvals 24/7.`
+    : `Receive up to ${bonusPercent}% extra bonus credits on your first load. Fast Cash App & Crypto deposits with instant withdrawals.`;
 
-  const ctaText = hasClaimedWelcome
-    ? 'CLAIM REGULAR BONUS'
-    : 'CLAIM WELCOME BONUS';
+  const ctaText = user ? 'DEPOSIT & LOAD CREDITS' : 'GET GAME ACCOUNT';
+
+  const popularPlatforms = [
+    { name: 'Fire Kirin', badge: 'Active' },
+    { name: 'Orion Stars', badge: 'Active' },
+    { name: 'Game Vault', badge: 'Active' },
+    { name: 'Juwa 777', badge: 'Active' },
+    { name: 'Ultra Panda', badge: 'Active' },
+    { name: 'Milky Way', badge: 'Active' },
+  ];
 
   return (
     <div style={{ position: 'relative', marginBottom: '28px', paddingTop: '8px' }}>
@@ -102,7 +94,7 @@ export default function VegasHeroBanner({
       {/* 2-Column Split Grid */}
       <div className="sovereign-hero-grid">
         
-        {/* LEFT COLUMN: Eyebrow, Headline, Welcome Pack, CTAs, Trust */}
+        {/* LEFT COLUMN: Eyebrow, Headline, Value Props, CTAs, Trust */}
         <div className="sovereign-hero-left">
           
           {/* Eyebrow Pill */}
@@ -112,7 +104,7 @@ export default function VegasHeroBanner({
               alignItems: 'center',
               gap: '8px',
               backgroundColor: '#0E0A24',
-              border: '1px solid rgba(0, 240, 255, 0.25)',
+              border: '1px solid rgba(0, 240, 255, 0.35)',
               padding: '6px 14px',
               borderRadius: '9999px',
               width: 'fit-content',
@@ -138,27 +130,21 @@ export default function VegasHeroBanner({
                 color: '#00F0FF',
               }}
             >
-              {hasClaimedWelcome ? 'VEGAS ONE VIP CLUB · INSTANT PAYOUTS' : 'VEGAS ONE CASINO · WIN REAL CASH'}
+              DIRECT PLATFORM ACCESS · 24/7 INSTANT SERVICE
             </span>
           </div>
 
           {/* Heading */}
           <h1 className="sovereign-hero-title">
-            {hasClaimedWelcome ? (
-              <>Your <span className="highlight">VIP Gaming Lounge</span></>
-            ) : (
-              <>Play Top Games &amp; <span className="highlight">Win Real Cash</span></>
-            )}
+            Top Game Platforms &amp; <span className="highlight">Instant Payouts</span>
           </h1>
 
           {/* Subtitle */}
           <p className="sovereign-hero-subtitle">
-            {hasClaimedWelcome
-              ? 'Play Fire Kirin, Orion Stars, Game Vault & Juwa with instant 50% reload bonuses and fast 24-hour payouts.'
-              : 'Join thousands of winners today! Instant Cash App & Crypto deposits, top sweepstakes games, and guaranteed payouts.'}
+            Get instant game IDs for Fire Kirin, Orion Stars, Game Vault, Juwa, and Ultra Panda. Fast Cash App &amp; Crypto loads with prompt 24/7 cashouts.
           </p>
 
-          {/* Dynamic Welcome / Regular Reload Card */}
+          {/* Clean Functional Load Bonus Card */}
           <div className="sovereign-welcome-card">
             <div className="sovereign-welcome-header">
               <div style={{ minWidth: 0, flex: '1 1 auto' }}>
@@ -166,14 +152,15 @@ export default function VegasHeroBanner({
                   <Trophy size={14} color="#00F0FF" />
                   <span>{bonusTitle}</span>
                 </div>
-                <div className="sovereign-welcome-amount">
-                  <span>{bonusPercent}%</span>
-                  <span className="sovereign-welcome-up-to">up to</span>
-                  <span>${Number(bonusMax).toLocaleString()}</span>
+                <div className="sovereign-welcome-amount" style={{ fontSize: '28px' }}>
+                  <span>+{bonusPercent}% BONUS</span>
+                  <span style={{ fontSize: '14px', color: '#94A3B8', fontWeight: 600, marginLeft: '8px' }}>
+                    ON LOAD
+                  </span>
                 </div>
               </div>
 
-              {/* Escrow / Reload Pill */}
+              {/* Reload Pill */}
               <div className="sovereign-welcome-badge-wrap">
                 <span className="badge-teal-escrow">
                   {bonusBadge}
@@ -181,7 +168,7 @@ export default function VegasHeroBanner({
               </div>
             </div>
 
-            <p style={{ margin: 0, paddingTop: '12px', fontSize: '12px', color: '#CBD5E1', fontFamily: 'Lexend, sans-serif', lineHeight: 1.5 }}>
+            <p style={{ margin: 0, paddingTop: '10px', fontSize: '12px', color: '#CBD5E1', fontFamily: 'Lexend, sans-serif', lineHeight: 1.5 }}>
               {bonusSubtitle}
             </p>
           </div>
@@ -193,11 +180,7 @@ export default function VegasHeroBanner({
               onClick={user ? onOpenWallet : () => onOpenAuth('register')}
               className="btn-sovereign-coral"
             >
-              <img
-                src="/images/logo.png"
-                alt="Vegas One"
-                style={{ height: '22px', width: 'auto', objectFit: 'contain' }}
-              />
+              <Zap size={16} />
               <span>{ctaText}</span>
             </button>
 
@@ -209,7 +192,7 @@ export default function VegasHeroBanner({
               }}
               className="btn-sovereign-dark"
             >
-              <span>Browse All Games</span>
+              <span>Explore Platforms</span>
               <ArrowRight size={15} color="#A69FB3" />
             </button>
           </div>
@@ -217,48 +200,48 @@ export default function VegasHeroBanner({
           {/* Trust Ribbons */}
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '20px', paddingTop: '6px', fontSize: '12px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Lock size={14} color="#00F0FF" />
-              <span>Instant Cash App &amp; Crypto</span>
+              <Key size={14} color="#00F0FF" />
+              <span>Instant Game IDs &amp; PINs</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <CheckCircle2 size={14} color="#E026D8" />
-              <span>Fast 24/7 Cashouts</span>
+              <span>Fast 24/7 Redemptions</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <ShieldCheck size={14} color="#00F0FF" />
-              <span>100% Safe &amp; Verified</span>
+              <Headphones size={14} color="#00F0FF" />
+              <span>Direct 24/7 Live Support</span>
             </div>
           </div>
 
         </div>
 
-        {/* RIGHT COLUMN: SALON PRIVÉ LIVE PREVIEW & MEGA JACKPOT BOX */}
+        {/* RIGHT COLUMN: DIRECT PLATFORM ACCESS HUB CARD */}
         <div className="sovereign-salon-card">
           
-          {/* Real Salon Privé Frame with Glowing 3D Royal Crown */}
-          <div className="sovereign-salon-image-wrap">
+          {/* Header Image Wrap */}
+          <div className="sovereign-salon-image-wrap" style={{ height: '200px', minHeight: '200px' }}>
             <Image
               src="/images/salon-prive-crown.jpg"
-              alt="Salon Privé Live Casino Crown"
+              alt="Vegas One Gaming Platform Station"
               fill
               priority
               style={{ objectFit: 'cover', objectPosition: 'center' }}
               sizes="(max-width: 1024px) 100vw, 500px"
             />
 
-            {/* Badge: SALON PRIVÉ LIVE */}
+            {/* Badge: ALL PANELS ACTIVE */}
             <div className="sovereign-salon-badge">
               <span
                 style={{
                   width: '7px',
                   height: '7px',
                   borderRadius: '50%',
-                  backgroundColor: '#00F0FF',
+                  backgroundColor: '#10B981',
                   display: 'inline-block',
-                  boxShadow: '0 0 8px #00F0FF',
+                  boxShadow: '0 0 8px #10B981',
                 }}
               />
-              <span>SALON PRIVÉ LIVE</span>
+              <span>SYSTEM ONLINE · INSTANT LOAD ACTIVE</span>
             </div>
 
             {/* Subtle bottom vignette gradient */}
@@ -272,53 +255,109 @@ export default function VegasHeroBanner({
             />
           </div>
 
-          {/* Overlay Mega Jackpot Box */}
-          <div className="sovereign-jackpot-box">
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+          {/* Live Platform Hub Showcase */}
+          <div className="sovereign-jackpot-box" style={{ marginTop: '12px', padding: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#00F0FF', letterSpacing: '0.06em' }}>
-                <Crown size={14} color="#00F0FF" />
-                <span>CURRENT MEGA JACKPOT</span>
+                <Flame size={14} color="#00F0FF" />
+                <span>SUPPORTED GAME PLATFORMS</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#E026D8' }}>
-                <span
-                  style={{
-                    width: '6px',
-                    height: '6px',
-                    borderRadius: '50%',
-                    backgroundColor: '#E026D8',
-                    display: 'inline-block',
-                    boxShadow: '0 0 6px #E026D8',
-                  }}
-                />
-                <span>DROPPING SOON</span>
-              </div>
-            </div>
-
-            {/* Huge Golden Jackpot Value */}
-            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '12px', margin: '4px 0' }}>
-              <span className="sovereign-jackpot-value">
-                ${jackpot.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </span>
               <span
                 style={{
-                  fontSize: '11px',
+                  fontSize: '10px',
                   fontFamily: 'Lexend, sans-serif',
-                  fontWeight: 700,
-                  color: '#A69FB3',
-                  backgroundColor: '#231C30',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  padding: '3px 10px',
+                  fontWeight: 800,
+                  color: '#10B981',
+                  backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                  border: '1px solid rgba(16, 185, 129, 0.3)',
+                  padding: '2px 8px',
                   borderRadius: '9999px',
                 }}
               >
-                +1.4%/hr
+                FAST ACCOUNT SETUP
               </span>
             </div>
 
-            {/* Glowing Gradient Progress Bar */}
-            <div className="sovereign-jackpot-progress">
-              <div className="sovereign-jackpot-bar" style={{ width: '82%' }} />
+            {/* Supported Platform Chips */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '14px' }}>
+              {popularPlatforms.map((p, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    backgroundColor: '#140E33',
+                    border: '1px solid rgba(0, 240, 255, 0.2)',
+                    borderRadius: '10px',
+                    padding: '8px 10px',
+                    textAlign: 'center',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <div style={{ fontSize: '11.5px', fontFamily: 'Lexend, sans-serif', fontWeight: 700, color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {p.name}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', marginTop: '2px' }}>
+                    <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#10B981' }} />
+                    <span style={{ fontSize: '9.5px', color: '#10B981', fontWeight: 700 }}>Active</span>
+                  </div>
+                </div>
+              ))}
             </div>
+
+            {/* Platform Feature Checklist */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11.5px', color: '#CBD5E1', fontFamily: 'Lexend, sans-serif', borderTop: '1px solid rgba(255, 255, 255, 0.06)', paddingTop: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 size={13} color="#00F0FF" />
+                <span>Instant credentials generated directly into your portal</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 size={13} color="#00F0FF" />
+                <span>Fast loading via Cash App, Zelle, Venmo &amp; Crypto</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 size={13} color="#00F0FF" />
+                <span>Instant redemptions with direct wallet delivery</span>
+              </div>
+            </div>
+
+            {/* Quick Action Button */}
+            <button
+              type="button"
+              onClick={() => {
+                if (!user) {
+                  onOpenAuth('login');
+                } else {
+                  const el = document.getElementById('grand-collection');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+              style={{
+                width: '100%',
+                marginTop: '12px',
+                padding: '9px 14px',
+                backgroundColor: 'rgba(0, 240, 255, 0.12)',
+                border: '1px solid rgba(0, 240, 255, 0.4)',
+                borderRadius: '10px',
+                color: '#00F0FF',
+                fontFamily: 'Lexend, sans-serif',
+                fontSize: '11.5px',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(0, 240, 255, 0.25)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(0, 240, 255, 0.12)';
+              }}
+            >
+              <span>{user ? 'VIEW ALL GAME PLATFORMS' : 'SIGN IN TO ACCESS PLATFORMS'}</span>
+              <ArrowRight size={13} />
+            </button>
           </div>
 
         </div>

@@ -282,7 +282,7 @@ export default function VegasNavbar({
                     }}
                   >
                     <div style={{ padding: '12px 16px', borderBottom: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                      <p style={{ margin: 0, fontSize: '11px', color: '#9A91A8', textTransform: 'uppercase' }}>Sovereign Patron</p>
+                      <p style={{ margin: 0, fontSize: '11px', color: '#9A91A8', textTransform: 'uppercase' }}>VIP Player</p>
                       <p style={{ margin: '3px 0 0 0', fontFamily: 'Lexend, sans-serif', fontWeight: 800, fontSize: '14px', color: '#FFFFFF' }}>{activeUser.username}</p>
                     </div>
 

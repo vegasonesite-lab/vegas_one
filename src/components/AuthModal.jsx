@@ -321,7 +321,7 @@ export default function AuthModal({
                 fontFamily: 'Lexend, sans-serif',
               }}
             >
-              Join thousands of VIP patrons playing official Fire Kirin, Orion Stars, and Ultra Panda sweepstakes games with 100% legal cash prizes.
+              Join thousands of VIP players playing official Fire Kirin, Orion Stars, and Ultra Panda sweepstakes games with 100% legal cash prizes.
             </p>
           </div>
 
@@ -513,7 +513,7 @@ export default function AuthModal({
                   letterSpacing: '-0.02em',
                 }}
               >
-                {tab === 'login' ? 'Welcome Back, Sovereign Patron' : 'Create Sovereign Vault'}
+                {tab === 'login' ? 'Welcome Back, Player' : 'Create Sovereign Vault'}
               </h2>
               <p
                 style={{
@@ -1008,7 +1008,7 @@ export default function AuthModal({
                           letterSpacing: '0.04em',
                         }}
                       >
-                        REFERRAL / PROMO CODE
+                        REFERRAL CODE (OPTIONAL)
                       </label>
                       <div style={{ position: 'relative' }}>
                         <Sparkles

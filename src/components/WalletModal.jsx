@@ -16,7 +16,8 @@ import {
   CreditCard,
   QrCode,
   Image as ImageIcon,
-  Clock
+  Clock,
+  ExternalLink
 } from 'lucide-react';
 
 export default function WalletModal({
@@ -75,15 +76,22 @@ export default function WalletModal({
 
   useEffect(() => {
     if (!isOpen) return;
-    fetch('/api/payments/methods')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && data.methods?.length > 0) {
-          setMethods(data.methods);
-          setSelectedMethod(data.methods[0]);
-        }
-      })
-      .catch(() => {});
+    const loadMethods = () => {
+      fetch(`/api/payments/methods?t=${Date.now()}`, { cache: 'no-store' })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.methods?.length > 0) {
+            setMethods(data.methods);
+            setSelectedMethod(prev => {
+              if (!prev) return data.methods[0];
+              const matched = data.methods.find(m => (m.id && prev.id && m.id === prev.id) || (m.name === prev.name));
+              return matched || data.methods[0];
+            });
+          }
+        })
+        .catch(() => {});
+    };
+    loadMethods();
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -304,35 +312,33 @@ export default function WalletModal({
                 STATUS
               </span>
               <p style={{ margin: '2px 0 0 0', fontFamily: 'Lexend, sans-serif', fontSize: '12px', fontWeight: 800, color: '#FFFFFF' }}>
-                Verified Patron
+                Verified Player
               </p>
             </div>
           </div>
         )}
 
         {/* Tab Switcher Pills */}
+        {/* Separate Standalone Action Tabs */}
         <div
           style={{
-            display: 'flex',
-            backgroundColor: '#070514',
-            borderRadius: '9999px',
-            padding: '3px',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: '10px',
             marginBottom: '20px',
-            border: '1px solid rgba(0, 240, 255, 0.18)',
           }}
         >
           <button
             type="button"
             onClick={() => { setActiveTab('deposit'); setMessage(null); setErrorMsg(null); }}
             style={{
-              flex: 1,
-              padding: '8px 0',
-              borderRadius: '9999px',
-              border: 'none',
-              backgroundColor: activeTab === 'deposit' ? '#00F0FF' : 'transparent',
-              color: activeTab === 'deposit' ? '#070514' : '#9A91A8',
+              padding: '10px 4px',
+              borderRadius: '12px',
+              border: activeTab === 'deposit' ? '1px solid #00F0FF' : '1px solid rgba(0, 240, 255, 0.22)',
+              backgroundColor: activeTab === 'deposit' ? '#00F0FF' : '#0E0A24',
+              color: activeTab === 'deposit' ? '#070514' : '#C8C1D4',
               fontFamily: 'Lexend, sans-serif',
-              fontSize: '10.5px',
+              fontSize: '11px',
               fontWeight: 900,
               letterSpacing: '0.04em',
               textTransform: 'uppercase',
@@ -340,25 +346,25 @@ export default function WalletModal({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '5px',
+              gap: '6px',
               transition: 'all 0.2s',
+              boxShadow: activeTab === 'deposit' ? '0 4px 16px rgba(0, 240, 255, 0.35)' : '0 2px 8px rgba(0, 0, 0, 0.3)',
             }}
           >
-            <ArrowDownCircle size={13} />
+            <ArrowDownCircle size={14} />
             <span>DEPOSIT</span>
           </button>
           <button
             type="button"
             onClick={() => { setActiveTab('redeem'); setMessage(null); setErrorMsg(null); }}
             style={{
-              flex: 1,
-              padding: '8px 0',
-              borderRadius: '9999px',
-              border: 'none',
-              backgroundColor: activeTab === 'redeem' ? '#E026D8' : 'transparent',
-              color: activeTab === 'redeem' ? '#FFFFFF' : '#9A91A8',
+              padding: '10px 4px',
+              borderRadius: '12px',
+              border: activeTab === 'redeem' ? '1px solid #00F0FF' : '1px solid rgba(0, 240, 255, 0.22)',
+              backgroundColor: activeTab === 'redeem' ? '#00F0FF' : '#0E0A24',
+              color: activeTab === 'redeem' ? '#070514' : '#C8C1D4',
               fontFamily: 'Lexend, sans-serif',
-              fontSize: '10.5px',
+              fontSize: '11px',
               fontWeight: 900,
               letterSpacing: '0.04em',
               textTransform: 'uppercase',
@@ -366,25 +372,25 @@ export default function WalletModal({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '5px',
+              gap: '6px',
               transition: 'all 0.2s',
+              boxShadow: activeTab === 'redeem' ? '0 4px 16px rgba(0, 240, 255, 0.35)' : '0 2px 8px rgba(0, 0, 0, 0.3)',
             }}
           >
-            <ArrowUpCircle size={13} />
-            <span>REDEEM</span>
+            <ArrowUpCircle size={14} />
+            <span>CASHOUT</span>
           </button>
           <button
             type="button"
             onClick={() => { setActiveTab('history'); setMessage(null); setErrorMsg(null); }}
             style={{
-              flex: 1,
-              padding: '8px 0',
-              borderRadius: '9999px',
-              border: 'none',
-              backgroundColor: activeTab === 'history' ? '#00F0FF' : 'transparent',
-              color: activeTab === 'history' ? '#070514' : '#9A91A8',
+              padding: '10px 4px',
+              borderRadius: '12px',
+              border: activeTab === 'history' ? '1px solid #00F0FF' : '1px solid rgba(0, 240, 255, 0.22)',
+              backgroundColor: activeTab === 'history' ? '#00F0FF' : '#0E0A24',
+              color: activeTab === 'history' ? '#070514' : '#C8C1D4',
               fontFamily: 'Lexend, sans-serif',
-              fontSize: '10.5px',
+              fontSize: '11px',
               fontWeight: 900,
               letterSpacing: '0.04em',
               textTransform: 'uppercase',
@@ -392,12 +398,13 @@ export default function WalletModal({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '5px',
+              gap: '6px',
               transition: 'all 0.2s',
+              boxShadow: activeTab === 'history' ? '0 4px 16px rgba(0, 240, 255, 0.35)' : '0 2px 8px rgba(0, 0, 0, 0.3)',
             }}
           >
-            <Clock size={13} />
-            <span>VAULT STATUS</span>
+            <Clock size={14} />
+            <span>HISTORY</span>
           </button>
         </div>
 
@@ -536,60 +543,131 @@ export default function WalletModal({
             </div>
 
             {/* Step 3: Cashier Transfer Instructions */}
-            {selectedMethod && (
-              <div
-                style={{
-                  backgroundColor: '#0E0816',
-                  borderRadius: '14px',
-                  padding: '14px',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                  <span style={{ fontSize: '10px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#A69FB3', textTransform: 'uppercase' }}>
-                    Send Payment To Official Cashier:
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => handleCopy(selectedMethod.accountDetails)}
-                    style={{
-                      backgroundColor: 'transparent',
-                      border: 'none',
-                      color: '#00F0FF',
-                      fontSize: '11px',
-                      fontFamily: 'Lexend, sans-serif',
-                      fontWeight: 800,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                    }}
-                  >
-                    {copied ? <Check size={12} color="#00F0FF" /> : <Copy size={12} />}
-                    <span>{copied ? 'COPIED!' : 'COPY'}</span>
-                  </button>
-                </div>
+            {selectedMethod && (() => {
+              const identifier = selectedMethod.accountDetails || selectedMethod.details || selectedMethod.cashtag || selectedMethod.address || '';
+              const instructions = selectedMethod.instructions || selectedMethod.notes || '';
+              return (
                 <div
                   style={{
-                    backgroundColor: '#070514',
-                    padding: '8px 12px',
-                    borderRadius: '8px',
-                    fontFamily: 'monospace',
-                    fontSize: '13px',
-                    color: '#00F0FF',
-                    fontWeight: 700,
-                    wordBreak: 'break-all',
-                    marginBottom: '8px',
-                    border: '1px solid rgba(0, 240, 255, 0.2)',
+                    backgroundColor: '#0E0816',
+                    borderRadius: '14px',
+                    padding: '14px',
+                    border: '1px solid rgba(0, 240, 255, 0.25)',
                   }}
                 >
-                  {selectedMethod.accountDetails}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '10px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#A69FB3', textTransform: 'uppercase' }}>
+                      Send Payment To Official Cashier:
+                    </span>
+                    {identifier && (
+                      <button
+                        type="button"
+                        onClick={() => handleCopy(identifier)}
+                        style={{
+                          backgroundColor: 'transparent',
+                          border: 'none',
+                          color: '#00F0FF',
+                          fontSize: '11px',
+                          fontFamily: 'Lexend, sans-serif',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                        }}
+                      >
+                        {copied ? <Check size={12} color="#00F0FF" /> : <Copy size={12} />}
+                        <span>{copied ? 'COPIED!' : 'COPY'}</span>
+                      </button>
+                    )}
+                  </div>
+                  <div
+                    style={{
+                      backgroundColor: '#070514',
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      fontFamily: 'monospace',
+                      fontSize: '13px',
+                      color: '#00F0FF',
+                      fontWeight: 700,
+                      wordBreak: 'break-all',
+                      marginBottom: '8px',
+                      border: '1px solid rgba(0, 240, 255, 0.2)',
+                    }}
+                  >
+                    {identifier || 'Contact 24/7 Live Desk for Tag'}
+                  </div>
+
+                  {/* Direct Payment Link */}
+                  {selectedMethod.paymentUrl && (
+                    <div style={{ marginBottom: '10px' }}>
+                      <a
+                        href={selectedMethod.paymentUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '8px 14px',
+                          borderRadius: '8px',
+                          background: 'linear-gradient(135deg, #00F0FF 0%, #00B4D8 100%)',
+                          color: '#070514',
+                          fontWeight: 900,
+                          fontSize: '11px',
+                          fontFamily: 'Lexend, sans-serif',
+                          textDecoration: 'none',
+                          boxShadow: '0 4px 14px rgba(0, 240, 255, 0.35)',
+                        }}
+                      >
+                        <span>⚡ Pay Directly on {selectedMethod.name}</span>
+                        <ExternalLink size={12} />
+                      </a>
+                    </div>
+                  )}
+
+                  {/* Scannable QR Code */}
+                  {selectedMethod.qrCode && (
+                    <div
+                      style={{
+                        margin: '10px 0',
+                        padding: '12px',
+                        borderRadius: '12px',
+                        backgroundColor: '#070514',
+                        border: '1px solid rgba(0, 240, 255, 0.25)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '8px',
+                        textAlign: 'center',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '10.5px', fontWeight: 900, color: '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        <QrCode size={13} />
+                        <span>Scan QR Code to Pay ({selectedMethod.name})</span>
+                      </div>
+                      <div style={{ padding: '6px', backgroundColor: '#FFFFFF', borderRadius: '10px', boxShadow: '0 4px 14px rgba(0,0,0,0.5)' }}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={selectedMethod.qrCode}
+                          alt={`${selectedMethod.name} QR Code`}
+                          style={{ width: '150px', height: '150px', objectFit: 'contain', display: 'block' }}
+                        />
+                      </div>
+                      <span style={{ fontSize: '10px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
+                        Scan using your {selectedMethod.name} app to auto-pay
+                      </span>
+                    </div>
+                  )}
+
+                  {instructions && (
+                    <p style={{ margin: 0, fontSize: '11px', color: '#9A91A8', lineHeight: 1.4, fontFamily: 'Lexend, sans-serif' }}>
+                      {instructions}
+                    </p>
+                  )}
                 </div>
-                <p style={{ margin: 0, fontSize: '11px', color: '#9A91A8', lineHeight: 1.4, fontFamily: 'Lexend, sans-serif' }}>
-                  {selectedMethod.instructions}
-                </p>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Step 4: Receipt Proof Screenshot Upload */}
             <div>

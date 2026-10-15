@@ -5,8 +5,8 @@ import {
   Trophy,
   ShieldCheck,
   Zap,
-  Plane,
-  Compass,
+  Flame,
+  Headphones,
   Lock,
   ArrowRight
 } from 'lucide-react';
@@ -50,7 +50,7 @@ export default function VegasCrownClub({ user, onOpenVIPDetails }) {
             }}
           >
             <Trophy size={14} color="#00F0FF" />
-            <span>SOVEREIGN PATRON REWARD TIER</span>
+            <span>PLAYER LOYALTY PROGRAM</span>
           </div>
 
           <h2
@@ -63,7 +63,7 @@ export default function VegasCrownClub({ user, onOpenVIPDetails }) {
               margin: '0 0 8px 0',
             }}
           >
-            The Crown Club
+            VIP Player Club
           </h2>
 
           <p
@@ -76,7 +76,7 @@ export default function VegasCrownClub({ user, onOpenVIPDetails }) {
               margin: 0,
             }}
           >
-            Ascend through sovereign loyalty strata. Experience tailored comp accounts, custom private baccarat tables, and invites to global high-roller summits.
+            Earn rewards every time you play and load credits. Enjoy prioritized 24/7 redemptions, extra reload bonuses, and dedicated support for all your game platforms.
           </p>
         </div>
 
@@ -98,10 +98,10 @@ export default function VegasCrownClub({ user, onOpenVIPDetails }) {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
                 <span style={{ fontFamily: 'Lexend, sans-serif', fontSize: '20px', fontWeight: 900, color: '#FFFFFF' }}>
-                  Sovereign Tier III
+                  Player Tier: Silver
                 </span>
                 <span style={{ fontFamily: 'Lexend, sans-serif', fontSize: '13px', fontWeight: 700, color: '#A69FB3' }}>
-                  {points.toLocaleString()} / {target.toLocaleString()} Crown Points
+                  {points.toLocaleString()} / {target.toLocaleString()} Points
                 </span>
               </div>
 
@@ -130,10 +130,10 @@ export default function VegasCrownClub({ user, onOpenVIPDetails }) {
 
               {/* Status Labels */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif', marginTop: '12px' }}>
-                <span>Tier II Master</span>
+                <span>Active Member</span>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#00F0FF' }}>
                   <Lock size={12} color="#00F0FF" />
-                  <span>Next: Tier IV Imperial ({Math.max(0, target - points).toLocaleString()} CP remaining)</span>
+                  <span>Next: Gold Tier ({Math.max(0, target - points).toLocaleString()} pts away)</span>
                 </span>
               </div>
             </div>
@@ -151,8 +151,8 @@ export default function VegasCrownClub({ user, onOpenVIPDetails }) {
                 fontFamily: 'Lexend, sans-serif',
               }}
             >
-              <span>Active Multiplier: <strong style={{ color: '#FFFFFF', fontWeight: 700 }}>1.85x Rebates</strong></span>
-              <span>Host Tier: <strong style={{ color: '#14B8A6', fontWeight: 700 }}>VIP Concierge Active</strong></span>
+              <span>Bonus Multiplier: <strong style={{ color: '#FFFFFF', fontWeight: 700 }}>Active</strong></span>
+              <span>Fast Cashouts: <strong style={{ color: '#14B8A6', fontWeight: 700 }}>Priority Enabled</strong></span>
             </div>
           </div>
 
@@ -189,14 +189,14 @@ export default function VegasCrownClub({ user, onOpenVIPDetails }) {
                   marginBottom: '16px',
                 }}
               >
-                <Compass size={20} color="#00F0FF" />
+                <Headphones size={20} color="#00F0FF" />
               </div>
               <div>
                 <h4 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '14px', fontWeight: 700, color: '#FFFFFF', margin: '0 0 6px 0' }}>
-                  Dedicated Concierge
+                  Direct Live Support
                 </h4>
                 <p style={{ fontFamily: 'Lexend, sans-serif', fontSize: '12px', color: '#9A91A8', lineHeight: 1.5, margin: 0 }}>
-                  Personal Salon host on WhatsApp and Signal 24/7 for tailored limits.
+                  Immediate assistance via Live Chat and WhatsApp for instant IDs, resets, and top-ups.
                 </p>
               </div>
             </div>
@@ -230,10 +230,10 @@ export default function VegasCrownClub({ user, onOpenVIPDetails }) {
               </div>
               <div>
                 <h4 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '14px', fontWeight: 700, color: '#FFFFFF', margin: '0 0 6px 0' }}>
-                  Zero-Fee Liquidity
+                  Fast-Track Cashouts
                 </h4>
                 <p style={{ fontFamily: 'Lexend, sans-serif', fontSize: '12px', color: '#9A91A8', lineHeight: 1.5, margin: 0 }}>
-                  Instant vault withdrawals without processing caps or tier delays.
+                  Fast redemptions sent directly to your Cash App $Cashtag or Crypto address without delays.
                 </p>
               </div>
             </div>
@@ -263,14 +263,14 @@ export default function VegasCrownClub({ user, onOpenVIPDetails }) {
                   marginBottom: '16px',
                 }}
               >
-                <Plane size={20} color="#E026D8" />
+                <Flame size={20} color="#E026D8" />
               </div>
               <div>
                 <h4 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '14px', fontWeight: 700, color: '#FFFFFF', margin: '0 0 6px 0' }}>
-                  Monaco & Macao
+                  Extra Reload Bonuses
                 </h4>
                 <p style={{ fontFamily: 'Lexend, sans-serif', fontSize: '12px', color: '#9A91A8', lineHeight: 1.5, margin: 0 }}>
-                  All-expenses luxury grand prix suites and land-based VIP access.
+                  Special bonus promotions and extra credit drops added directly to your game loads.
                 </p>
               </div>
             </div>
@@ -294,7 +294,7 @@ export default function VegasCrownClub({ user, onOpenVIPDetails }) {
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12px', color: '#C9C2D4', fontFamily: 'Lexend, sans-serif' }}>
             <ShieldCheck size={18} color="#14B8A6" />
-            <span>All status tiers are perpetually protected with quarterly grace resets.</span>
+            <span>All deposits and redemptions are handled directly with prompt 24/7 verification.</span>
           </div>
 
           <button
@@ -303,7 +303,7 @@ export default function VegasCrownClub({ user, onOpenVIPDetails }) {
             className="btn-sovereign-dark"
             style={{ padding: '10px 22px', fontSize: '12px' }}
           >
-            <span>VIEW CLUB TIER BENEFITS</span>
+            <span>VIEW VIP DETAILS</span>
             <ArrowRight size={14} color="#A69FB3" />
           </button>
         </div>

@@ -168,10 +168,10 @@ export default function SubscriptionPromoModal({
           />
 
           <h2 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '20px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 4px 0' }}>
-            VIP Promo &amp; Freeplay Alerts
+            VIP Bonus &amp; Freeplay Alerts
           </h2>
           <p style={{ fontSize: '12px', color: '#CBD5E1', margin: 0, fontFamily: 'Lexend, sans-serif', lineHeight: 1.4 }}>
-            Never miss instant freeplay drops, reload bonuses, and secret Facebook promo vouchers.
+            Never miss instant freeplay drops, reload bonuses, and secret VIP giveaway rewards.
           </p>
         </div>
 
@@ -193,7 +193,7 @@ export default function SubscriptionPromoModal({
             </div>
             <div style={{ flex: 1 }}>
               <p style={{ margin: 0, fontSize: '11.5px', fontWeight: 800, color: '#FFFFFF', fontFamily: 'Lexend, sans-serif' }}>Chrome &amp; Web Push Alerts</p>
-              <p style={{ margin: 0, fontSize: '10.5px', color: '#9A91A8' }}>Instant notifications when high-roller codes drop</p>
+              <p style={{ margin: 0, fontSize: '10.5px', color: '#9A91A8' }}>Instant notifications when high-roller rewards drop</p>
             </div>
           </div>
 
@@ -212,8 +212,8 @@ export default function SubscriptionPromoModal({
               <Mail size={15} color="#E026D8" />
             </div>
             <div style={{ flex: 1 }}>
-              <p style={{ margin: 0, fontSize: '11.5px', fontWeight: 800, color: '#FFFFFF', fontFamily: 'Lexend, sans-serif' }}>VIP Email Promos</p>
-              <p style={{ margin: 0, fontSize: '10.5px', color: '#9A91A8' }}>Exclusive 50% deposit match and zero-loss perks</p>
+              <p style={{ margin: 0, fontSize: '11.5px', fontWeight: 800, color: '#FFFFFF', fontFamily: 'Lexend, sans-serif' }}>VIP Email Drops</p>
+              <p style={{ margin: 0, fontSize: '10.5px', color: '#9A91A8' }}>Exclusive deposit matches and zero-loss perks</p>
             </div>
           </div>
         </div>
@@ -266,7 +266,7 @@ export default function SubscriptionPromoModal({
           <form onSubmit={handleSubscribe} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <div>
               <label style={{ display: 'block', fontSize: '10px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '4px', letterSpacing: '0.04em' }}>
-                VIP EMAIL FOR PROMO DROPS
+                VIP EMAIL FOR BONUS DROPS
               </label>
               <div style={{ position: 'relative' }}>
                 <Mail size={14} color="#796E8A" style={{ position: 'absolute', top: '11px', left: '12px' }} />
@@ -274,7 +274,7 @@ export default function SubscriptionPromoModal({
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="patron@domain.com"
+                  placeholder="player@domain.com"
                   required
                   style={{
                     width: '100%',
@@ -339,7 +339,7 @@ export default function SubscriptionPromoModal({
                 marginTop: '4px',
               }}
             >
-              <span>{loading ? 'SUBSCRIBING...' : 'ACTIVATE VIP PROMO ALERTS'}</span>
+              <span>{loading ? 'SUBSCRIBING...' : 'ACTIVATE VIP ALERTS'}</span>
             </button>
 
             {/* Maybe Later link */}

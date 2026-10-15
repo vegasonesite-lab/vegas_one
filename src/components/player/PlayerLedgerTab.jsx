@@ -228,7 +228,7 @@ export default function PlayerLedgerTab({ user }) {
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
             <span style={{ fontSize: '10.5px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              BONUS &amp; PROMO CREDITS
+              BONUS &amp; REWARD CREDITS
             </span>
             <Coins size={16} color="#10B981" />
           </div>
@@ -302,7 +302,7 @@ export default function PlayerLedgerTab({ user }) {
           { id: 'deposit', label: 'Deposits', icon: ArrowDownCircle },
           { id: 'withdraw', label: 'Cashouts / Redemptions', icon: ArrowUpCircle },
           { id: 'game', label: 'Game Wagers & Wins', icon: Trophy },
-          { id: 'bonus', label: 'Bonuses & Promos', icon: Gift },
+          { id: 'bonus', label: 'Bonuses & Rewards', icon: Gift },
         ].map((tab) => {
           const isSel = filterType === tab.id;
           const IconComponent = tab.icon;

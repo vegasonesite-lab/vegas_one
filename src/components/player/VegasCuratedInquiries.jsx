@@ -8,20 +8,24 @@ export default function VegasCuratedInquiries() {
 
   const faqs = [
     {
-      q: 'How are instantaneous Vault withdrawals processed?',
-      a: 'All Sweeps Cash vault redemptions are processed via algorithmic straight-through processing. Once approved, funds are liquidated to your verified cryptographic wallet (BTC, ETH, USDT) or instant domestic wire transfer (Cash App, Venmo, Zelle) with sub-60-second settlement architecture.',
+      q: 'How do I get an account for a game?',
+      a: 'Select any platform from our lobby (such as Fire Kirin, Orion Stars, Game Vault, Juwa, or Ultra Panda) and click to request an account. Your game username and PIN are generated directly in your player dashboard.',
     },
     {
-      q: 'What privileges are granted in the Crown Club VIP program?',
-      a: 'Sovereign patrons unlock dedicated 24/7 personal Salon hosts on encrypted channels, custom table limits, zero-escrow fee waivers, tailored rakeback rewards up to 25%, and luxury invitations to Monaco, Macao, and Las Vegas VIP summits.',
+      q: 'How do I load credits into my game account?',
+      a: 'Navigate to the Cashier / Wallet section, choose Cash App or Crypto, and follow the simple deposit instructions. Once submitted, our 24/7 desk credits your game balance immediately with your reload bonus.',
     },
     {
-      q: 'Which currencies and cryptocurrencies are accepted?',
-      a: 'We accept standard US Dollar fiat rails via Cash App, Venmo, Zelle, Visa/Mastercard, as well as institutional cryptocurrencies including Bitcoin (BTC), Ethereum (ETH), Tether (USDT-TRC20/ERC20), and USD Coin (USDC).',
+      q: 'How fast are redemptions and cashouts processed?',
+      a: 'Redemptions are handled 24/7 with direct delivery to your Cash App $Cashtag, Venmo, Zelle, or Crypto address. Just submit a cashout request from your wallet and our team processes it promptly without unnecessary delays.',
     },
     {
-      q: 'Is Vegas One provably fair and licensed?',
-      a: 'Yes. All table suites and reels employ GLI-19 certified cryptographic pseudo-random number generators (PRNG) audited quarterly by independent gaming laboratories, operating in strict compliance under sweepstakes and sovereign gaming regulations.',
+      q: 'Which payment methods do you support?',
+      a: 'We support Cash App, Zelle, Venmo, Visa/Mastercard, and popular cryptocurrencies like Bitcoin (BTC), Ethereum (ETH), and Tether (USDT).',
+    },
+    {
+      q: 'How can I contact customer support if I need assistance?',
+      a: 'Our support team is online 24/7 directly through the Live Chat widget on the website or via WhatsApp. You can reach out anytime for instant game IDs, balance checks, PIN resets, or payout inquiries.',
     },
   ];
 
@@ -48,15 +52,15 @@ export default function VegasCuratedInquiries() {
           }}
         >
           <BookOpen size={14} color="#00F0FF" />
-          <span>CONCIERGE DESK</span>
+          <span>PLAYER FAQ &amp; HELP</span>
         </div>
 
         <h2 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '36px', fontWeight: 900, color: '#FFFFFF', letterSpacing: '-0.02em', margin: '0 0 8px 0' }}>
-          Curated Inquiries
+          Frequently Asked Questions
         </h2>
 
         <p style={{ fontFamily: 'Lexend, sans-serif', fontSize: '15px', color: '#A69FB3', margin: 0, lineHeight: 1.6 }}>
-          Essential knowledge for high-roller accounts and platform integrity.
+          Everything you need to know about game accounts, loading credits, and cashouts.
         </p>
       </div>
 
@@ -113,7 +117,7 @@ export default function VegasCuratedInquiries() {
                   style={{
                     padding: '0 24px 24px 24px',
                     fontSize: '13px',
-                    color: '#A69FB3',
+                    color: '#CBD5E1',
                     fontFamily: 'Lexend, sans-serif',
                     lineHeight: 1.6,
                     borderTop: '1px solid rgba(255, 255, 255, 0.04)',

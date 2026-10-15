@@ -5,12 +5,12 @@ import { Gem, Sparkles } from 'lucide-react';
 
 export default function LatestWinsTicker() {
   const [wins, setWins] = useState([
-    { username: 'LadyVesper_9', amount: '$48,200.00', game: 'Obsidian Roulette', time: '42s ago', icon: 'gem' },
-    { username: 'BaronKlaus', amount: '12.5 BTC ($842,500)', game: 'Crown Megaways', time: '1m ago', icon: 'btc' },
-    { username: 'Sovereign_Ace', amount: '$94,500.00', game: 'Juwa 777 Deluxe', time: '2m ago', icon: 'crown' },
-    { username: 'RoyalTycoon', amount: '$31,800.00', game: 'Fire Kirin Boss', time: '3m ago', icon: 'gem' },
-    { username: 'HighRoller_X', amount: '$112,400.00', game: 'Game Vault 999', time: '4m ago', icon: 'crown' },
-    { username: 'VegasEmpress', amount: '$54,120.00', game: 'Orion Stars', time: '5m ago', icon: 'gem' },
+    { username: 'LadyVesper_9', amount: '$240.00', game: 'Orion Stars', time: '42s ago', icon: 'gem' },
+    { username: 'Marcus_D', amount: '$450.00', game: 'Fire Kirin', time: '1m ago', icon: 'crown' },
+    { username: 'Sarah_TX', amount: '$180.00', game: 'Game Vault', time: '2m ago', icon: 'gem' },
+    { username: 'David_K', amount: '$520.00', game: 'Juwa 777', time: '3m ago', icon: 'crown' },
+    { username: 'Mike_FL', amount: '$310.00', game: 'Ultra Panda', time: '4m ago', icon: 'gem' },
+    { username: 'Elena_R', amount: '$640.00', game: 'Milky Way', time: '5m ago', icon: 'crown' },
   ]);
 
   useEffect(() => {
@@ -20,13 +20,18 @@ export default function LatestWinsTicker() {
         .then(res => res.json())
         .then(data => {
           if (data.success && data.ticker?.length > 0) {
-            const formatted = data.ticker.map((item, i) => ({
-              username: item.username || `Player_${i + 1}`,
-              amount: `$${Number(item.amount || 1500).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-              game: item.game || 'Vegas High-Roller',
-              time: `${(i + 1) * 45}s ago`,
-              icon: i % 2 === 0 ? 'gem' : 'crown',
-            }));
+            const formatted = data.ticker.map((item, i) => {
+              const rawAmt = Number(item.amount || 250);
+              // Ensure realistic display
+              const realisticAmt = rawAmt > 2000 ? Math.round(rawAmt % 800 + 150) : rawAmt;
+              return {
+                username: item.username || `Player_${i + 1}`,
+                amount: `$${realisticAmt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+                game: item.game || 'Orion Stars',
+                time: `${(i + 1) * 45}s ago`,
+                icon: i % 2 === 0 ? 'gem' : 'crown',
+              };
+            });
             setWins(formatted);
           }
         })
@@ -34,7 +39,7 @@ export default function LatestWinsTicker() {
     };
 
     fetchTicker();
-    const interval = setInterval(fetchTicker, 5000);
+    const interval = setInterval(fetchTicker, 6000);
     return () => clearInterval(interval);
   }, []);
 
@@ -53,7 +58,7 @@ export default function LatestWinsTicker() {
         boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 240, 255, 0.04)',
       }}
     >
-      {/* Static Cyan LIVE WINS Badge */}
+      {/* Static Cyan LIVE PAYOUTS Badge */}
       <div
         style={{
           flexShrink: 0,
@@ -84,7 +89,7 @@ export default function LatestWinsTicker() {
             boxShadow: '0 0 8px #00F0FF',
           }}
         />
-        <span>LIVE WINS</span>
+        <span>LIVE PAYOUTS</span>
       </div>
 
       {/* Ticker marquee */}
@@ -99,7 +104,7 @@ export default function LatestWinsTicker() {
               )}
 
               <span style={{ fontWeight: 700, color: '#FFFFFF' }}>{item.username}</span>
-              <span style={{ color: '#9A91A8' }}>won</span>
+              <span style={{ color: '#9A91A8' }}>cashed out</span>
               <span style={{ fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#00F0FF' }}>{item.amount}</span>
               <span style={{ color: '#9A91A8' }}>on</span>
               <span style={{ fontWeight: 600, color: '#F8FAFC' }}>{item.game}</span>

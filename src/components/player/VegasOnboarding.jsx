@@ -9,30 +9,30 @@ export default function VegasOnboarding({ onOpenAuth, onOpenWallet }) {
       num: '01',
       icon: UserCheck,
       iconColor: '#00F0FF',
-      title: 'Secure Patron Registration',
+      title: 'Register Your Profile',
       description:
-        'Encrypted, frictionless instant sign-in. Zero intrusive verification queues for standard cryptographic deposits.',
-      badge: '256-BIT HARDWARE ENCLAVE',
+        'Quick 30-second sign up with your username and email. No long verification delays, instant access to player portal.',
+      badge: 'INSTANT SIGNUP',
       badgeIcon: Shield,
     },
     {
       num: '02',
       icon: Wallet,
       iconColor: '#E026D8',
-      title: 'Fund Your Vault & Claim',
+      title: 'Pick Game & Load Credits',
       description:
-        'Instant zero-fee deposit with 300% match up to $7,500 credited dynamically with immediate Tier II privilege unlock.',
-      badge: 'INSTANT ZERO-BLOCK WAIT',
+        'Select your preferred platform (Fire Kirin, Orion Stars, Game Vault, Juwa, etc.) and load funds easily via Cash App or Crypto.',
+      badge: 'FAST LOAD & BONUS',
       badgeIcon: Zap,
     },
     {
       num: '03',
       icon: DollarSign,
       iconColor: '#00F0FF',
-      title: 'Accumulate & Liquidate',
+      title: 'Play & Cash Out 24/7',
       description:
-        'Unlock sovereign cashback, bespoke physical luxury gifts, and instantaneous crypto or wire payouts at your command.',
-      badge: 'SUB-60-SECOND SETTLED WIRES',
+        'Play anytime and request instant cashouts. Payouts are delivered directly to your Cash App $Cashtag or Crypto address.',
+      badge: 'FAST 24/7 REDEMPTIONS',
       badgeIcon: Sparkles,
     },
   ];
@@ -56,7 +56,7 @@ export default function VegasOnboarding({ onOpenAuth, onOpenWallet }) {
           }}
         >
           <TrendingUp size={14} color="#00F0FF" />
-          <span>EFFORTLESS ONBOARDING</span>
+          <span>HOW IT WORKS</span>
         </div>
 
         <h2
@@ -69,7 +69,7 @@ export default function VegasOnboarding({ onOpenAuth, onOpenWallet }) {
             margin: '0 0 8px 0',
           }}
         >
-          Your Path to Sovereignty
+          Start Playing in 3 Simple Steps
         </h2>
 
         <p
@@ -81,7 +81,7 @@ export default function VegasOnboarding({ onOpenAuth, onOpenWallet }) {
             lineHeight: 1.6,
           }}
         >
-          Seamless luxury protocol engineered for swift access to our highest-limit salons.
+          Fast credentials, simple balance reloads, and prompt 24/7 redemptions.
         </p>
       </div>
 

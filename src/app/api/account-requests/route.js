@@ -66,45 +66,63 @@ export async function POST(req) {
     const db = await getDb();
     const requestsCol = db.collection('accountRequests');
     const usersCol = db.collection('users');
+    const ledgerCol = db.collection('ledger');
 
-    // If player specified a transfer amount to load into the game, verify available funds
-    if (transferAmount > 0) {
-      const user = await usersCol.findOne({ email: userEmail });
-      const currentSC = Number(user?.balanceSC || 0);
-      const frozen = Math.max(0, Number(user?.frozenBalance || 0));
-      const available = Math.max(0, currentSC - frozen);
-
-      if (available < transferAmount) {
-        return NextResponse.json({
-          success: false,
-          message: `Insufficient available funds to transfer $${transferAmount.toFixed(2)}. Available: $${available.toFixed(2)}.`,
-        }, { status: 400 });
-      }
+    const user = await usersCol.findOne({ email: userEmail });
+    if (!user) {
+      return NextResponse.json({ success: false, message: 'User not found.' }, { status: 404 });
     }
 
-    // Check if player already has a READY or PENDING request for this game
-    const existing = await requestsCol.findOne({
+    const currentSC = Number(user.balanceSC || 0);
+    const frozen = Math.max(0, Number(user.frozenBalance || 0));
+    const available = Math.max(0, Number((currentSC - frozen).toFixed(2)));
+
+    // Verify player is not trying to load more than available balance
+    if (transferAmount > available) {
+      return NextResponse.json({
+        success: false,
+        message: `Cannot load $${transferAmount.toFixed(2)} SC. You only have $${available.toFixed(2)} SC available ($${frozen.toFixed(2)} currently frozen in processing).`,
+      }, { status: 400 });
+    }
+
+    // Check if player already has a PENDING request for this game
+    const existingPending = await requestsCol.findOne({
       userEmail,
       gameTitle: new RegExp(`^${gameTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'),
-      status: { $in: ['PENDING', 'READY'] },
+      status: 'PENDING',
     });
 
-    if (existing) {
+    if (existingPending) {
       return NextResponse.json({
-        success: true,
-        alreadyExists: true,
-        request: {
-          id: existing._id.toString(),
-          status: existing.status,
-          gameTitle: existing.gameTitle,
-          gameAccountUsername: existing.gameAccountUsername,
-          gameAccountPassword: existing.gameAccountPassword,
-          transferAmount: existing.transferAmount || 0,
-        },
-        message: existing.status === 'READY' ? 'Account already ready.' : 'Account request already pending with staff.',
+        success: false,
+        message: `You already have a pending load request for ${gameTitle} ($${Number(existingPending.transferAmount || 0).toFixed(2)} SC). Please wait for staff approval.`,
+      }, { status: 400 });
+    }
+
+    // 1. FREEZE the coins immediately in user wallet so they cannot be spent elsewhere
+    if (transferAmount > 0) {
+      await usersCol.updateOne(
+        { _id: user._id },
+        { $inc: { frozenBalance: transferAmount } }
+      );
+
+      await ledgerCol.insertOne({
+        userId: user._id.toString(),
+        username: user.username,
+        type: 'game_load_freeze',
+        currency: 'SC',
+        amount: transferAmount,
+        balanceBefore: currentSC,
+        balanceAfter: currentSC,
+        frozenAmount: transferAmount,
+        performedBy: 'player',
+        referenceId: gameTitle,
+        notes: `Frozen $${transferAmount.toFixed(2)} SC in escrow for loading into ${gameTitle}`,
+        createdAt: new Date(),
       });
     }
 
+    // 2. Create the Load / Account Request
     const newRequest = {
       userEmail,
       userName,
@@ -120,7 +138,7 @@ export async function POST(req) {
     return NextResponse.json({
       success: true,
       requestId: res.insertedId.toString(),
-      message: `Account request for ${gameTitle}${transferAmount > 0 ? ` (with $${transferAmount.toFixed(2)} transfer)` : ''} submitted to 24/7 staff!`,
+      message: `Load request for ${gameTitle} submitted! $${transferAmount.toFixed(2)} SC is frozen in escrow until staff approves or rejects.`,
     });
   } catch (err) {
     return NextResponse.json({ success: false, message: err.message }, { status: 500 });
@@ -150,23 +168,30 @@ export async function PUT(req) {
       return NextResponse.json({ success: false, message: 'Request not found.' }, { status: 404 });
     }
 
+    const usersCol = db.collection('users');
+    const ledgerCol = db.collection('ledger');
+    const cleanEmail = targetRequest.userEmail.toLowerCase().trim();
+    const cleanTitle = targetRequest.gameTitle;
+    const transferAmount = Number(targetRequest.transferAmount || 0);
+
     if (action === 'approve') {
       const gameAccountsCol = db.collection('gameAccounts');
-      const usersCol = db.collection('users');
-      const ledgerCol = db.collection('ledger');
-      const cleanEmail = targetRequest.userEmail.toLowerCase().trim();
-      const cleanTitle = targetRequest.gameTitle;
-      const transferAmount = Number(targetRequest.transferAmount || 0);
 
-      // 1. If player transferred funds into this game, deduct from user's wallet
+      // 1. Permanently deduct balance and clear frozen escrow
       if (transferAmount > 0) {
         const user = await usersCol.findOne({ email: cleanEmail });
         if (user) {
           const oldSC = Number(user.balanceSC || 0);
           const newSC = Number(Math.max(0, oldSC - transferAmount).toFixed(2));
+
           await usersCol.updateOne(
             { _id: user._id },
-            { $inc: { balanceSC: -transferAmount } }
+            {
+              $inc: {
+                balanceSC: -transferAmount,
+                frozenBalance: -transferAmount,
+              },
+            }
           );
 
           await ledgerCol.insertOne({
@@ -180,7 +205,7 @@ export async function PUT(req) {
             performedBy: session.username,
             staffRole: session.role,
             referenceId: targetRequest._id.toString(),
-            notes: `Game account load into ${cleanTitle} (Account ID: ${username})`,
+            notes: `Game account coin load into ${cleanTitle} (Account ID: ${username || targetRequest.userName})`,
             createdAt: new Date(),
           });
         }
@@ -207,8 +232,8 @@ export async function PUT(req) {
           $set: {
             userEmail: cleanEmail,
             gameTitle: cleanTitle,
-            username: username,
-            password: password,
+            username: username || cleanEmail.split('@')[0],
+            password: password || 'VegasWin777!',
             status: 'READY',
             updatedAt: new Date(),
           },
@@ -219,15 +244,42 @@ export async function PUT(req) {
 
       return NextResponse.json({
         success: true,
-        message: `Account for ${cleanTitle} approved and credentials issued!${transferAmount > 0 ? ` $${transferAmount.toFixed(2)} deducted from player wallet.` : ''}`,
+        message: `Coin load for ${cleanTitle} approved! $${transferAmount.toFixed(2)} SC deducted from player balance.`,
       });
-    } else if (action === 'cancel') {
-      const reason = body.reason || body.rejectionReason || 'Staff desk cancelled or credentials unavailable.';
+    } else if (action === 'cancel' || action === 'reject') {
+      const reason = body.reason || body.rejectionReason || 'Staff desk rejected request or platform currently unavailable.';
+
+      // Unfreeze player's coins so they return to available balance
+      if (transferAmount > 0) {
+        const user = await usersCol.findOne({ email: cleanEmail });
+        if (user) {
+          await usersCol.updateOne(
+            { _id: user._id },
+            { $inc: { frozenBalance: -transferAmount } }
+          );
+
+          await ledgerCol.insertOne({
+            userId: user._id.toString(),
+            username: user.username,
+            type: 'game_load_unfreeze',
+            currency: 'SC',
+            amount: transferAmount,
+            balanceBefore: user.balanceSC,
+            balanceAfter: user.balanceSC,
+            performedBy: session.username,
+            staffRole: session.role,
+            referenceId: targetRequest._id.toString(),
+            notes: `Game coin load rejected ($${transferAmount} SC unfrozen & returned): ${reason}`,
+            createdAt: new Date(),
+          });
+        }
+      }
+
       await requestsCol.updateOne(
         { _id: targetRequest._id },
         {
           $set: {
-            status: 'CANCELLED',
+            status: 'REJECTED',
             rejectionReason: reason,
             cancelledBy: session.username,
             cancelledAt: new Date(),
@@ -237,7 +289,7 @@ export async function PUT(req) {
 
       return NextResponse.json({
         success: true,
-        message: 'Request cancelled successfully.',
+        message: 'Request rejected. Coins unfrozen and reason note logged for player.',
       });
     }
 

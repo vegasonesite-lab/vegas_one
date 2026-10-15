@@ -154,6 +154,7 @@ export async function POST(req) {
 // PUT: Financial Manager & Super Admin Approve / Reject Deposit
 export async function PUT(req) {
   try {
+    const session = await getSessionUser();
     const authorizedRoles = [
       ROLES.SUPER_ADMIN,
       ROLES.FINANCIAL_MANAGER,

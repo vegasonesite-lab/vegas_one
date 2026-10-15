@@ -6,7 +6,6 @@ import VegasNavbar from '@/components/player/VegasNavbar';
 import MobileBottomNav from '@/components/player/MobileBottomNav';
 import VegasHeroBanner from '@/components/player/VegasHeroBanner';
 import LatestWinsTicker from '@/components/LatestWinsTicker';
-import CategoryTabs from '@/components/CategoryTabs';
 import GameCard from '@/components/GameCard';
 import VegasCrownClub from '@/components/player/VegasCrownClub';
 import VegasOnboarding from '@/components/player/VegasOnboarding';
@@ -264,19 +263,12 @@ export default function Home() {
                     <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px', marginBottom: '28px' }}>
                       <div>
                         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
-                          <span>★ POPULAR CASINO GAMES</span>
+                          <span>★ TOP GAME PLATFORMS &amp; TITLES</span>
                         </div>
                         <h2 style={{ fontFamily: 'Lexend, sans-serif', fontSize: 'clamp(22px, 5vw, 36px)', fontWeight: 900, color: '#FFFFFF', letterSpacing: '-0.02em', margin: 0 }}>
-                          Featured Games
+                          Featured Games &amp; Platforms
                         </h2>
                       </div>
-
-                      {/* Filter: All Sweepstakes vs Favorites */}
-                      <CategoryTabs
-                        activeFilter={activeFilter}
-                        setActiveFilter={setActiveFilter}
-                        favoritesCount={favorites.length}
-                      />
                     </div>
 
                     {displayedGames.length === 0 ? (
@@ -293,7 +285,7 @@ export default function Home() {
                           No favorite games pinned yet.
                         </p>
                         <p style={{ color: '#5F5472', fontSize: '13px', marginTop: '6px' }}>
-                          Tap the heart icon on any sweepstakes title to add it to your favorites.
+                          Tap the heart icon on any game title to add it to your favorites.
                         </p>
                       </div>
                     ) : (

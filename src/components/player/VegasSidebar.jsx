@@ -45,22 +45,21 @@ export default function VegasSidebar({
       return;
     }
 
-    if (action === 'accounts') {
-      if (!user) {
-        if (onOpenAuth) onOpenAuth('login');
-        else router.push('/?auth=login');
-        return;
-      }
-      if (typeof onSelectTab === 'function') {
-        onSelectTab('accounts');
+    if (target === 'accounts' || target === '/accounts' || action === 'accounts') {
+      if (typeof window !== 'undefined' && window.location.pathname === '/accounts') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
-        router.push('/?tab=accounts');
+        router.push('/accounts');
       }
       return;
     }
 
     if (target.startsWith('/')) {
-      router.push(target);
+      if (typeof window !== 'undefined' && window.location.pathname === target) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        router.push(target);
+      }
     } else if (typeof onSelectTab === 'function') {
       onSelectTab(target);
     }
@@ -86,7 +85,7 @@ export default function VegasSidebar({
           id: 'accounts',
           label: 'My Game Accounts',
           icon: Key,
-          action: 'accounts',
+          path: '/accounts',
           requiresAuth: true,
           badge: 'HOT',
           badgeColor: '#E026D8',
@@ -100,25 +99,25 @@ export default function VegasSidebar({
           id: 'deposit',
           label: 'Deposit Funds',
           icon: ArrowDownCircle,
-          path: '/wallet?tab=deposit',
+          path: '/deposit',
           requiresAuth: true,
           badge: 'INSTANT',
           badgeColor: '#00F0FF',
         },
         {
           id: 'redeem',
-          label: 'Withdraw / Redeem',
+          label: 'Cashout / Redeem',
           icon: ArrowUpCircle,
-          path: '/wallet?tab=redeem',
+          path: '/cashout',
           requiresAuth: true,
           badge: 'FAST',
           badgeColor: '#10B981',
         },
         {
-          id: 'ledger',
-          label: 'Vault Ledger',
+          id: 'history',
+          label: 'Transaction History',
           icon: Clock,
-          path: '/ledger',
+          path: '/history',
           requiresAuth: true,
         },
       ],
@@ -218,9 +217,7 @@ export default function VegasSidebar({
                     type="button"
                     className={`vegas-sidebar-nav-btn ${isSelected ? 'active' : ''}`}
                     onClick={() => {
-                      if (item.requiresAuth && !user) {
-                        handleNav('login', 'auth');
-                      } else if (item.action) {
+                      if (item.action) {
                         handleNav(item.id, item.action);
                       } else if (item.path) {
                         handleNav(item.path);

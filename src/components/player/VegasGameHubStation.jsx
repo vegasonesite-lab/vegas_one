@@ -15,8 +15,10 @@ import {
   Coins,
   CheckCircle2,
   AlertCircle,
-  RefreshCw
+  RefreshCw,
+  Lock
 } from 'lucide-react';
+import LoadCoinsModal from '@/components/player/LoadCoinsModal';
 
 export default function VegasGameHubStation({
   game,
@@ -33,6 +35,7 @@ export default function VegasGameHubStation({
   const [rejectionReason, setRejectionReason] = useState(null);
   const [gameHistory, setGameHistory] = useState([]);
   const [stepTimer, setStepTimer] = useState(0);
+  const [loadCoinsModalOpen, setLoadCoinsModalOpen] = useState(false);
 
   // 1. Fetch user's status & history for this game
   const checkGameAccount = async () => {
@@ -666,20 +669,21 @@ export default function VegasGameHubStation({
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
                 type="button"
-                onClick={onOpenWallet}
+                onClick={() => setLoadCoinsModalOpen(true)}
                 className="btn-sovereign-coral"
-                style={{ flex: 1, padding: '12px 0', fontSize: '12px' }}
+                style={{ flex: 1, padding: '12px 0', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
               >
-                DEPOSIT COINS
+                <Coins size={14} />
+                <span>LOAD COINS</span>
               </button>
 
               <button
                 type="button"
-                onClick={onOpenWallet}
+                onClick={() => window.open('/cashout', '_self')}
                 className="btn-sovereign-dark"
                 style={{ flex: 1, padding: '12px 0', fontSize: '12px' }}
               >
-                REDEEM PRIZES
+                CASHOUT WINNINGS
               </button>
             </div>
           </div>
@@ -843,6 +847,14 @@ export default function VegasGameHubStation({
         )}
       </div>
 
+      {/* Load Coins Modal */}
+      <LoadCoinsModal
+        isOpen={loadCoinsModalOpen}
+        onClose={() => setLoadCoinsModalOpen(false)}
+        game={game}
+        user={user}
+        onSuccess={() => checkGameAccount()}
+      />
     </div>
   );
 }

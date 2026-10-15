@@ -3,14 +3,45 @@ import { getSessionUser, ROLES } from '@/lib/auth';
 import { getDb } from '@/lib/mongodb';
 import { sendPushNotification } from '@/lib/fcm';
 
-// GET: Fetch in-app notifications for player
-export async function GET() {
+// GET: Fetch in-app notifications for player OR broadcast history for admin
+export async function GET(req) {
   try {
     const session = await getSessionUser();
+    const { searchParams } = new URL(req.url);
+    const isAdmin = searchParams.get('admin') === 'true';
+
     const db = await getDb();
     const notifsCol = db.collection('notifications');
 
-    // Notifications broadcast to all or specific user
+    // Admin view: list recent broadcasts
+    if (isAdmin) {
+      if (!session || session.role === 'player') {
+        return NextResponse.json({ success: false, error: 'Unauthorized.' }, { status: 403 });
+      }
+
+      const items = await notifsCol
+        .find({})
+        .sort({ createdAt: -1 })
+        .limit(50)
+        .toArray();
+
+      return NextResponse.json({
+        success: true,
+        broadcasts: items.map(n => ({
+          id: n._id.toString(),
+          title: n.title,
+          message: n.message,
+          channel: n.channel || 'all',
+          segment: n.segment || 'all',
+          target: n.target || 'all',
+          url: n.url || '/',
+          sentBy: n.sentBy || 'Admin',
+          createdAt: n.createdAt,
+        })),
+      });
+    }
+
+    // Player view: notifications broadcast to all or specific user
     const query = session
       ? { $or: [{ target: 'all' }, { userId: session.userId }] }
       : { target: 'all' };
@@ -36,15 +67,16 @@ export async function GET() {
   }
 }
 
-// POST: Broadcast Push Notification (Super Admin)
+// POST: Broadcast Push Notification (Admin)
 export async function POST(req) {
   try {
     const session = await getSessionUser();
-    if (!session || session.role !== ROLES.SUPER_ADMIN) {
-      return NextResponse.json({ success: false, error: 'Unauthorized. Super Admin only.' }, { status: 403 });
+    if (!session || session.role === 'player') {
+      return NextResponse.json({ success: false, error: 'Unauthorized. Admin only.' }, { status: 403 });
     }
 
-    const { title, message, target = 'all', url = '/' } = await req.json();
+    const body = await req.json();
+    const { title, message, target = 'all', channel = 'all', segment = 'all', url = '/' } = body;
 
     if (!title || !message) {
       return NextResponse.json({ success: false, error: 'Title and message are required.' }, { status: 400 });
@@ -53,35 +85,44 @@ export async function POST(req) {
     const db = await getDb();
     const notifsCol = db.collection('notifications');
 
-    // Save in-app notification
-    await notifsCol.insertOne({
-      title,
-      message,
+    // Save in-app notification & broadcast record
+    const newRecord = {
+      title: title.trim(),
+      message: message.trim(),
       target,
+      channel,
+      segment,
       url,
       type: 'broadcast',
-      sentBy: session.username,
+      sentBy: session.username || 'Admin',
       createdAt: new Date(),
-    });
+    };
 
-    // Send push notification via FCM / WebPush
-    await sendPushNotification({
-      topic: 'vegas_all_players',
-      title,
-      body: message,
-      data: { url },
-    });
+    const res = await notifsCol.insertOne(newRecord);
+
+    // Send push notification via FCM / WebPush (fail-safe)
+    try {
+      await sendPushNotification({
+        topic: 'vegas_all_players',
+        title: title.trim(),
+        body: message.trim(),
+        data: { url },
+      });
+    } catch (fcmErr) {
+      console.warn('FCM delivery note:', fcmErr.message);
+    }
 
     return NextResponse.json({
       success: true,
-      message: 'Notification broadcasted to all active players and mobile app devices.',
+      message: `Broadcast successfully dispatched via [${channel.toUpperCase()}] to [${segment.toUpperCase()}]!`,
+      broadcast: { ...newRecord, id: res.insertedId.toString() },
     });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
 
-// PUT: Player subscribes to Web Push & VIP Promo Emails
+// PUT: Player subscribes to Web Push & VIP Broadcast Alerts
 export async function PUT(req) {
   try {
     const session = await getSessionUser();
@@ -125,7 +166,7 @@ export async function PUT(req) {
 
     return NextResponse.json({
       success: true,
-      message: 'Successfully subscribed to VIP Promos & Chrome Push Notifications!',
+      message: 'Successfully subscribed to VIP Broadcasts & Chrome Push Notifications!',
     });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

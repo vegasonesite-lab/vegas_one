@@ -20,17 +20,7 @@ import LiveChatWidget from '@/components/LiveChatWidget';
 import AuthModal from '@/components/AuthModal';
 
 export default function PromotionsPage() {
-  const [promos, setPromos] = useState([]);
   const [authModal, setAuthModal] = useState({ open: false, tab: 'login' });
-
-  useEffect(() => {
-    fetch('/api/promos')
-      .then(r => r.json())
-      .then(d => {
-        if (d.success && d.promos) setPromos(d.promos);
-      })
-      .catch(() => {});
-  }, []);
 
   return (
     <div className="min-h-screen bg-[#070514] text-[#F8FAFC] selection:bg-[#00F0FF] selection:text-[#070514] flex flex-col justify-between font-body antialiased">

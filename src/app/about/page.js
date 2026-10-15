@@ -47,10 +47,10 @@ export default function AboutPage() {
                 }}
               />
               <h1 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '38px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 12px 0' }}>
-                About Vegas One Sovereign
+                About Vegas One
               </h1>
               <p style={{ fontSize: '15px', color: '#B3A9C0', lineHeight: 1.6, margin: 0 }}>
-                The premier social &amp; sweepstakes gaming destination in North America.
+                Your all-in-one gaming platform hub and player portal.
               </p>
             </div>
 
@@ -69,7 +69,7 @@ export default function AboutPage() {
               }}
             >
               <p style={{ margin: 0 }}>
-                Founded with a mission to bring high-roller luxury and transparent sweepstakes gaming to millions of American players, <strong>Vegas One</strong> curates the most popular arcade fish titles, progressive jackpot slots, and classic table games in a unified high-performance platform.
+                <strong>Vegas One</strong> provides direct access to top gaming platforms including Fire Kirin, Orion Stars, Game Vault, Juwa, Ultra Panda, and Milky Way. We offer players instant game accounts, seamless credit loading via Cash App and Crypto, fast 24/7 cashouts, and round-the-clock dedicated customer assistance.
               </p>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', margin: '10px 0' }}>

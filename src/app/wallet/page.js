@@ -22,7 +22,8 @@ import {
   Clock,
   RefreshCw,
   Zap,
-  Info
+  Info,
+  ExternalLink
 } from 'lucide-react';
 import VegasNavbar from '@/components/player/VegasNavbar';
 import VegasSidebar from '@/components/player/VegasSidebar';
@@ -86,25 +87,34 @@ function WalletContent() {
 
   useEffect(() => {
     if (tabParam === 'redeem' || tabParam === 'withdraw') {
-      setActiveTab('redeem');
+      router.replace('/cashout');
     } else if (tabParam === 'history') {
-      setActiveTab('history');
-    } else if (tabParam === 'deposit') {
-      setActiveTab('deposit');
+      router.replace('/history');
+    } else {
+      router.replace('/deposit');
     }
-  }, [tabParam]);
+  }, [tabParam, router]);
 
-  // Fetch payment methods
+  // Fetch payment methods with cache-busting
+  const fetchPaymentMethods = async () => {
+    try {
+      const res = await fetch(`/api/payments/methods?t=${Date.now()}`, { cache: 'no-store' });
+      const data = await res.json();
+      if (data.success && data.methods?.length > 0) {
+        setMethods(data.methods);
+        setSelectedMethod(prev => {
+          if (!prev) return data.methods[0];
+          const matched = data.methods.find(m => (m.id && prev.id && m.id === prev.id) || (m.methodId && prev.methodId && m.methodId === prev.methodId) || (m.name === prev.name));
+          return matched || data.methods[0];
+        });
+      }
+    } catch {}
+  };
+
   useEffect(() => {
-    fetch('/api/payments/methods')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && data.methods?.length > 0) {
-          setMethods(data.methods);
-          setSelectedMethod(data.methods[0]);
-        }
-      })
-      .catch(() => {});
+    fetchPaymentMethods();
+    const interval = setInterval(fetchPaymentMethods, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const [sysSettings, setSysSettings] = useState(null);
@@ -435,17 +445,13 @@ function WalletContent() {
           ) : (
             /* Authenticated Cashier Experience */
             <div className="wallet-card-container">
-              {/* 3-Way Equal Segmented Control */}
+              {/* Separate Standalone Action Tabs */}
               <div
                 style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(3, 1fr)',
-                  gap: '5px',
-                  backgroundColor: '#070514',
-                  borderRadius: '14px',
-                  padding: '4px',
-                  marginBottom: '20px',
-                  border: '1px solid rgba(0, 240, 255, 0.2)',
+                  gap: '12px',
+                  marginBottom: '24px',
                 }}
               >
                 <button
@@ -456,25 +462,25 @@ function WalletContent() {
                     setMessage(null);
                   }}
                   style={{
-                    padding: '10px 4px',
-                    borderRadius: '10px',
-                    border: 'none',
-                    background: activeTab === 'deposit' ? 'linear-gradient(135deg, #00F0FF 0%, #00B4D8 100%)' : 'transparent',
-                    color: activeTab === 'deposit' ? '#070514' : '#9A91A8',
+                    padding: '12px 10px',
+                    borderRadius: '12px',
+                    border: activeTab === 'deposit' ? '1px solid #00F0FF' : '1px solid rgba(0, 240, 255, 0.22)',
+                    background: activeTab === 'deposit' ? 'linear-gradient(135deg, #00F0FF 0%, #00B4D8 100%)' : '#0E0A24',
+                    color: activeTab === 'deposit' ? '#070514' : '#C8C1D4',
                     fontFamily: 'Lexend, sans-serif',
-                    fontSize: '12px',
+                    fontSize: '13px',
                     fontWeight: 800,
                     letterSpacing: '0.02em',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '5px',
-                    transition: 'all 0.15s ease',
-                    boxShadow: activeTab === 'deposit' ? '0 4px 18px rgba(0, 240, 255, 0.35)' : 'none',
+                    gap: '7px',
+                    transition: 'all 0.2s ease',
+                    boxShadow: activeTab === 'deposit' ? '0 4px 18px rgba(0, 240, 255, 0.35)' : '0 4px 12px rgba(0, 0, 0, 0.35)',
                   }}
                 >
-                  <ArrowDownCircle size={14} />
+                  <ArrowDownCircle size={15} />
                   <span>Deposit</span>
                 </button>
 
@@ -486,25 +492,25 @@ function WalletContent() {
                     setMessage(null);
                   }}
                   style={{
-                    padding: '10px 4px',
-                    borderRadius: '10px',
-                    border: 'none',
-                    background: activeTab === 'redeem' ? 'linear-gradient(135deg, #00F0FF 0%, #00B4D8 100%)' : 'transparent',
-                    color: activeTab === 'redeem' ? '#070514' : '#9A91A8',
+                    padding: '12px 10px',
+                    borderRadius: '12px',
+                    border: activeTab === 'redeem' ? '1px solid #00F0FF' : '1px solid rgba(0, 240, 255, 0.22)',
+                    background: activeTab === 'redeem' ? 'linear-gradient(135deg, #00F0FF 0%, #00B4D8 100%)' : '#0E0A24',
+                    color: activeTab === 'redeem' ? '#070514' : '#C8C1D4',
                     fontFamily: 'Lexend, sans-serif',
-                    fontSize: '12px',
+                    fontSize: '13px',
                     fontWeight: 800,
                     letterSpacing: '0.02em',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '5px',
-                    transition: 'all 0.15s ease',
-                    boxShadow: activeTab === 'redeem' ? '0 4px 18px rgba(0, 240, 255, 0.35)' : 'none',
+                    gap: '7px',
+                    transition: 'all 0.2s ease',
+                    boxShadow: activeTab === 'redeem' ? '0 4px 18px rgba(0, 240, 255, 0.35)' : '0 4px 12px rgba(0, 0, 0, 0.35)',
                   }}
                 >
-                  <ArrowUpCircle size={14} />
+                  <ArrowUpCircle size={15} />
                   <span>Cashout</span>
                 </button>
 
@@ -516,25 +522,25 @@ function WalletContent() {
                     setMessage(null);
                   }}
                   style={{
-                    padding: '10px 4px',
-                    borderRadius: '10px',
-                    border: 'none',
-                    background: activeTab === 'history' ? 'linear-gradient(135deg, #00F0FF 0%, #00B4D8 100%)' : 'transparent',
-                    color: activeTab === 'history' ? '#070514' : '#9A91A8',
+                    padding: '12px 10px',
+                    borderRadius: '12px',
+                    border: activeTab === 'history' ? '1px solid #00F0FF' : '1px solid rgba(0, 240, 255, 0.22)',
+                    background: activeTab === 'history' ? 'linear-gradient(135deg, #00F0FF 0%, #00B4D8 100%)' : '#0E0A24',
+                    color: activeTab === 'history' ? '#070514' : '#C8C1D4',
                     fontFamily: 'Lexend, sans-serif',
-                    fontSize: '12px',
+                    fontSize: '13px',
                     fontWeight: 800,
                     letterSpacing: '0.02em',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '5px',
-                    transition: 'all 0.15s ease',
-                    boxShadow: activeTab === 'history' ? '0 4px 18px rgba(0, 240, 255, 0.35)' : 'none',
+                    gap: '7px',
+                    transition: 'all 0.2s ease',
+                    boxShadow: activeTab === 'history' ? '0 4px 18px rgba(0, 240, 255, 0.35)' : '0 4px 12px rgba(0, 0, 0, 0.35)',
                   }}
                 >
-                  <Clock size={14} />
+                  <Clock size={15} />
                   <span>History</span>
                 </button>
               </div>
@@ -769,66 +775,140 @@ function WalletContent() {
                   </div>
 
                   {/* Method Details & Cashtag Display */}
-                  {selectedMethod && (
-                    <div
-                      style={{
-                        background: 'linear-gradient(145deg, #130D33 0%, #080416 100%)',
-                        border: '1px solid rgba(0, 240, 255, 0.4)',
-                        borderRadius: '16px',
-                        padding: '16px 18px',
-                        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.5)',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                        <span style={{ fontSize: '10.5px', color: '#C8C1D4', fontFamily: 'Lexend, sans-serif', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                          OFFICIAL {selectedMethod.name.toUpperCase()} RECIPIENT:
-                        </span>
-                        <span style={{ fontSize: '10px', color: '#10B981', fontFamily: 'Lexend, sans-serif', fontWeight: 800 }}>
-                          VERIFIED OFFICIAL DESK
-                        </span>
+                  {selectedMethod && (() => {
+                    const identifier = selectedMethod.accountDetails || selectedMethod.details || selectedMethod.cashtag || selectedMethod.address || '';
+                    const instructions = selectedMethod.instructions || selectedMethod.notes || '';
+                    return (
+                      <div
+                        style={{
+                          background: 'linear-gradient(145deg, #130D33 0%, #080416 100%)',
+                          border: '1px solid rgba(0, 240, 255, 0.4)',
+                          borderRadius: '16px',
+                          padding: '16px 18px',
+                          boxShadow: '0 8px 25px rgba(0, 0, 0, 0.5)',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                          <span style={{ fontSize: '10.5px', color: '#C8C1D4', fontFamily: 'Lexend, sans-serif', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            OFFICIAL {selectedMethod.name.toUpperCase()} RECIPIENT:
+                          </span>
+                          <span style={{ fontSize: '10px', color: '#10B981', fontFamily: 'Lexend, sans-serif', fontWeight: 800 }}>
+                            VERIFIED OFFICIAL DESK
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+                          <span
+                            style={{
+                              fontFamily: 'Lexend, sans-serif',
+                              fontSize: '18px',
+                              fontWeight: 900,
+                              color: '#00F0FF',
+                              letterSpacing: '0.02em',
+                              wordBreak: 'break-all',
+                            }}
+                          >
+                            {identifier || 'Contact 24/7 Live Support'}
+                          </span>
+                          {identifier && (
+                            <button
+                              type="button"
+                              onClick={() => handleCopy(identifier)}
+                              style={{
+                                backgroundColor: copied ? '#10B981' : 'rgba(0, 240, 255, 0.18)',
+                                border: copied ? '1px solid #10B981' : '1px solid rgba(0, 240, 255, 0.5)',
+                                borderRadius: '10px',
+                                padding: '8px 16px',
+                                color: copied ? '#FFFFFF' : '#00F0FF',
+                                fontSize: '12px',
+                                fontFamily: 'Lexend, sans-serif',
+                                fontWeight: 800,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                transition: 'all 0.15s ease',
+                                flexShrink: 0,
+                              }}
+                            >
+                              {copied ? <Check size={14} /> : <Copy size={14} />}
+                              <span>{copied ? 'Copied!' : 'Copy Cashtag'}</span>
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Direct Payment Link */}
+                        {selectedMethod.paymentUrl && (
+                          <div style={{ marginTop: '12px' }}>
+                            <a
+                              href={selectedMethod.paymentUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                padding: '10px 18px',
+                                borderRadius: '10px',
+                                background: 'linear-gradient(135deg, #00F0FF 0%, #00B4D8 100%)',
+                                color: '#070514',
+                                fontWeight: 900,
+                                fontSize: '12.5px',
+                                fontFamily: 'Lexend, sans-serif',
+                                textDecoration: 'none',
+                                boxShadow: '0 4px 18px rgba(0, 240, 255, 0.4)',
+                              }}
+                            >
+                              <span>⚡ Pay Directly on {selectedMethod.name}</span>
+                              <ExternalLink size={14} />
+                            </a>
+                          </div>
+                        )}
+
+                        {/* Scannable QR Code */}
+                        {selectedMethod.qrCode && (
+                          <div
+                            style={{
+                              marginTop: '16px',
+                              padding: '16px',
+                              borderRadius: '14px',
+                              backgroundColor: '#070514',
+                              border: '1px solid rgba(0, 240, 255, 0.25)',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              gap: '10px',
+                              textAlign: 'center',
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 900, color: '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                              <QrCode size={15} />
+                              <span>Scan QR Code to Pay ({selectedMethod.name})</span>
+                            </div>
+                            <div style={{ padding: '8px', backgroundColor: '#FFFFFF', borderRadius: '12px', boxShadow: '0 6px 20px rgba(0,0,0,0.6)' }}>
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={selectedMethod.qrCode}
+                                alt={`${selectedMethod.name} QR Code`}
+                                style={{ width: '180px', height: '180px', objectFit: 'contain', display: 'block' }}
+                              />
+                            </div>
+                            <span style={{ fontSize: '11px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
+                              Open your {selectedMethod.name} app and scan this QR code for instant auto-fill
+                            </span>
+                          </div>
+                        )}
+
+                        {instructions && (
+                          <p style={{ margin: '10px 0 0 0', fontSize: '11.5px', color: '#9A91A8', lineHeight: 1.4, fontFamily: 'Lexend, sans-serif' }}>
+                            {instructions}
+                          </p>
+                        )}
+                        <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#8E849E', fontFamily: 'Lexend, sans-serif' }}>
+                          💡 Tip: Include your player username in the payment note to ensure instant automatic credit.
+                        </p>
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
-                        <span
-                          style={{
-                            fontFamily: 'Lexend, sans-serif',
-                            fontSize: '18px',
-                            fontWeight: 900,
-                            color: '#00F0FF',
-                            letterSpacing: '0.02em',
-                            wordBreak: 'break-all',
-                          }}
-                        >
-                          {selectedMethod.cashtag || selectedMethod.address || 'Contact 24/7 Live Support'}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleCopy(selectedMethod.cashtag || selectedMethod.address)}
-                          style={{
-                            backgroundColor: copied ? '#10B981' : 'rgba(0, 240, 255, 0.18)',
-                            border: copied ? '1px solid #10B981' : '1px solid rgba(0, 240, 255, 0.5)',
-                            borderRadius: '10px',
-                            padding: '8px 16px',
-                            color: copied ? '#FFFFFF' : '#00F0FF',
-                            fontSize: '12px',
-                            fontFamily: 'Lexend, sans-serif',
-                            fontWeight: 800,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            transition: 'all 0.15s ease',
-                            flexShrink: 0,
-                          }}
-                        >
-                          {copied ? <Check size={14} /> : <Copy size={14} />}
-                          <span>{copied ? 'Copied!' : 'Copy Cashtag'}</span>
-                        </button>
-                      </div>
-                      <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#8E849E', fontFamily: 'Lexend, sans-serif' }}>
-                        💡 Tip: Include your player username in the payment note to ensure instant automatic credit.
-                      </p>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                   {/* Sender Details & Screenshot Proof */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
