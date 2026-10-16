@@ -222,8 +222,8 @@ button:active {
 
 @media (max-width: 640px) {
   .sovereign-container {
-    padding-left: 14px;
-    padding-right: 14px;
+    padding-left: 10px;
+    padding-right: 10px;
   }
 }
 
@@ -657,29 +657,31 @@ button:active {
 /* 4. THE GRAND COLLECTION GAMES GRID */
 .grand-collection-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 22px;
   margin-bottom: 50px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 @media (max-width: 1200px) {
   .grand-collection-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 18px;
   }
 }
 
 @media (max-width: 860px) {
   .grand-collection-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
   }
 }
 
 @media (max-width: 540px) {
   .grand-collection-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
     margin-bottom: 30px;
   }
 }
@@ -694,12 +696,17 @@ button:active {
   justify-content: space-between;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 @media (max-width: 640px) {
   .game-card-luxury {
-    padding: 8px;
-    border-radius: 14px;
+    padding: 6px;
+    border-radius: 12px;
   }
 }
 

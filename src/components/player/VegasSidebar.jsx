@@ -213,7 +213,17 @@ export default function VegasSidebar({
       </div>
 
       {/* 2. Categorized Navigation Links */}
-      <div className="modal-scrollable" style={{ flex: 1, overflowY: 'auto', padding: '14px 10px' }}>
+      <div
+        className="modal-scrollable"
+        style={{
+          flex: '1 1 0%',
+          minHeight: 0,
+          overflowY: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          touchAction: 'pan-y',
+          padding: '14px 10px',
+        }}
+      >
         {navSections.map((section, secIdx) => (
           <div key={secIdx} style={{ marginBottom: '14px' }}>
             <div className="vegas-sidebar-section-header">

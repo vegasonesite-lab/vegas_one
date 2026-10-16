@@ -49,7 +49,7 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
 
           {/* Top Left Badge */}
           {badge && (
-            <div style={{ position: 'absolute', top: '6px', left: '6px', zIndex: 10 }}>
+            <div style={{ position: 'absolute', top: '5px', left: '5px', zIndex: 10 }}>
               <span
                 className="game-card-badge"
                 style={{
@@ -58,8 +58,10 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
                   border: `1px solid ${badge.border}`,
                   backdropFilter: 'blur(8px)',
                   fontWeight: 800,
-                  fontSize: '10px',
-                  letterSpacing: '0.04em',
+                  fontSize: '8.5px',
+                  padding: '2px 5px',
+                  borderRadius: '4px',
+                  letterSpacing: '0.02em',
                 }}
               >
                 {badge.label}
@@ -68,7 +70,7 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
           )}
 
           {/* Top Right: Favorite Heart & Active Count */}
-          <div style={{ position: 'absolute', top: '6px', right: '6px', zIndex: 10, display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <div style={{ position: 'absolute', top: '5px', right: '5px', zIndex: 10, display: 'flex', alignItems: 'center', gap: '3px' }}>
             <button
               type="button"
               onClick={(e) => {
@@ -76,8 +78,8 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
                 if (onToggleFavorite) onToggleFavorite(game.id || game.gameId);
               }}
               style={{
-                width: '26px',
-                height: '26px',
+                width: '22px',
+                height: '22px',
                 borderRadius: '50%',
                 backgroundColor: 'rgba(14, 8, 22, 0.85)',
                 border: isFavorite ? '1px solid #F43F5E' : '1px solid rgba(255, 255, 255, 0.1)',
@@ -91,7 +93,7 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
               title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
             >
               <Heart
-                size={13}
+                size={11}
                 color={isFavorite ? '#F43F5E' : '#FFFFFF'}
                 fill={isFavorite ? '#F43F5E' : 'none'}
               />
@@ -101,13 +103,13 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '4px',
+                gap: '3px',
                 backgroundColor: 'rgba(14, 8, 22, 0.85)',
                 backdropFilter: 'blur(8px)',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
-                padding: '3px 6px',
-                borderRadius: '6px',
-                fontSize: '9px',
+                padding: '2px 4px',
+                borderRadius: '5px',
+                fontSize: '8.5px',
                 fontFamily: 'Lexend, sans-serif',
                 fontWeight: 700,
                 color: '#E2DCEB',
@@ -115,12 +117,12 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
             >
               <span
                 style={{
-                  width: '5px',
-                  height: '5px',
+                  width: '4px',
+                  height: '4px',
                   borderRadius: '50%',
                   backgroundColor: '#00F0FF',
                   display: 'inline-block',
-                  boxShadow: '0 0 6px #00F0FF',
+                  boxShadow: '0 0 4px #00F0FF',
                 }}
               />
               <span>{activeCount}</span>

@@ -1248,19 +1248,25 @@ export default function AdminPortal({ initialTab }) {
             : 'hidden md:flex'
             }`}
           style={{
-            width: '275px',
-            minWidth: '275px',
-            maxWidth: '275px',
+            width: '280px',
+            minWidth: '280px',
+            maxWidth: '85vw',
+            height: '100%',
+            maxHeight: '100dvh',
             backgroundColor: '#070514',
             borderRight: '1px solid rgba(0, 240, 255, 0.16)',
             flexDirection: 'column',
-            justifyContent: 'space-between',
             overflow: 'hidden',
             fontFamily: 'Lexend, -apple-system, sans-serif',
           }}
         >
           {/* Mobile Drawer Top Bar (strictly mobile only, desktop logo lives in the top header) */}
-          <div className="md:hidden flex items-center justify-between px-4 py-3 border-b border-white/10 bg-[#070514]">
+          <div
+            className="md:hidden flex items-center justify-between px-4 py-3 border-b border-white/10 bg-[#070514] flex-shrink-0"
+            style={{
+              paddingTop: 'max(14px, env(safe-area-inset-top, 14px))',
+            }}
+          >
             <span className="text-xs font-black uppercase tracking-wider text-[#00F0FF] flex items-center gap-2">
               <ShieldCheck size={14} />
               Navigation Menu
@@ -1276,7 +1282,17 @@ export default function AdminPortal({ initialTab }) {
           </div>
 
           {/* Categorized Navigation Links - using exact .vegas-sidebar-nav-btn and .vegas-sidebar-section-header */}
-          <div className="modal-scrollable" style={{ flex: 1, overflowY: 'auto', padding: '14px 10px' }}>
+          <div
+            className="modal-scrollable"
+            style={{
+              flex: '1 1 0%',
+              minHeight: 0,
+              overflowY: 'auto',
+              WebkitOverflowScrolling: 'touch',
+              touchAction: 'pan-y',
+              padding: '14px 10px',
+            }}
+          >
             {['Operations', 'Catalog & Players', 'Growth & Promos', 'System & Security'].map((category, secIdx) => {
               const categoryTabs = visibleTabs.filter(t => t.category === category);
               if (categoryTabs.length === 0) return null;
@@ -1336,7 +1352,15 @@ export default function AdminPortal({ initialTab }) {
           </div>
 
           {/* Luxury Support & Trust Footer - Exactly matching VegasSidebar.jsx in screenshot */}
-          <div className="vegas-sidebar-footer-box" style={{ padding: '14px 16px', borderTop: '1px solid rgba(0, 240, 255, 0.14)', backgroundColor: '#070514' }}>
+          <div
+            className="vegas-sidebar-footer-box flex-shrink-0"
+            style={{
+              padding: '14px 16px',
+              paddingBottom: 'max(24px, calc(16px + env(safe-area-inset-bottom, 0px)))',
+              borderTop: '1px solid rgba(0, 240, 255, 0.14)',
+              backgroundColor: '#070514',
+            }}
+          >
             <button
               type="button"
               onClick={() => setActiveTab('chat')}

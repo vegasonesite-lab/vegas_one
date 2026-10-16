@@ -159,12 +159,25 @@ export default function GameDetailPage() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              marginBottom: '20px',
+              marginBottom: '18px',
               flexWrap: 'wrap',
-              gap: '12px',
+              gap: '10px',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#9A91A8' }}>
+            {/* Breadcrumb Links */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '12px',
+                color: '#9A91A8',
+                flexWrap: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: '100%',
+              }}
+            >
               <Link
                 href="/"
                 style={{
@@ -174,25 +187,40 @@ export default function GameDetailPage() {
                   color: '#00F0FF',
                   textDecoration: 'none',
                   fontWeight: 700,
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
                   transition: 'opacity 0.2s',
                 }}
               >
                 <ArrowLeft size={14} />
-                <span>Return to Lobby</span>
+                <span>Lobby</span>
               </Link>
-              <span>/</span>
-              <span>Sweepstakes Platform</span>
-              <span>/</span>
-              <span style={{ color: '#F8FAFC', fontWeight: 600 }}>{game?.title || 'Game Station'}</span>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ color: 'rgba(255, 255, 255, 0.2)', flexShrink: 0 }}>/</span>
+              <span className="hidden sm:inline" style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
+                Sweepstakes
+              </span>
+              <span className="hidden sm:inline" style={{ color: 'rgba(255, 255, 255, 0.2)', flexShrink: 0 }}>/</span>
               <span
                 style={{
-                  fontSize: '11px',
+                  color: '#F8FAFC',
+                  fontWeight: 600,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {game?.title || 'Game Station'}
+              </span>
+            </div>
+
+            {/* Terminal Live Status Badge */}
+            <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+              <span
+                style={{
+                  fontSize: '10px',
                   fontFamily: 'Lexend, sans-serif',
                   fontWeight: 800,
-                  padding: '4px 10px',
+                  padding: '3px 9px',
                   borderRadius: '9999px',
                   backgroundColor: 'rgba(20, 184, 166, 0.15)',
                   color: '#14B8A6',
@@ -200,9 +228,10 @@ export default function GameDetailPage() {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '5px',
+                  whiteSpace: 'nowrap',
                 }}
               >
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#14B8A6' }} />
+                <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#14B8A6', boxShadow: '0 0 6px #14B8A6' }} />
                 LIVE SECURE TERMINAL
               </span>
             </div>
