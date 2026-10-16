@@ -138,6 +138,7 @@ export default function VegasNavbar({
         backdropFilter: 'blur(16px)',
         borderBottom: '1px solid rgba(0, 240, 255, 0.18)',
         boxShadow: '0 4px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 240, 255, 0.08)',
+        paddingTop: 'env(safe-area-inset-top, 0px)',
       }}
     >
       <div className="vegas-navbar-full-width">

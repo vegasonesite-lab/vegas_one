@@ -36,7 +36,7 @@ export default function MobileBottomNav({
         backgroundColor: 'rgba(7, 5, 20, 0.98)',
         backdropFilter: 'blur(16px)',
         borderTop: '1px solid rgba(0, 240, 255, 0.16)',
-        padding: '6px 12px 10px 12px',
+        padding: '6px 12px calc(8px + env(safe-area-inset-bottom, 0px)) 12px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-around',
