@@ -14,7 +14,13 @@ export const metadata = {
   description: 'Access top gaming platforms like Fire Kirin, Orion Stars, Game Vault, Juwa, and Ultra Panda at Vegas One. Instant accounts, fast deposits via Cash App & Crypto, and 24/7 cashouts.',
   manifest: '/manifest.json',
   icons: {
-    icon: '/icons/favicon.png',
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon.png', type: 'image/png', sizes: '32x32' },
+      { url: '/icons/favicon.png', type: 'image/png', sizes: '64x64' },
+      { url: '/icons/icon-192.png', type: 'image/png', sizes: '192x192' },
+    ],
+    shortcut: '/favicon.ico',
     apple: '/icons/icon-192.png',
   },
   appleWebApp: {
@@ -38,7 +44,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={lexend.variable} style={{ fontFamily: `var(--font-lexend), 'Lexend', -apple-system, sans-serif` }}>
       <head>
-        <link rel="icon" href="/icons/favicon.png" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
+        <link rel="icon" type="image/png" sizes="64x64" href="/icons/favicon.png" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
