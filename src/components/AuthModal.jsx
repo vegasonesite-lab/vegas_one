@@ -865,110 +865,62 @@ export default function AuthModal({
                   </div>
                 </div>
 
-                {/* 2-Column Grid: Password & US State */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1.25fr 0.75fr', gap: '10px' }}>
-                  <div>
-                    <label
+                {/* Password Field (Full Width) */}
+                <div>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontSize: '10px',
+                      fontFamily: 'Lexend, sans-serif',
+                      fontWeight: 800,
+                      color: '#C8C1D4',
+                      marginBottom: '4px',
+                      letterSpacing: '0.04em',
+                    }}
+                  >
+                    PASSWORD
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <Lock
+                      size={14}
+                      color="#00F0FF"
+                      style={{ position: 'absolute', top: '12px', left: '12px', opacity: 0.85 }}
+                    />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
                       style={{
-                        display: 'block',
-                        fontSize: '10px',
+                        width: '100%',
+                        backgroundColor: '#070514',
+                        border: '1px solid rgba(0, 240, 255, 0.28)',
+                        borderRadius: '11px',
+                        padding: '10px 36px 10px 36px',
+                        color: '#FFFFFF',
+                        fontSize: '12.5px',
                         fontFamily: 'Lexend, sans-serif',
-                        fontWeight: 800,
-                        color: '#C8C1D4',
-                        marginBottom: '4px',
-                        letterSpacing: '0.04em',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{
+                        position: 'absolute',
+                        top: '10px',
+                        right: '10px',
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#8E849E',
+                        cursor: 'pointer',
+                        padding: '2px',
                       }}
                     >
-                      PASSWORD
-                    </label>
-                    <div style={{ position: 'relative' }}>
-                      <Lock
-                        size={14}
-                        color="#00F0FF"
-                        style={{ position: 'absolute', top: '12px', left: '12px', opacity: 0.85 }}
-                      />
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder="••••••••••••"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        style={{
-                          width: '100%',
-                          backgroundColor: '#070514',
-                          border: '1px solid rgba(0, 240, 255, 0.28)',
-                          borderRadius: '11px',
-                          padding: '10px 36px 10px 36px',
-                          color: '#FFFFFF',
-                          fontSize: '12.5px',
-                          fontFamily: 'Lexend, sans-serif',
-                          outline: 'none',
-                          boxSizing: 'border-box',
-                        }}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        style={{
-                          position: 'absolute',
-                          top: '10px',
-                          right: '10px',
-                          background: 'transparent',
-                          border: 'none',
-                          color: '#8E849E',
-                          cursor: 'pointer',
-                          padding: '2px',
-                        }}
-                      >
-                        {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label
-                      style={{
-                        display: 'block',
-                        fontSize: '10px',
-                        fontFamily: 'Lexend, sans-serif',
-                        fontWeight: 800,
-                        color: '#C8C1D4',
-                        marginBottom: '4px',
-                        letterSpacing: '0.04em',
-                      }}
-                    >
-                      US STATE
-                    </label>
-                    <div style={{ position: 'relative' }}>
-                      <MapPin
-                        size={14}
-                        color="#00F0FF"
-                        style={{ position: 'absolute', top: '12px', left: '10px', opacity: 0.85 }}
-                      />
-                      <select
-                        value={state}
-                        onChange={(e) => setState(e.target.value)}
-                        style={{
-                          width: '100%',
-                          backgroundColor: '#070514',
-                          border: '1px solid rgba(0, 240, 255, 0.28)',
-                          borderRadius: '11px',
-                          padding: '10px 8px 10px 30px',
-                          color: '#FFFFFF',
-                          fontSize: '12.5px',
-                          fontFamily: 'Lexend, sans-serif',
-                          outline: 'none',
-                          boxSizing: 'border-box',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        {US_STATES.map((s) => (
-                          <option key={s} value={s} style={{ backgroundColor: '#0E0A24', color: '#FFFFFF' }}>
-                            {s}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                      {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
                   </div>
                 </div>
 
@@ -1067,7 +1019,7 @@ export default function AuthModal({
                       fontFamily: 'Lexend, sans-serif',
                     }}
                   >
-                    I certify that I am at least 18 years old (21+ where applicable) and a legal resident of the United States.
+                    I certify that I am at least 18 years old (21+ where applicable) and accept the Terms of Service.
                   </label>
                 </div>
 

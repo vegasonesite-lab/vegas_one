@@ -29,8 +29,8 @@
   --royal-gradient: linear-gradient(135deg, #E026D8 0%, #00F0FF 100%);
   --marquee-glow: 0 0 25px rgba(0, 240, 255, 0.4), 0 0 45px rgba(224, 38, 216, 0.25);
 
-  --font-heading: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-body: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-heading: var(--font-lexend, 'Lexend'), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body: var(--font-lexend, 'Lexend'), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 *,
@@ -40,7 +40,7 @@
   margin: 0;
   padding: 0;
   -webkit-tap-highlight-color: transparent;
-  font-family: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-lexend, 'Lexend'), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
 }
 
 html,
@@ -49,7 +49,7 @@ body {
   min-height: 100vh;
   background-color: var(--bg-main);
   color: #f8fafc;
-  font-family: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-lexend, 'Lexend'), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -61,7 +61,7 @@ button,
 input,
 select,
 textarea {
-  font-family: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-lexend, 'Lexend'), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
 }
 
 /* Custom Sleek Scrollbars */
@@ -2275,7 +2275,8 @@ textarea:focus {
 }
 
 .font-mono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: var(--font-lexend, 'Lexend'), -apple-system, sans-serif !important;
+  font-feature-settings: "tnum" 1;
 }
 
 /* Image and Media Handlers */
@@ -2300,35 +2301,73 @@ textarea:focus {
 }
 
 /* Responsive Media Queries */
+@media (max-width: 639px) {
+  .sm\:hidden {
+    display: block !important;
+  }
+}
+
 @media (min-width: 640px) {
-  .sm\:flex {
-    display: flex;
-  }
-
-  .sm\:grid-cols-2 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .sm\:grid-cols-3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .sm\:grid-cols-4 {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .sm\:grid-cols-7 {
-    grid-template-columns: repeat(7, minmax(0, 1fr));
+  .sm\:hidden {
+    display: none !important;
   }
 
   .sm\:block {
-    display: block;
+    display: block !important;
+  }
+
+  .sm\:flex {
+    display: flex !important;
+  }
+
+  .sm\:inline-flex {
+    display: inline-flex !important;
+  }
+
+  .sm\:table {
+    display: table !important;
+  }
+
+  .sm\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .sm\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .sm\:grid-cols-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  .sm\:grid-cols-6 {
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  }
+
+  .sm\:grid-cols-7 {
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
   }
 }
 
 @media (min-width: 768px) {
   .md\:flex {
-    display: flex;
+    display: flex !important;
+  }
+
+  .md\:inline-flex {
+    display: inline-flex !important;
+  }
+
+  .md\:block {
+    display: block !important;
+  }
+
+  .md\:static {
+    position: static !important;
+  }
+
+  .md\:hidden {
+    display: none !important;
   }
 
   .md\:flex-row {
@@ -2354,6 +2393,14 @@ textarea:focus {
 
   .md\:h-80 {
     height: 20rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .hidden.md\:flex,
+  .hidden.md\:inline-flex,
+  .hidden.md\:block {
+    display: none !important;
   }
 }
 
@@ -2401,15 +2448,24 @@ textarea:focus {
 .bg-\[\#0e1122\],
 .bg-\[\#101426\],
 .bg-\[\#12152b\],
-.bg-\[\#0a0c18\] {
-  background-color: #171124 !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
+.bg-\[\#0a0c18\],
+.bg-\[\#0a0d1d\],
+.bg-\[\#0b0e1e\],
+.bg-\[\#0b0e1e\]\/90 {
+  background-color: #0E0A24 !important;
+  border-color: rgba(0, 240, 255, 0.16) !important;
 }
 
+.bg-\[\#050711\],
 .bg-\[\#070914\],
 .bg-\[\#06070c\],
 .bg-\[\#07080f\] {
   background-color: #070514 !important;
+}
+
+.bg-\[\#171124\],
+.bg-\[\#141033\] {
+  background-color: #140E33 !important;
 }
 
 .border-white\/10 {
@@ -2705,4 +2761,55 @@ textarea:focus {
   .safe-area-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }
+}
+
+/* Admin Mobile-Only Hamburger Button: strictly hidden on desktop */
+.admin-mobile-hamburger {
+  display: flex !important;
+}
+@media (min-width: 768px) {
+  .admin-mobile-hamburger {
+    display: none !important;
+  }
+}
+
+/* Universal Solid Modal & Dropdown Classes */
+.vegas-modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background-color: rgba(0, 0, 0, 0.88) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  z-index: 99999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 16px !important;
+}
+
+.vegas-modal-card {
+  background-color: #0E0A24 !important;
+  background: linear-gradient(135deg, #0E0A24 0%, #140E33 100%) !important;
+  border: 1px solid rgba(0, 240, 255, 0.4) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.95), 0 0 35px rgba(0, 240, 255, 0.22) !important;
+  color: #FFFFFF !important;
+  font-family: var(--font-lexend, 'Lexend'), sans-serif !important;
+  position: relative !important;
+  z-index: 100000 !important;
+}
+
+.vegas-profile-dropdown {
+  background-color: #0E0A24 !important;
+  background: linear-gradient(135deg, #0E0A24 0%, #140E33 100%) !important;
+  border: 1px solid rgba(0, 240, 255, 0.4) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.95), 0 0 25px rgba(0, 240, 255, 0.2) !important;
+  position: absolute !important;
+  z-index: 99999 !important;
 }

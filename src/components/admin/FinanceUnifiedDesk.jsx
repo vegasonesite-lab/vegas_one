@@ -110,8 +110,8 @@ export default function FinanceUnifiedDesk({
       {/* Top Header & Navigation Bar */}
       <div
         style={{
-          backgroundColor: '#0c0f24',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
+          backgroundColor: '#0E0824',
+          border: '1px solid rgba(0, 240, 255, 0.25)',
           borderRadius: '20px',
           padding: '18px 22px',
           display: 'flex',
@@ -119,7 +119,7 @@ export default function FinanceUnifiedDesk({
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: '16px',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.4)',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.6), 0 0 20px rgba(0, 240, 255, 0.08)',
         }}
       >
         <div>
@@ -133,15 +133,15 @@ export default function FinanceUnifiedDesk({
                 fontWeight: 800,
                 padding: '3px 8px',
                 borderRadius: '9999px',
-                backgroundColor: 'rgba(16, 185, 129, 0.15)',
-                border: '1px solid rgba(16, 185, 129, 0.4)',
-                color: '#34D399',
+                backgroundColor: 'rgba(0, 240, 255, 0.15)',
+                border: '1px solid rgba(0, 240, 255, 0.4)',
+                color: '#00F0FF',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '5px',
               }}
             >
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#34D399' }} />
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#00F0FF' }} />
               Live Sync
             </span>
           </div>
@@ -157,9 +157,9 @@ export default function FinanceUnifiedDesk({
             alignItems: 'center',
             gap: '6px',
             padding: '5px',
-            backgroundColor: '#070914',
+            backgroundColor: '#070415',
             borderRadius: '14px',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
             overflowX: 'auto',
           }}
         >
@@ -169,16 +169,16 @@ export default function FinanceUnifiedDesk({
               padding: '8px 16px',
               borderRadius: '10px',
               fontSize: '11.5px',
-              fontWeight: 800,
+              fontWeight: 900,
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
               cursor: 'pointer',
               whiteSpace: 'nowrap',
               border: 'none',
-              background: activeView === 'live_queue' ? 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)' : 'transparent',
-              color: activeView === 'live_queue' ? '#000000' : '#94A3B8',
-              boxShadow: activeView === 'live_queue' ? '0 4px 15px rgba(245, 158, 11, 0.3)' : 'none',
+              background: activeView === 'live_queue' ? 'linear-gradient(135deg, #E026D8 0%, #A855F7 45%, #00F0FF 100%)' : 'transparent',
+              color: activeView === 'live_queue' ? '#FFFFFF' : '#94A3B8',
+              boxShadow: activeView === 'live_queue' ? '0 4px 15px rgba(0, 240, 255, 0.4), 0 0 20px rgba(224, 38, 216, 0.3)' : 'none',
               transition: 'all 0.15s ease',
             }}
           >
@@ -191,8 +191,8 @@ export default function FinanceUnifiedDesk({
                   fontWeight: 900,
                   padding: '1px 6px',
                   borderRadius: '9999px',
-                  backgroundColor: 'rgba(0, 0, 0, 0.35)',
-                  color: '#000000',
+                  backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                  color: '#FFFFFF',
                   marginLeft: '4px',
                 }}
               >

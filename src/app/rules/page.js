@@ -70,7 +70,7 @@ export default function RulesPage() {
                   2. Eligibility
                 </h3>
                 <p style={{ margin: 0 }}>
-                  Participation is open exclusively to legal residents of the United States who are at least eighteen (18) years of age (or twenty-one (21) in jurisdictions where required). Void in Washington, Idaho, Nevada, and Michigan.
+                  Participation is open to players who are at least eighteen (18) years of age (or twenty-one (21) in jurisdictions where required).
                 </p>
               </section>
 

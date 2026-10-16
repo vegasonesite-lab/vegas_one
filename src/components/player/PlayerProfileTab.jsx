@@ -67,10 +67,8 @@ export default function PlayerProfileTab({ user, onOpenKyc }) {
             </h2>
             <p className="text-xs text-gray-400 font-mono mt-0.5">{user?.email}</p>
             <div className="flex items-center gap-2 mt-2">
-              <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md ${
-                isKycVerified ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'
-              }`}>
-                {isKycVerified ? '● KYC VERIFIED' : '● KYC PENDING / UNVERIFIED'}
+              <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400">
+                ● CASHOUT READY
               </span>
               <span className="text-[10px] bg-white/5 text-gray-400 px-2.5 py-0.5 rounded-md">
                 Role: {user?.role?.replace('_', ' ').toUpperCase()}
@@ -90,35 +88,22 @@ export default function PlayerProfileTab({ user, onOpenKyc }) {
         </div>
       </div>
 
-      {/* KYC Verification Card */}
+      {/* Account Verification & Cashout Status */}
       <div className="rounded-2xl bg-[#0a0c18] border border-white/5 p-6 sm:p-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-              isKycVerified ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'
-            }`}>
-              {isKycVerified ? <CheckCircle2 size={22} /> : <ShieldCheck size={22} />}
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-emerald-500/20 text-emerald-400">
+              <CheckCircle2 size={22} />
             </div>
             <div>
               <h3 className="font-bold text-sm sm:text-base text-white">
-                {isKycVerified ? 'Identity Verified & Cashout Ready' : 'Identity Verification (KYC Required for Cashouts)'}
+                Account Active &amp; Cashout Ready
               </h3>
               <p className="text-xs text-gray-400 mt-1 max-w-xl">
-                {isKycVerified
-                  ? 'Your account is fully verified for instant 24/7 redemptions to Cash App, Venmo, Zelle, and Crypto.'
-                  : 'Under US Sweepstakes regulations, submit your government-issued ID (Driver License, State ID, or Passport) to enable instant cashout withdrawals.'}
+                Your account is in good standing and enabled for instant 24/7 prize redemptions to Cash App, Venmo, Zelle, and Crypto.
               </p>
             </div>
           </div>
-
-          {!isKycVerified && (
-            <button
-              onClick={onOpenKyc}
-              className="btn-gold py-2.5 px-6 text-xs font-black shrink-0 shadow-lg"
-            >
-              START VERIFICATION
-            </button>
-          )}
         </div>
       </div>
 

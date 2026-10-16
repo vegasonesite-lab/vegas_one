@@ -26,7 +26,6 @@ export const ROLE_PERMISSIONS = {
     'users',
     'ledger',
     'chat',
-    'kyc',
     'promos',
     'affiliates',
     'affiliate_commissions',
@@ -45,7 +44,6 @@ export const ROLE_PERMISSIONS = {
     'users',
     'ledger',
     'chat',
-    'kyc',
     'promos',
     'affiliates',
     'affiliate_commissions',
@@ -57,7 +55,6 @@ export const ROLE_PERMISSIONS = {
     'ledger',
     'gateways',
     'tx_search',
-    'kyc',
   ],
   [ROLES.COIN_MANAGER]: [
     'overview',

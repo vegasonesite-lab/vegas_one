@@ -1,4 +1,12 @@
 import './globals.css';
+import { Lexend } from 'next/font/google';
+
+const lexend = Lexend({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700', '800', '900'],
+  variable: '--font-lexend',
+  display: 'swap',
+});
 
 export const metadata = {
   title: 'Vegas One - Official Gaming Portal | Instant Accounts & Fast Payouts',
@@ -21,14 +29,16 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" className={lexend.variable} style={{ fontFamily: `var(--font-lexend), 'Lexend', -apple-system, sans-serif` }}>
       <head>
         <link rel="icon" href="/icons/favicon.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </head>
-      <body>{children}</body>
+      <body className={lexend.className} style={{ fontFamily: `var(--font-lexend), 'Lexend', -apple-system, sans-serif` }}>
+        {children}
+      </body>
     </html>
   );
 }

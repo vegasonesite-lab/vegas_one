@@ -107,22 +107,22 @@ export default function FinanceDepositsView({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" style={{ fontFamily: 'Lexend, -apple-system, sans-serif' }}>
       {/* Search, Filter & Live Sync Bar */}
-      <div className="bg-[#0b0e1e]/90 border border-white/10 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 backdrop-blur-md shadow-xl">
+      <div className="bg-[#0E0A24] border border-[#00F0FF]/25 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 backdrop-blur-md shadow-xl">
         {/* Status Filter Tabs */}
-        <div className="flex items-center gap-1.5 p-1 bg-black/40 rounded-xl border border-white/5 w-full md:w-auto overflow-x-auto">
+        <div className="flex items-center gap-1.5 p-1 bg-[#140E33] rounded-xl border border-white/10 w-full md:w-auto overflow-x-auto">
           <button
             onClick={() => setStatusFilter('all')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap ${
-              statusFilter === 'all' ? 'bg-white/15 text-white' : 'text-gray-400 hover:text-white'
+            className={`px-3 py-1.5 rounded-lg text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+              statusFilter === 'all' ? 'bg-[#00F0FF] text-black shadow-lg shadow-[#00F0FF]/30' : 'text-gray-400 hover:text-white'
             }`}
           >
             All ({deposits.length})
           </button>
           <button
             onClick={() => setStatusFilter('pending')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
               statusFilter === 'pending'
                 ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/30'
                 : 'text-amber-400 hover:bg-amber-500/10'
@@ -133,7 +133,7 @@ export default function FinanceDepositsView({
           </button>
           <button
             onClick={() => setStatusFilter('approved')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
               statusFilter === 'approved'
                 ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/30'
                 : 'text-emerald-400 hover:bg-emerald-500/10'
@@ -143,7 +143,7 @@ export default function FinanceDepositsView({
           </button>
           <button
             onClick={() => setStatusFilter('rejected')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
               statusFilter === 'rejected'
                 ? 'bg-red-500 text-white shadow-lg shadow-red-500/30'
                 : 'text-red-400 hover:bg-red-500/10'
@@ -155,7 +155,7 @@ export default function FinanceDepositsView({
 
         {/* Search & Refresh Actions */}
         <div className="flex items-center gap-2 w-full md:w-auto">
-          <div className="flex items-center gap-2.5 px-3 py-2 bg-black/50 border border-white/10 rounded-xl w-full md:w-64 focus-within:border-amber-400 transition">
+          <div className="flex items-center gap-2.5 px-3 py-2 bg-[#140E33] border border-[#00F0FF]/30 rounded-xl w-full md:w-64 focus-within:border-[#00F0FF] transition">
             <Search size={14} className="text-gray-400 shrink-0" />
             <input
               type="text"
@@ -163,6 +163,7 @@ export default function FinanceDepositsView({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-transparent text-xs text-white placeholder-gray-500 focus:outline-none p-0 border-none"
+              style={{ fontFamily: 'Lexend, sans-serif' }}
             />
             {searchQuery && (
               <button
@@ -177,10 +178,11 @@ export default function FinanceDepositsView({
           <button
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 text-xs font-bold flex items-center gap-2 transition shrink-0"
+            className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-[#00F0FF]/30 hover:border-[#00F0FF] text-xs font-bold flex items-center gap-2 transition shrink-0 cursor-pointer"
+            style={{ fontFamily: 'Lexend, sans-serif' }}
             title="Refresh requests"
           >
-            <RefreshCw size={14} className={isRefreshing ? 'animate-spin text-amber-400' : ''} />
+            <RefreshCw size={14} className={isRefreshing ? 'animate-spin text-[#00F0FF]' : ''} />
             <span className="hidden sm:inline">Refresh</span>
           </button>
         </div>
@@ -188,12 +190,12 @@ export default function FinanceDepositsView({
 
       {/* Main Container */}
       {filteredDeposits.length === 0 ? (
-        <div className="p-12 text-center bg-[#0a0d1d] border border-white/10 rounded-2xl">
+        <div className="p-12 text-center bg-[#0E0A24] border border-[#00F0FF]/25 rounded-2xl shadow-xl">
           <div className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-3 text-gray-400">
             <Coins size={26} />
           </div>
           <h4 className="text-sm font-bold text-white">No deposit requests found</h4>
-          <p className="text-xs text-gray-500 mt-1 max-w-sm mx-auto">
+          <p className="text-xs text-[#9A91A8] mt-1 max-w-sm mx-auto">
             {statusFilter === 'pending'
               ? 'All incoming deposits have been reviewed! New requests will notify you automatically.'
               : 'Try selecting a different filter or clearing search keywords.'}
@@ -202,9 +204,9 @@ export default function FinanceDepositsView({
       ) : (
         <>
           {/* DESKTOP TABLE VIEW (Screens >= 1024px) */}
-          <div className="hidden lg:block bg-[#0a0d1d] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead className="bg-[#050711] text-gray-400 uppercase font-black text-[10.5px] tracking-wider border-b border-white/10">
+          <div className="hidden lg:block bg-[#0E0A24] border border-[#00F0FF]/20 rounded-2xl overflow-hidden shadow-2xl">
+            <table className="w-full text-left text-xs border-collapse" style={{ fontFamily: 'Lexend, sans-serif' }}>
+              <thead className="bg-[#070514] text-[#9A91A8] uppercase font-black text-[11px] tracking-wider border-b border-white/10">
                 <tr>
                   <th className="p-4">Time &amp; Date</th>
                   <th className="p-4">Player</th>
@@ -456,14 +458,14 @@ export default function FinanceDepositsView({
                   key={d.id}
                   className={`p-4 rounded-2xl border flex flex-col gap-3.5 transition shadow-xl ${
                     isPending
-                      ? 'bg-gradient-to-b from-[#13172e] to-[#0b0e1e] border-amber-500/40 shadow-amber-500/10'
-                      : 'bg-[#0b0e1e] border-white/10'
+                      ? 'bg-[#0E0A24] border-amber-500/40 shadow-amber-500/10'
+                      : 'bg-[#0E0A24] border-[#00F0FF]/25'
                   }`}
                 >
                   {/* Card Header: User & Status */}
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-black text-white text-sm shadow">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#00F0FF] to-[#E026D8] flex items-center justify-center font-black text-black text-sm shadow">
                         {d.username ? d.username.charAt(0) : 'U'}
                       </div>
                       <div>
@@ -494,7 +496,7 @@ export default function FinanceDepositsView({
                   </div>
 
                   {/* Financial Details Box */}
-                  <div className="p-3 bg-black/40 rounded-xl border border-white/5 space-y-2">
+                  <div className="p-3 bg-[#140E33] rounded-xl border border-white/5 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-gray-400 font-bold">Deposit Amount:</span>
                       <span className="font-black text-amber-300 text-sm font-mono">

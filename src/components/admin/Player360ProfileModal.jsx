@@ -697,10 +697,6 @@ export default function Player360ProfileModal({
                           </span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', paddingBottom: '8px' }}>
-                          <span style={{ color: '#9A91A8' }}>KYC Status:</span>
-                          <span style={{ fontWeight: 800, color: '#FFFFFF', textTransform: 'uppercase' }}>{data.user.kycStatus}</span>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', paddingBottom: '8px' }}>
                           <span style={{ color: '#9A91A8' }}>Hardware Device Binding:</span>
                           <span style={{ fontFamily: 'monospace', color: data.user.deviceId ? '#34D399' : '#94A3B8', fontWeight: 700 }}>
                             {data.user.deviceId ? `${data.user.deviceId.substring(0, 16)}...` : 'Unbound'}

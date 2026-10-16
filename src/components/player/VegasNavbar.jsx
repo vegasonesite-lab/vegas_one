@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -32,6 +32,24 @@ export default function VegasNavbar({
   const router = useRouter();
   const [internalUser, setInternalUser] = useState(null);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Auto-close dropdown on outside click
+  useEffect(() => {
+    if (userDropdownOpen) {
+      const handleClickOutside = (event) => {
+        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+          setUserDropdownOpen(false);
+        }
+      };
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+        document.removeEventListener('touchstart', handleClickOutside);
+      };
+    }
+  }, [userDropdownOpen]);
 
   // If user prop is not passed (or undefined on subpages), auto-fetch /api/auth/me so session stays active everywhere
   useEffect(() => {
@@ -245,7 +263,7 @@ export default function VegasNavbar({
               </button>
 
               {/* Profile Avatar & Dropdown */}
-              <div style={{ position: 'relative' }}>
+              <div style={{ position: 'relative' }} ref={dropdownRef}>
                 <button
                   type="button"
                   onClick={() => setUserDropdownOpen(!userDropdownOpen)}
@@ -288,39 +306,13 @@ export default function VegasNavbar({
 
                     <div style={{ padding: '6px 0' }}>
                       <button
-                        onClick={() => handleTabClick('profile')}
-                        style={{ width: '100%', padding: '8px 16px', textAlign: 'left', background: 'transparent', border: 'none', color: '#D1CADB', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
-                      >
-                        <User size={14} color="#00F0FF" />
-                        <span>Account & Security</span>
-                      </button>
-
-                      <button
-                        onClick={handleKycClick}
-                        style={{ width: '100%', padding: '8px 16px', textAlign: 'left', background: 'transparent', border: 'none', color: '#D1CADB', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
-                      >
-                        <Shield size={14} color="#00F0FF" />
-                        <span>Identity Verification (KYC)</span>
-                      </button>
-
-                      <button
                         onClick={() => handleTabClick('ledger')}
-                        style={{ width: '100%', padding: '8px 16px', textAlign: 'left', background: 'transparent', border: 'none', color: '#D1CADB', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                        style={{ width: '100%', padding: '10px 16px', textAlign: 'left', background: 'transparent', border: 'none', color: '#D1CADB', fontSize: '12px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', transition: 'background 0.15s' }}
+                        className="hover:bg-white/5 hover:text-white"
                       >
-                        <Clock size={14} color="#00F0FF" />
+                        <Clock size={15} color="#00F0FF" />
                         <span>Vault Ledger</span>
                       </button>
-
-                      {isStaff && (
-                        <Link
-                          href="/admin"
-                          onClick={() => setUserDropdownOpen(false)}
-                          style={{ width: '100%', padding: '8px 16px', textAlign: 'left', background: 'transparent', border: 'none', color: '#00F0FF', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}
-                        >
-                          <Shield size={14} color="#00F0FF" />
-                          <span>Staff Sovereign Console</span>
-                        </Link>
-                      )}
                     </div>
 
                     <div style={{ borderTop: '1px solid rgba(255, 255, 255, 0.06)', paddingTop: '6px', marginTop: '6px' }}>

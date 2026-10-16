@@ -111,14 +111,6 @@ export async function POST(req) {
       return NextResponse.json({ success: false, error: 'User not found.' }, { status: 404 });
     }
 
-    // Strict KYC verification check
-    if (user.kycStatus !== 'approved') {
-      return NextResponse.json({
-        success: false,
-        error: 'KYC Verification Required: You must verify your US identity before requesting cash prize redemptions.',
-        requireKyc: true,
-      }, { status: 403 });
-    }
 
     const currentSC = Number(user.balanceSC || 0);
     const currentFrozen = Math.max(0, Number(user.frozenBalance || 0));

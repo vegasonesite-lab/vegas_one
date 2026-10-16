@@ -64,79 +64,200 @@ export default function AccountRequestsView({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-6 sm:gap-8 w-full" style={{ fontFamily: 'Lexend, -apple-system, sans-serif' }}>
       {/* Top Filter & Search Bar */}
-      <div className="bg-[#0b0e1e]/90 border border-white/10 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 backdrop-blur-md shadow-xl">
-        <div className="flex items-center gap-1.5 p-1 bg-black/40 rounded-xl border border-white/5 w-full md:w-auto overflow-x-auto">
-          {['PENDING', 'READY', 'ALL'].map((f) => (
-            <button
-              key={f}
-              onClick={() => onFilterChange(f)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap ${
-                filter === f
-                  ? f === 'PENDING'
-                    ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/30'
-                    : f === 'READY'
-                    ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/30'
-                    : 'bg-white/15 text-white'
-                  : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              {f === 'PENDING' && <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />}
-              {f} ({f === 'PENDING' ? pendingCount : f === 'READY' ? readyCount : requests.length})
-            </button>
-          ))}
+      <div
+        className="p-5 sm:p-6 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 shadow-2xl"
+        style={{
+          backgroundColor: '#0E0A24',
+          background: 'linear-gradient(135deg, #0E0A24 0%, #140E33 100%)',
+          border: '1px solid rgba(0, 240, 255, 0.28)',
+          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6), 0 0 25px rgba(0, 240, 255, 0.1)',
+        }}
+      >
+        <div
+          className="flex items-center gap-2 p-1.5 rounded-xl w-full md:w-auto overflow-x-auto"
+          style={{
+            backgroundColor: '#070514',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+          }}
+        >
+          {[
+            { key: 'PENDING', label: 'Pending', count: pendingCount, color: '#F59E0B' },
+            { key: 'READY', label: 'Ready', count: readyCount, color: '#10B981' },
+            { key: 'ALL', label: 'All Requests', count: requests.length, color: '#00F0FF' },
+          ].map(({ key, label, count, color }) => {
+            const isActive = filter === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => onFilterChange(key)}
+                className="px-4 py-2 rounded-lg text-xs font-black transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer hover:scale-[1.02]"
+                style={
+                  isActive
+                    ? {
+                        backgroundColor: color,
+                        color: key === 'READY' ? '#FFFFFF' : '#070514',
+                        boxShadow: `0 0 16px ${color}55`,
+                      }
+                    : {
+                        backgroundColor: 'transparent',
+                        color: '#9A91A8',
+                      }
+                }
+              >
+                {key === 'PENDING' && (
+                  <span
+                    className="w-2 h-2 rounded-full"
+                    style={{
+                      backgroundColor: isActive ? '#070514' : '#F59E0B',
+                      boxShadow: isActive ? 'none' : '0 0 8px #F59E0B',
+                    }}
+                  />
+                )}
+                <span>{label}</span>
+                <span
+                  className="px-2 py-0.5 rounded-full text-[10.5px] font-mono font-bold"
+                  style={{
+                    backgroundColor: isActive ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.08)',
+                    color: isActive ? 'inherit' : '#9A91A8',
+                  }}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         <div className="flex items-center gap-3 w-full md:w-auto">
-          <div className="flex items-center gap-2.5 px-3 py-2 bg-black/50 border border-white/10 rounded-xl w-full md:w-64 focus-within:border-cyan-400 transition">
-            <Search size={14} className="text-gray-400 shrink-0" />
+          <div
+            className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl w-full md:w-72 transition-all"
+            style={{
+              backgroundColor: '#070514',
+              border: '1px solid rgba(0, 240, 255, 0.28)',
+            }}
+          >
+            <Search size={14} className="text-cyan-400 shrink-0" />
             <input
               type="text"
-              placeholder="Search player, game..."
+              placeholder="Search player, game, ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-transparent text-xs text-white placeholder-gray-500 focus:outline-none p-0 border-none"
+              style={{ fontFamily: 'Lexend, sans-serif' }}
             />
             {searchQuery && (
-              <button onClick={() => setSearchQuery('')} className="text-gray-400 hover:text-white shrink-0">
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="text-gray-400 hover:text-white shrink-0 cursor-pointer"
+              >
                 <X size={12} />
               </button>
             )}
           </div>
 
           <button
+            type="button"
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 text-xs font-bold flex items-center gap-2 transition shrink-0"
+            className="px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all shrink-0 cursor-pointer hover:scale-[1.03]"
+            style={{
+              background: 'linear-gradient(135deg, rgba(0, 240, 255, 0.15) 0%, rgba(224, 38, 216, 0.15) 100%)',
+              border: '1px solid rgba(0, 240, 255, 0.4)',
+              color: '#00F0FF',
+              boxShadow: '0 0 15px rgba(0, 240, 255, 0.2)',
+              fontFamily: 'Lexend, sans-serif',
+            }}
           >
-            <RefreshCw size={14} className={isRefreshing ? 'animate-spin text-cyan-400' : ''} />
+            <RefreshCw size={13} strokeWidth={2.5} className={isRefreshing ? 'animate-spin' : ''} />
             <span className="hidden sm:inline">Refresh</span>
           </button>
         </div>
       </div>
 
       {filtered.length === 0 ? (
-        <div className="p-12 text-center bg-[#0a0d1d] border border-white/10 rounded-2xl">
-          <div className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-3 text-gray-400">
-            <Gamepad2 size={26} />
+        <div
+          style={{
+            padding: '72px 28px',
+            textAlign: 'center',
+            background: 'radial-gradient(ellipse at center, rgba(0, 240, 255, 0.12) 0%, rgba(7, 5, 20, 0.95) 75%)',
+            borderRadius: '20px',
+            border: '1.5px dashed rgba(0, 240, 255, 0.35)',
+            boxShadow: 'inset 0 0 40px rgba(0, 240, 255, 0.06)',
+          }}
+        >
+          <div
+            style={{
+              width: '68px',
+              height: '68px',
+              borderRadius: '20px',
+              background: 'linear-gradient(135deg, rgba(0, 240, 255, 0.25) 0%, rgba(245, 158, 11, 0.2) 100%)',
+              border: '1.5px solid rgba(0, 240, 255, 0.5)',
+              boxShadow: '0 0 30px rgba(0, 240, 255, 0.4)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 18px auto',
+            }}
+          >
+            <Gamepad2 size={34} color="#00F0FF" />
           </div>
-          <h4 className="text-sm font-bold text-white">No game account requests found</h4>
-          <p className="text-xs text-gray-500 mt-1">Incoming game account requests will ring and appear instantly.</p>
+          <div
+            style={{
+              display: 'inline-block',
+              padding: '4px 14px',
+              borderRadius: '20px',
+              backgroundColor: 'rgba(0, 240, 255, 0.15)',
+              border: '1px solid rgba(0, 240, 255, 0.35)',
+              color: '#00F0FF',
+              fontSize: '11px',
+              fontWeight: 900,
+              letterSpacing: '1px',
+              textTransform: 'uppercase',
+              marginBottom: '10px',
+              fontFamily: 'Lexend, sans-serif',
+            }}
+          >
+            All Clear · Zero Pending Backlog
+          </div>
+          <p style={{ margin: 0, fontFamily: 'Lexend, sans-serif', fontSize: '17px', fontWeight: 900, color: '#FFFFFF' }}>
+            No Game Account Requests Found
+          </p>
+          <p style={{ margin: '8px auto 0 auto', maxWidth: '480px', fontSize: '13px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif', lineHeight: 1.6 }}>
+            Incoming player credentials requests will ring and arrive here in real-time.
+          </p>
         </div>
       ) : (
         <>
           {/* DESKTOP TABLE */}
-          <div className="hidden lg:block bg-[#0a0d1d] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead className="bg-[#050711] text-gray-400 uppercase font-black text-[10.5px] tracking-wider border-b border-white/10">
+          <div
+            className="hidden lg:block rounded-2xl overflow-hidden shadow-2xl"
+            style={{
+              backgroundColor: '#0E0A24',
+              border: '1px solid rgba(0, 240, 255, 0.28)',
+              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.7), 0 0 25px rgba(0, 240, 255, 0.1)',
+            }}
+          >
+            <table className="w-full text-left text-xs border-collapse" style={{ fontFamily: 'Lexend, sans-serif' }}>
+              <colgroup>
+                <col style={{ width: '22%' }} />
+                <col style={{ width: '18%' }} />
+                <col style={{ width: '12%' }} />
+                <col style={{ width: '24%' }} />
+                <col style={{ width: '12%' }} />
+                <col style={{ width: '12%' }} />
+              </colgroup>
+              <thead style={{ backgroundColor: '#070514', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
                 <tr>
-                  <th className="p-4">Player</th>
-                  <th className="p-4">Requested Game</th>
-                  <th className="p-4">Status</th>
-                  <th className="p-4">Issued Credentials</th>
-                  <th className="p-4">Time</th>
-                  <th className="p-4 text-right">Actions</th>
+                  <th style={{ padding: '14px 18px', color: '#9A91A8', fontWeight: 900, fontSize: '11px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Player</th>
+                  <th style={{ padding: '14px 18px', color: '#9A91A8', fontWeight: 900, fontSize: '11px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Requested Game</th>
+                  <th style={{ padding: '14px 18px', color: '#9A91A8', fontWeight: 900, fontSize: '11px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Status</th>
+                  <th style={{ padding: '14px 18px', color: '#9A91A8', fontWeight: 900, fontSize: '11px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Issued Credentials</th>
+                  <th style={{ padding: '14px 18px', color: '#9A91A8', fontWeight: 900, fontSize: '11px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Time</th>
+                  <th style={{ padding: '14px 18px', color: '#9A91A8', fontWeight: 900, fontSize: '11px', letterSpacing: '0.05em', textTransform: 'uppercase', textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -265,13 +386,13 @@ export default function AccountRequestsView({
                   key={req.id}
                   className={`p-4 rounded-2xl border flex flex-col gap-3.5 transition shadow-xl ${
                     isPending
-                      ? 'bg-gradient-to-b from-[#161a33] to-[#0b0e1e] border-amber-500/40 shadow-amber-500/10'
-                      : 'bg-[#0b0e1e] border-white/10'
+                      ? 'bg-[#0E0A24] border-amber-500/40 shadow-amber-500/10'
+                      : 'bg-[#0E0A24] border-[#00F0FF]/25'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center font-black text-white text-sm shadow">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#00F0FF] to-[#E026D8] flex items-center justify-center font-black text-black text-sm shadow">
                         {req.userName ? req.userName.charAt(0) : 'P'}
                       </div>
                       <div>
@@ -292,7 +413,7 @@ export default function AccountRequestsView({
                     )}
                   </div>
 
-                  <div className="p-3 bg-black/40 rounded-xl border border-white/5 space-y-2">
+                  <div className="p-3 bg-[#140E33] rounded-xl border border-white/5 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-gray-400 font-bold">Game Requested:</span>
                       <span className="font-heading font-black text-amber-400 text-sm">{req.gameTitle}</span>

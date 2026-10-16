@@ -53,8 +53,8 @@ export default function SoundSettingsModal({
         style={{
           width: '100%',
           maxWidth: '560px',
-          backgroundColor: '#0d1024',
-          border: '1px solid rgba(0, 240, 255, 0.3)',
+          backgroundColor: '#0E0A24',
+          border: '1px solid rgba(0, 240, 255, 0.35)',
           borderRadius: '24px',
           boxShadow: '0 30px 80px rgba(0, 0, 0, 0.95), 0 0 40px rgba(0, 240, 255, 0.15)',
           overflow: 'hidden',
@@ -69,11 +69,11 @@ export default function SoundSettingsModal({
         <div
           style={{
             padding: '20px 24px',
-            background: 'linear-gradient(135deg, #181d3a 0%, #0d1024 100%)',
+            backgroundColor: '#070514',
             borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'between',
+            justifyContent: 'space-between',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1 }}>
@@ -355,7 +355,7 @@ export default function SoundSettingsModal({
         <div
           style={{
             padding: '16px 24px',
-            backgroundColor: '#0a0d1e',
+            backgroundColor: '#070514',
             borderTop: '1px solid rgba(255, 255, 255, 0.1)',
             display: 'flex',
             alignItems: 'center',
@@ -369,9 +369,9 @@ export default function SoundSettingsModal({
             style={{
               padding: '8px 16px',
               borderRadius: '12px',
-              backgroundColor: 'rgba(255, 255, 255, 0.08)',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
-              color: '#FFFFFF',
+              backgroundColor: '#140E33',
+              border: '1px solid rgba(0, 240, 255, 0.35)',
+              color: '#00F0FF',
               fontSize: '11.5px',
               fontWeight: 800,
               display: 'flex',
@@ -380,23 +380,23 @@ export default function SoundSettingsModal({
               cursor: 'pointer',
             }}
           >
-            <Bell size={13} color="#FBBF24" />
+            <Bell size={13} color="#00F0FF" />
             <span>Test Sound &amp; Alert</span>
           </button>
 
           <button
             type="button"
             onClick={onClose}
+            className="btn-coral"
             style={{
               padding: '9px 24px',
               borderRadius: '12px',
-              background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
               border: 'none',
-              color: '#000000',
+              color: '#FFFFFF',
               fontSize: '12px',
               fontWeight: 900,
               cursor: 'pointer',
-              boxShadow: '0 4px 15px rgba(245, 158, 11, 0.3)',
+              boxShadow: '0 4px 15px rgba(0, 240, 255, 0.3)',
             }}
           >
             Save &amp; Close

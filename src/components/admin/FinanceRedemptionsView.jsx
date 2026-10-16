@@ -81,21 +81,21 @@ export default function FinanceRedemptionsView({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" style={{ fontFamily: 'Lexend, -apple-system, sans-serif' }}>
       {/* Search & Filter Bar */}
-      <div className="bg-[#0b0e1e]/90 border border-white/10 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 backdrop-blur-md shadow-xl">
-        <div className="flex items-center gap-1.5 p-1 bg-black/40 rounded-xl border border-white/5 w-full md:w-auto overflow-x-auto">
+      <div className="bg-[#0E0A24] border border-[#00F0FF]/25 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 backdrop-blur-md shadow-xl">
+        <div className="flex items-center gap-1.5 p-1 bg-[#140E33] rounded-xl border border-white/10 w-full md:w-auto overflow-x-auto">
           <button
             onClick={() => setStatusFilter('all')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap ${
-              statusFilter === 'all' ? 'bg-white/15 text-white' : 'text-gray-400 hover:text-white'
+            className={`px-3 py-1.5 rounded-lg text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+              statusFilter === 'all' ? 'bg-[#00F0FF] text-black shadow-lg shadow-[#00F0FF]/30' : 'text-gray-400 hover:text-white'
             }`}
           >
             All ({redemptions.length})
           </button>
           <button
             onClick={() => setStatusFilter('pending')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
               statusFilter === 'pending'
                 ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
                 : 'text-purple-400 hover:bg-purple-500/10'
@@ -106,7 +106,7 @@ export default function FinanceRedemptionsView({
           </button>
           <button
             onClick={() => setStatusFilter('approved')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
               statusFilter === 'approved'
                 ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/30'
                 : 'text-emerald-400 hover:bg-emerald-500/10'
@@ -116,7 +116,7 @@ export default function FinanceRedemptionsView({
           </button>
           <button
             onClick={() => setStatusFilter('rejected')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
               statusFilter === 'rejected'
                 ? 'bg-red-500 text-white shadow-lg shadow-red-500/30'
                 : 'text-red-400 hover:bg-red-500/10'
@@ -127,7 +127,7 @@ export default function FinanceRedemptionsView({
         </div>
 
         <div className="flex items-center gap-2 w-full md:w-auto">
-          <div className="flex items-center gap-2.5 px-3 py-2 bg-black/50 border border-white/10 rounded-xl w-full md:w-64 focus-within:border-purple-400 transition">
+          <div className="flex items-center gap-2.5 px-3 py-2 bg-[#140E33] border border-[#00F0FF]/30 rounded-xl w-full md:w-64 focus-within:border-[#00F0FF] transition">
             <Search size={14} className="text-gray-400 shrink-0" />
             <input
               type="text"
@@ -135,6 +135,7 @@ export default function FinanceRedemptionsView({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-transparent text-xs text-white placeholder-gray-500 focus:outline-none p-0 border-none"
+              style={{ fontFamily: 'Lexend, sans-serif' }}
             />
             {searchQuery && (
               <button
@@ -149,28 +150,29 @@ export default function FinanceRedemptionsView({
           <button
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 text-xs font-bold flex items-center gap-2 transition shrink-0"
+            className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-[#00F0FF]/30 hover:border-[#00F0FF] text-xs font-bold flex items-center gap-2 transition shrink-0 cursor-pointer"
+            style={{ fontFamily: 'Lexend, sans-serif' }}
           >
-            <RefreshCw size={14} className={isRefreshing ? 'animate-spin text-purple-400' : ''} />
+            <RefreshCw size={14} className={isRefreshing ? 'animate-spin text-[#00F0FF]' : ''} />
             <span className="hidden sm:inline">Refresh</span>
           </button>
         </div>
       </div>
 
       {filtered.length === 0 ? (
-        <div className="p-12 text-center bg-[#0a0d1d] border border-white/10 rounded-2xl">
+        <div className="p-12 text-center bg-[#0E0A24] border border-[#00F0FF]/25 rounded-2xl shadow-xl">
           <div className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-3 text-gray-400">
             <Wallet size={26} />
           </div>
           <h4 className="text-sm font-bold text-white">No redemption requests found</h4>
-          <p className="text-xs text-gray-500 mt-1">Pending cashouts will appear here instantly with sound alert.</p>
+          <p className="text-xs text-[#9A91A8] mt-1">Pending cashouts will appear here instantly with sound alert.</p>
         </div>
       ) : (
         <>
           {/* DESKTOP TABLE */}
-          <div className="hidden lg:block bg-[#0a0d1d] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead className="bg-[#050711] text-gray-400 uppercase font-black text-[10.5px] tracking-wider border-b border-white/10">
+          <div className="hidden lg:block bg-[#0E0A24] border border-[#00F0FF]/20 rounded-2xl overflow-hidden shadow-2xl">
+            <table className="w-full text-left text-xs border-collapse" style={{ fontFamily: 'Lexend, sans-serif' }}>
+              <thead className="bg-[#070514] text-[#9A91A8] uppercase font-black text-[11px] tracking-wider border-b border-white/10">
                 <tr>
                   <th className="p-4">Time &amp; Date</th>
                   <th className="p-4">Player</th>
@@ -317,13 +319,13 @@ export default function FinanceRedemptionsView({
                   key={r.id}
                   className={`p-4 rounded-2xl border flex flex-col gap-3.5 transition shadow-xl ${
                     isPending
-                      ? 'bg-gradient-to-b from-[#18122d] to-[#0b0e1e] border-purple-500/40 shadow-purple-500/10'
-                      : 'bg-[#0b0e1e] border-white/10'
+                      ? 'bg-[#0E0A24] border-purple-500/40 shadow-purple-500/10'
+                      : 'bg-[#0E0A24] border-[#00F0FF]/25'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-purple-500 to-indigo-600 flex items-center justify-center font-black text-white text-sm shadow">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#00F0FF] to-[#E026D8] flex items-center justify-center font-black text-black text-sm shadow">
                         {r.username ? r.username.charAt(0) : 'U'}
                       </div>
                       <div>
@@ -353,7 +355,7 @@ export default function FinanceRedemptionsView({
                     )}
                   </div>
 
-                  <div className="p-3 bg-black/40 rounded-xl border border-white/5 space-y-2">
+                  <div className="p-3 bg-[#140E33] rounded-xl border border-white/5 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-gray-400 font-bold">Redeem Amount:</span>
                       <span className="font-black text-purple-300 text-sm font-mono">

@@ -350,8 +350,8 @@ export async function ensureDbInitialized() {
         signupBonusGC: 50000,
         minRedemptionSC: 50.0,
         maxDailyRedemptionSC: 2000.0,
-        geoRestrictionEnabled: true,
-        restrictedStates: ['WA', 'ID', 'NV', 'MI'],
+        geoRestrictionEnabled: false,
+        restrictedStates: [],
         maintenanceMode: false,
         updatedAt: new Date(),
       });

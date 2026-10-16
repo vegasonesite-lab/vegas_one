@@ -219,14 +219,14 @@ export default function AffiliateManagementHub({
       )}
 
       {/* 2. Top 4 Sovereign Metric Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* Card 1: Total Partners */}
         <div
           style={{
             backgroundColor: '#0E0A24',
             border: '1px solid rgba(0, 240, 255, 0.25)',
             borderRadius: '18px',
-            padding: '18px',
+            padding: '14px',
             boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
           }}
         >
@@ -234,14 +234,14 @@ export default function AffiliateManagementHub({
             <span style={{ fontSize: '10px', textTransform: 'uppercase', fontWeight: 900, color: '#9A91A8', letterSpacing: '0.05em' }}>
               Affiliate Partners
             </span>
-            <Users size={16} color="#00F0FF" />
+            <Users size={15} color="#00F0FF" />
           </div>
-          <div style={{ fontSize: '26px', fontWeight: 900, color: '#FFFFFF', marginTop: '6px', fontFamily: 'monospace' }}>
+          <div style={{ fontSize: '22px', fontWeight: 900, color: '#FFFFFF', marginTop: '4px', fontFamily: 'monospace' }}>
             {totalPartners}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px', fontSize: '11px', color: '#00F0FF' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '3px', fontSize: '10.5px', color: '#00F0FF' }}>
             <Sparkles size={11} />
-            <span>50% Revenue Share Active</span>
+            <span className="truncate">50% RevShare Active</span>
           </div>
         </div>
 
@@ -251,7 +251,7 @@ export default function AffiliateManagementHub({
             backgroundColor: '#0E0A24',
             border: '1px solid rgba(224, 38, 216, 0.25)',
             borderRadius: '18px',
-            padding: '18px',
+            padding: '14px',
             boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
           }}
         >
@@ -259,13 +259,13 @@ export default function AffiliateManagementHub({
             <span style={{ fontSize: '10px', textTransform: 'uppercase', fontWeight: 900, color: '#9A91A8', letterSpacing: '0.05em' }}>
               Recruited Players
             </span>
-            <Gift size={16} color="#E026D8" />
+            <Gift size={15} color="#E026D8" />
           </div>
-          <div style={{ fontSize: '26px', fontWeight: 900, color: '#FFFFFF', marginTop: '6px', fontFamily: 'monospace' }}>
+          <div style={{ fontSize: '22px', fontWeight: 900, color: '#FFFFFF', marginTop: '4px', fontFamily: 'monospace' }}>
             {totalReferees}
           </div>
-          <div style={{ fontSize: '11px', color: '#9A91A8', marginTop: '4px' }}>
-            Signed up via personal links
+          <div style={{ fontSize: '10.5px', color: '#9A91A8', marginTop: '3px' }} className="truncate">
+            Signed up via links
           </div>
         </div>
 
@@ -275,21 +275,21 @@ export default function AffiliateManagementHub({
             backgroundColor: '#0E0A24',
             border: '1px solid rgba(245, 158, 11, 0.25)',
             borderRadius: '18px',
-            padding: '18px',
+            padding: '14px',
             boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: '10px', textTransform: 'uppercase', fontWeight: 900, color: '#9A91A8', letterSpacing: '0.05em' }}>
-              Referee Deposit Volume
+              Deposit Volume
             </span>
-            <TrendingUp size={16} color="#F59E0B" />
+            <TrendingUp size={15} color="#F59E0B" />
           </div>
-          <div style={{ fontSize: '26px', fontWeight: 900, color: '#FBBF24', marginTop: '6px', fontFamily: 'monospace' }}>
+          <div style={{ fontSize: '20px', fontWeight: 900, color: '#FBBF24', marginTop: '4px', fontFamily: 'monospace' }} className="truncate">
             ${totalVolume.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} SC
           </div>
-          <div style={{ fontSize: '11px', color: '#9A91A8', marginTop: '4px' }}>
-            Lifetime generated cashflow
+          <div style={{ fontSize: '10.5px', color: '#9A91A8', marginTop: '3px' }} className="truncate">
+            Lifetime generated
           </div>
         </div>
 
@@ -299,36 +299,37 @@ export default function AffiliateManagementHub({
             backgroundColor: '#0E0A24',
             border: totalUnpaid > 0 ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(255, 255, 255, 0.1)',
             borderRadius: '18px',
-            padding: '18px',
+            padding: '14px',
             boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: '10px', textTransform: 'uppercase', fontWeight: 900, color: '#9A91A8', letterSpacing: '0.05em' }}>
-              Unpaid Commission Pool
+              Unpaid Pool
             </span>
-            <DollarSign size={16} color={totalUnpaid > 0 ? '#10B981' : '#9A91A8'} />
+            <DollarSign size={15} color={totalUnpaid > 0 ? '#10B981' : '#9A91A8'} />
           </div>
           <div
             style={{
-              fontSize: '26px',
+              fontSize: '20px',
               fontWeight: 900,
               color: totalUnpaid > 0 ? '#34D399' : '#FFFFFF',
-              marginTop: '6px',
+              marginTop: '4px',
               fontFamily: 'monospace',
             }}
+            className="truncate"
           >
             ${totalUnpaid.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} SC
           </div>
-          <div style={{ fontSize: '11px', color: totalUnpaid > 0 ? '#34D399' : '#9A91A8', marginTop: '4px' }}>
-            {totalUnpaid > 0 ? 'Ready for instant payout' : 'All commissions settled'}
+          <div style={{ fontSize: '10.5px', color: totalUnpaid > 0 ? '#34D399' : '#9A91A8', marginTop: '3px' }} className="truncate">
+            {totalUnpaid > 0 ? 'Ready for payout' : 'Settled'}
           </div>
         </div>
       </div>
 
       {/* 3. Search & Filter Bar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
           {[
             { id: 'all', label: 'All Partners', count: affiliates.length },
             { id: 'unpaid', label: 'Pending Payouts', count: affiliates.filter(a => Number(a.commissionsUnpaid || 0) > 0).length },
@@ -385,6 +386,8 @@ export default function AffiliateManagementHub({
             borderRadius: '12px',
             padding: '7px 14px',
             width: '280px',
+            maxWidth: '100%',
+            flex: '1 1 220px',
           }}
         >
           <Search size={14} color="#796E8A" />
@@ -425,8 +428,8 @@ export default function AffiliateManagementHub({
           boxShadow: '0 12px 30px rgba(0, 0, 0, 0.5)',
         }}
       >
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '12px' }}>
+        <div style={{ overflowX: 'auto', width: '100%' }}>
+          <table style={{ width: '100%', minWidth: '850px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '12px' }}>
             <thead
               style={{
                 backgroundColor: '#070514',

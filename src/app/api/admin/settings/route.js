@@ -20,11 +20,11 @@ export async function GET() {
       signupBonusSC: 5.0,
       signupBonusGC: 50000,
       minRedemptionSC: 50.0,
-      geoRestrictionEnabled: true,
-      restrictedStates: ['WA', 'ID', 'NV', 'MI'],
+      geoRestrictionEnabled: false,
+      restrictedStates: [],
       maintenanceMode: false,
     };
-    const merged = { ...defaultSettings, ...(settings || {}) };
+    const merged = { ...defaultSettings, ...(settings || {}), restrictedStates: [] };
 
     // Clean up legacy template text from database if present
     if (merged.welcomeBonusTitle === 'TRIPLE TIER WELCOME PACK') {

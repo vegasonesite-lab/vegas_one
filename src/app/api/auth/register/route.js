@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { getDb } from '@/lib/mongodb';
 import { signToken, ROLES } from '@/lib/auth';
-import { checkGeoAccess } from '@/lib/geoCheck';
 import { sendEmail, getWelcomeEmailTemplate } from '@/lib/email';
 import { ensureDbInitialized } from '@/lib/initDb';
 import { getDeviceIdFromRequest } from '@/lib/deviceServer';
@@ -11,16 +10,7 @@ export async function POST(req) {
   try {
     await ensureDbInitialized();
 
-    // 1. Geo-restriction Check (USA Only)
-    const geo = checkGeoAccess(req);
-    if (!geo.allowed) {
-      return NextResponse.json(
-        { success: false, error: geo.message || 'Access restricted to United States residents.' },
-        { status: 403 }
-      );
-    }
-
-    const { username, email, password, referralCode: inputRef, state = 'CA', ageVerified, deviceId: rawDeviceId } = await req.json();
+    const { username, email, password, referralCode: inputRef, state = 'US', ageVerified, deviceId: rawDeviceId } = await req.json();
 
     if (!username || !email || !password) {
       return NextResponse.json({ success: false, error: 'All fields are required.' }, { status: 400 });
