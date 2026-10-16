@@ -153,7 +153,21 @@ export default function VegasSidebar({
       }}
     >
       {/* 1. Top Logo Zone (Fixed at the very top, perfectly matching the 82px navbar line) */}
-      <div className="vegas-sidebar-top-logo">
+      <div
+        className="vegas-sidebar-top-logo"
+        style={
+          isDrawer
+            ? {
+                paddingTop: 'max(24px, env(safe-area-inset-top, 24px))',
+                paddingBottom: '12px',
+                height: 'auto',
+                minHeight: '74px',
+                paddingLeft: '18px',
+                paddingRight: '16px',
+              }
+            : {}
+        }
+      >
         <Link
           href="/"
           onClick={() => {
@@ -259,7 +273,19 @@ export default function VegasSidebar({
       </div>
 
       {/* 3. Luxury Support & Trust Footer */}
-      <div className="vegas-sidebar-footer-box">
+      <div
+        className="vegas-sidebar-footer-box"
+        style={
+          isDrawer
+            ? {
+                paddingBottom: 'max(36px, calc(24px + env(safe-area-inset-bottom, 0px)))',
+                paddingTop: '16px',
+                paddingLeft: '16px',
+                paddingRight: '16px',
+              }
+            : {}
+        }
+      >
         <button
           type="button"
           onClick={() => handleNav(null, 'support')}

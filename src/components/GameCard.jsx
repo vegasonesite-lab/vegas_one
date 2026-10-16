@@ -138,13 +138,45 @@ export default function GameCard({ game, onPlay, isFavorite = false, onToggleFav
           />
         </div>
 
-        {/* 2. Stats Row (Min/Max Win Removed) */}
-        <div className="game-card-stats-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 2px' }}>
-          <span style={{ color: '#10B981', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px' }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10B981', boxShadow: '0 0 6px #10B981' }} />
+        {/* 2. Stats Row (Instant Play + Provider tag) */}
+        <div
+          className="game-card-stats-row"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '6px',
+            padding: '6px 2px',
+            minWidth: 0,
+            overflow: 'hidden',
+          }}
+        >
+          <span
+            style={{
+              color: '#10B981',
+              fontWeight: 800,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+              fontSize: '10px',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+            }}
+          >
+            <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#10B981', boxShadow: '0 0 6px #10B981' }} />
             Instant Play
           </span>
-          <span style={{ color: '#8E849E', fontSize: '11px', fontWeight: 600 }}>
+          <span
+            style={{
+              color: '#8E849E',
+              fontSize: '10px',
+              fontWeight: 600,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              textAlign: 'right',
+            }}
+          >
             {game.provider || 'Sweepstakes'}
           </span>
         </div>

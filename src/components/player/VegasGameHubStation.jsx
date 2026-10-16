@@ -188,36 +188,37 @@ export default function VegasGameHubStation({
           boxShadow: '0 8px 30px rgba(0, 0, 0, 0.4)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
           <button
             type="button"
             onClick={onBack}
             className="btn-sovereign-dark"
-            style={{ padding: '8px 18px', fontSize: '12px' }}
+            style={{ padding: '8px 18px', fontSize: '12px', flexShrink: 0 }}
           >
             <ArrowLeft size={15} />
             <span>ALL GAMES</span>
           </button>
 
-          <div>
+          <div style={{ minWidth: 0, flex: '1 1 200px' }}>
             <h2
               style={{
                 fontFamily: 'Lexend, sans-serif',
-                fontSize: '22px',
+                fontSize: 'clamp(16px, 3.5vw, 22px)',
                 fontWeight: 900,
                 color: '#FFFFFF',
                 letterSpacing: '-0.02em',
                 margin: 0,
                 display: 'flex',
                 alignItems: 'center',
+                flexWrap: 'wrap',
                 gap: '8px',
               }}
             >
               <span>{game.title.toUpperCase()}</span>
-              <span style={{ color: '#00F0FF', fontSize: '16px' }}>STATION</span>
+              <span style={{ color: '#00F0FF', fontSize: 'clamp(13px, 2.5vw, 16px)' }}>STATION</span>
             </h2>
-            <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#A69FB3', fontFamily: 'Lexend, sans-serif' }}>
-              Dedicated Sweepstakes Gaming Terminal & Account Management
+            <p style={{ margin: '2px 0 0 0', fontSize: '11.5px', color: '#A69FB3', fontFamily: 'Lexend, sans-serif' }}>
+              Dedicated Sweepstakes Gaming Terminal &amp; Account Management
             </p>
           </div>
         </div>

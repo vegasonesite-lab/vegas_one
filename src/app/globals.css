@@ -2587,8 +2587,9 @@ textarea:focus {
 
 @media (max-width: 640px) {
   .vegas-navbar-full-width {
-    height: 70px;
-    padding: 0 16px;
+    height: auto;
+    min-height: 58px;
+    padding: 4px 12px 6px 12px;
   }
 }
 
