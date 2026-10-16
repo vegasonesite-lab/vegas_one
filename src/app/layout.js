@@ -1,5 +1,6 @@
 import './globals.css';
 import { Lexend } from 'next/font/google';
+import PushNotificationManager from '@/components/player/PushNotificationManager';
 
 const lexend = Lexend({
   subsets: ['latin'],
@@ -16,6 +17,11 @@ export const metadata = {
     icon: '/icons/favicon.png',
     apple: '/icons/icon-192.png',
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Vegas One',
+  },
 };
 
 export const viewport = {
@@ -23,8 +29,9 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  viewportFit: 'cover',
   interactiveWidget: 'resizes-content',
-  themeColor: '#00F0FF',
+  themeColor: '#070514',
 };
 
 export default function RootLayout({ children }) {
@@ -32,11 +39,16 @@ export default function RootLayout({ children }) {
     <html lang="en" className={lexend.variable} style={{ fontFamily: `var(--font-lexend), 'Lexend', -apple-system, sans-serif` }}>
       <head>
         <link rel="icon" href="/icons/favicon.png" />
+        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </head>
       <body className={lexend.className} style={{ fontFamily: `var(--font-lexend), 'Lexend', -apple-system, sans-serif` }}>
+        <PushNotificationManager />
         {children}
       </body>
     </html>

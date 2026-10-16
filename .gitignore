@@ -48,8 +48,8 @@ android/build/
 android/local.properties
 android/.gradle/
 *.apk
-public/download/*.apk
-public/*.apk
+!public/download/vegas-one.apk
+!public/vegas-one.apk
 
 # secrets
 firebase-service-account.json

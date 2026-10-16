@@ -200,26 +200,37 @@ export default function DownloadAppPage() {
                   </div>
                 </div>
 
-                <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px 0', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#C8C1D4' }}>
-                    <CheckCircle2 size={16} color="#00F0FF" />
+                <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 16px 0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: '#C8C1D4' }}>
+                    <CheckCircle2 size={15} color="#00F0FF" />
                     <span>Works on all Android phones & tablets (Android 8.0+)</span>
                   </li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#C8C1D4' }}>
-                    <CheckCircle2 size={16} color="#00F0FF" />
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: '#C8C1D4' }}>
+                    <CheckCircle2 size={15} color="#00F0FF" />
                     <span>Instant background push notifications for coin drops</span>
                   </li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#C8C1D4' }}>
-                    <CheckCircle2 size={16} color="#00F0FF" />
+                  <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: '#C8C1D4' }}>
+                    <CheckCircle2 size={15} color="#00F0FF" />
                     <span>Auto-updating secure release architecture</span>
                   </li>
                 </ul>
+
+                <div style={{ backgroundColor: '#070514', borderRadius: '14px', padding: '16px', marginBottom: '20px', border: '1px solid rgba(0, 240, 255, 0.2)' }}>
+                  <p style={{ fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#00F0FF', textTransform: 'uppercase', margin: '0 0 8px 0' }}>
+                    3-STEP DIRECT INSTALL ON ANDROID:
+                  </p>
+                  <ol style={{ paddingLeft: '18px', margin: 0, fontSize: '12px', color: '#B3A9C0', lineHeight: 1.6, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <li>Tap <strong>DOWNLOAD ANDROID APK</strong> below.</li>
+                    <li>If Chrome asks, tap <strong>&quot;Download anyway&quot;</strong>.</li>
+                    <li>Open downloaded file &amp; tap <strong>Install</strong> (Allow from source if prompted).</li>
+                  </ol>
+                </div>
               </div>
 
               <div>
                 <a
-                  href="/download/vegas-one.apk"
-                  download
+                  href="/api/download/apk"
+                  download="vegas-one.apk"
                   className="btn-sovereign-coral"
                   style={{
                     width: '100%',
@@ -235,7 +246,7 @@ export default function DownloadAppPage() {
                   <span>DOWNLOAD ANDROID APK</span>
                 </a>
                 <p style={{ fontSize: '11px', color: '#796E8A', textAlign: 'center', margin: '8px 0 0 0' }}>
-                  Release Size: ~8.4 MB · 100% Virus &amp; Adware Free
+                  Official Signed Release (23.5 MB) · 100% Virus &amp; Adware Free
                 </p>
               </div>
             </div>
@@ -286,7 +297,7 @@ export default function DownloadAppPage() {
                   <ol style={{ paddingLeft: '18px', margin: 0, fontSize: '12px', color: '#B3A9C0', lineHeight: 1.6, display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <li>Open <strong>vegasone.games</strong> in Safari browser.</li>
                     <li>Tap the <strong>Share</strong> icon (square with arrow) at the bottom.</li>
-                    <li>Tap <strong>"Add to Home Screen"</strong> and confirm.</li>
+                    <li>Tap <strong>&quot;Add to Home Screen&quot;</strong> and confirm.</li>
                   </ol>
                 </div>
               </div>
