@@ -24,6 +24,9 @@ import {
   Download,
   Eye,
   X,
+  ChevronDown,
+  ChevronUp,
+  Search,
 } from 'lucide-react';
 import VegasNavbar from '@/components/player/VegasNavbar';
 import VegasSidebar from '@/components/player/VegasSidebar';
@@ -41,12 +44,57 @@ export default function DepositPage() {
   // Deposit Form State
   const [methods, setMethods] = useState([]);
   const [selectedMethod, setSelectedMethod] = useState(null);
+  const [selectedGame, setSelectedGame] = useState('Juwa 777');
   const [depositAmount, setDepositAmount] = useState(50);
   const [senderTagName, setSenderTagName] = useState('');
   const [senderTagEmail, setSenderTagEmail] = useState('');
   const [senderNote, setSenderNote] = useState('');
   const [txHash, setTxHash] = useState('');
   const [proofImage, setProofImage] = useState('');
+
+  const [isGameDropdownOpen, setIsGameDropdownOpen] = useState(false);
+  const [gameSearchQuery, setGameSearchQuery] = useState('');
+
+  const defaultPlatformGames = [
+    { id: 'fire_kirin', name: 'Fire Kirin', logo: '/images/fire-kirin.webp' },
+    { id: 'vegas_sweeps', name: 'Vegas Sweeps', logo: '/images/vegas-777.webp' },
+    { id: 'juwa', name: 'JUWA 777', logo: '/images/juwa-777.webp' },
+    { id: 'game_vault', name: 'Game Vault 999', logo: '/images/game-vault.webp' },
+    { id: 'milky_way', name: 'Milkyway', logo: '/images/milky-way.webp' },
+    { id: 'orion_stars', name: 'Orion Stars', logo: '/images/orion-stars.webp' },
+    { id: 'ultra_panda', name: 'Ultra Panda', logo: '/images/ultra-panda.webp' },
+    { id: 'panda_master', name: 'Panda Master', logo: '/images/ultra-panda.webp' },
+    { id: 'dragon_city', name: 'Dragon City', logo: '/images/fire-kirin.webp' },
+    { id: 'vblink', name: 'VBlink 777', logo: '/images/game-vault.webp' },
+    { id: 'riversweeps', name: 'Riversweeps', logo: '/images/orion-stars.webp' },
+    { id: 'golden_dragon', name: 'Golden Dragon', logo: '/images/fire-kirin.webp' },
+    { id: 'vegas_777', name: 'Vegas 777', logo: '/images/vegas-777.webp' },
+    { id: 'high_roller', name: 'High Roller VIP', logo: '/images/juwa-777.webp' },
+  ];
+  const [platformGames, setPlatformGames] = useState(defaultPlatformGames);
+
+  // Sync with games from Admin / Database
+  useEffect(() => {
+    fetch('/api/games')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.games)) {
+          const dynamicGames = data.games
+            .filter((g) => Boolean(g && (g.name || g.title)))
+            .map((g) => ({
+              id: g._id || g.id,
+              name: String(g.name || g.title || '').trim(),
+              logo: g.thumbnail || g.image || g.logo || '/images/game-vault.webp',
+            }));
+          setPlatformGames((prev) => {
+            const existingNames = new Set(prev.map((p) => String(p?.name || '').toLowerCase()));
+            const newOnes = dynamicGames.filter((d) => Boolean(d.name) && !existingNames.has(d.name.toLowerCase()));
+            return [...prev, ...newOnes];
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Status & Feedback
   const [loading, setLoading] = useState(false);
@@ -166,6 +214,7 @@ export default function DepositPage() {
           amount: Number(depositAmount),
           methodId: selectedMethod?.methodId,
           methodName: selectedMethod?.name,
+          targetGame: selectedGame,
           senderTagName: senderTagName.trim(),
           senderTagEmail: senderTagEmail.trim(),
           senderNote: senderNote.trim(),
@@ -342,7 +391,7 @@ export default function DepositPage() {
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+              <form onSubmit={handleDepositSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
                 {/* Automated Live Deposit Bonus Banner */}
                 {(() => {
                   const hasClaimedWelcome = Boolean(user?.welcomeBonusClaimed || (user?.totalDeposited && user.totalDeposited > 0));
@@ -449,11 +498,254 @@ export default function DepositPage() {
                   );
                 })()}
 
-                {/* 1. Amount Selection */}
+                {/* 1. SELECT DESTINATION GAME PLATFORM * (WinningHeaven Style Dropdown Selector) */}
+                {(() => {
+                  const currentSelectedGameObj = platformGames.find(g => String(g?.name || '').toLowerCase() === String(selectedGame || '').toLowerCase()) || platformGames[0] || { name: selectedGame || 'Juwa 777', logo: '/images/fire-kirin.webp' };
+                  const filteredPlatformGames = platformGames.filter(g => String(g?.name || '').toLowerCase().includes(String(gameSearchQuery || '').toLowerCase()));
+
+                  return (
+                    <div>
+                      <label style={{ fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#C8C1D4', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>
+                        1. SELECT DESTINATION GAME PLATFORM *
+                      </label>
+
+                      <div
+                        style={{
+                          backgroundColor: '#070514',
+                          border: '1.5px solid rgba(251, 191, 36, 0.45)',
+                          borderRadius: '16px',
+                          overflow: 'hidden',
+                          boxShadow: '0 8px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(251, 191, 36, 0.12)',
+                        }}
+                      >
+                        {/* Clickable Header Card */}
+                        <div
+                          onClick={() => setIsGameDropdownOpen(prev => !prev)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '12px 16px',
+                            cursor: 'pointer',
+                            backgroundColor: 'rgba(251, 191, 36, 0.05)',
+                            borderBottom: isGameDropdownOpen ? '1px solid rgba(255, 255, 255, 0.08)' : 'none',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div
+                              style={{
+                                width: '42px',
+                                height: '42px',
+                                borderRadius: '10px',
+                                overflow: 'hidden',
+                                border: '1.5px solid rgba(251, 191, 36, 0.6)',
+                                backgroundColor: '#000000',
+                                flexShrink: 0,
+                              }}
+                            >
+                              <img
+                                src={currentSelectedGameObj.logo}
+                                alt={currentSelectedGameObj.name}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                              />
+                            </div>
+                            <div>
+                              <h4
+                                style={{
+                                  margin: 0,
+                                  fontSize: '15px',
+                                  fontFamily: 'Lexend, sans-serif',
+                                  fontWeight: 900,
+                                  color: '#FFFFFF',
+                                  letterSpacing: '-0.01em',
+                                }}
+                              >
+                                {currentSelectedGameObj.name}
+                              </h4>
+                              <p
+                                style={{
+                                  margin: '2px 0 0 0',
+                                  fontSize: '11px',
+                                  color: '#94A3B8',
+                                  fontFamily: 'Lexend, sans-serif',
+                                }}
+                              >
+                                Tap to change destination platform ({platformGames.length} available)
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Right Badge + Chevron */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <span
+                              style={{
+                                fontSize: '10px',
+                                fontFamily: 'Lexend, sans-serif',
+                                fontWeight: 900,
+                                color: '#FBBF24',
+                                backgroundColor: 'rgba(251, 191, 36, 0.12)',
+                                border: '1px solid rgba(251, 191, 36, 0.4)',
+                                padding: '4px 10px',
+                                borderRadius: '8px',
+                                letterSpacing: '0.04em',
+                                textTransform: 'uppercase',
+                              }}
+                            >
+                              SELECTED
+                            </span>
+                            <div style={{ color: '#FBBF24', display: 'flex', alignItems: 'center' }}>
+                              {isGameDropdownOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Expanded Dropdown Panel */}
+                        {isGameDropdownOpen && (
+                          <div style={{ padding: '14px 16px', backgroundColor: '#0A061C' }}>
+                            {/* Search Box */}
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px',
+                                backgroundColor: '#070514',
+                                border: '1px solid rgba(255, 255, 255, 0.14)',
+                                borderRadius: '12px',
+                                padding: '8px 14px',
+                                marginBottom: '10px',
+                              }}
+                            >
+                              <Search size={15} color="#94A3B8" />
+                              <input
+                                type="text"
+                                placeholder={`Search ${platformGames.length} platform games...`}
+                                value={gameSearchQuery}
+                                onChange={(e) => setGameSearchQuery(e.target.value)}
+                                autoFocus
+                                style={{
+                                  backgroundColor: 'transparent',
+                                  border: 'none',
+                                  outline: 'none',
+                                  color: '#FFFFFF',
+                                  fontSize: '12.5px',
+                                  fontFamily: 'Lexend, sans-serif',
+                                  width: '100%',
+                                }}
+                              />
+                              {gameSearchQuery && (
+                                <button
+                                  type="button"
+                                  onClick={() => setGameSearchQuery('')}
+                                  style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: 0 }}
+                                >
+                                  <X size={14} />
+                                </button>
+                              )}
+                            </div>
+
+                            {/* Scrollable Game Rows */}
+                            <div
+                              style={{
+                                maxHeight: '260px',
+                                overflowY: 'auto',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '4px',
+                                paddingRight: '4px',
+                              }}
+                            >
+                              {filteredPlatformGames.length === 0 ? (
+                                <div style={{ textAlign: 'center', padding: '20px', color: '#64748B', fontSize: '12px' }}>
+                                  No platform games found matching &quot;{gameSearchQuery}&quot;
+                                </div>
+                              ) : (
+                                filteredPlatformGames.map((g) => {
+                                  const isCurrent = String(selectedGame || '').toLowerCase() === String(g?.name || '').toLowerCase();
+                                  return (
+                                    <div
+                                      key={g.id || g.name}
+                                      onClick={() => {
+                                        setSelectedGame(g.name);
+                                        setIsGameDropdownOpen(false);
+                                        setGameSearchQuery('');
+                                      }}
+                                      style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        padding: '9px 12px',
+                                        borderRadius: '10px',
+                                        cursor: 'pointer',
+                                        backgroundColor: isCurrent ? 'rgba(251, 191, 36, 0.14)' : 'transparent',
+                                        border: isCurrent ? '1px solid rgba(251, 191, 36, 0.45)' : '1px solid transparent',
+                                        transition: 'all 0.15s ease',
+                                      }}
+                                      className="hover:bg-white/5"
+                                    >
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                        <div
+                                          style={{
+                                            width: '32px',
+                                            height: '32px',
+                                            borderRadius: '8px',
+                                            overflow: 'hidden',
+                                            backgroundColor: '#000000',
+                                            border: isCurrent ? '1.5px solid #FBBF24' : '1px solid rgba(255, 255, 255, 0.12)',
+                                            flexShrink: 0,
+                                          }}
+                                        >
+                                          <img src={g.logo} alt={g.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        </div>
+                                        <span
+                                          style={{
+                                            fontFamily: 'Lexend, sans-serif',
+                                            fontSize: '13px',
+                                            fontWeight: isCurrent ? 800 : 600,
+                                            color: isCurrent ? '#FBBF24' : '#FFFFFF',
+                                          }}
+                                        >
+                                          {g.name}
+                                        </span>
+                                      </div>
+
+                                      {isCurrent && (
+                                        <span
+                                          style={{
+                                            fontSize: '10.5px',
+                                            fontFamily: 'Lexend, sans-serif',
+                                            fontWeight: 800,
+                                            color: '#FBBF24',
+                                            backgroundColor: 'rgba(251, 191, 36, 0.15)',
+                                            border: '1px solid rgba(251, 191, 36, 0.4)',
+                                            padding: '2px 8px',
+                                            borderRadius: '6px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '4px',
+                                          }}
+                                        >
+                                          <Check size={12} color="#FBBF24" />
+                                          <span>Active</span>
+                                        </span>
+                                      )}
+                                    </div>
+                                  );
+                                })
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* 2. Amount Selection & Live Suggestion */}
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
                     <label style={{ fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#C8C1D4', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                      1. Select Deposit Amount
+                      2. Select Deposit Amount
                     </label>
                     <span style={{ fontSize: '10.5px', color: '#10B981', fontFamily: 'Lexend, sans-serif', fontWeight: 800 }}>
                       ⚡ Instant Desk Approval
@@ -515,36 +807,64 @@ export default function DepositPage() {
                   </div>
                 </div>
 
-                {/* 2. Payment Method Selector */}
+                {/* 3. Payment Method Cards (Exact Layout of Sample Screenshot) */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#C8C1D4', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '10px' }}>
-                    2. Select Payment Gateway
-                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                    <label style={{ fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#C8C1D4', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                      3. METHOD (SELECT PAYMENT GATEWAY)
+                    </label>
+                    <span style={{ fontSize: '10.5px', color: '#FBBF24', fontFamily: 'Lexend, sans-serif', fontWeight: 800 }}>
+                      🔥 Special Method Bonuses Included
+                    </span>
+                  </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
                     {methods.map((m) => {
                       const isSel = (selectedMethod?.id && m.id && selectedMethod.id === m.id) ||
                         (selectedMethod?.methodId && m.methodId && selectedMethod.methodId === m.methodId) ||
                         (selectedMethod?.name === m.name);
+
+                      const bonusPct = m.bonusPercentage !== undefined ? Number(m.bonusPercentage) : 35;
+
                       return (
                         <div
                           key={m.id || m.methodId || m.name}
                           onClick={() => setSelectedMethod(m)}
                           style={{
-                            padding: '12px',
-                            borderRadius: '12px',
-                            border: isSel ? '2px solid #00F0FF' : '1px solid rgba(255, 255, 255, 0.1)',
-                            backgroundColor: isSel ? 'rgba(0, 240, 255, 0.12)' : '#070514',
+                            padding: '16px 18px',
+                            borderRadius: '16px',
+                            border: isSel ? '2px solid #00F0FF' : '1px solid rgba(255, 255, 255, 0.12)',
+                            backgroundColor: isSel ? 'rgba(0, 240, 255, 0.1)' : '#070514',
+                            boxShadow: isSel ? '0 0 22px rgba(0, 240, 255, 0.3), inset 0 0 15px rgba(224, 38, 216, 0.15)' : 'none',
                             cursor: 'pointer',
-                            textAlign: 'center',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
                             transition: 'all 0.15s ease',
                           }}
                         >
-                          <div style={{ fontSize: '13px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: isSel ? '#00F0FF' : '#FFFFFF' }}>
-                            {m.name}
+                          <div>
+                            <div style={{ fontSize: '15px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.01em' }}>
+                              {m.name}
+                            </div>
+                            <div style={{ fontSize: '10.5px', color: '#94A3B8', marginTop: '3px', fontWeight: 700, letterSpacing: '0.02em', textTransform: 'uppercase' }}>
+                              {bonusPct}% BONUS
+                            </div>
                           </div>
-                          <div style={{ fontSize: '10px', color: '#00F0FF', marginTop: '2px', fontWeight: 700 }}>
-                            {m.tag || 'Instant'}
+
+                          <div
+                            style={{
+                              backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                              border: '1px solid rgba(245, 158, 11, 0.45)',
+                              color: '#FBBF24',
+                              fontSize: '11.5px',
+                              fontWeight: 900,
+                              fontFamily: 'monospace',
+                              padding: '4px 10px',
+                              borderRadius: '9999px',
+                            }}
+                          >
+                            +{bonusPct}%
                           </div>
                         </div>
                       );

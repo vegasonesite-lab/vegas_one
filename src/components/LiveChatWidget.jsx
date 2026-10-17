@@ -116,7 +116,7 @@ export default function LiveChatWidget({ user, soundEnabled }) {
           position: 'fixed',
           bottom: '24px',
           right: '24px',
-          zIndex: 9999,
+          zIndex: 99999,
         }}
       >
         <button
@@ -169,11 +169,11 @@ export default function LiveChatWidget({ user, soundEnabled }) {
             borderRadius: '20px',
             display: 'flex',
             flexDirection: 'column',
-            zIndex: 10000,
+            zIndex: 999999,
             overflow: 'hidden',
             backgroundColor: '#0B071A',
             border: '1px solid rgba(0, 240, 255, 0.35)',
-            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(0, 240, 255, 0.2)',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.95), 0 0 35px rgba(0, 240, 255, 0.25)',
             fontFamily: 'Lexend, -apple-system, sans-serif',
           }}
         >

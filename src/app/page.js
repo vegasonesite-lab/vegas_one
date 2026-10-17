@@ -10,6 +10,8 @@ import GameCard from '@/components/GameCard';
 import VegasCrownClub from '@/components/player/VegasCrownClub';
 import VegasOnboarding from '@/components/player/VegasOnboarding';
 import VegasCuratedInquiries from '@/components/player/VegasCuratedInquiries';
+import VegasVideoReviews from '@/components/player/VegasVideoReviews';
+import VegasFacebookPartners from '@/components/player/VegasFacebookPartners';
 import PlayerLedgerTab from '@/components/player/PlayerLedgerTab';
 import ReferralCenterTab from '@/components/player/ReferralCenterTab';
 import PlayerProfileTab from '@/components/player/PlayerProfileTab';
@@ -323,6 +325,12 @@ export default function Home() {
 
                   {/* Curated Inquiries FAQ Accordion */}
                   <VegasCuratedInquiries />
+
+                  {/* Verified Player Video Reviews */}
+                  <VegasVideoReviews />
+
+                  {/* Official Facebook Partner Clubs */}
+                  <VegasFacebookPartners />
                 </div>
               )}
 

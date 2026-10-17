@@ -10,10 +10,14 @@ export async function POST(req) {
   try {
     await ensureDbInitialized();
 
-    const { username, email, password, referralCode: inputRef, state = 'US', ageVerified, deviceId: rawDeviceId } = await req.json();
+    const { username, email, password, referralCode: inputRef, state = 'US', ageVerified, dob, deviceId: rawDeviceId } = await req.json();
 
     if (!username || !email || !password) {
       return NextResponse.json({ success: false, error: 'All fields are required.' }, { status: 400 });
+    }
+
+    if (password.length < 6) {
+      return NextResponse.json({ success: false, error: 'Password must be at least 6 characters long.' }, { status: 400 });
     }
 
     if (!ageVerified) {
@@ -21,6 +25,20 @@ export async function POST(req) {
         { success: false, error: 'You must confirm that you are at least 18 years old (21+ where applicable).' },
         { status: 400 }
       );
+    }
+
+    let calculatedAge = 21;
+    if (dob) {
+      const birthDate = new Date(dob);
+      if (isNaN(birthDate.getTime())) {
+        return NextResponse.json({ success: false, error: 'Invalid Date of Birth format.' }, { status: 400 });
+      }
+      const ageDiff = Date.now() - birthDate.getTime();
+      const ageYears = Math.floor(ageDiff / (365.25 * 24 * 3600 * 1000));
+      if (ageYears < 18) {
+        return NextResponse.json({ success: false, error: 'You must be at least 18 years old to register.' }, { status: 400 });
+      }
+      calculatedAge = ageYears;
     }
 
     const cleanUsername = username.trim().toLowerCase();
@@ -81,6 +99,8 @@ export async function POST(req) {
       balanceSC: initialBonusSC,
       balanceGC: initialBonusGC,
       kycStatus: 'none',
+      dob: dob || null,
+      age: calculatedAge,
       state: (state || 'CA').toUpperCase(),
       country: 'US',
       referralCode: myReferralCode,

@@ -236,6 +236,7 @@ export default function AdminPortal({ initialTab }) {
     name: '',
     type: 'cashapp',
     tag: 'Instant',
+    bonusPercentage: 40,
     accountDetails: '',
     paymentUrl: '',
     qrCode: '',
@@ -4674,7 +4675,15 @@ export default function AdminPortal({ initialTab }) {
                                     </span>
                                   )}
                                 </div>
-                                <div className="text-[11px] text-gray-400 truncate">{u.email}</div>
+                                <div className="text-[11px] text-gray-400 truncate flex items-center gap-1.5 flex-wrap">
+                                  <span>{u.email}</span>
+                                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/30">
+                                    Age: {u.age || (u.dob ? Math.floor((Date.now() - new Date(u.dob).getTime()) / 31557600000) : '18+')}
+                                  </span>
+                                  {u.ageVerified && (
+                                    <span className="text-[9px] text-emerald-400 font-bold">✓ 18+</span>
+                                  )}
+                                </div>
                               </div>
                             </div>
 
@@ -4838,8 +4847,16 @@ export default function AdminPortal({ initialTab }) {
                                       )}
                                     </div>
                                     <div className="text-[11px] text-gray-400">{u.email}</div>
-                                    <div className="text-[10px] text-gray-500 mt-0.5">
-                                      Joined: {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'Recent'}
+                                    <div className="text-[10px] text-gray-400 mt-1 flex items-center gap-1.5 flex-wrap">
+                                      <span>Joined: {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'Recent'}</span>
+                                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/30">
+                                        Age: {u.age || (u.dob ? Math.floor((Date.now() - new Date(u.dob).getTime()) / 31557600000) : '18+')}
+                                      </span>
+                                      {u.ageVerified && (
+                                        <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-1.5 py-0.2 rounded border border-emerald-500/30">
+                                          ✓ 18+ Verified
+                                        </span>
+                                      )}
                                     </div>
                                   </div>
                                 </div>
@@ -5078,6 +5095,7 @@ export default function AdminPortal({ initialTab }) {
                             name: '',
                             type: 'cashapp',
                             tag: 'Instant',
+                            bonusPercentage: 40,
                             accountDetails: '',
                             paymentUrl: '',
                             qrCode: '',
@@ -5132,16 +5150,30 @@ export default function AdminPortal({ initialTab }) {
                           />
                         </div>
 
-                        <div>
-                          <label className="text-[11px] font-bold text-gray-300 block mb-1 uppercase">Tag Badge</label>
-                          <input
-                            type="text"
-                            placeholder="e.g. Instant / Zero Fee / Popular"
-                            value={newMethod.tag}
-                            onChange={(e) => setNewMethod({ ...newMethod, tag: e.target.value })}
-                            className="w-full bg-[#070514] border border-white/15 rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#00F0FF] transition"
-                          />
-                        </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-[11px] font-bold text-gray-300 block mb-1 uppercase">Tag Badge</label>
+                              <input
+                                type="text"
+                                placeholder="e.g. Instant / Zero Fee"
+                                value={newMethod.tag}
+                                onChange={(e) => setNewMethod({ ...newMethod, tag: e.target.value })}
+                                className="w-full bg-[#070514] border border-white/15 rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#00F0FF] transition"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[11px] font-bold text-[#FBBF24] block mb-1 uppercase">Bonus % (+)</label>
+                              <input
+                                type="number"
+                                min="0"
+                                max="500"
+                                placeholder="40"
+                                value={newMethod.bonusPercentage ?? 40}
+                                onChange={(e) => setNewMethod({ ...newMethod, bonusPercentage: Number(e.target.value) })}
+                                className="w-full bg-[#070514] border border-[#FBBF24]/40 rounded-xl p-2.5 text-xs text-[#FBBF24] font-black outline-none focus:border-[#FBBF24] transition"
+                              />
+                            </div>
+                          </div>
 
                         <div className="grid grid-cols-2 gap-2">
                           <div>
@@ -6419,7 +6451,7 @@ export default function AdminPortal({ initialTab }) {
                 <form
                   onSubmit={async (e) => {
                     e.preventDefault();
-                    const { id, name, type, tag, accountDetails, paymentUrl, qrCode, instructions, minDeposit, maxDeposit, isActive } = editGatewayModal.data;
+                    const { id, name, type, tag, accountDetails, paymentUrl, qrCode, instructions, minDeposit, maxDeposit, isActive, bonusPercentage } = editGatewayModal.data;
                     const res = await fetch('/api/payments/methods', {
                       method: 'PUT',
                       headers: { 'Content-Type': 'application/json' },
@@ -6428,6 +6460,7 @@ export default function AdminPortal({ initialTab }) {
                         name,
                         type,
                         tag,
+                        bonusPercentage: Number(bonusPercentage ?? 40),
                         accountDetails,
                         paymentUrl,
                         qrCode,
@@ -6476,31 +6509,61 @@ export default function AdminPortal({ initialTab }) {
                       />
                     </div>
 
-                    <div>
-                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#C8C1D4', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                        Tag Badge
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Instant / Zero Fee / VIP"
-                        value={editGatewayModal.data.tag || ''}
-                        onChange={(e) => setEditGatewayModal(prev => ({
-                          ...prev,
-                          data: { ...prev.data, tag: e.target.value }
-                        }))}
-                        style={{
-                          width: '100%',
-                          backgroundColor: '#070514',
-                          border: '1px solid rgba(0, 240, 255, 0.3)',
-                          borderRadius: '12px',
-                          padding: '10px 12px',
-                          fontSize: '12px',
-                          color: '#FFFFFF',
-                          fontFamily: 'Lexend, sans-serif',
-                          outline: 'none',
-                          boxSizing: 'border-box',
-                        }}
-                      />
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#C8C1D4', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                          Tag Badge
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Instant / VIP"
+                          value={editGatewayModal.data.tag || ''}
+                          onChange={(e) => setEditGatewayModal(prev => ({
+                            ...prev,
+                            data: { ...prev.data, tag: e.target.value }
+                          }))}
+                          style={{
+                            width: '100%',
+                            backgroundColor: '#070514',
+                            border: '1px solid rgba(0, 240, 255, 0.3)',
+                            borderRadius: '12px',
+                            padding: '10px 12px',
+                            fontSize: '12px',
+                            color: '#FFFFFF',
+                            fontFamily: 'Lexend, sans-serif',
+                            outline: 'none',
+                            boxSizing: 'border-box',
+                          }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#FBBF24', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                          Bonus % (+Badge)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="500"
+                          value={editGatewayModal.data.bonusPercentage ?? 40}
+                          onChange={(e) => setEditGatewayModal(prev => ({
+                            ...prev,
+                            data: { ...prev.data, bonusPercentage: Number(e.target.value) }
+                          }))}
+                          style={{
+                            width: '100%',
+                            backgroundColor: '#070514',
+                            border: '1px solid rgba(251, 191, 36, 0.4)',
+                            borderRadius: '12px',
+                            padding: '10px 12px',
+                            fontSize: '12.5px',
+                            color: '#FBBF24',
+                            fontWeight: 900,
+                            fontFamily: 'Lexend, sans-serif',
+                            outline: 'none',
+                            boxSizing: 'border-box',
+                          }}
+                        />
+                      </div>
                     </div>
                   </div>
 

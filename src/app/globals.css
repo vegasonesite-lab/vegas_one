@@ -547,12 +547,19 @@ button:active {
 }
 
 .vegas-navbar-logo {
-  height: 38px;
+  height: 34px;
   width: auto;
-  max-height: 42px;
+  max-height: 38px;
   object-fit: contain;
   filter: drop-shadow(0 0 12px rgba(0, 240, 255, 0.55)) drop-shadow(0 0 20px rgba(224, 38, 216, 0.4));
   transition: transform 0.2s ease;
+}
+
+@media (max-width: 480px) {
+  .vegas-navbar-logo {
+    height: 28px;
+    max-height: 30px;
+  }
 }
 
 @media (min-width: 640px) {
@@ -610,6 +617,25 @@ button:active {
 .navbar-btn-guest-join {
   padding: 6px 14px !important;
   font-size: 11px !important;
+}
+
+@media (max-width: 480px) {
+  .navbar-balance-capsule {
+    padding: 4px 7px !important;
+    gap: 4px !important;
+  }
+  .navbar-btn-deposit {
+    padding: 5px 9px !important;
+    font-size: 10px !important;
+  }
+  .navbar-btn-guest-login {
+    padding: 5px 8px !important;
+    font-size: 10px !important;
+  }
+  .navbar-btn-guest-join {
+    padding: 5px 10px !important;
+    font-size: 10px !important;
+  }
 }
 
 @media (min-width: 640px) {
@@ -2594,9 +2620,23 @@ textarea:focus {
 
 @media (max-width: 640px) {
   .vegas-navbar-full-width {
-    height: auto;
-    min-height: 58px;
-    padding: 4px 12px 6px 12px;
+    height: 56px !important;
+    min-height: 56px !important;
+    padding: 0 10px !important;
+    gap: 8px !important;
+  }
+}
+
+/* Mid-Top Action Bar: Desktop only, completely hidden on mobile screens */
+.navbar-mid-top-nav {
+  display: none !important;
+}
+
+@media (min-width: 860px) {
+  .navbar-mid-top-nav {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
   }
 }
 
@@ -2839,11 +2879,12 @@ textarea:focus {
   z-index: 10000 !important;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .live-chat-floating-wrap {
-    bottom: calc(75px + env(safe-area-inset-bottom, 0px)) !important;
+    bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important;
     right: 16px !important;
     left: auto !important;
+    z-index: 99999 !important;
   }
 
   .live-chat-window-wrap {
@@ -2851,6 +2892,7 @@ textarea:focus {
     left: 12px !important;
     width: auto !important;
     max-width: none !important;
-    bottom: calc(75px + env(safe-area-inset-bottom, 0px)) !important;
+    bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important;
+    z-index: 999999 !important;
   }
 }

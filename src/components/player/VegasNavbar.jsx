@@ -138,8 +138,7 @@ export default function VegasNavbar({
         backdropFilter: 'blur(16px)',
         borderBottom: '1px solid rgba(0, 240, 255, 0.18)',
         boxShadow: '0 4px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 240, 255, 0.08)',
-        paddingTop: 'max(12px, env(safe-area-inset-top, 12px))',
-        paddingBottom: '4px',
+        paddingTop: 'env(safe-area-inset-top, 0px)',
       }}
     >
       <div className="vegas-navbar-full-width">
@@ -166,36 +165,118 @@ export default function VegasNavbar({
           </Link>
         </div>
 
-        {/* Desktop Left: Sweepstakes Games Pill */}
-        <div className="navbar-desktop-pill">
+        {/* Desktop Mid-Top Quick Action Bar: Lobby, Deposit, Redeem, Ledger (Desktop only, hidden on mobile) */}
+        <div
+          className="navbar-mid-top-nav"
+          style={{
+            backgroundColor: 'rgba(14, 10, 36, 0.75)',
+            border: '1px solid rgba(0, 240, 255, 0.25)',
+            padding: '4px 6px',
+            borderRadius: '9999px',
+            backdropFilter: 'blur(10px)',
+          }}
+        >
+          {/* 1. Lobby */}
           <Link
-            href="/games"
+            href="/"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '8px',
-              backgroundColor: '#140E33',
-              border: '1px solid rgba(0, 240, 255, 0.4)',
-              padding: '8px 22px',
+              gap: '6px',
+              padding: '6px 14px',
               borderRadius: '9999px',
               color: '#FFFFFF',
               textDecoration: 'none',
               fontFamily: 'Lexend, sans-serif',
-              fontSize: '12px',
+              fontSize: '11.5px',
               fontWeight: 800,
-              letterSpacing: '0.04em',
-              textTransform: 'uppercase',
-              boxShadow: '0 0 20px rgba(0, 240, 255, 0.2)',
-              transition: 'all 0.2s ease',
+              letterSpacing: '0.03em',
+              transition: 'all 0.15s ease',
             }}
+            className="hover:bg-white/10"
           >
-            <Flame size={15} color="#00F0FF" />
-            <span>SWEEPSTAKES GAMES</span>
+            <Flame size={13} color="#00F0FF" />
+            <span>LOBBY</span>
+          </Link>
+
+          {/* 2. Deposit */}
+          <Link
+            href="/deposit"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.35) 100%)',
+              border: '1px solid rgba(16, 185, 129, 0.5)',
+              padding: '6px 16px',
+              borderRadius: '9999px',
+              color: '#6EE7B7',
+              textDecoration: 'none',
+              fontFamily: 'Lexend, sans-serif',
+              fontSize: '11.5px',
+              fontWeight: 900,
+              letterSpacing: '0.03em',
+              boxShadow: '0 0 14px rgba(16, 185, 129, 0.3)',
+              transition: 'all 0.15s ease',
+            }}
+            className="hover:scale-105"
+          >
+            <Wallet size={13} color="#34D399" />
+            <span>DEPOSIT</span>
+          </Link>
+
+          {/* 3. Redeem */}
+          <Link
+            href="/cashout"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'linear-gradient(135deg, rgba(224, 38, 216, 0.22) 0%, rgba(168, 85, 247, 0.32) 100%)',
+              border: '1px solid rgba(224, 38, 216, 0.5)',
+              padding: '6px 16px',
+              borderRadius: '9999px',
+              color: '#F472B6',
+              textDecoration: 'none',
+              fontFamily: 'Lexend, sans-serif',
+              fontSize: '11.5px',
+              fontWeight: 900,
+              letterSpacing: '0.03em',
+              boxShadow: '0 0 14px rgba(224, 38, 216, 0.3)',
+              transition: 'all 0.15s ease',
+            }}
+            className="hover:scale-105"
+          >
+            <Gem size={13} color="#F472B6" />
+            <span>REDEEM</span>
+          </Link>
+
+          {/* 4. Ledger */}
+          <Link
+            href="/history"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 14px',
+              borderRadius: '9999px',
+              color: '#CBD5E1',
+              textDecoration: 'none',
+              fontFamily: 'Lexend, sans-serif',
+              fontSize: '11.5px',
+              fontWeight: 800,
+              letterSpacing: '0.03em',
+              transition: 'all 0.15s ease',
+            }}
+            className="hover:bg-white/10"
+          >
+            <Clock size={13} color="#94A3B8" />
+            <span>LEDGER</span>
           </Link>
         </div>
 
         {/* Right Side: Balances + Coral Deposit Button + Avatar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {activeUser ? (
             <>
               {/* Single Unified Cash Vault Balance Capsule */}

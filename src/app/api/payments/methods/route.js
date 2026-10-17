@@ -36,6 +36,15 @@ export async function GET(req) {
           instructions: m.instructions || '',
           paymentUrl: m.paymentUrl || '',
           qrCode: m.qrCode || '',
+          bonusPercentage: m.bonusPercentage !== undefined ? Number(m.bonusPercentage) : (
+            m.name?.toLowerCase().includes('crypto') || m.name?.toLowerCase().includes('bitcoin') || m.name?.toLowerCase().includes('usdt') ? 40 :
+            m.name?.toLowerCase().includes('apple') || m.name?.toLowerCase().includes('g pay') ? 40 :
+            m.name?.toLowerCase().includes('cash') ? 35 :
+            m.name?.toLowerCase().includes('chime') ? 40 :
+            m.name?.toLowerCase().includes('venmo') ? 20 :
+            m.name?.toLowerCase().includes('paypal') ? 15 :
+            m.name?.toLowerCase().includes('card') ? 10 : 35
+          ),
           minDeposit: m.minDeposit || 10,
           maxDeposit: m.maxDeposit || 5000,
           isActive: m.isActive ?? true,
@@ -68,6 +77,7 @@ export async function POST(req) {
       instructions,
       paymentUrl = '',
       qrCode = '',
+      bonusPercentage,
       minDeposit = 10,
       maxDeposit = 5000,
       tag = 'Instant',
@@ -96,6 +106,7 @@ export async function POST(req) {
       instructions: instructions || 'Send payment and upload proof.',
       paymentUrl: paymentUrl ? paymentUrl.trim() : '',
       qrCode: finalQr,
+      bonusPercentage: bonusPercentage !== undefined ? Number(bonusPercentage) : 35,
       minDeposit: Number(minDeposit) || 10,
       maxDeposit: Number(maxDeposit) || 5000,
       isActive: true,
@@ -131,6 +142,7 @@ export async function PUT(req) {
       instructions,
       paymentUrl,
       qrCode,
+      bonusPercentage,
       minDeposit,
       maxDeposit,
       isActive,
@@ -160,6 +172,7 @@ export async function PUT(req) {
         updateFields.qrCode = cleanQr;
       }
     }
+    if (bonusPercentage !== undefined) updateFields.bonusPercentage = Number(bonusPercentage);
     if (minDeposit !== undefined) updateFields.minDeposit = Number(minDeposit);
     if (maxDeposit !== undefined) updateFields.maxDeposit = Number(maxDeposit);
     if (isActive !== undefined) updateFields.isActive = Boolean(isActive);
