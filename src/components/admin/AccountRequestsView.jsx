@@ -34,7 +34,12 @@ export default function AccountRequestsView({
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const filtered = requests.filter((r) => {
+  // Strictly account creation requests only (no coin loads)
+  const accountOnlyRequests = requests.filter(
+    (r) => r.type === 'ACCOUNT_CREATION' || (!r.type && Number(r.transferAmount || 0) <= 0)
+  );
+
+  const filtered = accountOnlyRequests.filter((r) => {
     const matchesFilter =
       filter === 'ALL' ? true : (r.status || '').toUpperCase() === filter.toUpperCase();
     const q = searchQuery.toLowerCase().trim();
@@ -47,8 +52,8 @@ export default function AccountRequestsView({
     return matchesFilter && matchesSearch;
   });
 
-  const pendingCount = requests.filter((r) => (r.status || '').toUpperCase() === 'PENDING').length;
-  const readyCount = requests.filter((r) => (r.status || '').toUpperCase() === 'READY').length;
+  const pendingCount = accountOnlyRequests.filter((r) => (r.status || '').toUpperCase() === 'PENDING').length;
+  const readyCount = accountOnlyRequests.filter((r) => (r.status || '').toUpperCase() === 'READY').length;
 
   const formatRelativeTime = (dateStr) => {
     if (!dateStr) return '';
@@ -85,7 +90,7 @@ export default function AccountRequestsView({
           {[
             { key: 'PENDING', label: 'Pending', count: pendingCount, color: '#F59E0B' },
             { key: 'READY', label: 'Ready', count: readyCount, color: '#10B981' },
-            { key: 'ALL', label: 'All Requests', count: requests.length, color: '#00F0FF' },
+            { key: 'ALL', label: 'All Requests', count: accountOnlyRequests.length, color: '#00F0FF' },
           ].map(({ key, label, count, color }) => {
             const isActive = filter === key;
             return (

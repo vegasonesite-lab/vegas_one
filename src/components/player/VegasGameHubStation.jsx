@@ -135,8 +135,10 @@ export default function VegasGameHubStation({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          type: 'ACCOUNT_CREATION',
           gameTitle: game.title,
           gameId: game.gameId || game.id,
+          transferAmount: 0,
           userEmail: user.email,
           userName: user.username,
         }),

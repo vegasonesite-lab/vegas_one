@@ -72,6 +72,7 @@ export default function LoadCoinsModal({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          type: 'COIN_LOAD',
           gameTitle,
           gameId,
           transferAmount: amt,

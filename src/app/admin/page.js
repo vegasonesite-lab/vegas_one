@@ -436,7 +436,7 @@ export default function AdminPortal({ initialTab }) {
   const [submittingApproval, setSubmittingApproval] = useState(false);
 
   const fetchAccountRequests = () => {
-    fetch(`/api/account-requests?status=${accountReqFilter}`)
+    fetch(`/api/account-requests?type=ACCOUNT_CREATION&status=${accountReqFilter}`)
       .then(r => r.json())
       .then(d => { if (d.success) setAccountRequests(d.accountRequests || []); })
       .catch(() => { });
@@ -659,7 +659,7 @@ export default function AdminPortal({ initialTab }) {
       const [depRes, withRes, reqRes] = await Promise.all([
         fetch('/api/payments/deposit?status=all'),
         fetch('/api/payments/withdraw?status=all'),
-        fetch('/api/account-requests?status=all'),
+        fetch('/api/account-requests?type=ACCOUNT_CREATION&status=all'),
       ]);
 
       const [depData, withData, reqData] = await Promise.all([
@@ -2026,7 +2026,6 @@ export default function AdminPortal({ initialTab }) {
           {activeTab === 'coins_allotment' && (
             <CoinOperationsDesk
               sessionUser={user}
-              parentAccountRequests={accountRequests}
               parentRedemptions={redemptions}
               onParentSync={syncRequestsAndAlerts}
             />
