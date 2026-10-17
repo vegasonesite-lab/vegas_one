@@ -68,8 +68,14 @@ export default function LiveChatWidget({ user, soundEnabled }) {
       try {
         const res = await fetch('/api/chat');
         const data = await res.json();
-        if (data.success) {
-          setMessages(data.messages || []);
+        if (data.success && Array.isArray(data.messages)) {
+          setMessages((prev) => {
+            // Keep pending optimistic messages until server returns them
+            const pendingTemps = prev.filter(
+              (p) => String(p.id).startsWith('temp-') && !data.messages.some((m) => m.text === p.text)
+            );
+            return [...data.messages, ...pendingTemps];
+          });
         }
       } catch {}
     };
@@ -86,21 +92,30 @@ export default function LiveChatWidget({ user, soundEnabled }) {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!inputMessage.trim() || sending) return;
-
     const text = inputMessage.trim();
-    setInputMessage('');
-    setSending(true);
+    if (!text) return;
 
-    // Optimistically render message bubble immediately
+    // 1. Immediately clear input & retain focus so user can type next message without lag
+    setInputMessage('');
+    inputRef.current?.focus();
+
+    // 2. Optimistically render message bubble IMMEDIATELY on the right side
+    const tempId = 'temp-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
     const tempMessage = {
-      id: 'temp-' + Date.now(),
-      sender: user?.username || 'You',
+      id: tempId,
+      senderRole: 'player',
       role: 'player',
+      isMe: true,
+      sender: user?.username || 'You',
       text,
       createdAt: new Date().toISOString(),
     };
-    setMessages(prev => [...prev, tempMessage]);
+    setMessages((prev) => [...prev, tempMessage]);
+
+    // 3. Immediately scroll to bottom without delay
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 10);
 
     try {
       const res = await fetch('/api/chat', {
@@ -110,10 +125,14 @@ export default function LiveChatWidget({ user, soundEnabled }) {
       });
       const data = await res.json();
       if (data.success && data.message) {
-        setMessages(prev => prev.map(m => m.id === tempMessage.id ? data.message : m));
+        setMessages((prev) =>
+          prev.map((m) => (m.id === tempId ? { ...data.message, isMe: true, senderRole: 'player' } : m))
+        );
       }
     } catch {} finally {
-      setSending(false);
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 50);
     }
   };
 
@@ -335,36 +354,74 @@ export default function LiveChatWidget({ user, soundEnabled }) {
               </div>
             ) : (
               messages.map((m, idx) => {
-                const isPlayer = m.senderRole === 'player';
+                const isPlayer =
+                  m.isMe ||
+                  m.senderRole === 'player' ||
+                  m.role === 'player' ||
+                  m.sender === 'You' ||
+                  (user?.username && m.username === user.username && !m.staffName) ||
+                  (!m.staffName && m.senderRole !== 'staff');
+
                 return (
                   <div
-                    key={idx}
+                    key={m.id || idx}
                     style={{
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: isPlayer ? 'flex-end' : 'flex-start',
+                      width: '100%',
+                      marginBottom: '6px',
                     }}
                   >
+                    {/* Sender Identity Label */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        marginBottom: '3px',
+                        padding: '0 4px',
+                        fontSize: '10px',
+                        fontWeight: 800,
+                        color: isPlayer ? '#00F0FF' : '#E026D8',
+                      }}
+                    >
+                      {isPlayer ? (
+                        <span>You</span>
+                      ) : (
+                        <>
+                          <Shield size={11} color="#E026D8" />
+                          <span>{m.staffName || 'VIP Support Desk'}</span>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Message Bubble */}
                     <div
                       style={{
                         maxWidth: '82%',
                         borderRadius: '16px',
-                        borderBottomRightRadius: isPlayer ? 0 : '16px',
-                        borderBottomLeftRadius: isPlayer ? '16px' : 0,
-                        padding: '9px 13px',
-                        fontSize: '12px',
-                        lineHeight: 1.4,
+                        borderBottomRightRadius: isPlayer ? '2px' : '16px',
+                        borderBottomLeftRadius: isPlayer ? '16px' : '2px',
+                        padding: '10px 14px',
+                        fontSize: '12.5px',
+                        lineHeight: 1.45,
                         color: isPlayer ? '#070514' : '#FFFFFF',
                         fontWeight: isPlayer ? 800 : 500,
-                        border: isPlayer ? 'none' : '1px solid rgba(255, 255, 255, 0.1)',
+                        border: isPlayer ? 'none' : '1px solid rgba(224, 38, 216, 0.35)',
                         background: isPlayer
                           ? 'linear-gradient(135deg, #00F0FF 0%, #00C2D1 100%)'
-                          : '#170E38',
-                        boxShadow: '0 4px 14px rgba(0, 0, 0, 0.3)',
+                          : 'linear-gradient(135deg, #170E38 0%, #201348 100%)',
+                        boxShadow: isPlayer
+                          ? '0 4px 15px rgba(0, 240, 255, 0.35)'
+                          : '0 4px 15px rgba(0, 0, 0, 0.5), 0 0 15px rgba(224, 38, 216, 0.15)',
+                        wordBreak: 'break-word',
                       }}
                     >
                       {m.text}
                     </div>
+
+                    {/* Time */}
                     <span
                       style={{
                         fontSize: '9.5px',
@@ -400,7 +457,7 @@ export default function LiveChatWidget({ user, soundEnabled }) {
               ref={inputRef}
               type="text"
               placeholder={user ? "Type your message..." : "Sign in to chat with support..."}
-              disabled={!user || sending}
+              disabled={!user}
               value={inputMessage}
               onFocus={() => {
                 setTimeout(() => {
@@ -422,14 +479,14 @@ export default function LiveChatWidget({ user, soundEnabled }) {
             />
             <button
               type="submit"
-              disabled={!user || !inputMessage.trim() || sending}
+              disabled={!user || !inputMessage.trim()}
               style={{
                 width: '38px',
                 height: '38px',
                 borderRadius: '10px',
                 border: 'none',
-                cursor: !user || !inputMessage.trim() || sending ? 'not-allowed' : 'pointer',
-                opacity: !user || !inputMessage.trim() || sending ? 0.45 : 1,
+                cursor: !user || !inputMessage.trim() ? 'not-allowed' : 'pointer',
+                opacity: !user || !inputMessage.trim() ? 0.45 : 1,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

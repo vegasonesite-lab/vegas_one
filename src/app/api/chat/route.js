@@ -73,6 +73,7 @@ export async function GET(req) {
         userId: m.userId,
         username: m.username,
         senderRole: m.senderRole,
+        staffName: m.staffName || null,
         text: m.text,
         read: m.read,
         createdAt: m.createdAt,
@@ -98,9 +99,10 @@ export async function POST(req) {
     }
 
     const isStaff =
-      session.role === ROLES.SUPER_ADMIN ||
-      session.role === ROLES.CHAT_SUPPORT ||
-      session.role === ROLES.OPERATION_ADMIN;
+      (session.role === ROLES.SUPER_ADMIN ||
+        session.role === ROLES.CHAT_SUPPORT ||
+        session.role === ROLES.OPERATION_ADMIN) &&
+      Boolean(conversationId);
     const resolvedConvId = isStaff && conversationId ? conversationId : session.userId;
 
     const db = await getDb();
