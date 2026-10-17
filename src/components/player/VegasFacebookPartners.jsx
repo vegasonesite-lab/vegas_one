@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ExternalLink, ShieldCheck, Flame, Star, Sparkles } from 'lucide-react';
+import { ExternalLink, ShieldCheck, Star, Users, Gift, Sparkles, CheckCircle2 } from 'lucide-react';
 
 const partners = [
   {
@@ -14,6 +14,8 @@ const partners = [
     rating: '5.0',
     color: '#00F0FF',
     icon: '🎰',
+    members: '14.2K Followers',
+    perk: 'Daily Freeplay Codes & Match Bonuses',
   },
   {
     id: 'carabian',
@@ -25,17 +27,21 @@ const partners = [
     rating: '4.9',
     color: '#E026D8',
     icon: '🃏',
+    members: '18.9K Followers',
+    perk: 'Exclusive Weekly Free Spins & Reloads',
   },
   {
     id: 'moneymafia',
     name: 'Money Mafia 777',
     handle: '@Moneymafia777',
     url: 'https://www.facebook.com/Moneymafia777',
-    category: 'High-Roller Sweeps Syndicate',
+    category: 'High-Roller Syndicate',
     badge: 'Premium Partner',
     rating: '5.0',
     color: '#FBBF24',
     icon: '👑',
+    members: '22.5K Followers',
+    perk: 'High Roller Tournaments & Live Streams',
   },
   {
     id: 'tigerstrike',
@@ -47,6 +53,8 @@ const partners = [
     rating: '4.9',
     color: '#F97316',
     icon: '🐅',
+    members: '16.7K Followers',
+    perk: 'Fish Table Leaderboards & Big Jackpots',
   },
   {
     id: 'risingstorm',
@@ -58,6 +66,8 @@ const partners = [
     rating: '4.8',
     color: '#A855F7',
     icon: '⚡',
+    members: '11.4K Followers',
+    perk: 'Weekend Community Freeplay Drops',
   },
   {
     id: 'highstake',
@@ -69,6 +79,8 @@ const partners = [
     rating: '5.0',
     color: '#10B981',
     icon: '💎',
+    members: '19.8K Followers',
+    perk: 'Instant Redemptions & VIP Cashbacks',
   },
   {
     id: 'vipclub',
@@ -80,6 +92,21 @@ const partners = [
     rating: '5.0',
     color: '#00F0FF',
     icon: '🛡️',
+    members: '35.0K Followers',
+    perk: '24/7 Priority Support & Direct Agent Help',
+  },
+  {
+    id: 'vegasglobal',
+    name: 'Vegas One Players Lounge',
+    handle: '@VegasOneOfficial',
+    url: 'https://www.facebook.com/profile.php?id=61583375746119',
+    category: 'HQ Master Community',
+    badge: 'Official Lounge',
+    rating: '5.0',
+    color: '#E026D8',
+    icon: '🌟',
+    members: '42.5K Followers',
+    perk: 'Official Daily Promos, Code Drops & Events',
   },
 ];
 
@@ -87,45 +114,32 @@ export default function VegasFacebookPartners() {
   return (
     <section
       id="partners-sponsors"
-      style={{
-        marginTop: '60px',
-        marginBottom: '60px',
-        position: 'relative',
-      }}
+      className="relative my-12 sm:my-16 px-3 sm:px-4 lg:px-6"
     >
       {/* Background Neon Accent Glow */}
       <div
         style={{
           position: 'absolute',
-          top: '-20%',
+          top: '-15%',
           left: '50%',
           transform: 'translateX(-50%)',
-          width: '70%',
-          height: '140%',
+          width: '80%',
+          height: '130%',
           background: 'radial-gradient(circle, rgba(0, 240, 255, 0.08) 0%, rgba(224, 38, 216, 0.04) 50%, transparent 80%)',
           pointerEvents: 'none',
           zIndex: 0,
         }}
       />
 
-      <div style={{ position: 'relative', zIndex: 1 }}>
+      <div className="relative z-10 max-w-7xl mx-auto">
         {/* Header Strip */}
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+        <div className="text-center mb-8 sm:mb-12">
           <div
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider mb-3 shadow-md"
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
               backgroundColor: 'rgba(0, 240, 255, 0.1)',
               border: '1px solid rgba(0, 240, 255, 0.35)',
-              padding: '6px 16px',
-              borderRadius: '9999px',
-              fontSize: '11px',
-              fontWeight: 900,
               color: '#00F0FF',
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              marginBottom: '10px',
               boxShadow: '0 0 16px rgba(0, 240, 255, 0.2)',
             }}
           >
@@ -134,159 +148,152 @@ export default function VegasFacebookPartners() {
           </div>
 
           <h2
-            style={{
-              fontFamily: 'Lexend, sans-serif',
-              fontSize: 'clamp(24px, 4vw, 36px)',
-              fontWeight: 900,
-              color: '#FFFFFF',
-              letterSpacing: '-0.02em',
-              margin: '4px 0 8px 0',
-            }}
+            className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight m-0 mb-3"
+            style={{ fontFamily: 'Lexend, sans-serif' }}
           >
             Trusted Gaming Communities
           </h2>
 
           <p
-            style={{
-              fontSize: '13px',
-              color: '#94A3B8',
-              maxWidth: '650px',
-              margin: '0 auto',
-              lineHeight: 1.5,
-              fontFamily: 'Lexend, sans-serif',
-            }}
+            className="text-xs sm:text-sm text-slate-400 max-w-2xl mx-auto leading-relaxed m-0"
+            style={{ fontFamily: 'Lexend, sans-serif' }}
           >
             Vegas One partners with premier Facebook gaming clubs and communities. Connect with official pages for exclusive promo drops, live streams, and community events.
           </p>
         </div>
 
-        {/* Partners Grid */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: '14px',
-          }}
-        >
+        {/* Fully Responsive Luxury Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
           {partners.map((p) => (
             <a
               key={p.id}
               href={p.url}
               target="_blank"
               rel="noopener noreferrer"
-              style={{
-                textDecoration: 'none',
-                display: 'block',
-              }}
+              className="group block text-decoration-none h-full transition-all duration-300 hover:-translate-y-1.5 focus:outline-none"
             >
               <div
+                className="h-full rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-4 transition-all duration-300 relative overflow-hidden"
                 style={{
                   backgroundColor: '#0E0A24',
-                  borderRadius: '18px',
+                  background: 'linear-gradient(145deg, rgba(14, 10, 36, 0.95) 0%, rgba(20, 14, 51, 0.85) 100%)',
                   border: '1px solid rgba(255, 255, 255, 0.1)',
-                  padding: '16px 18px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '12px',
-                  transition: 'all 0.2s ease',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.45)',
+                  boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
                 }}
-                className="hover:scale-[1.02] hover:border-[#00F0FF]/50"
               >
-                {/* Left: Avatar + Details */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
-                  <div
-                    style={{
-                      width: '46px',
-                      height: '46px',
-                      borderRadius: '14px',
-                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                      border: `1.5px solid ${p.color}55`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '22px',
-                      flexShrink: 0,
-                      boxShadow: `0 0 14px ${p.color}25`,
-                    }}
-                  >
-                    {p.icon}
+                {/* Top Subtle Ambient Light */}
+                <div
+                  className="absolute top-0 right-0 w-32 h-32 rounded-full pointer-events-none opacity-20 blur-2xl transition-opacity group-hover:opacity-40"
+                  style={{ backgroundColor: p.color }}
+                />
+
+                {/* Top Section: Avatar + Name + Rating */}
+                <div className="space-y-3 relative z-10">
+                  <div className="flex items-start justify-between gap-3">
+                    {/* Left: Avatar with Glowing Frame */}
+                    <div
+                      className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0 shadow-lg transition-transform duration-300 group-hover:scale-105"
+                      style={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                        border: `1.5px solid ${p.color}66`,
+                        boxShadow: `0 0 16px ${p.color}33`,
+                      }}
+                    >
+                      {p.icon}
+                    </div>
+
+                    {/* Right: Rating Pill */}
+                    <div
+                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-full shrink-0 text-xs font-black shadow-sm"
+                      style={{
+                        backgroundColor: 'rgba(251, 191, 36, 0.12)',
+                        border: '1px solid rgba(251, 191, 36, 0.35)',
+                        color: '#FBBF24',
+                      }}
+                    >
+                      <Star size={12} fill="#FBBF24" />
+                      <span>{p.rating}</span>
+                    </div>
                   </div>
 
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  {/* Name and Handle (Never Truncates or Overlaps) */}
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       <h3
-                        style={{
-                          margin: 0,
-                          fontSize: '14px',
-                          fontWeight: 800,
-                          color: '#FFFFFF',
-                          fontFamily: 'Lexend, sans-serif',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }}
+                        className="text-[15px] sm:text-base font-black text-white m-0 tracking-tight transition-colors group-hover:text-cyan-300"
+                        style={{ fontFamily: 'Lexend, sans-serif' }}
                       >
                         {p.name}
                       </h3>
                       {/* Facebook Verified Blue Check */}
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="#1877F2" style={{ flexShrink: 0 }}>
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="#1877F2"
+                        className="shrink-0"
+                        title="Verified Facebook Page"
+                      >
                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
                       </svg>
                     </div>
 
-                    <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#94A3B8', fontFamily: 'monospace' }}>
+                    <p className="text-[11.5px] text-cyan-300/80 font-mono mt-0.5 truncate tracking-wide">
                       {p.handle}
                     </p>
+                  </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
-                      <span
-                        style={{
-                          fontSize: '9.5px',
-                          fontWeight: 800,
-                          color: p.color,
-                          backgroundColor: `${p.color}18`,
-                          border: `1px solid ${p.color}35`,
-                          padding: '2px 7px',
-                          borderRadius: '6px',
-                          textTransform: 'uppercase',
-                        }}
-                      >
-                        {p.badge}
-                      </span>
-                      <span style={{ fontSize: '10px', color: '#FBBF24', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                        <Star size={10} fill="#FBBF24" />
-                        <strong>{p.rating}</strong>
-                      </span>
-                    </div>
+                  {/* Badge & Follower Count */}
+                  <div className="flex items-center justify-between gap-2 pt-1">
+                    <span
+                      className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md"
+                      style={{
+                        color: p.color,
+                        backgroundColor: `${p.color}18`,
+                        border: `1px solid ${p.color}40`,
+                      }}
+                    >
+                      {p.badge}
+                    </span>
+
+                    <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1 font-mono">
+                      <Users size={11} className="text-slate-400" />
+                      {p.members}
+                    </span>
+                  </div>
+
+                  {/* Perk / Highlight */}
+                  <div
+                    className="p-2.5 rounded-xl text-[11px] leading-relaxed flex items-center gap-2 border"
+                    style={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                      borderColor: 'rgba(255, 255, 255, 0.08)',
+                      color: '#E2E8F0',
+                    }}
+                  >
+                    <Gift size={13} className="shrink-0" style={{ color: p.color }} />
+                    <span className="truncate">{p.perk}</span>
                   </div>
                 </div>
 
-                {/* Right: Visit Button */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    padding: '7px 12px',
-                    borderRadius: '10px',
-                    backgroundColor: 'rgba(24, 119, 242, 0.15)',
-                    border: '1px solid rgba(24, 119, 242, 0.4)',
-                    color: '#60A5FA',
-                    fontSize: '11px',
-                    fontWeight: 800,
-                    flexShrink: 0,
-                  }}
-                >
-                  {/* Facebook SVG Logo */}
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                  </svg>
-                  <span>Visit Page</span>
-                  <ExternalLink size={11} />
+                {/* Bottom Action Button (Dedicated Row - 100% Non-Overlapping) */}
+                <div className="pt-2 relative z-10">
+                  <div
+                    className="w-full py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all duration-300 shadow-md group-hover:scale-[1.02]"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(24, 119, 242, 0.22) 0%, rgba(24, 119, 242, 0.38) 100%)',
+                      border: '1px solid rgba(24, 119, 242, 0.55)',
+                      color: '#FFFFFF',
+                      boxShadow: '0 4px 15px rgba(24, 119, 242, 0.2)',
+                    }}
+                  >
+                    {/* Facebook Icon */}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="#1877F2">
+                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                    </svg>
+                    <span>Visit Official Page</span>
+                    <ExternalLink size={12} className="opacity-75 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                  </div>
                 </div>
               </div>
             </a>

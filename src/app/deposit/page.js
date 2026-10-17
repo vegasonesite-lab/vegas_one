@@ -182,6 +182,7 @@ export default function DepositPage() {
 
   const handleDepositSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
     if (!user) {
       setAuthModal({ open: true, tab: 'login' });
       return;

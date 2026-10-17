@@ -589,6 +589,7 @@ export default function AdminPortal({ initialTab }) {
 
   const syncRequestsAndAlerts = async () => {
     if (!user) return;
+    if (typeof document !== 'undefined' && document.hidden) return;
     try {
       const [depRes, withRes, reqRes] = await Promise.all([
         fetch('/api/payments/deposit?status=all'),
@@ -692,11 +693,11 @@ export default function AdminPortal({ initialTab }) {
     }
   };
 
-  // Run persistent poller every 3.5 seconds
+  // Run persistent poller
   useEffect(() => {
     if (!user) return;
     syncRequestsAndAlerts();
-    const interval = setInterval(syncRequestsAndAlerts, 3500);
+    const interval = setInterval(syncRequestsAndAlerts, 5000);
     return () => clearInterval(interval);
   }, [user]);
 
@@ -705,6 +706,7 @@ export default function AdminPortal({ initialTab }) {
     if (!user) return;
 
     const loadData = () => {
+      if (typeof document !== 'undefined' && document.hidden) return;
       if (activeTab === 'overview') {
         fetch('/api/admin/stats').then(r => r.json()).then(d => { if (d.success) setStats(d.stats); });
       } else if (activeTab === 'games') {
@@ -746,7 +748,7 @@ export default function AdminPortal({ initialTab }) {
     };
 
     loadData();
-    const interval = setInterval(loadData, 5000);
+    const interval = setInterval(loadData, 6500);
     return () => clearInterval(interval);
   }, [user, activeTab, ledgerFilterUser, ledgerFilterType, accountReqFilter, userSearchQuery, allotmentSearch]);
 
@@ -1957,7 +1959,12 @@ export default function AdminPortal({ initialTab }) {
 
           {/* TAB: COINS ALLOTMENT & OPERATIONS DESK */}
           {activeTab === 'coins_allotment' && (
-            <CoinOperationsDesk sessionUser={user} />
+            <CoinOperationsDesk
+              sessionUser={user}
+              parentAccountRequests={accountRequests}
+              parentRedemptions={redemptions}
+              onParentSync={syncRequestsAndAlerts}
+            />
           )}
 
           {/* TAB 2: GAMES CONTROL */}

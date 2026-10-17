@@ -1,5 +1,6 @@
 import './globals.css';
 import { Lexend } from 'next/font/google';
+import Script from 'next/script';
 import PushNotificationManager from '@/components/player/PushNotificationManager';
 
 const lexend = Lexend({
@@ -56,6 +57,7 @@ export default function RootLayout({ children }) {
         <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </head>
       <body className={lexend.className} style={{ fontFamily: `var(--font-lexend), 'Lexend', -apple-system, sans-serif` }}>
+        <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
         <PushNotificationManager />
         {children}
       </body>

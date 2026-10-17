@@ -21,17 +21,22 @@ import {
   Maximize2
 } from 'lucide-react';
 
-export default function CoinOperationsDesk({ sessionUser }) {
+export default function CoinOperationsDesk({
+  sessionUser,
+  parentAccountRequests = [],
+  parentRedemptions = [],
+  onParentSync,
+}) {
   const [activeSection, setActiveSection] = useState('loads'); // 'loads' | 'cashouts'
   const [loading, setLoading] = useState(false);
 
-  // Load Requests State (from /api/account-requests)
-  const [loadRequests, setLoadRequests] = useState([]);
+  // Load Requests State (from /api/account-requests or parent)
+  const [loadRequests, setLoadRequests] = useState(parentAccountRequests || []);
   const [loadSearch, setLoadSearch] = useState('');
   const [loadFilter, setLoadFilter] = useState('all');
 
-  // Cashout Requests State (from /api/payments/withdraw)
-  const [cashoutRequests, setCashoutRequests] = useState([]);
+  // Cashout Requests State (from /api/payments/withdraw or parent)
+  const [cashoutRequests, setCashoutRequests] = useState(parentRedemptions || []);
   const [cashoutSearch, setCashoutSearch] = useState('');
   const [cashoutFilter, setCashoutFilter] = useState('all');
 
@@ -40,6 +45,7 @@ export default function CoinOperationsDesk({ sessionUser }) {
   const [rejectLoadModal, setRejectLoadModal] = useState({ open: false, item: null, reason: '' });
   const [rejectCashoutModal, setRejectCashoutModal] = useState({ open: false, item: null, reason: '' });
   const [screenshotModal, setScreenshotModal] = useState({ open: false, src: null, title: '' });
+  const [actionLoading, setActionLoading] = useState(false);
 
   // Status Alerts
   const [alert, setAlert] = useState(null);
@@ -49,23 +55,43 @@ export default function CoinOperationsDesk({ sessionUser }) {
     setTimeout(() => setAlert(null), 5000);
   };
 
-  // Fetch all data
+  // Sync from parent props whenever available
+  useEffect(() => {
+    if (Array.isArray(parentAccountRequests) && parentAccountRequests.length > 0) {
+      setLoadRequests(parentAccountRequests);
+    }
+  }, [parentAccountRequests]);
+
+  useEffect(() => {
+    if (Array.isArray(parentRedemptions) && parentRedemptions.length > 0) {
+      setCashoutRequests(parentRedemptions);
+    }
+  }, [parentRedemptions]);
+
+  // Fetch all data with resilient error handling
   const fetchData = async () => {
     setLoading(true);
     try {
+      if (typeof onParentSync === 'function') {
+        onParentSync();
+      }
+
       const [loadsRes, cashoutsRes] = await Promise.all([
-        fetch('/api/account-requests?status=all'),
-        fetch('/api/payments/withdraw?status=all'),
+        fetch('/api/account-requests?status=all').catch(() => null),
+        fetch('/api/payments/withdraw?status=all').catch(() => null),
       ]);
 
-      const loadsData = await loadsRes.json();
-      const cashoutsData = await cashoutsRes.json();
-
-      if (loadsData.success) {
-        setLoadRequests(loadsData.accountRequests || []);
+      if (loadsRes && loadsRes.ok) {
+        const loadsData = await loadsRes.json().catch(() => null);
+        if (loadsData && loadsData.success && Array.isArray(loadsData.accountRequests)) {
+          setLoadRequests(loadsData.accountRequests);
+        }
       }
-      if (cashoutsData.success) {
-        setCashoutRequests(cashoutsData.redemptions || []);
+      if (cashoutsRes && cashoutsRes.ok) {
+        const cashoutsData = await cashoutsRes.json().catch(() => null);
+        if (cashoutsData && cashoutsData.success && Array.isArray(cashoutsData.redemptions)) {
+          setCashoutRequests(cashoutsData.redemptions);
+        }
       }
     } catch (err) {
       console.error('Error fetching coin desk data:', err);
@@ -80,11 +106,11 @@ export default function CoinOperationsDesk({ sessionUser }) {
     return () => clearInterval(interval);
   }, []);
 
-  // Filtered Load Requests
+  // Filtered Load Requests (case-insensitive and robust)
   const pendingLoads = useMemo(() => {
-    return loadRequests.filter(
+    return (loadRequests || []).filter(
       (r) =>
-        r.status === 'PENDING' &&
+        String(r.status || '').toUpperCase() === 'PENDING' &&
         (loadSearch === '' ||
           r.userEmail?.toLowerCase().includes(loadSearch.toLowerCase()) ||
           r.userName?.toLowerCase().includes(loadSearch.toLowerCase()) ||
@@ -93,11 +119,12 @@ export default function CoinOperationsDesk({ sessionUser }) {
   }, [loadRequests, loadSearch]);
 
   const historyLoads = useMemo(() => {
-    return loadRequests.filter((r) => {
-      if (r.status === 'PENDING') return false;
+    return (loadRequests || []).filter((r) => {
+      const st = String(r.status || '').toUpperCase();
+      if (st === 'PENDING') return false;
       if (loadFilter !== 'all') {
-        if (loadFilter === 'approved' && r.status !== 'READY') return false;
-        if (loadFilter === 'rejected' && r.status !== 'REJECTED' && r.status !== 'CANCELLED') return false;
+        if (loadFilter === 'approved' && st !== 'READY') return false;
+        if (loadFilter === 'rejected' && st !== 'REJECTED' && st !== 'CANCELLED') return false;
       }
       if (loadSearch) {
         return (
@@ -112,9 +139,9 @@ export default function CoinOperationsDesk({ sessionUser }) {
 
   // Filtered Cashouts for Coin Desk (Pending Coin Verification)
   const pendingCashouts = useMemo(() => {
-    return cashoutRequests.filter(
+    return (cashoutRequests || []).filter(
       (c) =>
-        (c.status === 'pending_coin' || c.stage === 'coin_verification') &&
+        (c.status === 'pending_coin' || c.stage === 'coin_verification' || c.status === 'pending') &&
         (cashoutSearch === '' ||
           c.username?.toLowerCase().includes(cashoutSearch.toLowerCase()) ||
           c.gameTitle?.toLowerCase().includes(cashoutSearch.toLowerCase()) ||
@@ -123,10 +150,10 @@ export default function CoinOperationsDesk({ sessionUser }) {
   }, [cashoutRequests, cashoutSearch]);
 
   const historyCashouts = useMemo(() => {
-    return cashoutRequests.filter((c) => {
-      if (c.status === 'pending_coin' || c.stage === 'coin_verification') return false;
+    return (cashoutRequests || []).filter((c) => {
+      if (c.status === 'pending_coin' || c.stage === 'coin_verification' || c.status === 'pending') return false;
       if (cashoutFilter !== 'all') {
-        if (cashoutFilter === 'verified' && !c.coinApprovedBy && c.status !== 'pending' && c.status !== 'approved') return false;
+        if (cashoutFilter === 'verified' && !c.coinApprovedBy && c.status !== 'approved') return false;
         if (cashoutFilter === 'rejected' && c.status !== 'rejected_by_coin') return false;
       }
       if (cashoutSearch) {
@@ -140,71 +167,126 @@ export default function CoinOperationsDesk({ sessionUser }) {
     });
   }, [cashoutRequests, cashoutFilter, cashoutSearch]);
 
-  // Handle Approve Game Load
+  // Handle Approve Game Load (Instant Optimistic Feedback & Double-Click Lock)
   const handleApproveLoadSubmit = async (e) => {
     e.preventDefault();
-    if (!approveLoadModal.item) return;
+    if (!approveLoadModal.item || actionLoading) return;
+    setActionLoading(true);
+
+    const targetItem = approveLoadModal.item;
+    const assignedUser = approveLoadModal.username.trim() || targetItem.userName;
+    const assignedPass = approveLoadModal.password.trim() || 'VegasWin777!';
+
+    // 1. Optimistically mark item as READY and remove from pending queue immediately
+    setLoadRequests((prev) =>
+      prev.map((r) =>
+        r.id === targetItem.id
+          ? {
+              ...r,
+              status: 'READY',
+              gameAccountUsername: assignedUser,
+              gameAccountPassword: assignedPass,
+            }
+          : r
+      )
+    );
+
+    // 2. Dismiss modal immediately for instant UI response
+    setApproveLoadModal({ open: false, item: null, username: '', password: '' });
+    showAlert('success', `✓ Approving ${targetItem.gameTitle} load for ${targetItem.userName}...`);
 
     try {
       const res = await fetch('/api/account-requests', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id: approveLoadModal.item.id,
+          id: targetItem.id,
           action: 'approve',
-          username: approveLoadModal.username.trim() || approveLoadModal.item.userName,
-          password: approveLoadModal.password.trim() || 'VegasWin777!',
+          username: assignedUser,
+          password: assignedPass,
         }),
       });
 
       const data = await res.json();
       if (data.success) {
         showAlert('success', data.message || 'Game load approved and balance deducted!');
-        setApproveLoadModal({ open: false, item: null, username: '', password: '' });
-        fetchData();
+        if (typeof onParentSync === 'function') onParentSync();
       } else {
         showAlert('error', data.message || 'Failed to approve load.');
+        fetchData();
       }
     } catch {
       showAlert('error', 'Network error approving game load.');
+      fetchData();
+    } finally {
+      setActionLoading(false);
     }
   };
 
-  // Handle Reject Game Load with Note
+  // Handle Reject Game Load with Note (Instant Optimistic Feedback)
   const handleRejectLoadSubmit = async (e) => {
     e.preventDefault();
-    if (!rejectLoadModal.item) return;
+    if (!rejectLoadModal.item || actionLoading) return;
     if (!rejectLoadModal.reason.trim()) {
       showAlert('error', 'Please write a note explaining why this request was rejected.');
       return;
     }
+    setActionLoading(true);
+
+    const targetItem = rejectLoadModal.item;
+    const reasonText = rejectLoadModal.reason.trim();
+
+    // 1. Optimistically mark item as REJECTED immediately
+    setLoadRequests((prev) =>
+      prev.map((r) =>
+        r.id === targetItem.id
+          ? { ...r, status: 'REJECTED', rejectionReason: reasonText }
+          : r
+      )
+    );
+
+    // 2. Dismiss modal immediately
+    setRejectLoadModal({ open: false, item: null, reason: '' });
+    showAlert('success', `Rejecting request for ${targetItem.userName}...`);
 
     try {
       const res = await fetch('/api/account-requests', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id: rejectLoadModal.item.id,
+          id: targetItem.id,
           action: 'reject',
-          rejectionReason: rejectLoadModal.reason.trim(),
+          rejectionReason: reasonText,
         }),
       });
 
       const data = await res.json();
       if (data.success) {
         showAlert('success', 'Game load request rejected. Reason logged for user!');
-        setRejectLoadModal({ open: false, item: null, reason: '' });
-        fetchData();
+        if (typeof onParentSync === 'function') onParentSync();
       } else {
         showAlert('error', data.message || 'Failed to reject request.');
+        fetchData();
       }
     } catch {
       showAlert('error', 'Network error rejecting request.');
+      fetchData();
+    } finally {
+      setActionLoading(false);
     }
   };
 
-  // Handle Cashout Coin Approval (Pass to Finance)
+  // Handle Cashout Coin Approval (Pass to Finance - Instant Optimistic)
   const handleApproveCashout = async (redemptionId) => {
+    if (actionLoading) return;
+    setActionLoading(true);
+
+    // 1. Optimistically advance redemption stage
+    setCashoutRequests((prev) =>
+      prev.map((c) => (c.id === redemptionId ? { ...c, status: 'pending', stage: 'finance_payout' } : c))
+    );
+    showAlert('success', '🏆 Game screenshot verified! Forwarding to Finance Cashier...');
+
     try {
       const res = await fetch('/api/payments/withdraw', {
         method: 'PUT',
@@ -218,45 +300,65 @@ export default function CoinOperationsDesk({ sessionUser }) {
       const data = await res.json();
       if (data.success) {
         showAlert('success', '🏆 Game screenshot verified! Request forwarded to Finance Ledger for payout.');
-        fetchData();
+        if (typeof onParentSync === 'function') onParentSync();
       } else {
         showAlert('error', data.error || 'Failed to verify cashout.');
+        fetchData();
       }
     } catch {
       showAlert('error', 'Network error verifying cashout.');
+      fetchData();
+    } finally {
+      setActionLoading(false);
     }
   };
 
-  // Handle Reject Cashout with Note
+  // Handle Reject Cashout with Note (Instant Optimistic)
   const handleRejectCashoutSubmit = async (e) => {
     e.preventDefault();
-    if (!rejectCashoutModal.item) return;
+    if (!rejectCashoutModal.item || actionLoading) return;
     if (!rejectCashoutModal.reason.trim()) {
       showAlert('error', 'Please write a note explaining why this cashout was rejected.');
       return;
     }
+    setActionLoading(true);
+
+    const targetItem = rejectCashoutModal.item;
+    const reasonText = rejectCashoutModal.reason.trim();
+
+    // 1. Optimistically mark as rejected
+    setCashoutRequests((prev) =>
+      prev.map((c) => (c.id === targetItem.id ? { ...c, status: 'rejected_by_coin', rejectReason: reasonText } : c))
+    );
+
+    // 2. Dismiss modal immediately
+    setRejectCashoutModal({ open: false, item: null, reason: '' });
+    showAlert('success', 'Rejecting cashout verification...');
 
     try {
       const res = await fetch('/api/payments/withdraw', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          redemptionId: rejectCashoutModal.item.id,
+          redemptionId: targetItem.id,
           action: 'coin_reject',
-          rejectReason: rejectCashoutModal.reason.trim(),
+          rejectReason: reasonText,
         }),
       });
 
       const data = await res.json();
       if (data.success) {
         showAlert('success', 'Cashout rejected. Note sent to user and funds unfrozen.');
-        setRejectCashoutModal({ open: false, item: null, reason: '' });
-        fetchData();
+        if (typeof onParentSync === 'function') onParentSync();
       } else {
         showAlert('error', data.error || 'Failed to reject cashout.');
+        fetchData();
       }
     } catch {
       showAlert('error', 'Network error rejecting cashout.');
+      fetchData();
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -2001,23 +2103,34 @@ export default function CoinOperationsDesk({ sessionUser }) {
               <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-white/10">
                 <button
                   type="button"
+                  disabled={actionLoading}
                   onClick={() => setApproveLoadModal({ open: false, item: null, username: '', password: '' })}
-                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="py-2.5 px-6 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+                  disabled={actionLoading}
+                  className="py-2.5 px-6 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
                   style={{
-                    background: 'linear-gradient(135deg, #00F0FF 0%, #00d0e8 40%, #E026D8 100%)',
-                    color: '#070514',
-                    boxShadow: '0 0 25px rgba(0, 240, 255, 0.45)',
+                    background: actionLoading ? '#334155' : 'linear-gradient(135deg, #00F0FF 0%, #00d0e8 40%, #E026D8 100%)',
+                    color: actionLoading ? '#94A3B8' : '#070514',
+                    boxShadow: actionLoading ? 'none' : '0 0 25px rgba(0, 240, 255, 0.45)',
                     border: 'none',
                   }}
                 >
-                  <Check size={14} strokeWidth={3} />
-                  <span>Confirm &amp; Deduct</span>
+                  {actionLoading ? (
+                    <>
+                      <RefreshCw size={14} className="animate-spin" />
+                      <span>Processing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check size={14} strokeWidth={3} />
+                      <span>Confirm &amp; Deduct</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -2111,14 +2224,16 @@ export default function CoinOperationsDesk({ sessionUser }) {
               <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-white/10">
                 <button
                   type="button"
+                  disabled={actionLoading}
                   onClick={() => setRejectLoadModal({ open: false, item: null, reason: '' })}
-                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="py-2.5 px-6 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+                  disabled={actionLoading}
+                  className="py-2.5 px-6 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
                   style={{
                     backgroundColor: '#EF4444',
                     color: '#FFFFFF',
@@ -2126,8 +2241,17 @@ export default function CoinOperationsDesk({ sessionUser }) {
                     border: 'none',
                   }}
                 >
-                  <X size={14} strokeWidth={3} />
-                  <span>Reject &amp; Send Note</span>
+                  {actionLoading ? (
+                    <>
+                      <RefreshCw size={14} className="animate-spin" />
+                      <span>Rejecting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <X size={14} strokeWidth={3} />
+                      <span>Reject &amp; Send Note</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -2221,14 +2345,16 @@ export default function CoinOperationsDesk({ sessionUser }) {
               <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-white/10">
                 <button
                   type="button"
+                  disabled={actionLoading}
                   onClick={() => setRejectCashoutModal({ open: false, item: null, reason: '' })}
-                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-gray-400 hover:text-white hover:bg-white/10 transition-all cursor-pointer disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="py-2.5 px-6 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+                  disabled={actionLoading}
+                  className="py-2.5 px-6 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
                   style={{
                     backgroundColor: '#EF4444',
                     color: '#FFFFFF',
@@ -2236,8 +2362,17 @@ export default function CoinOperationsDesk({ sessionUser }) {
                     border: 'none',
                   }}
                 >
-                  <X size={14} strokeWidth={3} />
-                  <span>Reject &amp; Unfreeze</span>
+                  {actionLoading ? (
+                    <>
+                      <RefreshCw size={14} className="animate-spin" />
+                      <span>Rejecting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <X size={14} strokeWidth={3} />
+                      <span>Reject &amp; Unfreeze</span>
+                    </>
+                  )}
                 </button>
               </div>
             </form>

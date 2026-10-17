@@ -178,6 +178,7 @@ export default function CashoutPage() {
 
   const handleRedeemSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
     if (!user) {
       setAuthModal({ open: true, tab: 'login' });
       return;
@@ -258,6 +259,7 @@ export default function CashoutPage() {
 
   const handleConfirmResubmit = async (e) => {
     e.preventDefault();
+    if (resubmitModal.loading) return;
     if (!resubmitModal.item) return;
 
     const amt = Number(resubmitModal.amount);

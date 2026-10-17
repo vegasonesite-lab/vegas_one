@@ -10,7 +10,7 @@ export async function POST(req) {
   try {
     await ensureDbInitialized();
     const body = await req.json();
-    const { email, name, googleId, deviceId: rawDeviceId } = body;
+    const { email, name, googleId, picture, deviceId: rawDeviceId } = body;
 
     if (!email) {
       return NextResponse.json({ success: false, error: 'Google email is required.' }, { status: 400 });
@@ -43,6 +43,7 @@ export async function POST(req) {
         username: cleanUsername,
         email: cleanEmail,
         googleId: googleId || `google_${Date.now()}`,
+        avatar: picture || null,
         role: ROLES.PLAYER,
         balanceSC: initialBonusSC,
         balanceGC: initialBonusGC,
