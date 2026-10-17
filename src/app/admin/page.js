@@ -58,6 +58,7 @@ import {
   Copy,
   Flame,
   Tag,
+  Video,
 } from 'lucide-react';
 import FinanceDepositsView from '@/components/admin/FinanceDepositsView';
 import FinanceRedemptionsView from '@/components/admin/FinanceRedemptionsView';
@@ -68,6 +69,7 @@ import SoundSettingsModal from '@/components/admin/SoundSettingsModal';
 import IncomingRequestToast from '@/components/admin/IncomingRequestToast';
 import Player360ProfileModal from '@/components/admin/Player360ProfileModal';
 import AffiliateManagementHub from '@/components/admin/AffiliateManagementHub';
+import HomepageVideosManager from '@/components/admin/HomepageVideosManager';
 import { playTune, unlockAudioContext, AVAILABLE_TUNES } from '@/lib/soundAlerts';
 
 export default function AdminPortal({ initialTab }) {
@@ -298,6 +300,7 @@ export default function AdminPortal({ initialTab }) {
   const [chatFilterTab, setChatFilterTab] = useState('all');
   const [isSendingChat, setIsSendingChat] = useState(false);
   const chatMessagesEndRef = useRef(null);
+  const adminChatInputRef = useRef(null);
 
   // Push Notifications & Omnichannel Broadcast state
   const [pushTitle, setPushTitle] = useState('');
@@ -847,7 +850,16 @@ export default function AdminPortal({ initialTab }) {
     const fetchChatMsgs = () => {
       fetch(`/api/chat?conversationId=${activeChatConv._id}`)
         .then(r => r.json())
-        .then(d => { if (d.success) setChatMessages(d.messages); });
+        .then(d => {
+          if (d.success && Array.isArray(d.messages)) {
+            setChatMessages(prev => {
+              const pendingTemps = prev.filter(
+                p => String(p.id).startsWith('temp_') && !d.messages.some(m => m.text === p.text)
+              );
+              return [...d.messages, ...pendingTemps];
+            });
+          }
+        });
     };
     fetchChatMsgs();
     const interval = setInterval(fetchChatMsgs, 3000);
@@ -1044,6 +1056,7 @@ export default function AdminPortal({ initialTab }) {
     { id: 'users', label: 'Player Accounts', icon: Users, category: 'Catalog & Players' },
     { id: 'tx_search', label: 'Transaction Logs', icon: FileSpreadsheet, category: 'Catalog & Players' },
     { id: 'promos', label: 'Push & Broadcasts', icon: Megaphone, category: 'Growth & Promos' },
+    { id: 'videos', label: 'Homepage Videos', icon: Video, category: 'Growth & Promos' },
     { id: 'affiliates', label: 'Affiliates 50%', icon: Users, category: 'Growth & Promos' },
     { id: 'affiliate_commissions', label: 'Affiliate Commissions', icon: DollarSign, category: 'Growth & Promos' },
     { id: 'gateways', label: 'Payment Gateways', icon: SlidersHorizontal, category: 'System & Security' },
@@ -3346,24 +3359,34 @@ export default function AdminPortal({ initialTab }) {
             const handleSendChatMessage = async (e, directText) => {
               if (e && e.preventDefault) e.preventDefault();
               const text = (directText !== undefined ? directText : chatReplyText).trim();
-              if (!text || !activeChatConv || isSendingChat) return;
+              if (!text || !activeChatConv) return;
 
-              setIsSendingChat(true);
+              // 1. Immediately clear input & retain focus
+              setChatReplyText('');
+              adminChatInputRef.current?.focus();
+
+              // 2. Optimistic 0ms render on the RIGHT side
+              const tempId = `temp_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
               const optimisticMsg = {
-                id: `temp_${Date.now()}`,
+                id: tempId,
                 conversationId: activeChatConv._id,
                 userId: activeChatConv.userId,
                 username: user?.username || 'Vegas One Support',
                 senderRole: 'staff',
+                staffName: user?.username || 'Support Staff',
                 text: text,
                 read: true,
                 createdAt: new Date().toISOString(),
               };
               setChatMessages(prev => [...prev, optimisticMsg]);
-              setChatReplyText('');
+
+              // 3. Smooth scroll down immediately
+              setTimeout(() => {
+                chatMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+              }, 10);
 
               try {
-                await fetch('/api/chat', {
+                const res = await fetch('/api/chat', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
@@ -3373,16 +3396,22 @@ export default function AdminPortal({ initialTab }) {
                     text: text,
                   }),
                 });
-                const res = await fetch(`/api/chat?conversationId=${activeChatConv._id}`);
                 const d = await res.json();
-                if (d.success) setChatMessages(d.messages);
-                const cRes = await fetch('/api/chat?inbox=true');
-                const cD = await cRes.json();
-                if (cD.success) setChatConversations(cD.conversations);
+                if (d.success && d.message) {
+                  setChatMessages(prev =>
+                    prev.map(m => (m.id === tempId ? { ...d.message, senderRole: 'staff' } : m))
+                  );
+                }
+                // Refresh inbox conversations in background
+                fetch('/api/chat?inbox=true')
+                  .then(r => r.json())
+                  .then(cD => { if (cD.success) setChatConversations(cD.conversations); });
               } catch (err) {
                 console.error('Failed to send chat message:', err);
               } finally {
-                setIsSendingChat(false);
+                setTimeout(() => {
+                  chatMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+                }, 50);
               }
             };
 
@@ -3423,7 +3452,14 @@ export default function AdminPortal({ initialTab }) {
                       onClick={() => {
                         fetch('/api/chat?inbox=true').then(r => r.json()).then(d => { if (d.success) setChatConversations(d.conversations); });
                         if (activeChatConv) {
-                          fetch(`/api/chat?conversationId=${activeChatConv._id}`).then(r => r.json()).then(d => { if (d.success) setChatMessages(d.messages); });
+                          fetch(`/api/chat?conversationId=${activeChatConv._id}`).then(r => r.json()).then(d => {
+                            if (d.success && Array.isArray(d.messages)) {
+                              setChatMessages(prev => {
+                                const pendingTemps = prev.filter(p => String(p.id).startsWith('temp_') && !d.messages.some(m => m.text === p.text));
+                                return [...d.messages, ...pendingTemps];
+                              });
+                            }
+                          });
                         }
                       }}
                       className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white flex items-center gap-1.5 text-xs font-bold transition"
@@ -3625,7 +3661,14 @@ export default function AdminPortal({ initialTab }) {
                             <button
                               type="button"
                               onClick={() => {
-                                fetch(`/api/chat?conversationId=${activeChatConv._id}`).then(r => r.json()).then(d => { if (d.success) setChatMessages(d.messages); });
+                                fetch(`/api/chat?conversationId=${activeChatConv._id}`).then(r => r.json()).then(d => {
+                                  if (d.success && Array.isArray(d.messages)) {
+                                    setChatMessages(prev => {
+                                      const pendingTemps = prev.filter(p => String(p.id).startsWith('temp_') && !d.messages.some(m => m.text === p.text));
+                                      return [...d.messages, ...pendingTemps];
+                                    });
+                                  }
+                                });
                               }}
                               className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white transition"
                               title="Refresh Chat"
@@ -3662,23 +3705,47 @@ export default function AdminPortal({ initialTab }) {
                               </p>
                             </div>
                           ) : (
-                            chatMessages.map((m) => {
-                              const isStaff = m.senderRole === 'staff';
+                            chatMessages.map((m, idx) => {
+                              const isStaff =
+                                m.senderRole === 'staff' ||
+                                m.role === 'staff' ||
+                                Boolean(m.staffName) ||
+                                String(m.id).startsWith('temp_');
+
                               return (
                                 <div
-                                  key={m.id}
-                                  className={`flex flex-col ${isStaff ? 'items-end' : 'items-start'}`}
+                                  key={m.id || idx}
+                                  className={`flex flex-col ${isStaff ? 'items-end' : 'items-start'} mb-1`}
                                 >
+                                  {/* Identity Label */}
+                                  <div
+                                    className={`flex items-center gap-1.5 mb-1 px-1 text-[10px] font-black uppercase tracking-wider ${
+                                      isStaff ? 'text-cyan-400' : 'text-purple-400'
+                                    }`}
+                                  >
+                                    {isStaff ? (
+                                      <>
+                                        <ShieldCheck size={11} className="text-cyan-400" />
+                                        <span>{m.staffName || user?.username || 'You (Support)'}</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <User size={11} className="text-purple-400" />
+                                        <span>{m.username || activeChatConv?.username || 'Player'}</span>
+                                      </>
+                                    )}
+                                  </div>
+
                                   <div className={`flex items-start gap-2 max-w-[85%] sm:max-w-[75%] ${isStaff ? 'flex-row-reverse' : 'flex-row'}`}>
                                     {/* Avatar icon */}
-                                    <div className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center text-[10px] font-black uppercase mt-1 border shadow-sm">
+                                    <div className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center text-[10px] font-black uppercase mt-0.5 border shadow-sm">
                                       {isStaff ? (
                                         <div className="w-full h-full rounded-lg bg-gradient-to-tr from-cyan-400 to-cyan-600 text-black flex items-center justify-center font-black">
                                           V1
                                         </div>
                                       ) : (
-                                        <div className="w-full h-full rounded-lg bg-gradient-to-tr from-purple-600/50 to-pink-600/40 text-purple-200 border-white/20 flex items-center justify-center font-black">
-                                          {m.username ? m.username.charAt(0) : 'P'}
+                                        <div className="w-full h-full rounded-lg bg-gradient-to-tr from-purple-600/50 to-pink-600/40 text-purple-200 border border-white/20 flex items-center justify-center font-black">
+                                          {m.username ? m.username.charAt(0) : activeChatConv?.username ? activeChatConv.username.charAt(0) : 'P'}
                                         </div>
                                       )}
                                     </div>
@@ -3686,7 +3753,7 @@ export default function AdminPortal({ initialTab }) {
                                     {/* Bubble */}
                                     <div>
                                       <div className={`px-4 py-2.5 rounded-2xl text-xs leading-relaxed shadow-lg ${isStaff
-                                        ? 'bg-gradient-to-r from-cyan-500 to-cyan-400 text-slate-950 font-semibold rounded-tr-none shadow-[0_4px_15px_rgba(0,240,255,0.2)]'
+                                        ? 'bg-gradient-to-r from-cyan-500 to-cyan-400 text-slate-950 font-bold rounded-tr-none shadow-[0_4px_15px_rgba(0,240,255,0.25)]'
                                         : 'bg-[#181238] text-gray-100 border border-white/10 rounded-tl-none shadow-md'
                                         }`}>
                                         {m.text}
@@ -3718,8 +3785,7 @@ export default function AdminPortal({ initialTab }) {
                               key={idx}
                               type="button"
                               onClick={() => handleSendChatMessage(null, reply)}
-                              disabled={isSendingChat}
-                              className="shrink-0 px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-cyan-500/20 border border-white/10 hover:border-cyan-400/40 text-gray-300 hover:text-cyan-200 text-[11px] font-medium transition active:scale-95 disabled:opacity-50"
+                              className="shrink-0 px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-cyan-500/20 border border-white/10 hover:border-cyan-400/40 text-gray-300 hover:text-cyan-200 text-[11px] font-medium transition active:scale-95"
                             >
                               {reply}
                             </button>
@@ -3735,6 +3801,7 @@ export default function AdminPortal({ initialTab }) {
                           className="p-3 bg-[#0a071c] border-t border-white/10 flex items-center gap-2 transition-all duration-150"
                         >
                           <input
+                            ref={adminChatInputRef}
                             type="text"
                             placeholder={`Reply to ${activeChatConv.username}...`}
                             value={chatReplyText}
@@ -3743,14 +3810,10 @@ export default function AdminPortal({ initialTab }) {
                           />
                           <button
                             type="submit"
-                            disabled={!chatReplyText.trim() || isSendingChat}
-                            className="btn-gold py-2.5 px-5 text-xs font-black flex items-center gap-1.5 shadow-md disabled:opacity-50 transition"
+                            disabled={!chatReplyText.trim()}
+                            className="btn-gold py-2.5 px-5 text-xs font-black flex items-center gap-1.5 shadow-md disabled:opacity-50 transition cursor-pointer"
                           >
-                            {isSendingChat ? (
-                              <RefreshCw size={13} className="animate-spin" />
-                            ) : (
-                              <Send size={13} />
-                            )}
+                            <Send size={13} />
                             <span>Send</span>
                           </button>
                         </form>
@@ -4185,6 +4248,9 @@ export default function AdminPortal({ initialTab }) {
               </div>
             );
           })()}
+
+          {/* TAB: HOMEPAGE VIDEOS */}
+          {activeTab === 'videos' && <HomepageVideosManager />}
 
           {/* TAB 10: AFFILIATES */}
           {activeTab === 'affiliates' && (
