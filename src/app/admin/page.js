@@ -437,6 +437,7 @@ export default function AdminPortal({ initialTab }) {
 
   // Coin Load Requests state (strictly COIN_LOAD for Coins Allotment desk & badges)
   const [coinLoadRequests, setCoinLoadRequests] = useState([]);
+  const [coinDeskSection, setCoinDeskSection] = useState('loads'); // 'loads' | 'cashouts'
 
   const fetchAccountRequests = () => {
     fetch(`/api/account-requests?type=ACCOUNT_CREATION&status=${accountReqFilter}`)
@@ -2051,6 +2052,7 @@ export default function AdminPortal({ initialTab }) {
               sessionUser={user}
               parentAccountRequests={coinLoadRequests}
               parentRedemptions={redemptions}
+              initialSection={coinDeskSection}
               onParentSync={syncRequestsAndAlerts}
             />
           )}
@@ -7439,7 +7441,12 @@ export default function AdminPortal({ initialTab }) {
             onDismiss={() => setActiveAlertToast(null)}
             onViewRequest={(alert) => {
               if (alert.targetTab) setActiveTab(alert.targetTab);
-              if (alert.targetSubTab) setFinanceSubTab(alert.targetSubTab);
+              if (alert.targetTab === 'finance' && alert.targetSubTab) {
+                setFinanceSubTab(alert.targetSubTab);
+              }
+              if (alert.targetTab === 'coins_allotment') {
+                setCoinDeskSection(alert.targetSubTab || 'loads');
+              }
             }}
           />
         </main>

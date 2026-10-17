@@ -18,17 +18,27 @@ import {
   X,
   ExternalLink,
   DollarSign,
-  Maximize2
+  Maximize2,
+  Copy,
+  CheckCheck,
+  ChevronDown,
+  ChevronUp,
+  Sparkles,
 } from 'lucide-react';
 
 export default function CoinOperationsDesk({
   sessionUser,
   parentAccountRequests = [],
   parentRedemptions = [],
+  initialSection = 'loads',
   onParentSync,
 }) {
-  const [activeSection, setActiveSection] = useState('loads'); // 'loads' | 'cashouts'
+  const [activeSection, setActiveSection] = useState(initialSection || 'loads'); // 'loads' | 'cashouts'
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (initialSection) setActiveSection(initialSection);
+  }, [initialSection]);
 
   // Load Requests State (from /api/account-requests or parent)
   const [loadRequests, setLoadRequests] = useState(parentAccountRequests || []);
@@ -42,6 +52,8 @@ export default function CoinOperationsDesk({
 
   // Modals State
   const [approveLoadModal, setApproveLoadModal] = useState({ open: false, item: null, username: '', password: '', editAmount: '' });
+  const [showCredentialsInModal, setShowCredentialsInModal] = useState(false);
+  const [copiedId, setCopiedId] = useState(false);
   const [rejectLoadModal, setRejectLoadModal] = useState({ open: false, item: null, reason: '' });
   const [rejectCashoutModal, setRejectCashoutModal] = useState({ open: false, item: null, reason: '' });
   const [screenshotModal, setScreenshotModal] = useState({ open: false, src: null, title: '' });
@@ -2036,65 +2048,120 @@ export default function CoinOperationsDesk({
             }}
           >
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-3">
                 <div
-                  className="w-9 h-9 rounded-xl flex items-center justify-center text-[#00F0FF]"
+                  className="w-10 h-10 rounded-xl flex items-center justify-center text-[#00F0FF]"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(0, 240, 255, 0.2) 0%, rgba(224, 38, 216, 0.15) 100%)',
-                    border: '1px solid rgba(0, 240, 255, 0.4)',
-                    boxShadow: '0 0 15px rgba(0, 240, 255, 0.25)',
+                    background: 'linear-gradient(135deg, rgba(0, 240, 255, 0.25) 0%, rgba(224, 38, 216, 0.2) 100%)',
+                    border: '1.5px solid rgba(0, 240, 255, 0.5)',
+                    boxShadow: '0 0 20px rgba(0, 240, 255, 0.35)',
                   }}
                 >
-                  <CheckCircle2 size={18} strokeWidth={2.5} />
+                  <Coins size={20} strokeWidth={2.5} />
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-white m-0 tracking-wide">
-                    Approve Game Load &amp; Deduct Balance
+                  <h3 className="text-base font-black text-white m-0 tracking-wide flex items-center gap-2">
+                    <span>Allot Coins &amp; Credit Account</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-cyan-400/20 text-[#00F0FF] border border-cyan-400/40">
+                      VIP Desk
+                    </span>
                   </h3>
-                  <p className="text-[11px] text-gray-400 m-0">Confirm credentials and credit sweepstakes portal</p>
+                  <p className="text-[11px] text-slate-300 m-0">Review player request &amp; credit sweepstakes portal</p>
                 </div>
               </div>
               <button
                 type="button"
-                onClick={() => setApproveLoadModal({ open: false, item: null, username: '', password: '' })}
+                onClick={() => setApproveLoadModal({ open: false, item: null, username: '', password: '', editAmount: '' })}
                 className="p-1.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
               >
                 <X size={18} />
               </button>
             </div>
 
+            {/* Section 1: Player & Target Platform Info Card */}
             <div
-              className="rounded-xl p-3.5 space-y-2.5 text-xs"
+              className="rounded-2xl p-4 space-y-3"
               style={{
-                backgroundColor: 'rgba(0, 240, 255, 0.08)',
+                backgroundColor: 'rgba(7, 5, 20, 0.7)',
                 border: '1px solid rgba(0, 240, 255, 0.25)',
+                boxShadow: 'inset 0 0 20px rgba(0, 0, 0, 0.5)',
               }}
             >
-              <div className="flex justify-between">
-                <span className="text-gray-400">Player:</span>
-                <strong className="text-white">{approveLoadModal.item?.userName} ({approveLoadModal.item?.userEmail})</strong>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span className="text-gray-400 block text-[11px] font-medium uppercase tracking-wider">Player Account</span>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <strong className="text-white text-sm">{approveLoadModal.item?.userName}</strong>
+                    <span className="text-gray-400 text-[11px] font-mono truncate max-w-[150px]">
+                      ({approveLoadModal.item?.userEmail})
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-gray-400 block text-[11px] font-medium uppercase tracking-wider">Game Platform</span>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="px-2.5 py-1 rounded-lg text-xs font-black bg-[#00F0FF]/15 text-[#00F0FF] border border-[#00F0FF]/40 flex items-center gap-1.5">
+                      <Gamepad2 size={13} /> {approveLoadModal.item?.gameTitle}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Game Platform:</span>
-                <strong className="text-[#00F0FF]">{approveLoadModal.item?.gameTitle}</strong>
-              </div>
-              <div className="flex justify-between pt-1 border-t border-white/10">
-                <span className="text-gray-300 font-bold">Player's Requested Load:</span>
-                <strong className="text-amber-400 text-sm font-mono">
-                  ${Number(approveLoadModal.item?.transferAmount || 0).toFixed(2)} SC
-                </strong>
+
+              <div className="pt-2.5 border-t border-white/10 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-400">Account ID:</span>
+                  <code className="px-2 py-0.5 rounded bg-white/10 text-cyan-300 font-mono font-bold">
+                    {approveLoadModal.username || approveLoadModal.item?.userName}
+                  </code>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const text = approveLoadModal.username || approveLoadModal.item?.userName;
+                      if (text) {
+                        navigator.clipboard?.writeText(text);
+                        setCopiedId(true);
+                        setTimeout(() => setCopiedId(false), 2000);
+                      }
+                    }}
+                    className="p-1 rounded text-gray-400 hover:text-white transition cursor-pointer flex items-center gap-1 text-[11px]"
+                    title="Copy Account ID"
+                  >
+                    {copiedId ? <CheckCheck size={13} className="text-emerald-400" /> : <Copy size={13} />}
+                    <span className="text-[10px]">{copiedId ? 'Copied!' : 'Copy'}</span>
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <span className="text-gray-400">Requested:</span>
+                  <strong className="text-amber-400 font-mono text-sm px-2.5 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/30">
+                    ${Number(approveLoadModal.item?.transferAmount || 0).toFixed(2)} SC
+                  </strong>
+                </div>
               </div>
             </div>
 
             <form onSubmit={handleApproveLoadSubmit} className="space-y-4">
-              {/* EDIT COIN ALLOTMENT BALANCE INPUT */}
-              <div className="p-3.5 rounded-xl bg-black/40 border border-[#00F0FF]/40 shadow-inner">
-                <label className="block text-[11px] font-black text-[#00F0FF] mb-1 uppercase tracking-wider flex items-center justify-between">
-                  <span>Coins / Balance To Allot (Editable)</span>
-                  <span className="text-[10px] text-gray-400 font-normal">Edit balance if adjusting</span>
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#00F0FF] font-black text-sm">$</span>
+              {/* Section 2: EDIT COIN ALLOTMENT BALANCE INPUT (VIP Counter) */}
+              <div
+                className="p-4 rounded-2xl border space-y-3"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(0, 240, 255, 0.08) 0%, rgba(224, 38, 216, 0.05) 100%)',
+                  borderColor: 'rgba(0, 240, 255, 0.45)',
+                  boxShadow: '0 0 25px rgba(0, 240, 255, 0.15)',
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-black text-[#00F0FF] uppercase tracking-wider flex items-center gap-1.5">
+                    <Sparkles size={14} className="text-cyan-300" />
+                    <span>Coins / Balance To Allot</span>
+                  </label>
+                  <span className="text-[10.5px] text-gray-400 font-medium">Edit or adjust amount below</span>
+                </div>
+
+                {/* Main Large Amount Input */}
+                <div className="relative flex items-center">
+                  <span className="absolute left-4 text-[#00F0FF] font-black text-xl">$</span>
                   <input
                     type="number"
                     step="0.01"
@@ -2102,60 +2169,135 @@ export default function CoinOperationsDesk({
                     required
                     value={approveLoadModal.editAmount ?? ''}
                     onChange={(e) => setApproveLoadModal({ ...approveLoadModal, editAmount: e.target.value })}
-                    className="w-full pl-8 pr-3.5 py-2.5 rounded-xl text-white font-mono text-base font-black outline-none transition-all focus:border-[#00F0FF] focus:shadow-[0_0_15px_rgba(0,240,255,0.35)]"
+                    className="w-full pl-9 pr-14 py-3 rounded-xl text-white font-mono text-xl sm:text-2xl font-black outline-none transition-all focus:border-[#00F0FF] focus:shadow-[0_0_20px_rgba(0,240,255,0.4)]"
                     style={{
                       backgroundColor: '#070514',
-                      border: '1.5px solid rgba(0, 240, 255, 0.5)',
+                      border: '1.5px solid rgba(0, 240, 255, 0.55)',
                     }}
                   />
+                  <span className="absolute right-4 text-xs font-black text-gray-400 font-mono tracking-wider">
+                    SC
+                  </span>
                 </div>
+
+                {/* Quick Preset Buttons */}
+                <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                  <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mr-1">Quick:</span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setApproveLoadModal((prev) => ({
+                        ...prev,
+                        editAmount: Number(prev.item?.transferAmount || 0),
+                      }))
+                    }
+                    className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white/10 hover:bg-[#00F0FF]/20 text-cyan-300 border border-white/15 hover:border-[#00F0FF]/40 transition cursor-pointer"
+                  >
+                    Match: ${Number(approveLoadModal.item?.transferAmount || 0).toFixed(0)}
+                  </button>
+                  {[
+                    { label: '+$5', val: 5 },
+                    { label: '+$10', val: 10 },
+                    { label: '+$25', val: 25 },
+                    { label: '-$5', val: -5 },
+                  ].map((p) => (
+                    <button
+                      key={p.label}
+                      type="button"
+                      onClick={() => {
+                        const cur = Number(approveLoadModal.editAmount || approveLoadModal.item?.transferAmount || 0);
+                        const nxt = Math.max(0, Number((cur + p.val).toFixed(2)));
+                        setApproveLoadModal((prev) => ({ ...prev, editAmount: nxt }));
+                      }}
+                      className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white/5 hover:bg-white/15 text-gray-300 border border-white/10 hover:border-white/30 transition cursor-pointer"
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Live Escrow & Refund Explanation */}
                 {Number(approveLoadModal.editAmount) < Number(approveLoadModal.item?.transferAmount || 0) && (
-                  <p className="text-[10.5px] text-cyan-300 mt-1.5 font-medium leading-relaxed">
-                    💡 Note: Player requested ${Number(approveLoadModal.item?.transferAmount || 0).toFixed(2)} SC. The difference of ${(Number(approveLoadModal.item?.transferAmount || 0) - Number(approveLoadModal.editAmount)).toFixed(2)} SC will be automatically unfrozen and returned to their available wallet balance.
-                  </p>
+                  <div className="p-2.5 rounded-xl bg-cyan-950/40 border border-cyan-400/30 text-[11px] text-cyan-300 flex items-start gap-2">
+                    <span className="text-cyan-400 font-black">💡</span>
+                    <span>
+                      Player requested <strong>${Number(approveLoadModal.item?.transferAmount || 0).toFixed(2)} SC</strong>. The difference of{' '}
+                      <strong>${(Number(approveLoadModal.item?.transferAmount || 0) - Number(approveLoadModal.editAmount)).toFixed(2)} SC</strong> will be automatically unfrozen and returned to their available wallet balance.
+                    </span>
+                  </div>
                 )}
                 {Number(approveLoadModal.editAmount) > Number(approveLoadModal.item?.transferAmount || 0) && (
-                  <p className="text-[10.5px] text-amber-300 mt-1.5 font-medium leading-relaxed">
-                    ⚠️ Note: You increased the allotted amount. The extra ${(Number(approveLoadModal.editAmount) - Number(approveLoadModal.item?.transferAmount || 0)).toFixed(2)} SC will be deducted from player's available balance upon approval.
-                  </p>
+                  <div className="p-2.5 rounded-xl bg-amber-950/40 border border-amber-400/30 text-[11px] text-amber-300 flex items-start gap-2">
+                    <span className="text-amber-400 font-black">⚠️</span>
+                    <span>
+                      You increased the allotted amount. The extra{' '}
+                      <strong>${(Number(approveLoadModal.editAmount) - Number(approveLoadModal.item?.transferAmount || 0)).toFixed(2)} SC</strong> will be deducted from player's available balance upon confirmation.
+                    </span>
+                  </div>
+                )}
+                {Number(approveLoadModal.editAmount) === Number(approveLoadModal.item?.transferAmount || 0) && (
+                  <div className="p-2.5 rounded-xl bg-emerald-950/30 border border-emerald-400/30 text-[11px] text-emerald-300 flex items-center gap-2">
+                    <CheckCircle2 size={13} className="text-emerald-400 shrink-0" />
+                    <span>Exact match: full ${Number(approveLoadModal.item?.transferAmount || 0).toFixed(2)} SC will be deducted from escrow and credited.</span>
+                  </div>
                 )}
               </div>
 
-              <div>
-                <label className="block text-[11px] font-bold text-gray-300 mb-1 uppercase tracking-wider">
-                  Game Account Username / ID
-                </label>
-                <input
-                  type="text"
-                  value={approveLoadModal.username}
-                  onChange={(e) => setApproveLoadModal({ ...approveLoadModal, username: e.target.value })}
-                  required
-                  className="w-full rounded-xl px-3.5 py-2.5 text-white text-xs outline-none transition-all"
-                  style={{
-                    backgroundColor: '#070514',
-                    border: '1px solid rgba(0, 240, 255, 0.3)',
-                  }}
-                />
+              {/* Section 3: Optional Game Credentials Collapsible Accordion */}
+              <div className="rounded-xl border border-white/10 overflow-hidden bg-black/20">
+                <button
+                  type="button"
+                  onClick={() => setShowCredentialsInModal(!showCredentialsInModal)}
+                  className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs text-gray-400 hover:text-white transition cursor-pointer"
+                >
+                  <span className="flex items-center gap-1.5 font-bold">
+                    <span>🔑 Update Game Account PIN / Password</span>
+                    <span className="text-[10px] text-gray-500 font-normal">(Optional)</span>
+                  </span>
+                  {showCredentialsInModal ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                </button>
+
+                {showCredentialsInModal && (
+                  <div className="p-3.5 pt-1 space-y-3 border-t border-white/10 bg-[#070514]/60">
+                    <div>
+                      <label className="block text-[11px] font-bold text-gray-300 mb-1 uppercase tracking-wider">
+                        Game Account Username / ID
+                      </label>
+                      <input
+                        type="text"
+                        value={approveLoadModal.username}
+                        onChange={(e) => setApproveLoadModal({ ...approveLoadModal, username: e.target.value })}
+                        required
+                        className="w-full rounded-xl px-3.5 py-2 text-white text-xs outline-none transition-all"
+                        style={{
+                          backgroundColor: '#070514',
+                          border: '1px solid rgba(0, 240, 255, 0.3)',
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-gray-300 mb-1 uppercase tracking-wider">
+                        Game Account Password / PIN
+                      </label>
+                      <input
+                        type="text"
+                        value={approveLoadModal.password}
+                        onChange={(e) => setApproveLoadModal({ ...approveLoadModal, password: e.target.value })}
+                        required
+                        className="w-full rounded-xl px-3.5 py-2 text-white text-xs outline-none transition-all"
+                        style={{
+                          backgroundColor: '#070514',
+                          border: '1px solid rgba(0, 240, 255, 0.3)',
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div>
-                <label className="block text-[11px] font-bold text-gray-300 mb-1 uppercase tracking-wider">
-                  Game Account Password / PIN
-                </label>
-                <input
-                  type="text"
-                  value={approveLoadModal.password}
-                  onChange={(e) => setApproveLoadModal({ ...approveLoadModal, password: e.target.value })}
-                  required
-                  className="w-full rounded-xl px-3.5 py-2.5 text-white text-xs outline-none transition-all"
-                  style={{
-                    backgroundColor: '#070514',
-                    border: '1px solid rgba(0, 240, 255, 0.3)',
-                  }}
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-white/10">
+              {/* Section 4: Action Footer Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
                 <button
                   type="button"
                   disabled={actionLoading}
@@ -2167,7 +2309,7 @@ export default function CoinOperationsDesk({
                 <button
                   type="submit"
                   disabled={actionLoading}
-                  className="py-2.5 px-6 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="py-3 px-6 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed shadow-xl"
                   style={{
                     background: actionLoading ? '#334155' : 'linear-gradient(135deg, #00F0FF 0%, #00d0e8 40%, #E026D8 100%)',
                     color: actionLoading ? '#94A3B8' : '#070514',
@@ -2178,12 +2320,14 @@ export default function CoinOperationsDesk({
                   {actionLoading ? (
                     <>
                       <RefreshCw size={14} className="animate-spin" />
-                      <span>Processing...</span>
+                      <span>Processing Allotment...</span>
                     </>
                   ) : (
                     <>
-                      <Check size={14} strokeWidth={3} />
-                      <span>Confirm &amp; Deduct</span>
+                      <Check size={15} strokeWidth={3} />
+                      <span>
+                        Confirm &amp; Allot ${Number(approveLoadModal.editAmount || approveLoadModal.item?.transferAmount || 0).toFixed(2)} SC
+                      </span>
                     </>
                   )}
                 </button>
