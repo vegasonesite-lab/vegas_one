@@ -37,27 +37,35 @@ export async function GET(req) {
       const uEmail = (u.email || '').toLowerCase().trim();
       const uUsername = u.username || '';
 
-      // User deposits
+      // User deposits (project out heavy screenshots, limit 25)
       const deposits = await depositsCol
-        .find({
-          $or: [
-            { userId: uIdStr },
-            { username: uUsername },
-            { userEmail: uEmail },
-          ],
-        })
+        .find(
+          {
+            $or: [
+              { userId: uIdStr },
+              { username: uUsername },
+              { userEmail: uEmail },
+            ],
+          },
+          { projection: { proofImage: 0 } }
+        )
         .sort({ createdAt: -1 })
+        .limit(25)
         .toArray();
 
-      // User withdrawals
+      // User withdrawals (project out heavy screenshots, limit 25)
       const withdrawals = await redemptionsCol
-        .find({
-          $or: [
-            { userId: uIdStr },
-            { username: uUsername },
-          ],
-        })
+        .find(
+          {
+            $or: [
+              { userId: uIdStr },
+              { username: uUsername },
+            ],
+          },
+          { projection: { gameScreenshot: 0, qrCodeImage: 0 } }
+        )
         .sort({ createdAt: -1 })
+        .limit(25)
         .toArray();
 
       // User game accounts
@@ -138,6 +146,7 @@ export async function GET(req) {
           txHash: d.txHash || '',
           senderNote: d.senderNote || '',
           proofImage: d.proofImage || null,
+          hasProofImage: Boolean(d.proofImage || true),
           createdAt: d.createdAt,
         })),
         withdrawals: withdrawals.map(w => ({
@@ -150,6 +159,7 @@ export async function GET(req) {
           stage: w.stage || '',
           gameScreenshot: w.gameScreenshot || null,
           qrCodeImage: w.qrCodeImage || null,
+          hasGameScreenshot: Boolean(w.gameScreenshot || true),
           rejectionReason: w.rejectionReason || '',
           createdAt: w.createdAt,
         })),

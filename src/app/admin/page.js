@@ -254,6 +254,41 @@ export default function AdminPortal({ initialTab }) {
   const [previewProofImage, setPreviewProofImage] = useState(null);
   const [selectedTxDetail, setSelectedTxDetail] = useState(null);
 
+  const handleOpenProofPreview = async (rec, label) => {
+    if (rec.proofImage) {
+      setPreviewProofImage({
+        image: rec.proofImage,
+        title: `${rec.username} - ${label || 'Transaction'} Proof Receipt`,
+        amount: rec.amount,
+        user: rec.username,
+        date: rec.createdAt,
+        method: rec.methodName,
+        notes: rec.notes || rec.reason,
+        status: rec.status,
+      });
+      return;
+    }
+    try {
+      const targetId = rec.referenceId || rec.id;
+      const res = await fetch(`/api/payments/proof?id=${targetId}`);
+      const data = await res.json();
+      if (data.success && (data.image || data.gameScreenshot || data.qrCodeImage)) {
+        setPreviewProofImage({
+          image: data.image || data.gameScreenshot || data.qrCodeImage,
+          title: `${rec.username} - ${label || 'Transaction'} Proof Receipt`,
+          amount: rec.amount,
+          user: rec.username,
+          date: rec.createdAt,
+          method: rec.methodName || data.details?.methodName || data.details?.payoutMethod,
+          notes: rec.notes || rec.reason,
+          status: rec.status,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to load proof image:', err);
+    }
+  };
+
   // Live Chat state
   const [chatConversations, setChatConversations] = useState([]);
   const [activeChatConv, setActiveChatConv] = useState(null);
@@ -420,26 +455,47 @@ export default function AdminPortal({ initialTab }) {
   };
 
   const handleConfirmApproval = async () => {
-    if (!approvalModal.request || !approvalModal.username || !approvalModal.password) return;
+    if (!approvalModal.request || !approvalModal.username || !approvalModal.password || submittingApproval) return;
     setSubmittingApproval(true);
+
+    const targetReq = approvalModal.request;
+    const u = approvalModal.username.trim();
+    const p = approvalModal.password.trim();
+
+    // 1. Optimistically update account requests state
+    setAccountRequests((prev) =>
+      prev.map((r) =>
+        r.id === targetReq.id
+          ? { ...r, status: 'READY', gameAccountUsername: u, gameAccountPassword: p }
+          : r
+      )
+    );
+
+    // 2. Dismiss modal immediately for instant 0ms user feedback
+    setApprovalModal({ open: false, request: null, username: '', password: '' });
+
     try {
       const res = await fetch('/api/account-requests', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id: approvalModal.request.id,
+          id: targetReq.id,
           action: 'approve',
-          username: approvalModal.username,
-          password: approvalModal.password,
+          username: u,
+          password: p,
         }),
       });
       const data = await res.json();
-      if (data.success) {
-        setApprovalModal({ open: false, request: null, username: '', password: '' });
+      if (!data.success) {
+        alert(data.message || 'Failed to issue credentials');
         fetchAccountRequests();
+      } else {
+        fetchAccountRequests();
+        syncRequestsAndAlerts();
       }
     } catch (e) {
       console.error(e);
+      fetchAccountRequests();
     } finally {
       setSubmittingApproval(false);
     }
@@ -448,6 +504,12 @@ export default function AdminPortal({ initialTab }) {
   const handleCancelRequest = async (id) => {
     const reason = prompt('Enter rejection reason for player:', 'Temporary platform maintenance. Please contact 24/7 Concierge.');
     if (!reason) return;
+
+    // Optimistically mark as rejected
+    setAccountRequests((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, status: 'REJECTED', rejectionReason: reason } : r))
+    );
+
     try {
       await fetch('/api/account-requests', {
         method: 'PUT',
@@ -455,8 +517,10 @@ export default function AdminPortal({ initialTab }) {
         body: JSON.stringify({ id, action: 'cancel', reason }),
       });
       fetchAccountRequests();
+      syncRequestsAndAlerts();
     } catch (e) {
       console.error(e);
+      fetchAccountRequests();
     }
   };
 
@@ -502,6 +566,7 @@ export default function AdminPortal({ initialTab }) {
 
   const handleExecuteAllotment = async (e) => {
     if (e) e.preventDefault();
+    if (allotmentLoading) return;
     if (!selectedPlayer) {
       setAllotmentErrorMsg('Please search and select a player first.');
       return;
@@ -3042,73 +3107,97 @@ export default function AdminPortal({ initialTab }) {
                 syncRequestsAndAlerts().finally(() => setRefreshingFinance(false));
               }}
               onApproveDeposit={async (depositId, scToCredit) => {
-                const res = await fetch('/api/payments/deposit', {
-                  method: 'PUT',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ depositId, action: 'approve', customSC: Number(scToCredit) }),
-                });
-                const data = await res.json();
-                if (data.success) {
-                  setDeposits((prev) =>
-                    prev.map((item) =>
-                      item.id === depositId
-                        ? { ...item, status: 'approved', creditedSC: Number(scToCredit) }
-                        : item
-                    )
-                  );
+                // Optimistic UI update: immediately mark deposit as approved
+                setDeposits((prev) =>
+                  prev.map((item) =>
+                    item.id === depositId
+                      ? { ...item, status: 'approved', creditedSC: Number(scToCredit) }
+                      : item
+                  )
+                );
+                try {
+                  const res = await fetch('/api/payments/deposit', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ depositId, action: 'approve', customSC: Number(scToCredit) }),
+                  });
+                  const data = await res.json();
+                  if (!data.success) {
+                    alert(data.error || 'Failed to approve deposit');
+                    syncRequestsAndAlerts();
+                  } else {
+                    syncRequestsAndAlerts();
+                  }
+                } catch {
                   syncRequestsAndAlerts();
-                } else {
-                  alert(data.error || 'Failed to approve deposit');
                 }
               }}
               onRejectDeposit={async (depositId, reason) => {
-                const res = await fetch('/api/payments/deposit', {
-                  method: 'PUT',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ depositId, action: 'reject', rejectReason: reason }),
-                });
-                const data = await res.json();
-                if (data.success) {
-                  setDeposits((prev) =>
-                    prev.map((item) => (item.id === depositId ? { ...item, status: 'rejected' } : item))
-                  );
+                // Optimistic UI update: immediately mark deposit as rejected
+                setDeposits((prev) =>
+                  prev.map((item) => (item.id === depositId ? { ...item, status: 'rejected' } : item))
+                );
+                try {
+                  const res = await fetch('/api/payments/deposit', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ depositId, action: 'reject', rejectReason: reason }),
+                  });
+                  const data = await res.json();
+                  if (!data.success) {
+                    alert(data.error || 'Failed to reject deposit');
+                    syncRequestsAndAlerts();
+                  } else {
+                    syncRequestsAndAlerts();
+                  }
+                } catch {
                   syncRequestsAndAlerts();
-                } else {
-                  alert(data.error || 'Failed to reject deposit');
                 }
               }}
               onApproveRedemption={async (redemptionId) => {
-                const res = await fetch('/api/payments/withdraw', {
-                  method: 'PUT',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ redemptionId, action: 'approve' }),
-                });
-                const data = await res.json();
-                if (data.success) {
-                  setRedemptions((prev) =>
-                    prev.map((item) =>
-                      item.id === redemptionId ? { ...item, status: 'approved' } : item
-                    )
-                  );
+                // Optimistic UI update: immediately mark redemption as approved & dispatched
+                setRedemptions((prev) =>
+                  prev.map((item) =>
+                    item.id === redemptionId ? { ...item, status: 'approved', stage: 'completed' } : item
+                  )
+                );
+                try {
+                  const res = await fetch('/api/payments/withdraw', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ redemptionId, action: 'approve' }),
+                  });
+                  const data = await res.json();
+                  if (!data.success) {
+                    alert(data.error || 'Failed to dispatch redemption');
+                    syncRequestsAndAlerts();
+                  } else {
+                    syncRequestsAndAlerts();
+                  }
+                } catch {
                   syncRequestsAndAlerts();
-                } else {
-                  alert(data.error || 'Failed to dispatch redemption');
                 }
               }}
               onRejectRedemption={async (redemptionId, reason) => {
-                const res = await fetch('/api/payments/withdraw', {
-                  method: 'PUT',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ redemptionId, action: 'reject', rejectReason: reason }),
-                });
-                const data = await res.json();
-                if (data.success) {
-                  setRedemptions((prev) =>
-                    prev.map((item) => (item.id === redemptionId ? { ...item, status: 'rejected' } : item))
-                  );
+                // Optimistic UI update: immediately mark redemption as rejected
+                setRedemptions((prev) =>
+                  prev.map((item) => (item.id === redemptionId ? { ...item, status: 'rejected_by_finance', rejectReason: reason } : item))
+                );
+                try {
+                  const res = await fetch('/api/payments/withdraw', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ redemptionId, action: 'reject', rejectReason: reason }),
+                  });
+                  const data = await res.json();
+                  if (!data.success) {
+                    alert(data.error || 'Failed to reject redemption');
+                    syncRequestsAndAlerts();
+                  } else {
+                    syncRequestsAndAlerts();
+                  }
+                } catch {
                   syncRequestsAndAlerts();
-                } else {
-                  alert(data.error || 'Failed to reject redemption');
                 }
               }}
             />
@@ -5777,7 +5866,7 @@ export default function AdminPortal({ initialTab }) {
                       const isCredit = rawT.includes('credit');
                       const isDebit = rawT.includes('debit');
                       const isBonus = rawT.includes('bonus') || rawT.includes('freeplay');
-                      const hasProof = Boolean(rec.proofImage);
+                      const hasProof = Boolean(rec.proofImage || rec.hasProof);
 
                       let label = 'Transaction';
                       if (isDeposit) label = 'Deposit';
@@ -5864,16 +5953,7 @@ export default function AdminPortal({ initialTab }) {
                             {hasProof ? (
                               <button
                                 type="button"
-                                onClick={() => setPreviewProofImage({
-                                  image: rec.proofImage,
-                                  title: `${rec.username} - ${label} Proof Receipt`,
-                                  amount: rec.amount,
-                                  user: rec.username,
-                                  date: rec.createdAt,
-                                  method: rec.methodName,
-                                  notes: rec.notes || rec.reason,
-                                  status: rec.status,
-                                })}
+                                onClick={() => handleOpenProofPreview(rec, label)}
                                 className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#00F0FF]/10 border border-[#00F0FF]/30 text-[#00F0FF] text-[10.5px] font-bold cursor-pointer hover:bg-[#00F0FF]/20 transition"
                               >
                                 <Eye size={11} />
@@ -5934,7 +6014,7 @@ export default function AdminPortal({ initialTab }) {
                           const isCredit = rawT.includes('credit');
                           const isDebit = rawT.includes('debit');
                           const isBonus = rawT.includes('bonus') || rawT.includes('freeplay');
-                          const hasProof = Boolean(rec.proofImage);
+                          const hasProof = Boolean(rec.proofImage || rec.hasProof);
 
                           // Label to display
                           let label = 'Transaction';
@@ -6023,11 +6103,11 @@ export default function AdminPortal({ initialTab }) {
                                   }`}>
                                   {isPositive ? '+' : '-'}${Math.abs(Number(rec.amount || 0)).toFixed(2)} SC
                                 </div>
-                                {rec.balanceBefore !== null && rec.balanceBefore !== undefined && (
-                                  <div className="text-[10px] text-gray-400 font-mono">
-                                    Was: ${Number(rec.balanceBefore).toFixed(2)}
-                                  </div>
-                                )}
+                                <div className="text-[10px] text-gray-400 font-mono">
+                                  {rec.balanceBefore !== null && rec.balanceBefore !== undefined ? (
+                                    <>Was: ${Number(rec.balanceBefore).toFixed(2)}</>
+                                  ) : null}
+                                </div>
                               </td>
 
                               {/* Payment Method */}
@@ -6047,26 +6127,21 @@ export default function AdminPortal({ initialTab }) {
                                 {hasProof ? (
                                   <button
                                     type="button"
-                                    onClick={() => setPreviewProofImage({
-                                      image: rec.proofImage,
-                                      title: `${rec.username} - ${label} Proof Receipt`,
-                                      amount: rec.amount,
-                                      user: rec.username,
-                                      date: rec.createdAt,
-                                      method: rec.methodName,
-                                      notes: rec.notes || rec.reason,
-                                      status: rec.status,
-                                    })}
-                                    className="group/proof inline-flex flex-col items-center gap-1 p-1 rounded-xl hover:bg-white/10 transition"
-                                    title="Click to zoom screenshot proof"
+                                    onClick={() => handleOpenProofPreview(rec, label)}
+                                    className="group/proof inline-flex flex-col items-center gap-1 p-1 rounded-xl hover:bg-white/10 transition cursor-pointer"
+                                    title="Click to view screenshot proof"
                                   >
-                                    <div className="w-11 h-11 rounded-xl overflow-hidden border-2 border-[#00F0FF]/50 group-hover/proof:border-[#00F0FF] shadow-md group-hover/proof:scale-105 transition relative bg-[#070514]">
-                                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                                      <img
-                                        src={rec.proofImage}
-                                        alt="Proof thumbnail"
-                                        className="w-full h-full object-cover"
-                                      />
+                                    <div className="w-11 h-11 rounded-xl overflow-hidden border-2 border-[#00F0FF]/50 group-hover/proof:border-[#00F0FF] shadow-md group-hover/proof:scale-105 transition relative bg-[#070514] flex items-center justify-center">
+                                      {rec.proofImage ? (
+                                        /* eslint-disable-next-line @next/next/no-img-element */
+                                        <img
+                                          src={rec.proofImage}
+                                          alt="Proof thumbnail"
+                                          className="w-full h-full object-cover"
+                                        />
+                                      ) : (
+                                        <Eye size={16} className="text-[#00F0FF]" />
+                                      )}
                                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/proof:opacity-100 flex items-center justify-center transition">
                                         <Eye size={13} className="text-[#00F0FF]" />
                                       </div>

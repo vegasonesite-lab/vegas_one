@@ -92,6 +92,16 @@ export default function LiveChatWidget({ user, soundEnabled }) {
     setInputMessage('');
     setSending(true);
 
+    // Optimistically render message bubble immediately
+    const tempMessage = {
+      id: 'temp-' + Date.now(),
+      sender: user?.username || 'You',
+      role: 'player',
+      text,
+      createdAt: new Date().toISOString(),
+    };
+    setMessages(prev => [...prev, tempMessage]);
+
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
@@ -99,8 +109,8 @@ export default function LiveChatWidget({ user, soundEnabled }) {
         body: JSON.stringify({ text }),
       });
       const data = await res.json();
-      if (data.success) {
-        setMessages(prev => [...prev, data.message]);
+      if (data.success && data.message) {
+        setMessages(prev => prev.map(m => m.id === tempMessage.id ? data.message : m));
       }
     } catch {} finally {
       setSending(false);

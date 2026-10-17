@@ -4,13 +4,38 @@ import { getDb } from '@/lib/mongodb';
 import { getSessionUser, ROLES } from '@/lib/auth';
 import { ensureDbInitialized } from '@/lib/initDb';
 
+// In-memory cache for ultra-fast < 5ms games response
+let cachedGames = null;
+let lastCacheTime = 0;
+const CACHE_TTL_MS = 30000; // 30 seconds
+
+export function invalidateGamesCache() {
+  cachedGames = null;
+  lastCacheTime = 0;
+}
+
 export async function GET(req) {
   try {
-    await ensureDbInitialized();
-
     const { searchParams } = new URL(req.url);
     const category = searchParams.get('category');
     const all = searchParams.get('all') === 'true';
+
+    const now = Date.now();
+    const canUseCache = !category && !all && cachedGames && (now - lastCacheTime < CACHE_TTL_MS);
+
+    if (canUseCache) {
+      return NextResponse.json({
+        success: true,
+        games: cachedGames,
+      }, {
+        headers: {
+          'X-Cache': 'HIT',
+          'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+        }
+      });
+    }
+
+    await ensureDbInitialized();
 
     const db = await getDb();
     const gamesCol = db.collection('games');
@@ -25,23 +50,35 @@ export async function GET(req) {
 
     const games = await gamesCol.find(query).sort({ isFeatured: -1, playsCount: -1 }).toArray();
 
+    const mappedGames = games.map(g => ({
+      id: g._id.toString(),
+      gameId: g.gameId,
+      title: g.title,
+      category: g.category || 'sweepstakes',
+      provider: g.provider || 'Vegas One Studio',
+      thumbnail: g.thumbnail || '/images/vegas-777.webp',
+      type: g.type || 'internal',
+      url: g.url || null,
+      badge: g.badge || (g.isHot ? 'HOT' : (g.isFeatured ? 'EXCLUSIVE' : '')),
+      isActive: g.isActive !== false,
+      isHot: g.isHot ?? false,
+      isFeatured: g.isFeatured ?? false,
+      playsCount: g.playsCount || 0,
+    }));
+
+    if (!category && !all) {
+      cachedGames = mappedGames;
+      lastCacheTime = now;
+    }
+
     return NextResponse.json({
       success: true,
-      games: games.map(g => ({
-        id: g._id.toString(),
-        gameId: g.gameId,
-        title: g.title,
-        category: g.category || 'sweepstakes',
-        provider: g.provider || 'Vegas One Studio',
-        thumbnail: g.thumbnail || '/images/vegas-777.webp',
-        type: g.type || 'internal',
-        url: g.url || null,
-        badge: g.badge || (g.isHot ? 'HOT' : (g.isFeatured ? 'EXCLUSIVE' : '')),
-        isActive: g.isActive !== false,
-        isHot: g.isHot ?? false,
-        isFeatured: g.isFeatured ?? false,
-        playsCount: g.playsCount || 0,
-      })),
+      games: mappedGames,
+    }, {
+      headers: {
+        'X-Cache': 'MISS',
+        'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+      }
     });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
@@ -85,6 +122,7 @@ export async function POST(req) {
     };
 
     const res = await gamesCol.insertOne(newGame);
+    invalidateGamesCache();
     return NextResponse.json({
       success: true,
       gameId: res.insertedId.toString(),
@@ -137,7 +175,7 @@ export async function PUT(req) {
     };
 
     await gamesCol.updateOne(query, { $set: updateFields });
-
+    invalidateGamesCache();
     return NextResponse.json({ success: true, message: 'Game updated successfully' });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
@@ -171,6 +209,7 @@ export async function DELETE(req) {
     };
 
     await gamesCol.deleteOne(query);
+    invalidateGamesCache();
     return NextResponse.json({ success: true, message: 'Game deleted successfully' });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

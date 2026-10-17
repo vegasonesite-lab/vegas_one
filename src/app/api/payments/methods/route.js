@@ -7,12 +7,35 @@ import { ensureDbInitialized } from '@/lib/initDb';
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+let cachedMethods = null;
+let lastMethodsCacheTime = 0;
+const METHODS_TTL = 15000; // 15 seconds
+
+export function invalidateMethodsCache() {
+  cachedMethods = null;
+  lastMethodsCacheTime = 0;
+}
+
 // GET payment methods
 export async function GET(req) {
   try {
-    await ensureDbInitialized();
     const { searchParams } = new URL(req.url);
     const all = searchParams.get('all') === 'true';
+
+    const now = Date.now();
+    if (!all && cachedMethods && (now - lastMethodsCacheTime < METHODS_TTL)) {
+      return NextResponse.json({
+        success: true,
+        methods: cachedMethods,
+      }, {
+        headers: {
+          'X-Cache': 'HIT',
+          'Cache-Control': 'public, s-maxage=15, stale-while-revalidate=30',
+        }
+      });
+    }
+
+    await ensureDbInitialized();
 
     const db = await getDb();
     const methodsCol = db.collection('payment_methods');
@@ -20,39 +43,47 @@ export async function GET(req) {
     const query = all ? {} : { isActive: true };
     const methods = await methodsCol.find(query).toArray();
 
+    const mappedMethods = methods.map(m => ({
+      id: m._id.toString(),
+      methodId: m.methodId,
+      name: m.name,
+      type: m.type || 'custom',
+      tag: m.tag || 'Instant',
+      accountDetails: m.accountDetails || m.tagName || m.cashtag || m.address || m.details || '',
+      tagName: m.tagName || m.accountDetails || m.cashtag || m.address || m.details || '',
+      cashtag: m.accountDetails || m.cashtag || '',
+      details: m.accountDetails || m.details || '',
+      instructions: m.instructions || '',
+      paymentUrl: m.paymentUrl || '',
+      qrCode: m.qrCode || '',
+      bonusPercentage: m.bonusPercentage !== undefined ? Number(m.bonusPercentage) : (
+        m.name?.toLowerCase().includes('crypto') || m.name?.toLowerCase().includes('bitcoin') || m.name?.toLowerCase().includes('usdt') ? 40 :
+        m.name?.toLowerCase().includes('apple') || m.name?.toLowerCase().includes('g pay') ? 40 :
+        m.name?.toLowerCase().includes('cash') ? 35 :
+        m.name?.toLowerCase().includes('chime') ? 40 :
+        m.name?.toLowerCase().includes('venmo') ? 20 :
+        m.name?.toLowerCase().includes('paypal') ? 15 :
+        m.name?.toLowerCase().includes('card') ? 10 : 35
+      ),
+      minDeposit: m.minDeposit || 10,
+      maxDeposit: m.maxDeposit || 5000,
+      isActive: m.isActive ?? true,
+    }));
+
+    if (!all) {
+      cachedMethods = mappedMethods;
+      lastMethodsCacheTime = now;
+    }
+
     return NextResponse.json(
       {
         success: true,
-        methods: methods.map(m => ({
-          id: m._id.toString(),
-          methodId: m.methodId,
-          name: m.name,
-          type: m.type || 'custom',
-          tag: m.tag || 'Instant',
-          accountDetails: m.accountDetails || m.tagName || m.cashtag || m.address || m.details || '',
-          tagName: m.tagName || m.accountDetails || m.cashtag || m.address || m.details || '',
-          cashtag: m.accountDetails || m.cashtag || '',
-          details: m.accountDetails || m.details || '',
-          instructions: m.instructions || '',
-          paymentUrl: m.paymentUrl || '',
-          qrCode: m.qrCode || '',
-          bonusPercentage: m.bonusPercentage !== undefined ? Number(m.bonusPercentage) : (
-            m.name?.toLowerCase().includes('crypto') || m.name?.toLowerCase().includes('bitcoin') || m.name?.toLowerCase().includes('usdt') ? 40 :
-            m.name?.toLowerCase().includes('apple') || m.name?.toLowerCase().includes('g pay') ? 40 :
-            m.name?.toLowerCase().includes('cash') ? 35 :
-            m.name?.toLowerCase().includes('chime') ? 40 :
-            m.name?.toLowerCase().includes('venmo') ? 20 :
-            m.name?.toLowerCase().includes('paypal') ? 15 :
-            m.name?.toLowerCase().includes('card') ? 10 : 35
-          ),
-          minDeposit: m.minDeposit || 10,
-          maxDeposit: m.maxDeposit || 5000,
-          isActive: m.isActive ?? true,
-        })),
+        methods: mappedMethods,
       },
       {
         headers: {
-          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'X-Cache': 'MISS',
+          'Cache-Control': 'public, s-maxage=15, stale-while-revalidate=30',
         },
       }
     );
@@ -114,6 +145,7 @@ export async function POST(req) {
     };
 
     const res = await methodsCol.insertOne(newMethod);
+    invalidateMethodsCache();
     return NextResponse.json({
       success: true,
       id: res.insertedId.toString(),
@@ -180,7 +212,7 @@ export async function PUT(req) {
     updateFields.updatedAt = new Date();
 
     await methodsCol.updateOne({ _id: new ObjectId(id) }, { $set: updateFields });
-
+    invalidateMethodsCache();
     return NextResponse.json({ success: true, message: 'Payment method updated successfully.' });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
@@ -206,6 +238,7 @@ export async function DELETE(req) {
     const methodsCol = db.collection('payment_methods');
 
     await methodsCol.deleteOne({ _id: new ObjectId(id) });
+    invalidateMethodsCache();
     return NextResponse.json({ success: true, message: 'Payment method deleted.' });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

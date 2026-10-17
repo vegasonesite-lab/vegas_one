@@ -13,8 +13,10 @@ export async function GET(req) {
     }
 
     const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
     const status = searchParams.get('status');
     const stage = searchParams.get('stage');
+    const includeImages = searchParams.get('includeImages') === 'true';
 
     const db = await getDb();
     const redemptionsCol = db.collection('redemptions');
@@ -30,6 +32,40 @@ export async function GET(req) {
       query.userId = session.userId;
     }
 
+    if (id && ObjectId.isValid(id)) {
+      query._id = new ObjectId(id);
+      const single = await redemptionsCol.findOne(query);
+      if (!single) {
+        return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 });
+      }
+      return NextResponse.json({
+        success: true,
+        redemption: {
+          id: single._id.toString(),
+          userId: single.userId,
+          username: single.username,
+          amount: single.amount,
+          gameTitle: single.gameTitle || 'Standard Platform',
+          gameScreenshot: single.gameScreenshot || null,
+          qrCodeImage: single.qrCodeImage || null,
+          hasGameScreenshot: !!single.gameScreenshot,
+          hasQrCodeImage: !!single.qrCodeImage,
+          payoutMethod: single.payoutMethod,
+          destinationAddress: single.destinationAddress,
+          userTagName: single.userTagName || single.destinationAddress || '',
+          status: single.status,
+          stage: single.stage || (single.status === 'pending_coin' ? 'coin_verification' : 'finance_payout'),
+          processedBy: single.processedBy || null,
+          coinApprovedBy: single.coinApprovedBy || null,
+          coinApprovedAt: single.coinApprovedAt || null,
+          rejectReason: single.rejectReason || single.coinRejectReason || single.financeRejectReason || null,
+          coinRejectReason: single.coinRejectReason || null,
+          financeRejectReason: single.financeRejectReason || null,
+          createdAt: single.createdAt,
+        },
+      });
+    }
+
     if (status && status !== 'all') {
       if (status.includes(',')) {
         query.status = { $in: status.split(',') };
@@ -42,7 +78,24 @@ export async function GET(req) {
       query.stage = stage;
     }
 
-    const items = await redemptionsCol.find(query).sort({ createdAt: -1 }).limit(100).toArray();
+    let items;
+    if (includeImages) {
+      items = await redemptionsCol.find(query).sort({ createdAt: -1 }).limit(100).toArray();
+    } else if (status === 'pending_coin' || status === 'pending') {
+      // Pending requests desk: only a few items, keep screenshots ready for immediate review
+      items = await redemptionsCol.find(query).sort({ createdAt: -1 }).limit(50).toArray();
+    } else {
+      // High-performance split: pending items carry images, historical items omit megabytes of base64
+      const pendingQuery = { ...query, status: { $in: ['pending_coin', 'pending'] } };
+      const historyQuery = { ...query, status: { $nin: ['pending_coin', 'pending'] } };
+
+      const [pendingItems, historyItems] = await Promise.all([
+        redemptionsCol.find(pendingQuery).sort({ createdAt: -1 }).limit(20).toArray(),
+        redemptionsCol.find(historyQuery, { projection: { gameScreenshot: 0, qrCodeImage: 0 } }).sort({ createdAt: -1 }).limit(80).toArray()
+      ]);
+
+      items = [...pendingItems, ...historyItems].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
 
     return NextResponse.json({
       success: true,
@@ -54,6 +107,8 @@ export async function GET(req) {
         gameTitle: r.gameTitle || 'Standard Platform',
         gameScreenshot: r.gameScreenshot || null,
         qrCodeImage: r.qrCodeImage || null,
+        hasGameScreenshot: !!r.gameScreenshot,
+        hasQrCodeImage: !!r.qrCodeImage,
         payoutMethod: r.payoutMethod,
         destinationAddress: r.destinationAddress,
         userTagName: r.userTagName || r.destinationAddress || '',

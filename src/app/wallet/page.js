@@ -31,6 +31,7 @@ import MobileBottomNav from '@/components/player/MobileBottomNav';
 import VegasFooter from '@/components/player/VegasFooter';
 import LiveChatWidget from '@/components/LiveChatWidget';
 import AuthModal from '@/components/AuthModal';
+import { compressImage } from '@/lib/imageCompressor';
 
 function WalletContent() {
   const router = useRouter();
@@ -168,24 +169,33 @@ function WalletContent() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      setErrorMsg('Proof screenshot must be under 5MB.');
+    if (file.size > 15 * 1024 * 1024) {
+      setErrorMsg('Proof screenshot must be under 15MB.');
       return;
     }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setProofImage(reader.result);
-    };
-    reader.readAsDataURL(file);
+    try {
+      const compressed = await compressImage(file, 1200, 1200, 0.82);
+      if (compressed) {
+        setProofImage(compressed);
+        setErrorMsg(null);
+      }
+    } catch {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProofImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleDepositSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
     if (!user) {
       setAuthModal({ open: true, tab: 'login' });
       return;
@@ -230,6 +240,7 @@ function WalletContent() {
 
   const handleRedeemSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
     if (!user) {
       setAuthModal({ open: true, tab: 'login' });
       return;

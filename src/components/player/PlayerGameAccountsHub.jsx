@@ -126,6 +126,7 @@ export default function PlayerGameAccountsHub({
       if (onOpenAuth) onOpenAuth('login');
       return;
     }
+    if (requestingGameId) return;
 
     const gameTitle = game.title || game.name;
     const gameId = game.gameId || game.id || game._id;
@@ -133,6 +134,18 @@ export default function PlayerGameAccountsHub({
     setRequestingGameId(gameId);
     setErrorMsg(null);
     setRequestSuccessMsg(null);
+
+    // Optimistically show pending card right away
+    setPendingRequests((prev) => [
+      {
+        id: 'temp-' + Date.now(),
+        gameTitle,
+        gameId,
+        status: 'PENDING',
+        createdAt: new Date().toISOString(),
+      },
+      ...prev.filter((p) => p.gameTitle?.toLowerCase() !== gameTitle?.toLowerCase()),
+    ]);
 
     try {
       const res = await fetch('/api/account-requests', {
@@ -155,10 +168,12 @@ export default function PlayerGameAccountsHub({
         setTimeout(() => setRequestSuccessMsg(null), 6000);
       } else {
         setErrorMsg(data.message || 'Failed to submit request.');
+        fetchAccountsAndRequests();
       }
     } catch {
       setRequestingGameId(null);
       setErrorMsg('Network error. Could not request game account.');
+      fetchAccountsAndRequests();
     }
   };
 

@@ -13,7 +13,9 @@ export async function GET(req) {
     }
 
     const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
     const status = searchParams.get('status');
+    const includeProof = searchParams.get('includeProof') === 'true';
 
     const db = await getDb();
     const depositsCol = db.collection('deposits');
@@ -28,11 +30,66 @@ export async function GET(req) {
       query.userId = session.userId;
     }
 
+    if (id && ObjectId.isValid(id)) {
+      query._id = new ObjectId(id);
+      const single = await depositsCol.findOne(query);
+      if (!single) {
+        return NextResponse.json({ success: false, error: 'Deposit not found' }, { status: 404 });
+      }
+      const bonusType = single.bonusType || 'welcome';
+      const bonusPercent = single.bonusPercent ?? (bonusType === 'welcome' ? 300 : 50);
+      const bonusSC = single.bonusSC !== undefined ? single.bonusSC : Number(((single.amount * bonusPercent) / 100).toFixed(2));
+      const totalSC = single.totalSC !== undefined ? single.totalSC : Number((single.amount + bonusSC).toFixed(2));
+      const totalGC = single.totalGC !== undefined ? single.totalGC : (single.amount * 10000);
+
+      return NextResponse.json({
+        success: true,
+        deposit: {
+          id: single._id.toString(),
+          userId: single.userId,
+          username: single.username,
+          amount: single.amount,
+          methodName: single.methodName,
+          senderNote: single.senderNote || '',
+          senderTagName: single.senderTagName || single.senderNote || '',
+          senderTagEmail: single.senderTagEmail || '',
+          proofImage: single.proofImage || null,
+          hasProofImage: !!single.proofImage,
+          txHash: single.txHash || '',
+          bonusType,
+          bonusPercent,
+          bonusSC,
+          totalSC,
+          totalGC,
+          creditedSC: single.creditedSC || null,
+          status: single.status,
+          processedBy: single.processedBy || null,
+          rejectReason: single.rejectReason || null,
+          createdAt: single.createdAt,
+        },
+      });
+    }
+
     if (status && status !== 'all') {
       query.status = status;
     }
 
-    const deposits = await depositsCol.find(query).sort({ createdAt: -1 }).limit(100).toArray();
+    let deposits;
+    if (includeProof) {
+      deposits = await depositsCol.find(query).sort({ createdAt: -1 }).limit(100).toArray();
+    } else if (status === 'pending') {
+      deposits = await depositsCol.find(query).sort({ createdAt: -1 }).limit(50).toArray();
+    } else {
+      const pendingQuery = { ...query, status: 'pending' };
+      const historyQuery = { ...query, status: { $ne: 'pending' } };
+
+      const [pendingDeposits, historyDeposits] = await Promise.all([
+        depositsCol.find(pendingQuery).sort({ createdAt: -1 }).limit(20).toArray(),
+        depositsCol.find(historyQuery, { projection: { proofImage: 0 } }).sort({ createdAt: -1 }).limit(80).toArray()
+      ]);
+
+      deposits = [...pendingDeposits, ...historyDeposits].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
 
     return NextResponse.json({
       success: true,
@@ -53,6 +110,7 @@ export async function GET(req) {
           senderTagName: d.senderTagName || d.senderNote || '',
           senderTagEmail: d.senderTagEmail || '',
           proofImage: d.proofImage || null,
+          hasProofImage: !!d.proofImage,
           txHash: d.txHash || '',
           bonusType,
           bonusPercent,

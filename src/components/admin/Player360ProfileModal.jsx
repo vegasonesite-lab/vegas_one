@@ -71,8 +71,25 @@ export default function Player360ProfileModal({
     setTimeout(() => setCopiedField(null), 2000);
   };
 
+  const handleViewProof = async (id, fallback) => {
+    if (fallback) {
+      setPreviewImage(fallback);
+      return;
+    }
+    try {
+      const res = await fetch(`/api/payments/proof?id=${id}`);
+      const d = await res.json();
+      if (d.success && d.image) {
+        setPreviewImage(d.image);
+      }
+    } catch (err) {
+      console.error('Failed to load proof:', err);
+    }
+  };
+
   const handleApplyAdjustment = async (e) => {
     e?.preventDefault();
+    if (isAdjusting) return;
     const val = parseFloat(adjustAmount);
     if (isNaN(val) || val <= 0) {
       alert('Please enter a valid amount greater than 0');
@@ -82,6 +99,14 @@ export default function Player360ProfileModal({
     const finalAmount = adjustMode === 'deduct' ? -val : val;
     setIsAdjusting(true);
     setAdjustFeedback(null);
+
+    // Optimistically update player balance in modal
+    const currentBal = Number(data?.user?.balanceSC || 0);
+    const optimisticBal = Number((currentBal + finalAmount).toFixed(2));
+    setData(prev => ({
+      ...prev,
+      user: { ...prev.user, balanceSC: optimisticBal },
+    }));
 
     try {
       const res = await fetch('/api/users', {
@@ -106,9 +131,18 @@ export default function Player360ProfileModal({
         if (onUserUpdated) onUserUpdated(data.user.id, d.newBalance);
         fetchProfile();
       } else {
+        // Rollback on error
+        setData(prev => ({
+          ...prev,
+          user: { ...prev.user, balanceSC: currentBal },
+        }));
         setAdjustFeedback({ type: 'error', message: d.error || 'Failed to update balance' });
       }
     } catch (err) {
+      setData(prev => ({
+        ...prev,
+        user: { ...prev.user, balanceSC: currentBal },
+      }));
       setAdjustFeedback({ type: 'error', message: err.message });
     } finally {
       setIsAdjusting(false);
@@ -842,10 +876,10 @@ export default function Player360ProfileModal({
                                 {d.txHash || d.senderNote || '—'}
                               </td>
                               <td style={{ padding: '12px 16px' }}>
-                                {d.proofImage ? (
+                                {(d.proofImage || d.hasProofImage) ? (
                                   <button
                                     type="button"
-                                    onClick={() => setPreviewImage(d.proofImage)}
+                                    onClick={() => handleViewProof(d.id, d.proofImage)}
                                     style={{
                                       padding: '4px 10px',
                                       borderRadius: '8px',
@@ -926,10 +960,10 @@ export default function Player360ProfileModal({
                                 {w.destinationAddress || '—'}
                               </td>
                               <td style={{ padding: '12px 16px' }}>
-                                {w.gameScreenshot ? (
+                                {(w.gameScreenshot || w.hasGameScreenshot) ? (
                                   <button
                                     type="button"
-                                    onClick={() => setPreviewImage(w.gameScreenshot)}
+                                    onClick={() => handleViewProof(w.id, w.gameScreenshot)}
                                     style={{
                                       padding: '4px 10px',
                                       borderRadius: '8px',

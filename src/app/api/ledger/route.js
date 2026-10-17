@@ -18,6 +18,7 @@ export async function GET(req) {
     const type = searchParams.get('type');
     const format = searchParams.get('format');
     const limit = parseInt(searchParams.get('limit') || '150');
+    const includeProof = searchParams.get('includeProof') === 'true';
 
     const db = await getDb();
     const ledgerCol = db.collection('ledger');
@@ -121,7 +122,8 @@ export async function GET(req) {
 
     const depositsMap = {};
     if (depIds.length > 0) {
-      const deps = await depositsCol.find({ _id: { $in: depIds } }).toArray();
+      const depProjection = includeProof ? {} : { projection: { proofImage: 0 } };
+      const deps = await depositsCol.find({ _id: { $in: depIds } }, depProjection).toArray();
       deps.forEach(d => {
         depositsMap[d._id.toString()] = d;
       });
@@ -129,7 +131,8 @@ export async function GET(req) {
 
     const redemptionsMap = {};
     if (withIds.length > 0) {
-      const reds = await redemptionsCol.find({ _id: { $in: withIds } }).toArray();
+      const redProjection = includeProof ? {} : { projection: { gameScreenshot: 0, qrCodeImage: 0 } };
+      const reds = await redemptionsCol.find({ _id: { $in: withIds } }, redProjection).toArray();
       reds.forEach(r => {
         redemptionsMap[r._id.toString()] = r;
       });
@@ -140,13 +143,15 @@ export async function GET(req) {
       const dep = refId ? depositsMap[refId] : null;
       const red = refId ? redemptionsMap[refId] : null;
 
-      // Extract proof screenshot: deposit proofImage, or redemption screenshot / QR code
-      const proofScreenshot =
-        r.proofImage ||
-        dep?.proofImage ||
-        red?.gameScreenshot ||
-        red?.qrCodeImage ||
-        null;
+      // Extract proof screenshot: only if requested, else null with hasProof flag
+      const proofScreenshot = includeProof
+        ? (r.proofImage || dep?.proofImage || red?.gameScreenshot || red?.qrCodeImage || null)
+        : null;
+      const hasProof = Boolean(
+        r.proofImage || dep?.proofImage || red?.gameScreenshot || red?.qrCodeImage ||
+        dep?.hasProofImage || red?.hasGameScreenshot || red?.hasQrCodeImage ||
+        (refId && (depositsMap[refId] || redemptionsMap[refId]))
+      );
 
       const methodName = r.methodName || dep?.methodName || red?.payoutMethod || null;
       const txHash = r.txHash || dep?.txHash || null;
@@ -192,6 +197,7 @@ export async function GET(req) {
         createdAt: r.createdAt,
         referenceId: refId,
         proofImage: proofScreenshot,
+        hasProof,
         methodName,
         txHash,
       };
@@ -203,14 +209,14 @@ export async function GET(req) {
 
       // 1. Unsettled Deposits (Pending or Rejected)
       if (!type || type === 'all' || type.toLowerCase().includes('deposit')) {
-        const depQuery = {};
+        const depQuery = { status: 'pending' };
         if (username && username.trim()) {
           depQuery.username = { $regex: new RegExp(username.trim(), 'i') };
         }
         const pendingDeps = await depositsCol
-          .find(depQuery)
+          .find(depQuery, includeProof ? {} : { projection: { proofImage: 0 } })
           .sort({ createdAt: -1 })
-          .limit(50)
+          .limit(20)
           .toArray();
 
         for (const dep of pendingDeps) {
@@ -233,7 +239,8 @@ export async function GET(req) {
               notes: dep.senderNote ? `Sender: ${dep.senderNote}` : (dep.rejectReason ? `Rejected: ${dep.rejectReason}` : 'Deposit pending staff verification'),
               createdAt: dep.createdAt,
               referenceId: depIdStr,
-              proofImage: dep.proofImage || null,
+              proofImage: includeProof ? (dep.proofImage || null) : null,
+              hasProof: Boolean(dep.proofImage || dep.hasProofImage || true),
               methodName: dep.methodName || 'Payment Gateway',
               txHash: dep.txHash || null,
             });
@@ -243,14 +250,14 @@ export async function GET(req) {
 
       // 2. Unsettled Redemptions/Withdrawals (Pending coin verification or pending payout)
       if (!type || type === 'all' || type.toLowerCase().includes('redemption') || type.toLowerCase().includes('withdraw')) {
-        const redQuery = {};
+        const redQuery = { status: { $in: ['pending', 'pending_coin'] } };
         if (username && username.trim()) {
           redQuery.username = { $regex: new RegExp(username.trim(), 'i') };
         }
         const pendingReds = await redemptionsCol
-          .find(redQuery)
+          .find(redQuery, includeProof ? {} : { projection: { gameScreenshot: 0, qrCodeImage: 0 } })
           .sort({ createdAt: -1 })
-          .limit(50)
+          .limit(20)
           .toArray();
 
         for (const red of pendingReds) {
@@ -273,7 +280,8 @@ export async function GET(req) {
               notes: red.destinationAddress ? `Send to: ${red.destinationAddress} (${red.payoutMethod || ''})` : (red.rejectReason ? `Rejected: ${red.rejectReason}` : 'Withdrawal awaiting desk dispatch'),
               createdAt: red.createdAt,
               referenceId: redIdStr,
-              proofImage: red.gameScreenshot || red.qrCodeImage || null,
+              proofImage: includeProof ? (red.gameScreenshot || red.qrCodeImage || null) : null,
+              hasProof: Boolean(red.gameScreenshot || red.qrCodeImage || true),
               methodName: red.payoutMethod || 'Payout Gateway',
               txHash: null,
             });

@@ -126,6 +126,10 @@ export default function VegasGameHubStation({
     if (isSubmitting) return;
     setIsSubmitting(true);
 
+    // Optimistically switch status to PENDING immediately
+    setAccountStatus('PENDING');
+    setStepTimer(5);
+
     try {
       const res = await fetch('/api/account-requests', {
         method: 'POST',
@@ -139,12 +143,12 @@ export default function VegasGameHubStation({
       });
 
       const data = await res.json();
-      if (data.success) {
-        setAccountStatus('PENDING');
-        setStepTimer(5);
+      if (!data.success) {
+        setAccountStatus('UNLINKED');
       }
     } catch (err) {
       console.error('Request account error:', err);
+      setAccountStatus('UNLINKED');
     } finally {
       setIsSubmitting(false);
     }
