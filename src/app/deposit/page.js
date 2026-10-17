@@ -21,6 +21,9 @@ import {
   Clock,
   Zap,
   ExternalLink,
+  Download,
+  Eye,
+  X,
 } from 'lucide-react';
 import VegasNavbar from '@/components/player/VegasNavbar';
 import VegasSidebar from '@/components/player/VegasSidebar';
@@ -39,6 +42,8 @@ export default function DepositPage() {
   const [methods, setMethods] = useState([]);
   const [selectedMethod, setSelectedMethod] = useState(null);
   const [depositAmount, setDepositAmount] = useState(50);
+  const [senderTagName, setSenderTagName] = useState('');
+  const [senderTagEmail, setSenderTagEmail] = useState('');
   const [senderNote, setSenderNote] = useState('');
   const [txHash, setTxHash] = useState('');
   const [proofImage, setProofImage] = useState('');
@@ -46,6 +51,7 @@ export default function DepositPage() {
   // Status & Feedback
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [qrModalOpen, setQrModalOpen] = useState(false);
   const [message, setMessage] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
   const [sysSettings, setSysSettings] = useState(null);
@@ -133,6 +139,21 @@ export default function DepositPage() {
       return;
     }
 
+    if (!senderTagName.trim()) {
+      setErrorMsg('Please enter your Tag Name / Cashtag.');
+      return;
+    }
+
+    if (!senderTagEmail.trim()) {
+      setErrorMsg('Please enter the email associated with your payment tag.');
+      return;
+    }
+
+    if (!proofImage) {
+      setErrorMsg('Please upload a screenshot of your payment receipt as proof.');
+      return;
+    }
+
     setErrorMsg(null);
     setMessage(null);
     setLoading(true);
@@ -145,7 +166,9 @@ export default function DepositPage() {
           amount: Number(depositAmount),
           methodId: selectedMethod?.methodId,
           methodName: selectedMethod?.name,
-          senderNote,
+          senderTagName: senderTagName.trim(),
+          senderTagEmail: senderTagEmail.trim(),
+          senderNote: senderNote.trim(),
           proofImage,
           txHash,
         }),
@@ -155,7 +178,9 @@ export default function DepositPage() {
       setLoading(false);
 
       if (data.success) {
-        setMessage('🎉 Deposit request submitted! Our desk is verifying your transfer and crediting your account.');
+        setMessage('🎉 Deposit request submitted! Our Financial Desk is verifying your transaction and crediting your wallet.');
+        setSenderTagName('');
+        setSenderTagEmail('');
         setSenderNote('');
         setTxHash('');
         setProofImage('');
@@ -317,8 +342,113 @@ export default function DepositPage() {
                 </div>
               )}
 
-              {/* Deposit Form */}
-              <form onSubmit={handleDepositSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+                {/* Automated Live Deposit Bonus Banner */}
+                {(() => {
+                  const hasClaimedWelcome = Boolean(user?.welcomeBonusClaimed || (user?.totalDeposited && user.totalDeposited > 0));
+                  const bonusType = hasClaimedWelcome ? 'regular' : 'welcome';
+                  const bonusPercent = hasClaimedWelcome
+                    ? Number(sysSettings?.regularBonusPercent ?? 50)
+                    : Number(sysSettings?.welcomeBonusPercent ?? 300);
+                  const bonusMax = hasClaimedWelcome
+                    ? Number(sysSettings?.regularBonusMax ?? 2500)
+                    : Number(sysSettings?.welcomeBonusMax ?? 7500);
+
+                  const bonusSC = Number(Math.min((depositAmount * bonusPercent) / 100, bonusMax).toFixed(2));
+                  const totalSC = Number((depositAmount + bonusSC).toFixed(2));
+                  const totalGC = (depositAmount * 10000).toLocaleString();
+
+                  return (
+                    <div
+                      style={{
+                        background: hasClaimedWelcome
+                          ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.18) 0%, rgba(14, 10, 36, 0.95) 100%)'
+                          : 'linear-gradient(135deg, rgba(224, 38, 216, 0.22) 0%, rgba(0, 240, 255, 0.15) 50%, rgba(14, 10, 36, 0.95) 100%)',
+                        border: hasClaimedWelcome
+                          ? '1.5px solid rgba(168, 85, 247, 0.45)'
+                          : '1.5px solid rgba(0, 240, 255, 0.5)',
+                        borderRadius: '18px',
+                        padding: '16px 20px',
+                        boxShadow: '0 8px 30px rgba(0, 0, 0, 0.4)',
+                        position: 'relative',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div
+                            style={{
+                              width: '36px',
+                              height: '36px',
+                              borderRadius: '10px',
+                              backgroundColor: hasClaimedWelcome ? 'rgba(168, 85, 247, 0.25)' : 'rgba(224, 38, 216, 0.25)',
+                              border: hasClaimedWelcome ? '1px solid rgba(168, 85, 247, 0.5)' : '1px solid rgba(224, 38, 216, 0.5)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: hasClaimedWelcome ? '#C084FC' : '#00F0FF',
+                            }}
+                          >
+                            <Sparkles size={18} />
+                          </div>
+                          <div>
+                            <span
+                              style={{
+                                fontSize: '10px',
+                                fontFamily: 'Lexend, sans-serif',
+                                fontWeight: 900,
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.06em',
+                                color: hasClaimedWelcome ? '#C084FC' : '#00F0FF',
+                                display: 'block',
+                              }}
+                            >
+                              {hasClaimedWelcome ? '⚡ ACTIVE RELOAD PROMOTION' : '🔥 SPECIAL FIRST DEPOSIT OFFER'}
+                            </span>
+                            <h3 style={{ margin: '2px 0 0 0', fontSize: '15px', fontWeight: 900, color: '#FFFFFF', fontFamily: 'Lexend, sans-serif' }}>
+                              {hasClaimedWelcome ? `${bonusPercent}% Regular Reload Bonus` : `${bonusPercent}% Welcome Match Bonus!`}
+                            </h3>
+                          </div>
+                        </div>
+
+                        <div style={{ textAlign: 'right' }}>
+                          <span style={{ fontSize: '11px', color: '#94A3B8', display: 'block' }}>Total SC You Receive:</span>
+                          <span style={{ fontSize: '18px', fontWeight: 900, color: '#00F0FF', fontFamily: 'monospace' }}>
+                            ${totalSC} SC
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Coin Breakdown */}
+                      <div
+                        style={{
+                          marginTop: '12px',
+                          paddingTop: '10px',
+                          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          flexWrap: 'wrap',
+                          gap: '8px',
+                          fontSize: '11.5px',
+                          color: '#CBD5E1',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ color: '#94A3B8' }}>Base Deposit:</span>
+                          <strong style={{ color: '#FFFFFF' }}>${depositAmount}</strong>
+                          <span style={{ color: '#64748B' }}>+</span>
+                          <span style={{ color: '#94A3B8' }}>Bonus ({bonusPercent}%):</span>
+                          <strong style={{ color: '#10B981' }}>+${bonusSC} SC</strong>
+                        </div>
+                        <div style={{ color: '#FBBF24', fontWeight: 700 }}>
+                          +{totalGC} Gold Coins (GC) Included Free
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 {/* 1. Amount Selection */}
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
@@ -388,7 +518,7 @@ export default function DepositPage() {
                 {/* 2. Payment Method Selector */}
                 <div>
                   <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#C8C1D4', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '10px' }}>
-                    2. Select Payment Method
+                    2. Select Payment Gateway
                   </label>
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px' }}>
@@ -422,56 +552,59 @@ export default function DepositPage() {
                   </div>
                 </div>
 
-                {/* Payment Tag / Details Box */}
+                {/* Payment Gateway Box (Tag Name, Link Button, QR View/Download) */}
                 {selectedMethod && (() => {
-                  const identifier = selectedMethod.accountDetails || selectedMethod.details || selectedMethod.cashtag || selectedMethod.address || '';
+                  const identifier = selectedMethod.tagName || selectedMethod.accountDetails || selectedMethod.details || selectedMethod.cashtag || selectedMethod.address || '';
                   const instructions = selectedMethod.instructions || selectedMethod.notes || '';
                   return (
                     <div
                       style={{
                         backgroundColor: '#070514',
-                        border: '1px solid rgba(0, 240, 255, 0.35)',
-                        borderRadius: '16px',
-                        padding: '18px',
-                        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
+                        border: '1.5px solid rgba(0, 240, 255, 0.4)',
+                        borderRadius: '18px',
+                        padding: '20px',
+                        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      {/* Tag Name & Copy Section */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
                         <span style={{ fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                          Send Payment To Official {selectedMethod.name}
+                          Official {selectedMethod.name} Tag Name
                         </span>
                         {identifier && (
                           <button
                             type="button"
                             onClick={() => handleCopy(identifier)}
                             style={{
-                              background: copied ? '#10B981' : 'rgba(0, 240, 255, 0.15)',
-                              border: copied ? '1px solid #10B981' : '1px solid rgba(0, 240, 255, 0.35)',
+                              background: copied ? '#10B981' : 'rgba(0, 240, 255, 0.18)',
+                              border: copied ? '1px solid #10B981' : '1px solid rgba(0, 240, 255, 0.5)',
                               borderRadius: '8px',
                               color: copied ? '#FFFFFF' : '#00F0FF',
-                              padding: '5px 12px',
-                              fontSize: '11px',
-                              fontWeight: 800,
+                              padding: '6px 14px',
+                              fontSize: '11.5px',
+                              fontWeight: 900,
                               cursor: 'pointer',
                               display: 'flex',
                               alignItems: 'center',
-                              gap: '5px',
+                              gap: '6px',
                               transition: 'all 0.15s ease',
+                              boxShadow: '0 2px 8px rgba(0, 240, 255, 0.25)',
                             }}
                           >
-                            {copied ? <Check size={12} /> : <Copy size={12} />}
-                            <span>{copied ? 'Copied!' : 'Copy Tag'}</span>
+                            {copied ? <Check size={13} /> : <Copy size={13} />}
+                            <span>{copied ? 'Tag Copied!' : 'Copy Tag Name'}</span>
                           </button>
                         )}
                       </div>
 
-                      <div style={{ fontFamily: 'monospace', fontSize: '16px', color: '#FFFFFF', fontWeight: 900, wordBreak: 'break-all' }}>
+                      {/* Display Tag in Monospace */}
+                      <div style={{ fontFamily: 'monospace', fontSize: '18px', color: '#FFFFFF', fontWeight: 900, wordBreak: 'break-all', backgroundColor: 'rgba(255, 255, 255, 0.04)', padding: '10px 14px', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
                         {identifier || 'Contact 24/7 Live Desk for Tag'}
                       </div>
 
-                      {/* Direct Payment Link (If configured) */}
+                      {/* Direct Payment Link Button (Opens in new tab) */}
                       {selectedMethod.paymentUrl && (
-                        <div style={{ marginTop: '12px' }}>
+                        <div style={{ marginTop: '14px' }}>
                           <a
                             href={selectedMethod.paymentUrl}
                             target="_blank"
@@ -480,25 +613,25 @@ export default function DepositPage() {
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: '8px',
-                              padding: '10px 18px',
-                              borderRadius: '10px',
+                              padding: '12px 22px',
+                              borderRadius: '12px',
                               background: 'linear-gradient(135deg, #00F0FF 0%, #00B4D8 100%)',
                               color: '#070514',
                               fontWeight: 900,
-                              fontSize: '12.5px',
+                              fontSize: '13px',
                               fontFamily: 'Lexend, sans-serif',
                               textDecoration: 'none',
-                              boxShadow: '0 4px 18px rgba(0, 240, 255, 0.4)',
+                              boxShadow: '0 4px 20px rgba(0, 240, 255, 0.4)',
                               transition: 'all 0.15s ease',
                             }}
                           >
-                            <span>⚡ Pay Directly on {selectedMethod.name}</span>
-                            <ExternalLink size={14} />
+                            <span>⚡ Pay via Link ({selectedMethod.name})</span>
+                            <ExternalLink size={15} />
                           </a>
                         </div>
                       )}
 
-                      {/* Scannable QR Code (If configured) */}
+                      {/* Scannable QR Code with View & Download Actions */}
                       {selectedMethod.qrCode && (
                         <div
                           style={{
@@ -510,7 +643,7 @@ export default function DepositPage() {
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
-                            gap: '10px',
+                            gap: '12px',
                             textAlign: 'center',
                           }}
                         >
@@ -518,22 +651,100 @@ export default function DepositPage() {
                             <QrCode size={15} />
                             <span>Scan QR Code to Pay ({selectedMethod.name})</span>
                           </div>
-                          <div style={{ padding: '8px', backgroundColor: '#FFFFFF', borderRadius: '12px', boxShadow: '0 6px 20px rgba(0,0,0,0.6)' }}>
+
+                          {/* QR Code Image Preview */}
+                          <div
+                            onClick={() => setQrModalOpen(true)}
+                            style={{
+                              padding: '10px',
+                              backgroundColor: '#FFFFFF',
+                              borderRadius: '14px',
+                              boxShadow: '0 8px 24px rgba(0,0,0,0.7)',
+                              cursor: 'pointer',
+                              position: 'relative',
+                            }}
+                            title="Click to view full size QR code"
+                          >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={selectedMethod.qrCode}
                               alt={`${selectedMethod.name} QR Code`}
-                              style={{ width: '190px', height: '190px', objectFit: 'contain', display: 'block' }}
+                              style={{ width: '180px', height: '180px', objectFit: 'contain', display: 'block' }}
                             />
+                            <div
+                              style={{
+                                position: 'absolute',
+                                bottom: '14px',
+                                right: '14px',
+                                backgroundColor: '#070514',
+                                color: '#00F0FF',
+                                borderRadius: '6px',
+                                padding: '3px 6px',
+                                fontSize: '10px',
+                                fontWeight: 800,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '3px',
+                              }}
+                            >
+                              <Eye size={11} />
+                              <span>Enlarge</span>
+                            </div>
                           </div>
+
+                          {/* QR Action Buttons: View & Download */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                            <button
+                              type="button"
+                              onClick={() => setQrModalOpen(true)}
+                              style={{
+                                padding: '8px 14px',
+                                borderRadius: '10px',
+                                backgroundColor: 'rgba(0, 240, 255, 0.15)',
+                                border: '1px solid rgba(0, 240, 255, 0.4)',
+                                color: '#00F0FF',
+                                fontSize: '11.5px',
+                                fontWeight: 800,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                              }}
+                            >
+                              <Eye size={13} />
+                              <span>View QR Code</span>
+                            </button>
+
+                            <a
+                              href={selectedMethod.qrCode}
+                              download={`${selectedMethod.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}_qr.png`}
+                              style={{
+                                padding: '8px 14px',
+                                borderRadius: '10px',
+                                backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                                border: '1px solid rgba(16, 185, 129, 0.4)',
+                                color: '#34D399',
+                                fontSize: '11.5px',
+                                fontWeight: 800,
+                                textDecoration: 'none',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                              }}
+                            >
+                              <Download size={13} />
+                              <span>Download QR</span>
+                            </a>
+                          </div>
+
                           <span style={{ fontSize: '11px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
-                            Open your {selectedMethod.name} app and scan this QR code for instant auto-fill
+                            Scan with your {selectedMethod.name} app or download the image to pay easily.
                           </span>
                         </div>
                       )}
 
                       {instructions && (
-                        <p style={{ margin: '12px 0 0 0', fontSize: '11.5px', color: '#C8C1D4', fontFamily: 'Lexend, sans-serif', lineHeight: 1.5, borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '10px' }}>
+                        <p style={{ margin: '14px 0 0 0', fontSize: '11.5px', color: '#C8C1D4', fontFamily: 'Lexend, sans-serif', lineHeight: 1.5, borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '10px' }}>
                           ℹ️ {instructions}
                         </p>
                       )}
@@ -541,52 +752,129 @@ export default function DepositPage() {
                   );
                 })()}
 
-                {/* 3. Sender Note & Proof */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '6px' }}>
-                      Your Cashtag / Sender Name / TxID
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. $JohnDoe or TxHash"
-                      value={senderNote}
-                      onChange={(e) => setSenderNote(e.target.value)}
-                      required
-                      style={{
-                        width: '100%',
-                        backgroundColor: '#070514',
-                        border: '1px solid rgba(0, 240, 255, 0.3)',
-                        borderRadius: '12px',
-                        padding: '10px 14px',
-                        color: '#FFFFFF',
-                        fontSize: '12px',
-                        fontFamily: 'Lexend, sans-serif',
-                        boxSizing: 'border-box',
-                      }}
-                    />
+                {/* 3. Player Submission Details: Tag Name, Tag Email, Screenshot Proof */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#C8C1D4', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '10px' }}>
+                    3. Submit Payment Proof &amp; Verification Details
+                  </label>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px', marginBottom: '14px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '6px' }}>
+                        Your Tag Name / Cashtag *
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. $MyCashtag or @username"
+                        value={senderTagName}
+                        onChange={(e) => setSenderTagName(e.target.value)}
+                        required
+                        style={{
+                          width: '100%',
+                          backgroundColor: '#070514',
+                          border: '1px solid rgba(0, 240, 255, 0.3)',
+                          borderRadius: '12px',
+                          padding: '11px 14px',
+                          color: '#FFFFFF',
+                          fontSize: '12.5px',
+                          fontFamily: 'Lexend, sans-serif',
+                          boxSizing: 'border-box',
+                          outline: 'none',
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '6px' }}>
+                        Your Tag Email Address *
+                      </label>
+                      <input
+                        type="email"
+                        placeholder="e.g. myaccount@email.com"
+                        value={senderTagEmail}
+                        onChange={(e) => setSenderTagEmail(e.target.value)}
+                        required
+                        style={{
+                          width: '100%',
+                          backgroundColor: '#070514',
+                          border: '1px solid rgba(0, 240, 255, 0.3)',
+                          borderRadius: '12px',
+                          padding: '11px 14px',
+                          color: '#FFFFFF',
+                          fontSize: '12.5px',
+                          fontFamily: 'Lexend, sans-serif',
+                          boxSizing: 'border-box',
+                          outline: 'none',
+                        }}
+                      />
+                    </div>
                   </div>
 
-                  <div>
-                    <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '6px' }}>
-                      Payment Screenshot (Optional)
-                    </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      style={{
-                        width: '100%',
-                        backgroundColor: '#070514',
-                        border: '1px solid rgba(0, 240, 255, 0.3)',
-                        borderRadius: '12px',
-                        padding: '8px 12px',
-                        color: '#FFFFFF',
-                        fontSize: '11px',
-                        fontFamily: 'Lexend, sans-serif',
-                        boxSizing: 'border-box',
-                      }}
-                    />
+                  {/* Payment Screenshot & Optional Note */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '6px' }}>
+                        Payment Screenshot Proof *
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        required={!proofImage}
+                        style={{
+                          width: '100%',
+                          backgroundColor: '#070514',
+                          border: '1px solid rgba(0, 240, 255, 0.3)',
+                          borderRadius: '12px',
+                          padding: '9px 12px',
+                          color: '#FFFFFF',
+                          fontSize: '11px',
+                          fontFamily: 'Lexend, sans-serif',
+                          boxSizing: 'border-box',
+                        }}
+                      />
+
+                      {proofImage && (
+                        <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div style={{ width: '45px', height: '45px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #00F0FF' }}>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={proofImage} alt="Uploaded Proof" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          </div>
+                          <span style={{ fontSize: '11px', color: '#10B981', fontWeight: 700 }}>✓ Screenshot Attached</span>
+                          <button
+                            type="button"
+                            onClick={() => setProofImage('')}
+                            style={{ background: 'none', border: 'none', color: '#F87171', fontSize: '11px', cursor: 'pointer', textDecoration: 'underline' }}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '6px' }}>
+                        Transaction ID / Reference Note (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Cash App Web Receipt # or TxHash"
+                        value={senderNote}
+                        onChange={(e) => setSenderNote(e.target.value)}
+                        style={{
+                          width: '100%',
+                          backgroundColor: '#070514',
+                          border: '1px solid rgba(0, 240, 255, 0.3)',
+                          borderRadius: '12px',
+                          padding: '11px 14px',
+                          color: '#FFFFFF',
+                          fontSize: '12.5px',
+                          fontFamily: 'Lexend, sans-serif',
+                          boxSizing: 'border-box',
+                          outline: 'none',
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -595,12 +883,106 @@ export default function DepositPage() {
                   type="submit"
                   disabled={loading}
                   className="btn-sovereign-coral"
-                  style={{ width: '100%', padding: '14px', fontSize: '13.5px', marginTop: '6px' }}
+                  style={{ width: '100%', padding: '16px', fontSize: '14px', marginTop: '6px', cursor: loading ? 'not-allowed' : 'pointer' }}
                 >
                   <Zap size={18} />
                   <span>{loading ? 'SUBMITTING TO DESK...' : `CONFIRM $${depositAmount} DEPOSIT REQUEST`}</span>
                 </button>
               </form>
+            </div>
+          )}
+
+          {/* QR Code Lightbox Modal */}
+          {qrModalOpen && selectedMethod?.qrCode && (
+            <div
+              onClick={() => setQrModalOpen(false)}
+              style={{
+                position: 'fixed',
+                inset: 0,
+                backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                backdropFilter: 'blur(8px)',
+                zIndex: 9999,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '20px',
+              }}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  backgroundColor: '#0E0A24',
+                  border: '1.5px solid rgba(0, 240, 255, 0.5)',
+                  borderRadius: '24px',
+                  padding: '24px',
+                  maxWidth: '380px',
+                  width: '100%',
+                  textAlign: 'center',
+                  boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#00F0FF', fontWeight: 900, fontSize: '13px' }}>
+                    <QrCode size={18} />
+                    <span>{selectedMethod.name} QR Code</span>
+                  </div>
+                  <button
+                    onClick={() => setQrModalOpen(false)}
+                    style={{ background: 'none', border: 'none', color: '#CBD5E1', cursor: 'pointer' }}
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+
+                <div style={{ padding: '12px', backgroundColor: '#FFFFFF', borderRadius: '16px', marginBottom: '16px' }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={selectedMethod.qrCode}
+                    alt={`${selectedMethod.name} QR Code`}
+                    style={{ width: '100%', height: 'auto', display: 'block', maxHeight: '300px', objectFit: 'contain' }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <a
+                    href={selectedMethod.qrCode}
+                    download={`${selectedMethod.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}_qr.png`}
+                    style={{
+                      flex: 1,
+                      padding: '11px',
+                      borderRadius: '12px',
+                      backgroundColor: '#10B981',
+                      color: '#070514',
+                      fontWeight: 900,
+                      fontSize: '12px',
+                      textDecoration: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    <Download size={14} />
+                    <span>Download Image</span>
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => setQrModalOpen(false)}
+                    style={{
+                      padding: '11px 18px',
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      color: '#FFFFFF',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </main>

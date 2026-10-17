@@ -324,6 +324,11 @@ export default function HistoryPage() {
                           >
                             {item.status || 'PENDING'}
                           </span>
+                          {item.status === 'rejected' && item.rejectReason && (
+                            <p style={{ margin: '4px 0 0 0', fontSize: '10.5px', color: '#F87171', fontStyle: 'italic', maxWidth: '240px', wordBreak: 'break-word' }}>
+                              Note: {item.rejectReason}
+                            </p>
+                          )}
                         </div>
                       </div>
                     );

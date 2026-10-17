@@ -612,45 +612,53 @@ export default function FinanceUnifiedDesk({
                             </span>
                           </td>
 
-                          {/* 5. Cashtag / Reference */}
+                          {/* 5. Tag Name & Tag Email */}
                           <td style={{ padding: '14px 16px' }}>
-                            {note ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                 <span
                                   style={{
                                     fontFamily: 'monospace',
-                                    fontSize: '11.5px',
+                                    fontSize: '12px',
+                                    fontWeight: 800,
                                     color: '#FDE68A',
                                     backgroundColor: '#070914',
                                     border: '1px solid rgba(255, 255, 255, 0.1)',
-                                    padding: '4px 8px',
+                                    padding: '3px 8px',
                                     borderRadius: '8px',
-                                    maxWidth: '140px',
+                                    maxWidth: '150px',
                                     overflow: 'hidden',
                                     textOverflow: 'ellipsis',
                                     whiteSpace: 'nowrap',
                                   }}
+                                  title={d.senderTagName || note || 'No tag'}
                                 >
-                                  {note}
+                                  {d.senderTagName || note || 'No Tag Provided'}
                                 </span>
-                                <button
-                                  onClick={() => handleCopy(note, depositId)}
-                                  style={{
-                                    padding: '4px 6px',
-                                    borderRadius: '6px',
-                                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                                    border: '1px solid rgba(255, 255, 255, 0.12)',
-                                    color: '#CBD5E1',
-                                    cursor: 'pointer',
-                                  }}
-                                  title="Copy Cashtag"
-                                >
-                                  {copiedId === depositId ? <CheckCheck size={12} color="#10B981" /> : <Copy size={12} />}
-                                </button>
+                                {(d.senderTagName || note) && (
+                                  <button
+                                    onClick={() => handleCopy(d.senderTagName || note, depositId)}
+                                    style={{
+                                      padding: '4px 6px',
+                                      borderRadius: '6px',
+                                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                                      border: '1px solid rgba(255, 255, 255, 0.12)',
+                                      color: '#CBD5E1',
+                                      cursor: 'pointer',
+                                    }}
+                                    title="Copy Tag Name"
+                                  >
+                                    {copiedId === depositId ? <CheckCheck size={12} color="#10B981" /> : <Copy size={12} />}
+                                  </button>
+                                )}
                               </div>
-                            ) : (
-                              <span style={{ fontSize: '11px', color: '#64748B', fontStyle: 'italic' }}>None provided</span>
-                            )}
+
+                              {d.senderTagEmail && (
+                                <span style={{ fontSize: '10.5px', color: '#94A3B8', fontFamily: 'monospace' }}>
+                                  ✉️ {d.senderTagEmail}
+                                </span>
+                              )}
+                            </div>
                           </td>
 
                           {/* 6. Screenshot / Receipt Proof */}
@@ -879,14 +887,15 @@ export default function FinanceUnifiedDesk({
                   boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
                 }}
               >
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '820px', backgroundColor: '#090b18' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '940px', backgroundColor: '#090b18' }}>
                   <thead style={{ backgroundColor: '#050711', borderBottom: '1px solid rgba(255, 255, 255, 0.12)' }}>
                     <tr>
                       <th style={{ padding: '14px 16px', fontSize: '10.5px', fontWeight: 900, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Player</th>
                       <th style={{ padding: '14px 16px', fontSize: '10.5px', fontWeight: 900, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Redeem Amount</th>
-                      <th style={{ padding: '14px 16px', fontSize: '10.5px', fontWeight: 900, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Payout Method</th>
-                      <th style={{ padding: '14px 16px', fontSize: '10.5px', fontWeight: 900, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Destination Address / Cashtag</th>
-                      <th style={{ padding: '14px 16px', fontSize: '10.5px', fontWeight: 900, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>User Payment QR Code</th>
+                      <th style={{ padding: '14px 16px', fontSize: '10.5px', fontWeight: 900, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Game &amp; Method</th>
+                      <th style={{ padding: '14px 16px', fontSize: '10.5px', fontWeight: 900, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tag Name / Destination</th>
+                      <th style={{ padding: '14px 16px', fontSize: '10.5px', fontWeight: 900, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Game Screenshot</th>
+                      <th style={{ padding: '14px 16px', fontSize: '10.5px', fontWeight: 900, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>User Payment QR</th>
                       <th style={{ padding: '14px 16px', fontSize: '10.5px', fontWeight: 900, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date &amp; Time</th>
                       <th style={{ padding: '14px 16px', fontSize: '10.5px', fontWeight: 900, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Actions</th>
                     </tr>
@@ -894,6 +903,7 @@ export default function FinanceUnifiedDesk({
                   <tbody>
                     {filteredPendingRedemptions.map((r) => {
                       const redeemId = r.id || r._id;
+                      const userTag = r.userTagName || r.destinationAddress;
                       return (
                         <tr
                           key={redeemId}
@@ -951,62 +961,114 @@ export default function FinanceUnifiedDesk({
                             </span>
                           </td>
 
-                          {/* 3. Payout Method */}
+                          {/* 3. Game & Method */}
                           <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
-                            <span
-                              style={{
-                                display: 'inline-block',
-                                padding: '4px 10px',
-                                borderRadius: '10px',
-                                backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                                border: '1px solid rgba(255, 255, 255, 0.18)',
-                                color: '#FFFFFF',
-                                fontSize: '11.5px',
-                                fontWeight: 800,
-                              }}
-                            >
-                              {r.payoutMethod || 'Direct'}
-                            </span>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                              <span style={{ fontSize: '12px', fontWeight: 800, color: '#FFFFFF' }}>
+                                🎮 {r.gameTitle || 'Platform'}
+                              </span>
+                              <span
+                                style={{
+                                  display: 'inline-block',
+                                  padding: '2px 8px',
+                                  borderRadius: '6px',
+                                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                                  color: '#CBD5E1',
+                                  fontSize: '10.5px',
+                                  fontWeight: 700,
+                                  width: 'fit-content',
+                                }}
+                              >
+                                {r.payoutMethod || 'Direct'}
+                              </span>
+                            </div>
                           </td>
 
-                          {/* 4. Destination Address */}
+                          {/* 4. Tag Name / Destination */}
                           <td style={{ padding: '14px 16px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                               <span
                                 style={{
                                   fontFamily: 'monospace',
-                                  fontSize: '11.5px',
+                                  fontSize: '12px',
+                                  fontWeight: 800,
                                   color: '#FDE68A',
                                   backgroundColor: '#070914',
                                   border: '1px solid rgba(255, 255, 255, 0.1)',
                                   padding: '4px 8px',
                                   borderRadius: '8px',
-                                  maxWidth: '180px',
+                                  maxWidth: '160px',
                                   overflow: 'hidden',
                                   textOverflow: 'ellipsis',
                                   whiteSpace: 'nowrap',
                                 }}
+                                title={userTag}
                               >
-                                {r.destinationAddress}
+                                {userTag}
                               </span>
-                              <button
-                                onClick={() => handleCopy(r.destinationAddress, redeemId)}
-                                style={{
-                                  padding: '4px 6px',
-                                  borderRadius: '6px',
-                                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                                  color: '#CBD5E1',
-                                  cursor: 'pointer',
-                                }}
-                                title="Copy Address"
-                              >
-                                {copiedId === redeemId ? <CheckCheck size={12} color="#10B981" /> : <Copy size={12} />}
-                              </button>
+                              {userTag && (
+                                <button
+                                  onClick={() => handleCopy(userTag, redeemId)}
+                                  style={{
+                                    padding: '4px 6px',
+                                    borderRadius: '6px',
+                                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                                    color: '#CBD5E1',
+                                    cursor: 'pointer',
+                                  }}
+                                  title="Copy Tag Name / Address"
+                                >
+                                  {copiedId === redeemId ? <CheckCheck size={12} color="#10B981" /> : <Copy size={12} />}
+                                </button>
+                              )}
                             </div>
                           </td>
 
-                          {/* 5. User Payment QR Code (Clickable Preview) */}
+                          {/* 5. Game Winning Screenshot (Clickable Preview) */}
+                          <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
+                            {r.gameScreenshot ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setPreviewProof({
+                                    image: r.gameScreenshot,
+                                    url: r.gameScreenshot,
+                                    title: `${r.username}'s Game Score (${r.gameTitle || 'Platform'})`,
+                                    username: r.username,
+                                    player: r.username,
+                                    amount: r.amount,
+                                    method: r.gameTitle || 'Platform',
+                                    note: `Game: ${r.gameTitle || 'N/A'}`,
+                                    date: r.createdAt,
+                                  })
+                                }
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '6px',
+                                  padding: '5px 10px',
+                                  borderRadius: '8px',
+                                  backgroundColor: 'rgba(59, 130, 246, 0.15)',
+                                  border: '1px solid rgba(59, 130, 246, 0.4)',
+                                  color: '#60A5FA',
+                                  cursor: 'pointer',
+                                  fontSize: '11px',
+                                  fontWeight: 800,
+                                }}
+                              >
+                                <Eye size={12} />
+                                <span>Game Proof 🎮</span>
+                              </button>
+                            ) : (
+                              <span style={{ fontSize: '11px', color: '#EF4444', fontStyle: 'italic' }}>
+                                Missing Proof
+                              </span>
+                            )}
+                          </td>
+
+                          {/* 6. User Payment QR Code (Clickable Preview) */}
                           <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
                             {r.qrCodeImage ? (
                               <button
@@ -1020,41 +1082,26 @@ export default function FinanceUnifiedDesk({
                                     player: r.username,
                                     amount: r.amount,
                                     method: r.payoutMethod || 'Direct Payment',
-                                    note: r.destinationAddress,
+                                    note: userTag,
                                     date: r.createdAt,
                                   })
                                 }
                                 style={{
                                   display: 'inline-flex',
                                   alignItems: 'center',
-                                  gap: '8px',
-                                  padding: '6px 12px',
-                                  borderRadius: '10px',
+                                  gap: '6px',
+                                  padding: '5px 10px',
+                                  borderRadius: '8px',
                                   backgroundColor: 'rgba(16, 185, 129, 0.15)',
                                   border: '1px solid rgba(16, 185, 129, 0.4)',
                                   color: '#34D399',
                                   cursor: 'pointer',
-                                  fontSize: '11.5px',
+                                  fontSize: '11px',
                                   fontWeight: 800,
                                 }}
                               >
-                                <div
-                                  style={{
-                                    width: '24px',
-                                    height: '24px',
-                                    borderRadius: '5px',
-                                    overflow: 'hidden',
-                                    backgroundColor: '#000',
-                                    flexShrink: 0,
-                                  }}
-                                >
-                                  <img
-                                    src={r.qrCodeImage}
-                                    alt="QR"
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                  />
-                                </div>
-                                <span>Scan QR Code 📷</span>
+                                <Eye size={12} />
+                                <span>Payment QR 📷</span>
                               </button>
                             ) : (
                               <span style={{ fontSize: '11px', color: '#64748B', fontStyle: 'italic' }}>
@@ -1063,7 +1110,7 @@ export default function FinanceUnifiedDesk({
                             )}
                           </td>
 
-                          {/* 5. Date & Time (Placed right before Actions!) */}
+                          {/* 7. Date & Time (Placed right before Actions!) */}
                           <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#FFFFFF', fontWeight: 700, fontSize: '12px' }}>
                               <Clock size={12} color="#94A3B8" />
@@ -1626,8 +1673,13 @@ export default function FinanceUnifiedDesk({
               </button>
               <button
                 onClick={async () => {
+                  const cleanReason = (rejectDepositModal.reason || '').trim();
+                  if (!cleanReason) {
+                    alert('Rejection reason note is required so the player knows why their deposit was not approved.');
+                    return;
+                  }
                   const depId = rejectDepositModal.deposit.id || rejectDepositModal.deposit._id;
-                  await onRejectDeposit(depId, rejectDepositModal.reason || 'Payment details could not be verified.');
+                  await onRejectDeposit(depId, cleanReason);
                   setRejectDepositModal({ open: false, deposit: null, reason: '' });
                 }}
                 style={{
@@ -1642,7 +1694,7 @@ export default function FinanceUnifiedDesk({
                   boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)',
                 }}
               >
-                Confirm Rejection
+                Confirm Rejection &amp; Send Note
               </button>
             </div>
           </div>
@@ -1682,7 +1734,7 @@ export default function FinanceUnifiedDesk({
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#F87171' }}>
                 <AlertTriangle size={20} />
-                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 900, color: '#FFFFFF' }}>Reject &amp; Refund Cashout</h3>
+                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 900, color: '#FFFFFF' }}>Reject Cashout Request</h3>
               </div>
               <button
                 onClick={() => setRejectRedeemModal({ open: false, item: null, reason: '' })}
@@ -1693,13 +1745,13 @@ export default function FinanceUnifiedDesk({
             </div>
             <p style={{ margin: 0, fontSize: '12px', color: '#94A3B8' }}>
               Rejecting cashout of <strong style={{ color: '#E9D5FF' }}>${rejectRedeemModal.item?.amount} SC</strong> for{' '}
-              <strong style={{ color: '#FFFFFF' }}>{rejectRedeemModal.item?.username}</strong>. Coins will be refunded to balance.
+              <strong style={{ color: '#FFFFFF' }}>{rejectRedeemModal.item?.username}</strong>. A mandatory note will be logged and emailed to the player.
             </p>
             <textarea
               rows={3}
               value={rejectRedeemModal.reason}
               onChange={(e) => setRejectRedeemModal({ ...rejectRedeemModal, reason: e.target.value })}
-              placeholder="Enter rejection reason (e.g. Invalid cashtag)..."
+              placeholder="Enter mandatory rejection reason (e.g. Game score mismatch or invalid tag name)..."
               style={{
                 width: '100%',
                 padding: '10px 12px',
@@ -1731,8 +1783,13 @@ export default function FinanceUnifiedDesk({
               </button>
               <button
                 onClick={async () => {
+                  const cleanReason = (rejectRedeemModal.reason || '').trim();
+                  if (!cleanReason) {
+                    alert('Rejection reason note is required so the player knows why their cashout was rejected.');
+                    return;
+                  }
                   const redId = rejectRedeemModal.item.id || rejectRedeemModal.item._id;
-                  await onRejectRedemption(redId, rejectRedeemModal.reason || 'Cashout rejected. Coins refunded to player balance.');
+                  await onRejectRedemption(redId, cleanReason);
                   setRejectRedeemModal({ open: false, item: null, reason: '' });
                 }}
                 style={{
@@ -1747,7 +1804,7 @@ export default function FinanceUnifiedDesk({
                   boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)',
                 }}
               >
-                Refund Coins &amp; Reject
+                Confirm Rejection &amp; Send Note
               </button>
             </div>
           </div>

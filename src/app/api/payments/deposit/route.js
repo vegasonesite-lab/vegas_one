@@ -50,6 +50,8 @@ export async function GET(req) {
           amount: d.amount,
           methodName: d.methodName,
           senderNote: d.senderNote || '',
+          senderTagName: d.senderTagName || d.senderNote || '',
+          senderTagEmail: d.senderTagEmail || '',
           proofImage: d.proofImage || null,
           txHash: d.txHash || '',
           bonusType,
@@ -78,7 +80,16 @@ export async function POST(req) {
       return NextResponse.json({ success: false, error: 'Unauthorized. Please login.' }, { status: 401 });
     }
 
-    const { amount, methodId, methodName, senderNote, proofImage, txHash } = await req.json();
+    const {
+      amount,
+      methodId,
+      methodName,
+      senderNote,
+      senderTagName,
+      senderTagEmail,
+      proofImage,
+      txHash,
+    } = await req.json();
 
     const depositAmount = Number(amount);
     if (!depositAmount || depositAmount < 5) {
@@ -87,6 +98,20 @@ export async function POST(req) {
 
     if (!methodName) {
       return NextResponse.json({ success: false, error: 'Payment method is required.' }, { status: 400 });
+    }
+
+    if (!proofImage) {
+      return NextResponse.json({ success: false, error: 'Payment screenshot proof is required.' }, { status: 400 });
+    }
+
+    const cleanTagName = (senderTagName || senderNote || '').trim();
+    if (!cleanTagName) {
+      return NextResponse.json({ success: false, error: 'Your Tag Name / Cashtag is required.' }, { status: 400 });
+    }
+
+    const cleanTagEmail = (senderTagEmail || '').trim();
+    if (!cleanTagEmail) {
+      return NextResponse.json({ success: false, error: 'Your Tag Email is required.' }, { status: 400 });
     }
 
     const db = await getDb();
@@ -119,7 +144,9 @@ export async function POST(req) {
       amount: depositAmount,
       methodId: methodId || 'custom',
       methodName,
-      senderNote: senderNote || '',
+      senderNote: senderNote || cleanTagName,
+      senderTagName: cleanTagName,
+      senderTagEmail: cleanTagEmail,
       proofImage: proofImage || null,
       txHash: txHash || '',
       bonusType,
@@ -284,19 +311,33 @@ export async function PUT(req) {
 
       return NextResponse.json({ success: true, message: `Deposit approved! Credited ${creditedSC} SC to ${user.username}.` });
     } else if (action === 'reject') {
+      const cleanReason = (rejectReason || '').trim();
+      if (!cleanReason) {
+        return NextResponse.json({ success: false, error: 'Rejection reason note is required so the player knows why it was rejected.' }, { status: 400 });
+      }
+
       await depositsCol.updateOne(
         { _id: deposit._id },
         {
           $set: {
             status: 'rejected',
-            rejectReason: rejectReason || 'Payment receipt unverified',
+            rejectReason: cleanReason,
             processedBy: `${session.username} (${session.role})`,
             updatedAt: new Date(),
           },
         }
       );
 
-      return NextResponse.json({ success: true, message: 'Deposit rejected.' });
+      // Send rejection notification email with note
+      if (user.email) {
+        sendEmail({
+          to: user.email,
+          subject: `Deposit Update: Request for $${deposit.amount} was not approved`,
+          html: `<p>Hi ${user.username},</p><p>Your deposit of $${deposit.amount} via ${deposit.methodName} was reviewed by our Financial Desk. Unfortunately, it could not be approved at this time.</p><p><strong>Reason provided by desk:</strong> ${cleanReason}</p><p>Please review and submit a new request or reach out to our 24/7 Live Desk.</p>`,
+        }).catch(() => {});
+      }
+
+      return NextResponse.json({ success: true, message: 'Deposit rejected with explanatory note recorded for player.' });
     }
 
     return NextResponse.json({ success: false, error: 'Invalid action.' }, { status: 400 });

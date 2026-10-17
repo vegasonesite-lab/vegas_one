@@ -172,6 +172,11 @@ export default function CashoutPage() {
       return;
     }
 
+    if (!destinationAddress?.trim()) {
+      setErrorMsg('Please enter your Tag Name / Cashtag / Receiving Address.');
+      return;
+    }
+
     if (!gameScreenshot) {
       setErrorMsg('Please upload a screenshot of your winning balance in the game app.');
       return;
@@ -196,7 +201,8 @@ export default function CashoutPage() {
           gameScreenshot,
           qrCodeImage,
           payoutMethod,
-          destinationAddress,
+          destinationAddress: destinationAddress.trim(),
+          userTagName: destinationAddress.trim(),
           resubmitFrom: resubmitMode,
         }),
       });
@@ -231,7 +237,7 @@ export default function CashoutPage() {
       amount: Number(item.amount) || 50,
       gameTitle: item.gameTitle || 'Fire Kirin',
       payoutMethod: item.payoutMethod || 'Cash App',
-      destinationAddress: item.destinationAddress || '',
+      destinationAddress: item.destinationAddress || item.userTagName || '',
       gameScreenshot: item.gameScreenshot || null,
       qrCodeImage: item.qrCodeImage || null,
       loading: false,
@@ -244,22 +250,13 @@ export default function CashoutPage() {
     if (!resubmitModal.item) return;
 
     const amt = Number(resubmitModal.amount);
-    if (!amt || amt < 20) {
-      setResubmitModal(prev => ({ ...prev, error: 'Minimum cashout amount is $20.00 SC.' }));
-      return;
-    }
-
-    const available = Number(user?.availableSC !== undefined ? user.availableSC : (user?.balanceSC - (user?.frozenBalance || 0)) || 0);
-    if (amt > available) {
-      setResubmitModal(prev => ({
-        ...prev,
-        error: `Amount exceeds available balance ($${available.toFixed(2)} SC available).`,
-      }));
+    if (!amt || amt < 5) {
+      setResubmitModal(prev => ({ ...prev, error: 'Minimum cashout amount is $5.00 SC.' }));
       return;
     }
 
     if (!resubmitModal.destinationAddress?.trim()) {
-      setResubmitModal(prev => ({ ...prev, error: 'Please enter your recipient cashtag or wallet address.' }));
+      setResubmitModal(prev => ({ ...prev, error: 'Please enter your recipient cashtag, tag name, or wallet address.' }));
       return;
     }
 

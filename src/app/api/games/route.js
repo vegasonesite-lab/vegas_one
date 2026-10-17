@@ -100,8 +100,8 @@ export async function POST(req) {
 export async function PUT(req) {
   try {
     const session = await getSessionUser();
-    if (!session || session.role !== ROLES.SUPER_ADMIN) {
-      return NextResponse.json({ success: false, error: 'Unauthorized. Super Admin only.' }, { status: 403 });
+    if (!session || (session.role !== ROLES.SUPER_ADMIN && session.role !== ROLES.OPERATION_ADMIN)) {
+      return NextResponse.json({ success: false, error: 'Unauthorized. Admin only.' }, { status: 403 });
     }
 
     const body = await req.json();
@@ -128,7 +128,15 @@ export async function PUT(req) {
       updateFields.isFeatured = normalizedBadge === 'EXCLUSIVE' || normalizedBadge === 'POPULAR';
     }
 
-    await gamesCol.updateOne({ _id: new ObjectId(id) }, { $set: updateFields });
+    const query = {
+      $or: [
+        ...(ObjectId.isValid(id) ? [{ _id: new ObjectId(id) }] : []),
+        { gameId: id },
+        { _id: id }
+      ]
+    };
+
+    await gamesCol.updateOne(query, { $set: updateFields });
 
     return NextResponse.json({ success: true, message: 'Game updated successfully' });
   } catch (error) {
@@ -140,8 +148,8 @@ export async function PUT(req) {
 export async function DELETE(req) {
   try {
     const session = await getSessionUser();
-    if (!session || session.role !== ROLES.SUPER_ADMIN) {
-      return NextResponse.json({ success: false, error: 'Unauthorized. Super Admin only.' }, { status: 403 });
+    if (!session || (session.role !== ROLES.SUPER_ADMIN && session.role !== ROLES.OPERATION_ADMIN)) {
+      return NextResponse.json({ success: false, error: 'Unauthorized. Admin only.' }, { status: 403 });
     }
 
     const { searchParams } = new URL(req.url);
@@ -154,7 +162,15 @@ export async function DELETE(req) {
     const db = await getDb();
     const gamesCol = db.collection('games');
 
-    await gamesCol.deleteOne({ _id: new ObjectId(id) });
+    const query = {
+      $or: [
+        ...(ObjectId.isValid(id) ? [{ _id: new ObjectId(id) }] : []),
+        { gameId: id },
+        { _id: id }
+      ]
+    };
+
+    await gamesCol.deleteOne(query);
     return NextResponse.json({ success: true, message: 'Game deleted successfully' });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

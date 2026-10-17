@@ -596,9 +596,9 @@ export default function AdminPortal({ initialTab }) {
       ]);
 
       const [depData, withData, reqData] = await Promise.all([
-        depRes.json(),
-        withRes.json(),
-        reqRes.json(),
+        depRes.ok ? depRes.json().catch(() => ({})) : {},
+        withRes.ok ? withRes.json().catch(() => ({})) : {},
+        reqRes.ok ? reqRes.json().catch(() => ({})) : {},
       ]);
 
       if (depData.success) {
@@ -2828,8 +2828,7 @@ export default function AdminPortal({ initialTab }) {
                             });
                             const d = await res.json();
                             if (d.success) {
-                              alert('Game updated successfully!');
-                              setGames(prev => prev.map(item => item.id === editingGame.id ? { ...item, ...editingGame } : item));
+                              setGames(prev => prev.map(item => (item.id === editingGame.id || item._id === editingGame.id) ? { ...item, ...editingGame } : item));
                               setEditingGame(null);
                             } else {
                               alert(d.error || 'Failed to update game');

@@ -29,7 +29,8 @@ export async function GET(req) {
           name: m.name,
           type: m.type || 'custom',
           tag: m.tag || 'Instant',
-          accountDetails: m.accountDetails || m.cashtag || m.address || m.details || '',
+          accountDetails: m.accountDetails || m.tagName || m.cashtag || m.address || m.details || '',
+          tagName: m.tagName || m.accountDetails || m.cashtag || m.address || m.details || '',
           cashtag: m.accountDetails || m.cashtag || '',
           details: m.accountDetails || m.details || '',
           instructions: m.instructions || '',
@@ -63,6 +64,7 @@ export async function POST(req) {
       name,
       type = 'custom',
       accountDetails,
+      tagName,
       instructions,
       paymentUrl = '',
       qrCode = '',
@@ -71,8 +73,10 @@ export async function POST(req) {
       tag = 'Instant',
     } = await req.json();
 
-    if (!name || !accountDetails) {
-      return NextResponse.json({ success: false, error: 'Name and Account Details are required.' }, { status: 400 });
+    const finalTag = (tagName || accountDetails || '').trim();
+
+    if (!name || !finalTag) {
+      return NextResponse.json({ success: false, error: 'Name and Tag Name / Account Identifier are required.' }, { status: 400 });
     }
 
     const db = await getDb();
@@ -84,10 +88,11 @@ export async function POST(req) {
 
     const newMethod = {
       methodId,
-      name,
+      name: name.trim(),
       type: type || 'custom',
       tag: tag || 'Instant',
-      accountDetails,
+      accountDetails: finalTag,
+      tagName: finalTag,
       instructions: instructions || 'Send payment and upload proof.',
       paymentUrl: paymentUrl ? paymentUrl.trim() : '',
       qrCode: finalQr,
@@ -122,6 +127,7 @@ export async function PUT(req) {
       name,
       type,
       accountDetails,
+      tagName,
       instructions,
       paymentUrl,
       qrCode,
@@ -141,7 +147,11 @@ export async function PUT(req) {
     const updateFields = {};
     if (name !== undefined) updateFields.name = name;
     if (type !== undefined) updateFields.type = type;
-    if (accountDetails !== undefined) updateFields.accountDetails = accountDetails;
+    const resolvedTag = tagName !== undefined ? tagName : accountDetails;
+    if (resolvedTag !== undefined) {
+      updateFields.accountDetails = resolvedTag;
+      updateFields.tagName = resolvedTag;
+    }
     if (instructions !== undefined) updateFields.instructions = instructions;
     if (paymentUrl !== undefined) updateFields.paymentUrl = paymentUrl.trim();
     if (qrCode !== undefined) {

@@ -2,9 +2,16 @@ import bcrypt from 'bcryptjs';
 import { getDb } from './mongodb';
 import { ROLES } from './auth';
 
+let isDbInitialized = false;
+let dbInitPromise = null;
+
 export async function ensureDbInitialized() {
-  try {
-    const db = await getDb();
+  if (isDbInitialized) return true;
+  if (dbInitPromise) return dbInitPromise;
+
+  dbInitPromise = (async () => {
+    try {
+      const db = await getDb();
 
     // 1. Ensure Super Admin and Staff accounts
     const usersCol = db.collection('users');
@@ -392,9 +399,14 @@ export async function ensureDbInitialized() {
     }
 
     console.log('✅ Vegas One database verified & initial records populated.');
-    return true;
-  } catch (error) {
-    console.error('Init DB warning:', error.message);
-    return false;
-  }
+      isDbInitialized = true;
+      return true;
+    } catch (error) {
+      console.error('Init DB warning:', error.message);
+      dbInitPromise = null;
+      return false;
+    }
+  })();
+
+  return dbInitPromise;
 }
