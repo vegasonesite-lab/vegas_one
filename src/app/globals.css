@@ -2822,3 +2822,35 @@ textarea:focus {
   position: absolute !important;
   z-index: 99999 !important;
 }
+
+/* 24/7 VIP Live Support Widget (Right Side Placement) */
+.live-chat-floating-wrap {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  left: auto !important;
+  z-index: 9999 !important;
+}
+
+.live-chat-window-wrap {
+  position: fixed !important;
+  right: 24px !important;
+  left: auto !important;
+  z-index: 10000 !important;
+}
+
+@media (max-width: 640px) {
+  .live-chat-floating-wrap {
+    bottom: calc(75px + env(safe-area-inset-bottom, 0px)) !important;
+    right: 16px !important;
+    left: auto !important;
+  }
+
+  .live-chat-window-wrap {
+    right: 12px !important;
+    left: 12px !important;
+    width: auto !important;
+    max-width: none !important;
+    bottom: calc(75px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}

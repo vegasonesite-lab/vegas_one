@@ -109,58 +109,144 @@ export default function LiveChatWidget({ user, soundEnabled }) {
 
   return (
     <>
-      {/* Floating Headphone Support Button */}
-      <div className="fixed bottom-6 right-5 sm:right-6 z-40">
+      {/* Floating Headphone Support Button - Fixed Bottom Right */}
+      <div
+        className="live-chat-floating-wrap"
+        style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          zIndex: 9999,
+        }}
+      >
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="relative w-14 h-14 rounded-full flex items-center justify-center transition-transform hover:scale-105 active:scale-95 shadow-xl"
           style={{
+            position: 'relative',
+            width: '56px',
+            height: '56px',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            border: 'none',
             background: 'linear-gradient(135deg, #00F0FF 0%, #E026D8 100%)',
-            boxShadow: '0 8px 30px rgba(0, 240, 255, 0.45), 0 0 15px rgba(224, 38, 216, 0.35)',
+            boxShadow: '0 8px 30px rgba(0, 240, 255, 0.45), 0 0 18px rgba(224, 38, 216, 0.35)',
+            transition: 'transform 0.2s ease',
           }}
           aria-label="Open 24/7 Live Support"
+          title="24/7 VIP Live Support"
         >
-          <Headphones size={24} className="text-black" />
-          <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-[#070514] animate-pulse" />
+          <Headphones size={26} color="#070514" />
+          <span
+            style={{
+              position: 'absolute',
+              top: '-2px',
+              right: '-2px',
+              width: '14px',
+              height: '14px',
+              borderRadius: '50%',
+              backgroundColor: '#10B981',
+              border: '2px solid #070514',
+            }}
+          />
         </button>
       </div>
 
-      {/* Chat Drawer / Modal with Mobile Keyboard Offset */}
+      {/* Chat Drawer / Modal - Fixed Bottom Right */}
       {isOpen && (
         <div
-          className="fixed right-3 sm:right-6 w-[94vw] sm:w-[380px] max-h-[82vh] h-[520px] rounded-2xl flex flex-col z-50 overflow-hidden shadow-2xl transition-all duration-150"
+          className="live-chat-window-wrap"
           style={{
+            position: 'fixed',
+            right: '24px',
+            bottom: keyboardOffset > 0 ? `${keyboardOffset + 14}px` : '92px',
+            width: '380px',
+            maxWidth: 'calc(100vw - 32px)',
+            height: '520px',
+            maxHeight: 'calc(100vh - 120px)',
+            borderRadius: '20px',
+            display: 'flex',
+            flexDirection: 'column',
+            zIndex: 10000,
+            overflow: 'hidden',
             backgroundColor: '#0B071A',
             border: '1px solid rgba(0, 240, 255, 0.35)',
-            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(0, 240, 255, 0.15)',
-            bottom: keyboardOffset > 0 ? `${keyboardOffset + 12}px` : '88px',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(0, 240, 255, 0.2)',
+            fontFamily: 'Lexend, -apple-system, sans-serif',
           }}
         >
           {/* Header */}
           <div
-            className="p-3.5 border-b flex items-center justify-between"
             style={{
+              padding: '12px 16px',
+              borderBottom: '1px solid rgba(0, 240, 255, 0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
               background: 'linear-gradient(135deg, #170E38 0%, #0D0722 100%)',
-              borderColor: 'rgba(0, 240, 255, 0.2)',
+              flexShrink: 0,
             }}
           >
-            <div className="flex items-center gap-2.5">
-              <div className="relative">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ position: 'relative' }}>
                 <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-black text-black"
-                  style={{ background: 'linear-gradient(135deg, #00F0FF 0%, #E026D8 100%)' }}
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '12px',
+                    fontWeight: 900,
+                    color: '#070514',
+                    background: 'linear-gradient(135deg, #00F0FF 0%, #E026D8 100%)',
+                  }}
                 >
                   VO
                 </div>
-                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-[#0B071A]" />
+                <span
+                  style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    right: 0,
+                    width: '10px',
+                    height: '10px',
+                    borderRadius: '50%',
+                    backgroundColor: '#10B981',
+                    border: '2px solid #0B071A',
+                  }}
+                />
               </div>
               <div>
-                <h4 className="text-xs font-black text-white flex items-center gap-1.5" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                <h4
+                  style={{
+                    margin: 0,
+                    fontSize: '13px',
+                    fontWeight: 900,
+                    color: '#FFFFFF',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
                   <span>Vegas One Live Support</span>
-                  <Sparkles size={12} color="#00F0FF" />
+                  <Sparkles size={13} color="#00F0FF" />
                 </h4>
-                <p className="text-[10.5px] text-emerald-400 font-bold flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                <p
+                  style={{
+                    margin: '2px 0 0 0',
+                    fontSize: '10.5px',
+                    color: '#10B981',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                  }}
+                >
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10B981' }} />
                   <span>24/7 Priority Help Desk</span>
                 </p>
               </div>
@@ -168,7 +254,17 @@ export default function LiveChatWidget({ user, soundEnabled }) {
 
             <button
               onClick={handleClose}
-              className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition"
+              style={{
+                background: 'rgba(255, 255, 255, 0.08)',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '6px',
+                color: '#9A91A8',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+              }}
               aria-label="Close Chat"
             >
               <X size={18} />
@@ -177,27 +273,53 @@ export default function LiveChatWidget({ user, soundEnabled }) {
 
           {/* Compliance Notice */}
           <div
-            className="px-3 py-1.5 border-b flex items-center gap-2 text-[10px] text-gray-400"
-            style={{ backgroundColor: '#070412', borderColor: 'rgba(255, 255, 255, 0.06)' }}
+            style={{
+              padding: '6px 14px',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+              backgroundColor: '#070412',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '10px',
+              color: '#9A91A8',
+              flexShrink: 0,
+            }}
           >
-            <Shield size={12} color="#00F0FF" className="shrink-0" />
-            <span style={{ fontFamily: 'Lexend, sans-serif' }}>
-              Encrypted 24/7 Financial &amp; Account Support
-            </span>
+            <Shield size={12} color="#00F0FF" style={{ flexShrink: 0 }} />
+            <span>Encrypted 24/7 Financial &amp; Account Support</span>
           </div>
 
           {/* Messages Body */}
           <div
-            className="flex-1 p-3.5 overflow-y-auto space-y-3"
-            style={{ backgroundColor: '#0A0617' }}
+            style={{
+              flex: 1,
+              padding: '14px',
+              overflowY: 'auto',
+              backgroundColor: '#0A0617',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
+            }}
           >
             {messages.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center p-6 text-gray-400 space-y-2">
+              <div
+                style={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center',
+                  padding: '24px',
+                  color: '#9A91A8',
+                  gap: '8px',
+                }}
+              >
                 <Headphones size={36} color="#00F0FF" style={{ opacity: 0.6 }} />
-                <p className="font-bold text-sm text-white" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                <p style={{ margin: 0, fontWeight: 800, fontSize: '14px', color: '#FFFFFF' }}>
                   How can we help you today?
                 </p>
-                <p className="text-xs text-gray-400" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                <p style={{ margin: 0, fontSize: '11.5px', color: '#9A91A8' }}>
                   Ask about deposits, bonus coins, game credentials, or cash withdrawals.
                 </p>
               </div>
@@ -207,24 +329,41 @@ export default function LiveChatWidget({ user, soundEnabled }) {
                 return (
                   <div
                     key={idx}
-                    className={`flex flex-col ${isPlayer ? 'items-end' : 'items-start'}`}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: isPlayer ? 'flex-end' : 'flex-start',
+                    }}
                   >
                     <div
-                      className={`max-w-[82%] rounded-2xl px-3.5 py-2 text-xs leading-relaxed ${
-                        isPlayer
-                          ? 'text-black font-extrabold rounded-br-none shadow-md'
-                          : 'text-white border border-white/10 rounded-bl-none font-medium'
-                      }`}
                       style={{
+                        maxWidth: '82%',
+                        borderRadius: '16px',
+                        borderBottomRightRadius: isPlayer ? 0 : '16px',
+                        borderBottomLeftRadius: isPlayer ? '16px' : 0,
+                        padding: '9px 13px',
+                        fontSize: '12px',
+                        lineHeight: 1.4,
+                        color: isPlayer ? '#070514' : '#FFFFFF',
+                        fontWeight: isPlayer ? 800 : 500,
+                        border: isPlayer ? 'none' : '1px solid rgba(255, 255, 255, 0.1)',
                         background: isPlayer
                           ? 'linear-gradient(135deg, #00F0FF 0%, #00C2D1 100%)'
                           : '#170E38',
-                        fontFamily: 'Lexend, sans-serif',
+                        boxShadow: '0 4px 14px rgba(0, 0, 0, 0.3)',
                       }}
                     >
                       {m.text}
                     </div>
-                    <span className="text-[9.5px] text-gray-500 mt-1 px-1 font-mono">
+                    <span
+                      style={{
+                        fontSize: '9.5px',
+                        color: '#64748B',
+                        marginTop: '3px',
+                        padding: '0 4px',
+                        fontFamily: 'monospace',
+                      }}
+                    >
                       {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
@@ -237,8 +376,15 @@ export default function LiveChatWidget({ user, soundEnabled }) {
           {/* Message Input Form */}
           <form
             onSubmit={handleSendMessage}
-            className="p-2.5 border-t flex items-center gap-2"
-            style={{ backgroundColor: '#0F0924', borderColor: 'rgba(0, 240, 255, 0.2)' }}
+            style={{
+              padding: '10px 14px',
+              borderTop: '1px solid rgba(0, 240, 255, 0.2)',
+              backgroundColor: '#0F0924',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              flexShrink: 0,
+            }}
           >
             <input
               ref={inputRef}
@@ -252,23 +398,37 @@ export default function LiveChatWidget({ user, soundEnabled }) {
                 }, 300);
               }}
               onChange={(e) => setInputMessage(e.target.value)}
-              className="flex-1 py-2 px-3 text-xs rounded-xl text-white placeholder-gray-500 focus:outline-none transition"
               style={{
+                flex: 1,
+                padding: '9px 12px',
+                fontSize: '12px',
+                borderRadius: '10px',
+                color: '#FFFFFF',
                 backgroundColor: '#06030F',
                 border: '1px solid rgba(0, 240, 255, 0.3)',
+                outline: 'none',
                 fontFamily: 'Lexend, sans-serif',
               }}
             />
             <button
               type="submit"
               disabled={!user || !inputMessage.trim() || sending}
-              className="p-2.5 rounded-xl font-bold flex items-center justify-center transition disabled:opacity-40"
               style={{
+                width: '38px',
+                height: '38px',
+                borderRadius: '10px',
+                border: 'none',
+                cursor: !user || !inputMessage.trim() || sending ? 'not-allowed' : 'pointer',
+                opacity: !user || !inputMessage.trim() || sending ? 0.45 : 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 background: 'linear-gradient(135deg, #E026D8 0%, #00F0FF 100%)',
                 color: '#FFFFFF',
+                flexShrink: 0,
               }}
             >
-              <Send size={15} />
+              <Send size={16} />
             </button>
           </form>
         </div>
