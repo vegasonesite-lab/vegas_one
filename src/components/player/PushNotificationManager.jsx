@@ -167,13 +167,21 @@ export default function PushNotificationManager() {
       try {
         const res = await fetch('/api/notifications');
         const data = await res.json();
-        if (data?.success && Array.isArray(data.notifications)) {
+        if (data?.success && Array.isArray(data.notifications) && data.notifications.length > 0) {
           const now = Date.now();
+          const lastShownId = typeof window !== 'undefined' ? localStorage.getItem('vegas_last_shown_notif') : null;
+
           for (const notif of data.notifications) {
             const notifTime = new Date(notif.createdAt).getTime();
-            // If within last 60 seconds and not seen in this session
-            if (now - notifTime < 60000 && !seenIdsRef.current.has(notif.id)) {
+            // Fresh if created in last 15 minutes
+            const isFresh = now - notifTime < 15 * 60 * 1000;
+            const notSeenYet = !seenIdsRef.current.has(notif.id) && lastShownId !== notif.id;
+
+            if (isFresh && notSeenYet) {
               seenIdsRef.current.add(notif.id);
+              try {
+                localStorage.setItem('vegas_last_shown_notif', notif.id);
+              } catch {}
               triggerBanner(notif.title, notif.message, notif.url || '/wallet');
               break;
             } else {
@@ -185,12 +193,23 @@ export default function PushNotificationManager() {
     };
 
     // Initial check and periodic polling
-    const timer = setTimeout(checkNotifications, 1500);
-    const interval = setInterval(checkNotifications, 5000);
+    const timer = setTimeout(checkNotifications, 1000);
+    const interval = setInterval(checkNotifications, 4000);
+
+    const handleResume = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        checkNotifications();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleResume);
+    window.addEventListener('focus', checkNotifications);
 
     return () => {
       clearTimeout(timer);
       clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleResume);
+      window.removeEventListener('focus', checkNotifications);
     };
   }, []);
 
