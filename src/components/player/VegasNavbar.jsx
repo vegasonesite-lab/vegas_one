@@ -51,10 +51,10 @@ export default function VegasNavbar({
     }
   }, [userDropdownOpen]);
 
-  // If user prop is not passed (or undefined on subpages), auto-fetch /api/auth/me so session stays active everywhere
+  // Real-time live balance and session sync without needing manual page refresh
   useEffect(() => {
-    if (propUser === undefined) {
-      let isMounted = true;
+    let isMounted = true;
+    const fetchLatestUser = () => {
       fetch('/api/auth/me')
         .then((res) => res.json())
         .then((data) => {
@@ -63,13 +63,24 @@ export default function VegasNavbar({
           }
         })
         .catch(() => {});
-      return () => {
-        isMounted = false;
-      };
-    }
-  }, [propUser]);
+    };
 
-  const activeUser = propUser !== undefined ? propUser : internalUser;
+    fetchLatestUser();
+    const interval = setInterval(fetchLatestUser, 3500);
+
+    const onBalanceUpdate = () => fetchLatestUser();
+    window.addEventListener('balanceUpdated', onBalanceUpdate);
+    window.addEventListener('focus', onBalanceUpdate);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+      window.removeEventListener('balanceUpdated', onBalanceUpdate);
+      window.removeEventListener('focus', onBalanceUpdate);
+    };
+  }, []);
+
+  const activeUser = internalUser || propUser;
   const isStaff = activeUser && ['super_admin', 'financial_manager', 'coin_manager', 'chat_support'].includes(activeUser.role);
 
   const handleLogoClick = (e) => {

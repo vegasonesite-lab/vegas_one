@@ -74,6 +74,20 @@ export default function HistoryPage() {
 
   useEffect(() => {
     fetchHistory();
+    const interval = setInterval(fetchHistory, 3500);
+
+    const onUpdate = () => {
+      fetchHistory();
+      refreshUser();
+    };
+    window.addEventListener('balanceUpdated', onUpdate);
+    window.addEventListener('focus', onUpdate);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('balanceUpdated', onUpdate);
+      window.removeEventListener('focus', onUpdate);
+    };
   }, []);
 
   const filteredItems = historyItems.filter((item) => {

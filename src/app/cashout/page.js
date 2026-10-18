@@ -154,10 +154,25 @@ export default function CashoutPage() {
   useEffect(() => {
     if (user) {
       fetchRedemptions();
-      const interval = setInterval(fetchRedemptions, 10000);
-      return () => clearInterval(interval);
+      const interval = setInterval(() => {
+        fetchRedemptions();
+        refreshUser();
+      }, 3000);
+
+      const onUpdate = () => {
+        fetchRedemptions();
+        refreshUser();
+      };
+      window.addEventListener('balanceUpdated', onUpdate);
+      window.addEventListener('focus', onUpdate);
+
+      return () => {
+        clearInterval(interval);
+        window.removeEventListener('balanceUpdated', onUpdate);
+        window.removeEventListener('focus', onUpdate);
+      };
     }
-  }, [user]);
+  }, [user?.id, user?.username]);
 
   // Handle Image Uploads (Compress on client to < 150KB for fast submit)
   const handleImageFile = async (e, targetSetter) => {

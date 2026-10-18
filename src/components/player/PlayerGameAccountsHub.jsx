@@ -100,8 +100,17 @@ export default function PlayerGameAccountsHub({
   useEffect(() => {
     if (user?.email) {
       fetchAccountsAndRequests();
-      const interval = setInterval(fetchAccountsAndRequests, 6000);
-      return () => clearInterval(interval);
+      const interval = setInterval(fetchAccountsAndRequests, 3000);
+
+      const onUpdate = () => fetchAccountsAndRequests();
+      window.addEventListener('balanceUpdated', onUpdate);
+      window.addEventListener('focus', onUpdate);
+
+      return () => {
+        clearInterval(interval);
+        window.removeEventListener('balanceUpdated', onUpdate);
+        window.removeEventListener('focus', onUpdate);
+      };
     } else {
       setActiveAccounts([]);
       setPendingRequests([]);

@@ -144,8 +144,23 @@ export default function DepositPage() {
 
   useEffect(() => {
     fetchPaymentMethods();
-    const interval = setInterval(fetchPaymentMethods, 5000);
-    return () => clearInterval(interval);
+    const interval = setInterval(() => {
+      fetchPaymentMethods();
+      refreshUser();
+    }, 3500);
+
+    const onUpdate = () => {
+      fetchPaymentMethods();
+      refreshUser();
+    };
+    window.addEventListener('balanceUpdated', onUpdate);
+    window.addEventListener('focus', onUpdate);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('balanceUpdated', onUpdate);
+      window.removeEventListener('focus', onUpdate);
+    };
   }, []);
 
   // Fetch bonus settings
