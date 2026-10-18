@@ -146,17 +146,52 @@ export default function AuthModal({
     setLoading(true);
     setErrorMsg(null);
 
+    const isNativeApp =
+      typeof window !== 'undefined' &&
+      Boolean(
+        window.Capacitor?.isNativePlatform?.() ||
+        window.Capacitor !== undefined ||
+        /capacitor/i.test(navigator.userAgent)
+      );
+
+    const isMobileDevice =
+      typeof window !== 'undefined' &&
+      /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+
+    // If on Mobile App or Mobile Device, use direct OAuth redirect flow (with Chrome Custom Tabs in native)
+    if (isNativeApp || isMobileDevice) {
+      const redirectUrl = `${window.location.origin}/api/auth/google/start?source=${isNativeApp ? 'app' : 'web'}`;
+
+      if (isNativeApp) {
+        try {
+          const { Browser } = await import('@capacitor/browser');
+          await Browser.open({
+            url: redirectUrl,
+            windowName: '_blank',
+            presentationStyle: 'popover',
+            toolbarColor: '#070514',
+          });
+          setLoading(false);
+          return;
+        } catch (capErr) {
+          console.warn('Capacitor Browser launch fallback:', capErr);
+        }
+      }
+
+      // Web mobile or fallback: top-level redirect
+      window.location.href = redirectUrl;
+      return;
+    }
+
+    // On Desktop Browser: Try GSI popup flow first, with seamless fallback to redirect flow
     try {
       const isLoaded = await ensureGoogleGsiLoaded();
       if (!isLoaded || !window.google?.accounts?.oauth2) {
-        setLoading(false);
-        setErrorMsg('Google Sign-In is still initializing. Please tap again in a moment.');
+        window.location.href = `${window.location.origin}/api/auth/google/start?source=web`;
         return;
       }
 
-      const clientId =
-        process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
-        '560600399157-jtakf7aa4lsi97qrib8sdaqpq3qdpq5t.apps.googleusercontent.com';
+      const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
       const tokenClient = window.google.accounts.oauth2.initTokenClient({
         client_id: clientId,
@@ -227,9 +262,8 @@ export default function AuthModal({
 
       tokenClient.requestAccessToken({ prompt: 'select_account' });
     } catch (err) {
-      console.error('Google Sign-In Initialization Error:', err);
-      setLoading(false);
-      setErrorMsg('Failed to open Google authentication window.');
+      console.warn('GSI popup failed, falling back to OAuth redirect:', err);
+      window.location.href = `${window.location.origin}/api/auth/google/start?source=web`;
     }
   };
 

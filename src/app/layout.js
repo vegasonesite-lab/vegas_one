@@ -2,6 +2,7 @@ import './globals.css';
 import { Lexend } from 'next/font/google';
 import Script from 'next/script';
 import PushNotificationManager from '@/components/player/PushNotificationManager';
+import AuthCallbackListener from '@/components/auth/AuthCallbackListener';
 
 const lexend = Lexend({
   subsets: ['latin'],
@@ -58,6 +59,7 @@ export default function RootLayout({ children }) {
       </head>
       <body className={lexend.className} style={{ fontFamily: `var(--font-lexend), 'Lexend', -apple-system, sans-serif` }}>
         <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
+        <AuthCallbackListener />
         <PushNotificationManager />
         {children}
       </body>

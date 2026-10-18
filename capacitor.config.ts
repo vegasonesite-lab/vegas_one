@@ -10,6 +10,7 @@ const config: CapacitorConfig = {
     // In production mobile app, point directly to the live hosted domain:
     url: process.env.CAPACITOR_SERVER_URL || 'https://vegasone.games',
     cleartext: false,
+    allowNavigation: ['vegasone.games', '*.vegasone.games'],
   },
   plugins: {
     PushNotifications: {
