@@ -3,6 +3,7 @@ import { ObjectId } from 'mongodb';
 import { getSessionUser, ROLES } from '@/lib/auth';
 import { getDb } from '@/lib/mongodb';
 import { sendEmail } from '@/lib/email';
+import { notifyPlayer, notifyStaff } from '@/lib/notify';
 
 // GET: List Redemptions
 export async function GET(req) {
@@ -234,6 +235,16 @@ export async function POST(req) {
       createdAt: new Date(),
     });
 
+    // Instant notification to staff
+    notifyStaff({
+      title: 'New Cashout Request!',
+      message: `$${redeemAmount} SC cashout from @${user.username} (${gameTitle || 'Platform'})`,
+      type: 'coin_verification',
+      url: '/admin',
+      targetTab: 'coins_allotment',
+      targetSubTab: 'cashouts',
+    });
+
     return NextResponse.json({
       success: true,
       message: `Cashout requested successfully! Your winning proof and payment QR code have been submitted to our desk for verification & dispatch.`,
@@ -305,6 +316,16 @@ export async function PUT(req) {
         createdAt: new Date(),
       });
 
+      // Real-time In-App & Device Push Notification for Player
+      notifyPlayer({
+        userId: redemption.userId,
+        userEmail: user?.email,
+        title: 'Cashout Screenshot Verified! 🏆',
+        message: `Your $${redemption.amount} SC cashout win proof was approved! Passed to Finance cashier for payout dispatch.`,
+        type: 'cashout_verified',
+        url: '/wallet',
+      });
+
       return NextResponse.json({
         success: true,
         message: 'Game score verified! Cashout passed to Finance Ledger for payout.',
@@ -346,6 +367,16 @@ export async function PUT(req) {
         referenceId: redemptionId,
         notes: `Coin Desk rejected cashout: ${reason}`,
         createdAt: new Date(),
+      });
+
+      // Real-time In-App & Device Push Notification for Player
+      notifyPlayer({
+        userId: redemption.userId,
+        userEmail: user?.email,
+        title: 'Cashout Win Proof Update',
+        message: `Your $${redemption.amount} SC cashout proof could not be verified. Note: ${reason}`,
+        type: 'cashout_rejected',
+        url: '/wallet',
       });
 
       if (user?.email) {
@@ -408,6 +439,16 @@ export async function PUT(req) {
         createdAt: new Date(),
       });
 
+      // Real-time In-App & Device Push Notification for Player
+      notifyPlayer({
+        userId: redemption.userId,
+        userEmail: user?.email,
+        title: '🎉 Cashout Dispatched & Sent!',
+        message: `Your payout of $${redemption.amount} SC via ${redemption.payoutMethod} has been sent!`,
+        type: 'cashout_dispatched',
+        url: '/wallet',
+      });
+
       // Email notification
       if (user?.email) {
         sendEmail({
@@ -456,6 +497,16 @@ export async function PUT(req) {
         referenceId: redemptionId,
         notes: `Finance desk rejected payout: ${reason}`,
         createdAt: new Date(),
+      });
+
+      // Real-time In-App & Device Push Notification for Player
+      notifyPlayer({
+        userId: redemption.userId,
+        userEmail: user?.email,
+        title: 'Cashout Payout Update',
+        message: `Your payout of $${redemption.amount} SC was not approved. Note: ${reason}`,
+        type: 'cashout_rejected',
+        url: '/wallet',
       });
 
       if (user?.email) {

@@ -670,9 +670,29 @@ export default function AdminPortal({ initialTab }) {
   const prevCountsRef = React.useRef({ requests: 0, deposits: 0, redemptions: 0, coinLoads: 0, coinCashouts: 0 });
   const isInitialLoadRef = React.useRef(true);
 
+  const showDesktopNotification = (title, options = {}) => {
+    if (typeof window === 'undefined' || !('Notification' in window)) return;
+    try {
+      if (Notification.permission === 'granted') {
+        const notif = new Notification(title, {
+          icon: '/favicon.ico',
+          badge: '/favicon.ico',
+          silent: false,
+          ...options,
+        });
+        notif.onclick = () => {
+          window.focus();
+          if (options.targetTab) setActiveTab(options.targetTab);
+          notif.close();
+        };
+      } else if (Notification.permission === 'default') {
+        Notification.requestPermission().catch(() => {});
+      }
+    } catch {}
+  };
+
   const syncRequestsAndAlerts = async () => {
     if (!user) return;
-    if (typeof document !== 'undefined' && document.hidden) return;
     try {
       const [depRes, withRes, reqRes, loadRes] = await Promise.all([
         fetch('/api/payments/deposit?status=all'),
@@ -707,6 +727,14 @@ export default function AdminPortal({ initialTab }) {
       const pendingCoinLoads = (loadData.accountRequests || []).filter(r => (r.status || '').toUpperCase() === 'PENDING');
       const pendingCoinCashouts = (withData.redemptions || []).filter(r => r.status === 'pending_coin' || r.stage === 'coin_verification');
 
+      // Update Browser Tab Title Badge
+      const totalPending = pendingDeps.length + pendingWith.length + pendingReqs.length + pendingCoinLoads.length + pendingCoinCashouts.length;
+      if (typeof document !== 'undefined') {
+        document.title = totalPending > 0
+          ? `(${totalPending}) 🔔 Vegas One Admin - Operations Control`
+          : 'Vegas One Admin - Operations Control';
+      }
+
       if (isInitialLoadRef.current) {
         prevCountsRef.current = {
           deposits: pendingDeps.length,
@@ -731,6 +759,10 @@ export default function AdminPortal({ initialTab }) {
           targetTab: 'finance',
           targetSubTab: 'deposits',
         });
+        showDesktopNotification('New Deposit Request! 💰', {
+          body: `$${Number(newest?.amount || 0).toFixed(2)} USD from ${newest?.username || 'Player'} via ${newest?.methodName || 'Payment'}`,
+          targetTab: 'finance',
+        });
       }
       // 2. Check for incoming new redemptions (Finance Stage 2)
       else if (pendingWith.length > (prevCountsRef.current.redemptions || 0)) {
@@ -743,6 +775,10 @@ export default function AdminPortal({ initialTab }) {
           subtext: `Payout via ${newest?.payoutMethod || 'Direct'}: ${newest?.destinationAddress || ''}`,
           targetTab: 'finance',
           targetSubTab: 'redemptions',
+        });
+        showDesktopNotification('New Cashout Request! 💸', {
+          body: `$${Number(newest?.amount || 0).toFixed(2)} SC for ${newest?.username || 'Player'} via ${newest?.payoutMethod || 'Direct'}`,
+          targetTab: 'finance',
         });
       }
       // 3. Check for incoming coin load requests (Coins Allotment Desk)
@@ -757,6 +793,10 @@ export default function AdminPortal({ initialTab }) {
           targetTab: 'coins_allotment',
           targetSubTab: 'loads',
         });
+        showDesktopNotification('New Coin Load Request! ⚡', {
+          body: `$${Number(newest?.transferAmount || 0).toFixed(2)} SC for ${newest?.gameTitle || 'Game'} from ${newest?.userName || 'Player'}`,
+          targetTab: 'coins_allotment',
+        });
       }
       // 4. Check for incoming coin cashout proof verifications (Stage 1 Coins Allotment Desk)
       else if (pendingCoinCashouts.length > (prevCountsRef.current.coinCashouts || 0)) {
@@ -770,6 +810,10 @@ export default function AdminPortal({ initialTab }) {
           targetTab: 'coins_allotment',
           targetSubTab: 'cashouts',
         });
+        showDesktopNotification('Cashout Winning Proof Uploaded! 🏆', {
+          body: `$${Number(newest?.amount || 0).toFixed(2)} SC for ${newest?.username || 'Player'} (${newest?.gameTitle || 'Game'})`,
+          targetTab: 'coins_allotment',
+        });
       }
       // 5. Check for incoming new game account creation requests (Account Requests Desk)
       else if (pendingReqs.length > (prevCountsRef.current.requests || 0)) {
@@ -780,6 +824,10 @@ export default function AdminPortal({ initialTab }) {
           title: 'New Account Creation Request!',
           message: `${newest?.gameTitle || 'Game'} request from ${newest?.userName || 'Player'}`,
           subtext: 'Ready to issue credentials',
+          targetTab: 'account_requests',
+        });
+        showDesktopNotification('New Game Account Request! 🎮', {
+          body: `${newest?.gameTitle || 'Game'} request from ${newest?.userName || 'Player'}`,
           targetTab: 'account_requests',
         });
       }
@@ -796,13 +844,24 @@ export default function AdminPortal({ initialTab }) {
     }
   };
 
-  // Run persistent poller
+  // Run persistent poller with fast 3-second responsiveness
   useEffect(() => {
     if (!user) return;
     syncRequestsAndAlerts();
-    const interval = setInterval(syncRequestsAndAlerts, 5000);
+    const interval = setInterval(syncRequestsAndAlerts, 3000);
     return () => clearInterval(interval);
   }, [user]);
+
+  // Request Chrome notification permission on first interaction
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+      const askNotification = () => {
+        Notification.requestPermission().catch(() => {});
+        window.removeEventListener('click', askNotification);
+      };
+      window.addEventListener('click', askNotification, { once: true });
+    }
+  }, []);
 
   // Fetch data for specific active tabs
   useEffect(() => {
@@ -2460,37 +2519,44 @@ export default function AdminPortal({ initialTab }) {
 
                       {/* Modal Form */}
                       <form
-                        onSubmit={async (e) => {
+                        onSubmit={(e) => {
                           e.preventDefault();
-                          if (!newGame.title.trim()) return alert('Game title is required');
-                          setIsSavingGame(true);
-                          try {
-                            const res = await fetch('/api/games', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify(newGame),
+                          if (!newGame.title.trim()) return;
+                          const tempId = `temp_game_${Date.now()}`;
+                          const gameToSave = { ...newGame };
+                          const optimisticGame = { ...gameToSave, id: tempId, _id: tempId };
+
+                          // 1. Instant 0ms UI update: modal closes and game appears in list immediately
+                          setGames(prev => [optimisticGame, ...prev]);
+                          setIsAddGameModalOpen(false);
+                          setNewGame({
+                            title: '',
+                            provider: 'Vegas One Studio',
+                            thumbnail: '/images/vegas-777.webp',
+                            badge: 'HOT',
+                            url: '',
+                            isActive: true,
+                          });
+
+                          // 2. Seamless background persistence
+                          fetch('/api/games', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(gameToSave),
+                          })
+                            .then(r => r.json())
+                            .then(d => {
+                              if (d.success) {
+                                setGames(prev => prev.map(g => g.id === tempId ? (d.game || { ...gameToSave, id: d.gameId }) : g));
+                              } else {
+                                setGames(prev => prev.filter(g => g.id !== tempId));
+                                console.error('Failed to add game:', d.error);
+                              }
+                            })
+                            .catch(err => {
+                              setGames(prev => prev.filter(g => g.id !== tempId));
+                              console.error(err);
                             });
-                            const d = await res.json();
-                            if (d.success) {
-                              alert('Game added successfully!');
-                              setGames(prev => [d.game || { ...newGame, id: d.gameId }, ...prev]);
-                              setNewGame({
-                                title: '',
-                                provider: 'Vegas One Studio',
-                                thumbnail: '/images/vegas-777.webp',
-                                badge: 'HOT',
-                                url: '',
-                                isActive: true,
-                              });
-                              setIsAddGameModalOpen(false);
-                            } else {
-                              alert(d.error || 'Failed to add game');
-                            }
-                          } catch (err) {
-                            alert(err.message);
-                          } finally {
-                            setIsSavingGame(false);
-                          }
                         }}
                         className="space-y-4"
                       >
@@ -2870,10 +2936,11 @@ export default function AdminPortal({ initialTab }) {
                                 </button>
                                 <button
                                   type="button"
-                                  onClick={async () => {
+                                  onClick={() => {
                                     if (confirm(`Remove ${g.title} from catalog?`)) {
-                                      await fetch(`/api/games?id=${g.id}`, { method: 'DELETE' });
-                                      setGames(games.filter(item => item.id !== g.id));
+                                      const prev = games;
+                                      setGames(p => p.filter(item => item.id !== g.id));
+                                      fetch(`/api/games?id=${g.id}`, { method: 'DELETE' }).catch(() => setGames(prev));
                                     }
                                   }}
                                   className="p-2 rounded-xl transition-all cursor-pointer"
@@ -3081,10 +3148,11 @@ export default function AdminPortal({ initialTab }) {
                                     </button>
                                     <button
                                       type="button"
-                                      onClick={async () => {
+                                      onClick={() => {
                                         if (confirm(`Remove ${g.title} from catalog?`)) {
-                                          await fetch(`/api/games?id=${g.id}`, { method: 'DELETE' });
-                                          setGames(games.filter(item => item.id !== g.id));
+                                          const prev = games;
+                                          setGames(p => p.filter(item => item.id !== g.id));
+                                          fetch(`/api/games?id=${g.id}`, { method: 'DELETE' }).catch(() => setGames(prev));
                                         }
                                       }}
                                       className="p-2 rounded-xl transition-all cursor-pointer hover:scale-105 active:scale-95"
@@ -3170,28 +3238,33 @@ export default function AdminPortal({ initialTab }) {
                       </div>
 
                       <form
-                        onSubmit={async (e) => {
+                        onSubmit={(e) => {
                           e.preventDefault();
-                          if (!editingGame.title.trim()) return alert('Game title is required');
-                          setIsSavingGame(true);
-                          try {
-                            const res = await fetch('/api/games', {
-                              method: 'PUT',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify(editingGame),
+                          if (!editingGame.title.trim()) return;
+                          const updated = { ...editingGame };
+                          const prevGames = games;
+
+                          // 1. Instant 0ms UI update
+                          setGames(prev => prev.map(item => (item.id === updated.id || item._id === updated.id) ? { ...item, ...updated } : item));
+                          setEditingGame(null);
+
+                          // 2. Seamless background persistence
+                          fetch('/api/games', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(updated),
+                          })
+                            .then(r => r.json())
+                            .then(d => {
+                              if (!d.success) {
+                                setGames(prevGames);
+                                console.error('Failed to update game:', d.error);
+                              }
+                            })
+                            .catch(err => {
+                              setGames(prevGames);
+                              console.error(err);
                             });
-                            const d = await res.json();
-                            if (d.success) {
-                              setGames(prev => prev.map(item => (item.id === editingGame.id || item._id === editingGame.id) ? { ...item, ...editingGame } : item));
-                              setEditingGame(null);
-                            } else {
-                              alert(d.error || 'Failed to update game');
-                            }
-                          } catch (err) {
-                            alert(err.message);
-                          } finally {
-                            setIsSavingGame(false);
-                          }
                         }}
                         className="space-y-4"
                       >
@@ -3387,99 +3460,76 @@ export default function AdminPortal({ initialTab }) {
                 setRefreshingFinance(true);
                 syncRequestsAndAlerts().finally(() => setRefreshingFinance(false));
               }}
-              onApproveDeposit={async (depositId, scToCredit) => {
-                // Optimistic UI update: immediately mark deposit as approved
-                setDeposits((prev) =>
-                  prev.map((item) =>
+              onApproveDeposit={(depositId, scToCredit) => {
+                const prev = deposits;
+                // Instant 0ms UI update: immediately vanishes from pending queue
+                setDeposits((p) =>
+                  p.map((item) =>
                     item.id === depositId
                       ? { ...item, status: 'approved', creditedSC: Number(scToCredit) }
                       : item
                   )
                 );
-                try {
-                  const res = await fetch('/api/payments/deposit', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ depositId, action: 'approve', customSC: Number(scToCredit) }),
-                  });
-                  const data = await res.json();
-                  if (!data.success) {
-                    alert(data.error || 'Failed to approve deposit');
-                    syncRequestsAndAlerts();
-                  } else {
-                    syncRequestsAndAlerts();
-                  }
-                } catch {
-                  syncRequestsAndAlerts();
-                }
+                fetch('/api/payments/deposit', {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ depositId, action: 'approve', customSC: Number(scToCredit) }),
+                })
+                  .then(r => r.json())
+                  .then(d => {
+                    if (!d.success) setDeposits(prev);
+                  })
+                  .catch(() => setDeposits(prev));
               }}
-              onRejectDeposit={async (depositId, reason) => {
-                // Optimistic UI update: immediately mark deposit as rejected
-                setDeposits((prev) =>
-                  prev.map((item) => (item.id === depositId ? { ...item, status: 'rejected' } : item))
+              onRejectDeposit={(depositId, reason) => {
+                const prev = deposits;
+                setDeposits((p) =>
+                  p.map((item) => (item.id === depositId ? { ...item, status: 'rejected' } : item))
                 );
-                try {
-                  const res = await fetch('/api/payments/deposit', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ depositId, action: 'reject', rejectReason: reason }),
-                  });
-                  const data = await res.json();
-                  if (!data.success) {
-                    alert(data.error || 'Failed to reject deposit');
-                    syncRequestsAndAlerts();
-                  } else {
-                    syncRequestsAndAlerts();
-                  }
-                } catch {
-                  syncRequestsAndAlerts();
-                }
+                fetch('/api/payments/deposit', {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ depositId, action: 'reject', rejectReason: reason }),
+                })
+                  .then(r => r.json())
+                  .then(d => {
+                    if (!d.success) setDeposits(prev);
+                  })
+                  .catch(() => setDeposits(prev));
               }}
-              onApproveRedemption={async (redemptionId) => {
-                // Optimistic UI update: immediately mark redemption as approved & dispatched
-                setRedemptions((prev) =>
-                  prev.map((item) =>
+              onApproveRedemption={(redemptionId) => {
+                const prev = redemptions;
+                setRedemptions((p) =>
+                  p.map((item) =>
                     item.id === redemptionId ? { ...item, status: 'approved', stage: 'completed' } : item
                   )
                 );
-                try {
-                  const res = await fetch('/api/payments/withdraw', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ redemptionId, action: 'approve' }),
-                  });
-                  const data = await res.json();
-                  if (!data.success) {
-                    alert(data.error || 'Failed to dispatch redemption');
-                    syncRequestsAndAlerts();
-                  } else {
-                    syncRequestsAndAlerts();
-                  }
-                } catch {
-                  syncRequestsAndAlerts();
-                }
+                fetch('/api/payments/withdraw', {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ redemptionId, action: 'approve' }),
+                })
+                  .then(r => r.json())
+                  .then(d => {
+                    if (!d.success) setRedemptions(prev);
+                  })
+                  .catch(() => setRedemptions(prev));
               }}
-              onRejectRedemption={async (redemptionId, reason) => {
-                // Optimistic UI update: immediately mark redemption as rejected
-                setRedemptions((prev) =>
-                  prev.map((item) => (item.id === redemptionId ? { ...item, status: 'rejected_by_finance', rejectReason: reason } : item))
+              onRejectRedemption={(redemptionId, reason) => {
+                const prev = redemptions;
+                setRedemptions((p) =>
+                  p.map((item) => (item.id === redemptionId ? { ...item, status: 'rejected_by_finance', rejectReason: reason } : item))
                 );
-                try {
-                  const res = await fetch('/api/payments/withdraw', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ redemptionId, action: 'reject', rejectReason: reason }),
-                  });
-                  const data = await res.json();
-                  if (!data.success) {
-                    alert(data.error || 'Failed to reject redemption');
-                    syncRequestsAndAlerts();
-                  } else {
-                    syncRequestsAndAlerts();
-                  }
-                } catch {
-                  syncRequestsAndAlerts();
-                }
+                fetch('/api/payments/withdraw', {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ redemptionId, action: 'reject', rejectReason: reason }),
+                })
+                  .then(r => r.json())
+                  .then(d => {
+                    if (!d.success) setRedemptions(prev);
+                  })
+                  .catch(() => setRedemptions(prev));
               }}
             />
           )}
@@ -6992,36 +7042,48 @@ export default function AdminPortal({ initialTab }) {
                     </div>
 
                     <form
-                      onSubmit={async (e) => {
+                      onSubmit={(e) => {
                         e.preventDefault();
-                        if (!newMethod.name.trim() || !newMethod.accountDetails.trim()) {
-                          return alert('Please fill in Method Name and Cashtag / Address');
-                        }
-                        const res = await fetch('/api/payments/methods', {
+                        if (!newMethod.name.trim() || !newMethod.accountDetails.trim()) return;
+                        const tempId = `temp_method_${Date.now()}`;
+                        const methodToSave = { ...newMethod };
+                        const optimisticMethod = { ...methodToSave, id: tempId, _id: tempId, isActive: true };
+
+                        // 1. Instant 0ms UI update: modal closes and method appears in list immediately
+                        setPaymentMethods(prev => [...prev, optimisticMethod]);
+                        setIsAddGatewayModalOpen(false);
+                        setNewMethod({
+                          name: '',
+                          type: 'cashapp',
+                          tag: 'Instant',
+                          bonusPercentage: 40,
+                          accountDetails: '',
+                          paymentUrl: '',
+                          qrCode: '',
+                          instructions: '',
+                          minDeposit: 10,
+                          maxDeposit: 2500,
+                        });
+
+                        // 2. Seamless background persistence
+                        fetch('/api/payments/methods', {
                           method: 'POST',
                           headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify(newMethod),
-                        });
-                        const d = await res.json();
-                        if (d.success) {
-                          alert('Payment method activated successfully!');
-                          setPaymentMethods(prev => [...prev, d.method || { ...newMethod, id: d.id, isActive: true }]);
-                          setNewMethod({
-                            name: '',
-                            type: 'cashapp',
-                            tag: 'Instant',
-                            bonusPercentage: 40,
-                            accountDetails: '',
-                            paymentUrl: '',
-                            qrCode: '',
-                            instructions: '',
-                            minDeposit: 10,
-                            maxDeposit: 2500,
+                          body: JSON.stringify(methodToSave),
+                        })
+                          .then(r => r.json())
+                          .then(d => {
+                            if (d.success) {
+                              setPaymentMethods(prev => prev.map(m => m.id === tempId ? (d.method || { ...methodToSave, id: d.id, isActive: true }) : m));
+                            } else {
+                              setPaymentMethods(prev => prev.filter(m => m.id !== tempId));
+                              console.error('Failed to create payment method:', d.error);
+                            }
+                          })
+                          .catch(err => {
+                            setPaymentMethods(prev => prev.filter(m => m.id !== tempId));
+                            console.error(err);
                           });
-                          setIsAddGatewayModalOpen(false);
-                        } else {
-                          alert(d.error || 'Failed to create payment method');
-                        }
                       }}
                       className="space-y-4"
                     >
@@ -7480,19 +7542,20 @@ export default function AdminPortal({ initialTab }) {
                               {/* Toggle Active Button */}
                               <button
                                 type="button"
-                                onClick={async () => {
+                                onClick={() => {
                                   const updatedActive = !m.isActive;
-                                  const res = await fetch('/api/payments/methods', {
+                                  const prev = paymentMethods;
+                                  setPaymentMethods(p => p.map(x => x.id === m.id ? { ...x, isActive: updatedActive } : x));
+                                  fetch('/api/payments/methods', {
                                     method: 'PUT',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ id: m.id, isActive: updatedActive }),
-                                  });
-                                  const d = await res.json();
-                                  if (d.success) {
-                                    setPaymentMethods(prev => prev.map(x => x.id === m.id ? { ...x, isActive: updatedActive } : x));
-                                  } else {
-                                    alert(d.error || 'Failed to update gateway status');
-                                  }
+                                  })
+                                    .then(r => r.json())
+                                    .then(d => {
+                                      if (!d.success) setPaymentMethods(prev);
+                                    })
+                                    .catch(() => setPaymentMethods(prev));
                                 }}
                                 style={{
                                   backgroundColor: m.isActive ? 'rgba(245, 158, 11, 0.12)' : 'rgba(16, 185, 129, 0.12)',
@@ -7509,17 +7572,18 @@ export default function AdminPortal({ initialTab }) {
                               {/* Delete Button */}
                               <button
                                 type="button"
-                                onClick={async () => {
+                                onClick={() => {
                                   if (!window.confirm(`Are you sure you want to delete "${m.name}" payment method?`)) return;
-                                  const res = await fetch(`/api/payments/methods?id=${encodeURIComponent(m.id)}`, {
+                                  const prev = paymentMethods;
+                                  setPaymentMethods(p => p.filter(x => x.id !== m.id));
+                                  fetch(`/api/payments/methods?id=${encodeURIComponent(m.id)}`, {
                                     method: 'DELETE',
-                                  });
-                                  const d = await res.json();
-                                  if (d.success) {
-                                    setPaymentMethods(paymentMethods.filter(x => x.id !== m.id));
-                                  } else {
-                                    alert(d.error || 'Failed to delete gateway');
-                                  }
+                                  })
+                                    .then(r => r.json())
+                                    .then(d => {
+                                      if (!d.success) setPaymentMethods(prev);
+                                    })
+                                    .catch(() => setPaymentMethods(prev));
                                 }}
                                 style={{
                                   backgroundColor: 'rgba(244, 63, 94, 0.12)',

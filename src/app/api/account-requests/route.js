@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
 import { getDb } from '@/lib/mongodb';
 import { getSessionUser, ROLES } from '@/lib/auth';
+import { notifyPlayer, notifyStaff } from '@/lib/notify';
 
 // GET Account Requests - Supports filtering by type ('ACCOUNT_CREATION' vs 'COIN_LOAD')
 export async function GET(req) {
@@ -166,6 +167,16 @@ export async function POST(req) {
 
       const res = await requestsCol.insertOne(newRequest);
 
+      // Instant notification to staff
+      notifyStaff({
+        title: 'New Coin Load Request!',
+        message: `$${transferAmount.toFixed(2)} SC load for ${gameTitle} from ${userName}`,
+        type: 'coin_load',
+        url: '/admin',
+        targetTab: 'coins_allotment',
+        targetSubTab: 'loads',
+      });
+
       return NextResponse.json({
         success: true,
         requestId: res.insertedId.toString(),
@@ -209,6 +220,15 @@ export async function POST(req) {
     };
 
     const res = await requestsCol.insertOne(newAccountRequest);
+
+    // Instant notification to staff
+    notifyStaff({
+      title: 'New Account Request!',
+      message: `${gameTitle} account request from @${userName}`,
+      type: 'account',
+      url: '/admin',
+      targetTab: 'account_requests',
+    });
 
     return NextResponse.json({
       success: true,
@@ -363,6 +383,19 @@ export async function PUT(req) {
         { upsert: true }
       );
 
+      // Real-time In-App & Device Push Notification for Player
+      notifyPlayer({
+        userId: targetRequest.userId,
+        userEmail: cleanEmail,
+        title: isCoinLoad ? 'Coins Loaded! ⚡' : 'Game Account Ready! 🎮',
+        message: isCoinLoad
+          ? `$${approvedAmount.toFixed(2)} SC has been allotted to your ${cleanTitle} balance!`
+          : `Your ${cleanTitle} credentials are ready! Username: ${username || targetRequest.userName}`,
+        type: isCoinLoad ? 'coin_load_approved' : 'account_ready',
+        url: '/vault',
+        data: { gameTitle: cleanTitle, username: username || targetRequest.userName },
+      });
+
       return NextResponse.json({
         success: true,
         message: isCoinLoad
@@ -417,6 +450,16 @@ export async function PUT(req) {
           },
         }
       );
+
+      // Real-time In-App & Device Push Notification for Player
+      notifyPlayer({
+        userId: targetRequest.userId,
+        userEmail: cleanEmail,
+        title: isCoinLoad ? 'Coin Load Update' : 'Game Request Update',
+        message: `Your request for ${cleanTitle} was declined: ${reason}`,
+        type: 'request_rejected',
+        url: '/vault',
+      });
 
       return NextResponse.json({
         success: true,

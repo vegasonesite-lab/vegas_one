@@ -1712,8 +1712,8 @@ export default function FinanceUnifiedDesk({
                     return;
                   }
                   const depId = rejectDepositModal.deposit.id || rejectDepositModal.deposit._id;
-                  await onRejectDeposit(depId, cleanReason);
                   setRejectDepositModal({ open: false, deposit: null, reason: '' });
+                  onRejectDeposit(depId, cleanReason);
                 }}
                 style={{
                   padding: '10px 20px',
@@ -1836,8 +1836,8 @@ export default function FinanceUnifiedDesk({
                     return;
                   }
                   const redId = rejectRedeemModal.item.id || rejectRedeemModal.item._id;
-                  await onRejectRedemption(redId, cleanReason);
                   setRejectRedeemModal({ open: false, item: null, reason: '' });
+                  onRejectRedemption(redId, cleanReason);
                 }}
                 style={{
                   padding: '10px 20px',

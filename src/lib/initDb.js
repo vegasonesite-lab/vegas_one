@@ -398,6 +398,37 @@ export async function ensureDbInitialized() {
       ]);
     }
 
+    // Ensure High-Performance Database Indexes
+    try {
+      await Promise.allSettled([
+        usersCol.createIndex({ username: 1 }, { unique: true }),
+        usersCol.createIndex({ email: 1 }, { unique: true }),
+        usersCol.createIndex({ referralCode: 1 }),
+        usersCol.createIndex({ role: 1 }),
+        db.collection('deposits').createIndex({ status: 1, createdAt: -1 }),
+        db.collection('deposits').createIndex({ userId: 1, createdAt: -1 }),
+        db.collection('deposits').createIndex({ createdAt: -1 }),
+        db.collection('redemptions').createIndex({ status: 1, createdAt: -1 }),
+        db.collection('redemptions').createIndex({ stage: 1, createdAt: -1 }),
+        db.collection('redemptions').createIndex({ userId: 1, createdAt: -1 }),
+        db.collection('accountRequests').createIndex({ status: 1, createdAt: -1 }),
+        db.collection('accountRequests').createIndex({ type: 1, status: 1, createdAt: -1 }),
+        db.collection('accountRequests').createIndex({ userEmail: 1, createdAt: -1 }),
+        db.collection('ledger').createIndex({ userId: 1, createdAt: -1 }),
+        db.collection('ledger').createIndex({ type: 1, createdAt: -1 }),
+        db.collection('ledger').createIndex({ createdAt: -1 }),
+        db.collection('notifications').createIndex({ userId: 1, createdAt: -1 }),
+        db.collection('notifications').createIndex({ target: 1, createdAt: -1 }),
+        db.collection('subscriptions').createIndex({ email: 1 }),
+        db.collection('subscriptions').createIndex({ userId: 1 }),
+        db.collection('games').createIndex({ isActive: 1 }),
+        db.collection('games').createIndex({ category: 1 }),
+        db.collection('payment_methods').createIndex({ isActive: 1 }),
+      ]);
+    } catch (idxErr) {
+      console.warn('Index initialization note:', idxErr.message);
+    }
+
     console.log('✅ Vegas One database verified & initial records populated.');
       isDbInitialized = true;
       return true;

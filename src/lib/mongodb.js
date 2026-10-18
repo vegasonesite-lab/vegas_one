@@ -10,21 +10,22 @@ const options = {
 let client;
 let clientPromise;
 
-if (process.env.NODE_ENV === 'development') {
-  if (!global._mongoClientPromise) {
-    client = new MongoClient(uri, options);
-    global._mongoClientPromise = client.connect();
-  }
-  clientPromise = global._mongoClientPromise;
-} else {
+if (!global._mongoClientPromise) {
   client = new MongoClient(uri, options);
-  clientPromise = client.connect();
+  global._mongoClientPromise = client.connect();
 }
+clientPromise = global._mongoClientPromise;
+
+let cachedDb = null;
 
 export async function getDb(dbName = 'vegas_one') {
   try {
-    const client = await clientPromise;
-    return client.db(dbName);
+    if (cachedDb && cachedDb.databaseName === dbName) {
+      return cachedDb;
+    }
+    const connectedClient = await clientPromise;
+    cachedDb = connectedClient.db(dbName);
+    return cachedDb;
   } catch (error) {
     console.error('MongoDB connection error:', error.message);
     throw new Error('Database connection failed. Please ensure MongoDB is running or MONGODB_URI is configured.');

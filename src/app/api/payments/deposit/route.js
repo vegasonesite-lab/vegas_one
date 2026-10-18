@@ -3,6 +3,7 @@ import { ObjectId } from 'mongodb';
 import { getSessionUser, ROLES } from '@/lib/auth';
 import { getDb } from '@/lib/mongodb';
 import { sendEmail } from '@/lib/email';
+import { notifyPlayer, notifyStaff } from '@/lib/notify';
 
 // GET: List Deposits (Admin / Financial Manager) or Player's own
 export async function GET(req) {
@@ -265,6 +266,16 @@ export async function POST(req) {
 
     const res = await depositsCol.insertOne(newDeposit);
 
+    // Fast real-time alert dispatch to staff
+    notifyStaff({
+      title: 'New Deposit Request!',
+      message: `$${depositAmount} USD deposit from @${user.username} via ${methodName}`,
+      type: 'deposit',
+      url: '/admin',
+      targetTab: 'finance',
+      targetSubTab: 'deposits',
+    });
+
     return NextResponse.json({
       success: true,
       depositId: res.insertedId.toString(),
@@ -498,6 +509,16 @@ export async function PUT(req) {
         html: `<p>Hi ${user.username}, your deposit of $${deposit.amount} via ${deposit.methodName} was verified and ${creditedSC} SC (+ ${creditedGC.toLocaleString()} GC) was credited to your account. Best of luck at the tables!</p>`,
       }).catch(() => {});
 
+      // Instant In-App & Device Push Notification for Player
+      notifyPlayer({
+        userId: user._id.toString(),
+        userEmail: user.email,
+        title: 'Deposit Approved! 🎉',
+        message: `+$${creditedSC.toFixed(2)} SC credited to your Vegas One wallet! (via ${deposit.methodName})`,
+        type: 'deposit_approved',
+        url: '/wallet',
+      });
+
       return NextResponse.json({ success: true, message: `Deposit approved! Credited ${creditedSC} SC to ${user.username}.` });
     } else if (action === 'reject') {
       const cleanReason = (rejectReason || '').trim();
@@ -516,6 +537,16 @@ export async function PUT(req) {
           },
         }
       );
+
+      // Instant In-App & Device Push Notification for Player
+      notifyPlayer({
+        userId: user._id.toString(),
+        userEmail: user.email,
+        title: 'Deposit Update',
+        message: `Your deposit of $${deposit.amount} via ${deposit.methodName} was not approved. Note: ${cleanReason}`,
+        type: 'deposit_rejected',
+        url: '/wallet',
+      });
 
       // Send rejection notification email with note
       if (user.email) {
