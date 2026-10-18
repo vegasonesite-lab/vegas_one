@@ -41,21 +41,29 @@ export async function GET(req) {
       });
     }
 
-    // Player view: notifications broadcast to all or specific user (by userId or userEmail)
+    // Player view: notifications broadcast to all, segment matches, or specific user
+    const broadcastConditions = [
+      { target: 'all' },
+      { target: { $exists: false } },
+      { segment: 'all' },
+      { type: 'broadcast' },
+      { type: 'promo' },
+    ];
+
     const query = session
       ? {
           $or: [
-            { target: 'all' },
+            ...broadcastConditions,
             { userId: session.userId },
             ...(session.email ? [{ userEmail: session.email.toLowerCase().trim() }] : []),
           ],
         }
-      : { target: 'all' };
+      : { $or: broadcastConditions };
 
     const items = await notifsCol
       .find(query)
       .sort({ createdAt: -1 })
-      .limit(20)
+      .limit(25)
       .toArray();
 
     return NextResponse.json({
@@ -65,6 +73,7 @@ export async function GET(req) {
         title: n.title,
         message: n.message,
         type: n.type || 'promo',
+        url: n.url || '/wallet',
         createdAt: n.createdAt,
       })),
     });
@@ -82,7 +91,7 @@ export async function POST(req) {
     }
 
     const body = await req.json();
-    const { title, message, target = 'all', channel = 'all', segment = 'all', url = '/' } = body;
+    const { title, message, target = 'all', channel = 'all', segment = 'all', url = '/wallet' } = body;
 
     if (!title || !message) {
       return NextResponse.json({ success: false, error: 'Title and message are required.' }, { status: 400 });
@@ -98,7 +107,7 @@ export async function POST(req) {
       target,
       channel,
       segment,
-      url,
+      url: url || '/wallet',
       type: 'broadcast',
       sentBy: session.username || 'Admin',
       createdAt: new Date(),
@@ -106,14 +115,29 @@ export async function POST(req) {
 
     const res = await notifsCol.insertOne(newRecord);
 
-    // Send push notification via FCM / WebPush (fail-safe)
+    // Send push notification via FCM to topic AND direct device tokens (instant delivery)
     try {
-      await sendPushNotification({
+      // 1. Topic delivery for broad coverage
+      sendPushNotification({
         topic: 'vegas_all_players',
         title: title.trim(),
         body: message.trim(),
-        data: { url },
-      });
+        data: { url: url || '/wallet', type: 'broadcast' },
+      }).catch(err => console.warn('Topic push warning:', err.message));
+
+      // 2. Direct device tokens delivery for INSTANT sub-second lock-screen delivery
+      const subsCol = db.collection('subscriptions');
+      const subs = await subsCol.find({ fcmToken: { $ne: null } }).toArray();
+      const directTokens = [...new Set(subs.map(s => s.fcmToken).filter(t => typeof t === 'string' && t.trim().length > 10))];
+
+      for (const t of directTokens) {
+        sendPushNotification({
+          token: t,
+          title: title.trim(),
+          body: message.trim(),
+          data: { url: url || '/wallet', type: 'broadcast' },
+        }).catch(err => console.warn('Direct token push warning:', err.message));
+      }
     } catch (fcmErr) {
       console.warn('FCM delivery note:', fcmErr.message);
     }

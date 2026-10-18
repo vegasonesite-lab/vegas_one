@@ -25,14 +25,27 @@ export async function POST(req) {
 
     const insertRes = await notifsCol.insertOne(notifDoc);
 
-    // Also dispatch FCM push to topic
+    // Dispatch FCM push to topic AND all direct registered device tokens
     try {
-      await sendPushNotification({
+      sendPushNotification({
         topic: 'vegas_all_players',
         title,
         body: message,
         data: { url: '/wallet', type: 'promo' },
-      });
+      }).catch(e => console.warn('Topic test note:', e.message));
+
+      const subsCol = db.collection('subscriptions');
+      const subs = await subsCol.find({ fcmToken: { $ne: null } }).toArray();
+      const directTokens = [...new Set(subs.map(s => s.fcmToken).filter(t => typeof t === 'string' && t.trim().length > 10))];
+
+      for (const t of directTokens) {
+        sendPushNotification({
+          token: t,
+          title,
+          body: message,
+          data: { url: '/wallet', type: 'promo' },
+        }).catch(err => console.warn('Direct token push error:', err.message));
+      }
     } catch (e) {
       console.warn('FCM test dispatch note:', e.message);
     }

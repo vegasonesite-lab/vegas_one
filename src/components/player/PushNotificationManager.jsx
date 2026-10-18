@@ -36,12 +36,27 @@ export default function PushNotificationManager() {
       try {
         if (typeof window !== 'undefined' && window.Capacitor?.isNativePlatform()) {
           const { PushNotifications } = await import('@capacitor/push-notifications');
-          const permStatus = await PushNotifications.requestPermissions();
 
-          if (permStatus.receive === 'granted') {
-            await PushNotifications.register();
+          // 1. Create channel FIRST for Android 8+ lock-screen & heads-up alerts
+          try {
+            await PushNotifications.createChannel({
+              id: 'vegas_alerts',
+              name: 'Vegas One VIP Alerts',
+              description: 'VIP bonuses, coin drops and instant cashout notifications',
+              importance: 5,
+              visibility: 1,
+              sound: 'default',
+              vibration: true,
+              lights: true,
+            });
+          } catch (chanErr) {
+            console.warn('Channel create note:', chanErr);
+          }
 
-            PushNotifications.addListener('registration', async (token) => {
+          // 2. Attach registration listener BEFORE calling register()
+          PushNotifications.addListener('registration', async (token) => {
+            console.log('[PUSH] Android APK token received:', token?.value);
+            if (token?.value) {
               try {
                 await fetch('/api/notifications', {
                   method: 'PUT',
@@ -51,14 +66,35 @@ export default function PushNotificationManager() {
                     device: 'android_apk',
                   }),
                 });
-              } catch {}
-            });
+              } catch (e) {
+                console.warn('[PUSH] Failed to sync token:', e);
+              }
+            }
+          });
 
-            PushNotifications.addListener('pushNotificationReceived', (notification) => {
-              const title = notification.title || 'Vegas One Alert';
-              const message = notification.body || notification.message || '';
-              triggerBanner(title, message, notification.data?.url || '/wallet');
-            });
+          PushNotifications.addListener('registrationError', (error) => {
+            console.warn('[PUSH] Registration error:', error);
+          });
+
+          // 3. Foreground push notification listener
+          PushNotifications.addListener('pushNotificationReceived', (notification) => {
+            const title = notification.title || 'Vegas One Alert';
+            const message = notification.body || notification.message || '';
+            triggerBanner(title, message, notification.data?.url || '/wallet');
+          });
+
+          // 4. User clicked / tapped notification from tray or lock-screen
+          PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
+            const url = notification.notification?.data?.url || '/wallet';
+            if (url && typeof window !== 'undefined') {
+              window.location.href = url;
+            }
+          });
+
+          // 5. Request permissions & trigger native registration
+          const permStatus = await PushNotifications.requestPermissions();
+          if (permStatus.receive === 'granted') {
+            await PushNotifications.register();
           }
           return true;
         }
