@@ -53,10 +53,10 @@ export default function SoundSettingsModal({
         style={{
           width: '100%',
           maxWidth: '560px',
-          backgroundColor: '#0E0A24',
+          backgroundColor: '#0C0A1E',
           border: '1px solid rgba(0, 240, 255, 0.35)',
           borderRadius: '24px',
-          boxShadow: '0 30px 80px rgba(0, 0, 0, 0.95), 0 0 40px rgba(0, 240, 255, 0.15)',
+          boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 40px rgba(0, 240, 255, 0.2)',
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
@@ -70,7 +70,7 @@ export default function SoundSettingsModal({
           style={{
             padding: '20px 24px',
             backgroundColor: '#070514',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+            borderBottom: '1px solid rgba(0, 240, 255, 0.2)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -82,13 +82,13 @@ export default function SoundSettingsModal({
                 width: '42px',
                 height: '42px',
                 borderRadius: '14px',
-                backgroundColor: 'rgba(245, 158, 11, 0.15)',
-                border: '1px solid rgba(245, 158, 11, 0.4)',
+                backgroundColor: 'rgba(0, 240, 255, 0.15)',
+                border: '1.5px solid rgba(0, 240, 255, 0.4)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#FBBF24',
-                boxShadow: '0 0 15px rgba(245, 158, 11, 0.2)',
+                color: '#00F0FF',
+                boxShadow: '0 0 15px rgba(0, 240, 255, 0.25)',
                 flexShrink: 0,
               }}
             >
@@ -356,7 +356,7 @@ export default function SoundSettingsModal({
           style={{
             padding: '16px 24px',
             backgroundColor: '#070514',
-            borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+            borderTop: '1px solid rgba(0, 240, 255, 0.2)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -367,9 +367,9 @@ export default function SoundSettingsModal({
             type="button"
             onClick={handleTestFullAlert}
             style={{
-              padding: '8px 16px',
+              padding: '9px 18px',
               borderRadius: '12px',
-              backgroundColor: '#140E33',
+              backgroundColor: '#0C0A1E',
               border: '1px solid rgba(0, 240, 255, 0.35)',
               color: '#00F0FF',
               fontSize: '11.5px',
@@ -378,6 +378,7 @@ export default function SoundSettingsModal({
               alignItems: 'center',
               gap: '6px',
               cursor: 'pointer',
+              transition: 'all 0.2s',
             }}
           >
             <Bell size={13} color="#00F0FF" />
@@ -387,16 +388,19 @@ export default function SoundSettingsModal({
           <button
             type="button"
             onClick={onClose}
-            className="btn-coral"
             style={{
-              padding: '9px 24px',
+              padding: '10px 26px',
               borderRadius: '12px',
               border: 'none',
-              color: '#FFFFFF',
+              backgroundColor: '#00F0FF',
+              color: '#070514',
               fontSize: '12px',
               fontWeight: 900,
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
               cursor: 'pointer',
-              boxShadow: '0 4px 15px rgba(0, 240, 255, 0.3)',
+              boxShadow: '0 0 20px rgba(0, 240, 255, 0.35)',
+              transition: 'all 0.2s',
             }}
           >
             Save &amp; Close

@@ -397,74 +397,118 @@ export default function CoinOperationsDesk({
     <div className="flex flex-col gap-6 sm:gap-8 w-full" style={{ fontFamily: 'Lexend, -apple-system, sans-serif' }}>
       {/* 1. Header Toolbar */}
       <div
-        className="p-6 sm:p-7 sm:py-6 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-5 sm:gap-6"
+        className="relative overflow-hidden"
         style={{
-          backgroundColor: '#0E0A24',
-          background: 'linear-gradient(135deg, #0E0A24 0%, #140E33 100%)',
-          border: '1px solid rgba(0, 240, 255, 0.28)',
-          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 240, 255, 0.12)',
+          backgroundColor: '#0C0A1E',
+          border: '1px solid rgba(0, 240, 255, 0.22)',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+          borderRadius: '24px',
+          padding: '24px 28px',
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '24px',
         }}
       >
-        <div className="flex items-center gap-5 sm:gap-6">
+        <div className="absolute -top-24 -right-24 w-72 h-72 bg-[#00F0FF]/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '20px',
+            position: 'relative',
+            zIndex: 10,
+            flex: '1 1 auto',
+            minWidth: '280px',
+          }}
+        >
           <div
-            className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shrink-0 shadow-lg"
+            className="shrink-0"
             style={{
-              background: 'linear-gradient(135deg, rgba(0, 240, 255, 0.25) 0%, rgba(224, 38, 216, 0.2) 100%)',
-              border: '1.5px solid rgba(0, 240, 255, 0.5)',
-              boxShadow: '0 0 25px rgba(0, 240, 255, 0.35)',
+              width: '56px',
+              height: '56px',
+              minWidth: '56px',
+              padding: '14px',
+              background: 'rgba(0, 240, 255, 0.1)',
+              border: '1.5px solid rgba(0, 240, 255, 0.35)',
               color: '#00F0FF',
+              boxShadow: '0 0 20px rgba(0, 240, 255, 0.15)',
+              borderRadius: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
-            <Coins size={28} className="sm:hidden" />
-            <Coins size={32} className="hidden sm:block" />
+            <Coins className="w-full h-full text-[#00F0FF]" />
           </div>
-          <div>
-            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-              <h2 className="text-xl sm:text-2xl font-black text-white m-0 tracking-tight" style={{ fontFamily: 'Lexend, sans-serif' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+              <h2 className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-cyan-300 m-0 tracking-tight" style={{ fontFamily: 'Lexend, sans-serif' }}>
                 Coins Allotment &amp; Operations Desk
               </h2>
               <span
-                className="text-[10.5px] px-3 py-1 rounded-full font-black tracking-wider whitespace-nowrap shadow-sm"
                 style={{
-                  backgroundColor: 'rgba(255, 215, 0, 0.14)',
+                  fontSize: '10.5px',
+                  padding: '3px 12px',
+                  borderRadius: '9999px',
+                  fontWeight: 800,
+                  letterSpacing: '0.04em',
+                  whiteSpace: 'nowrap',
+                  backgroundColor: 'rgba(255, 215, 0, 0.1)',
                   color: '#FFD700',
-                  border: '1px solid rgba(255, 215, 0, 0.45)',
-                  boxShadow: '0 0 12px rgba(255, 215, 0, 0.25)',
+                  border: '1px solid rgba(255, 215, 0, 0.3)',
                 }}
               >
                 1 COIN = 1 SC ($)
               </span>
               <span
-                className="text-[11px] px-3 py-1 rounded-full font-bold flex items-center gap-1.5 font-mono shadow-sm"
                 style={{
-                  backgroundColor: 'rgba(0, 240, 255, 0.12)',
+                  fontSize: '11px',
+                  padding: '3px 12px',
+                  borderRadius: '9999px',
+                  fontWeight: 700,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontFamily: 'monospace',
+                  backgroundColor: 'rgba(0, 240, 255, 0.08)',
                   color: '#00F0FF',
-                  border: '1px solid rgba(0, 240, 255, 0.35)',
+                  border: '1px solid rgba(0, 240, 255, 0.25)',
                 }}
               >
-                <span className="w-2 h-2 rounded-full bg-[#00F0FF] animate-pulse shadow-[0_0_8px_#00F0FF]" />
+                <span className="w-2 h-2 rounded-full bg-[#00F0FF] animate-pulse" />
                 <span>Active Queue: {pendingLoads.length + pendingCashouts.length}</span>
               </span>
             </div>
-            <p className="text-xs sm:text-[13px] text-[#9A91A8] mt-1.5 leading-relaxed m-0" style={{ fontFamily: 'Lexend, sans-serif' }}>
+            <p className="text-xs sm:text-[13px] text-slate-400 mt-1 leading-relaxed m-0" style={{ fontFamily: 'Lexend, sans-serif' }}>
               Approve game balance recharges and verify player winning screenshots before finance dispatch
             </p>
           </div>
         </div>
 
         {/* Live Refresh & Operator */}
-        <div className="flex items-center self-start sm:self-auto shrink-0 pt-1 sm:pt-0">
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            position: 'relative',
+            zIndex: 10,
+            flexShrink: 0,
+          }}
+        >
           <button
             type="button"
             onClick={fetchData}
             disabled={loading}
-            className="px-5 py-3 rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-2.5 transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.97]"
+            className="px-5 py-3 rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-2.5 transition-all cursor-pointer hover:opacity-90 active:scale-[0.98]"
             style={{
-              background: 'linear-gradient(135deg, #00F0FF 0%, #00d0e8 40%, #E026D8 100%)',
+              backgroundColor: '#00F0FF',
               color: '#070514',
-              boxShadow: '0 0 25px rgba(0, 240, 255, 0.45)',
               border: 'none',
               fontFamily: 'Lexend, sans-serif',
+              boxShadow: '0 0 18px rgba(0, 240, 255, 0.35)',
             }}
           >
             <RefreshCw size={14} strokeWidth={2.5} className={loading ? 'animate-spin' : ''} />
@@ -505,20 +549,20 @@ export default function CoinOperationsDesk({
         <button
           type="button"
           onClick={() => setActiveSection('loads')}
-          className="w-full p-5 sm:p-6 rounded-2xl transition-all cursor-pointer flex items-center justify-between gap-4 text-left border hover:scale-[1.01]"
+          className="w-full p-5 sm:p-6 rounded-2xl transition-all cursor-pointer flex items-center justify-between gap-4 text-left border"
           style={
             activeSection === 'loads'
               ? {
-                  background: 'linear-gradient(135deg, rgba(0, 240, 255, 0.18) 0%, rgba(14, 10, 36, 0.98) 100%)',
-                  border: '1.5px solid #00F0FF',
-                  boxShadow: '0 0 30px rgba(0, 240, 255, 0.28), inset 0 0 20px rgba(0, 240, 255, 0.1)',
+                  backgroundColor: '#0C0A1E',
+                  border: '1.5px solid rgba(0, 240, 255, 0.45)',
+                  boxShadow: '0 0 25px rgba(0, 240, 255, 0.15)',
                   color: '#00F0FF',
                   fontFamily: 'Lexend, sans-serif',
                 }
               : {
-                  backgroundColor: '#0E0A24',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  color: '#9A91A8',
+                  backgroundColor: '#0C0A1E',
+                  border: '1px solid rgba(0, 240, 255, 0.14)',
+                  color: '#94A3B8',
                   fontFamily: 'Lexend, sans-serif',
                 }
           }
@@ -529,38 +573,37 @@ export default function CoinOperationsDesk({
               style={
                 activeSection === 'loads'
                   ? {
-                      backgroundColor: 'rgba(0, 240, 255, 0.22)',
-                      border: '1px solid rgba(0, 240, 255, 0.5)',
+                      backgroundColor: 'rgba(0, 240, 255, 0.15)',
+                      border: '1px solid rgba(0, 240, 255, 0.35)',
                       color: '#00F0FF',
-                      boxShadow: '0 0 15px rgba(0, 240, 255, 0.3)',
                     }
                   : {
-                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      color: '#9A91A8',
+                      backgroundColor: 'rgba(0, 240, 255, 0.05)',
+                      border: '1px solid rgba(0, 240, 255, 0.12)',
+                      color: '#94A3B8',
                     }
               }
             >
               <Gamepad2 size={24} />
             </div>
             <div className="truncate">
-              <span className="block text-sm sm:text-base font-black truncate text-white">Game Load &amp; Recharge Requests</span>
-              <span className="block text-xs opacity-75 truncate mt-0.5">Player balance allocations</span>
+              <span className="block text-sm sm:text-base font-bold truncate text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-cyan-200">Game Load &amp; Recharge Requests</span>
+              <span className="block text-xs text-slate-400 truncate mt-0.5">Player balance allocations</span>
             </div>
           </div>
           <span
-            className="px-3.5 py-1.5 rounded-full text-xs font-black shrink-0 font-mono"
+            className="px-3.5 py-1.5 rounded-full text-xs font-bold shrink-0 font-mono"
             style={
               pendingLoads.length > 0
                 ? {
-                    backgroundColor: '#00F0FF',
-                    color: '#070514',
-                    boxShadow: '0 0 15px #00F0FF',
+                    backgroundColor: 'rgba(0, 240, 255, 0.15)',
+                    color: '#00F0FF',
+                    border: '1px solid rgba(0, 240, 255, 0.3)',
                   }
                 : {
-                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                    color: '#9A91A8',
-                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                    color: '#94A3B8',
+                    border: '1px solid rgba(0, 240, 255, 0.15)',
                   }
             }
           >
@@ -571,20 +614,20 @@ export default function CoinOperationsDesk({
         <button
           type="button"
           onClick={() => setActiveSection('cashouts')}
-          className="w-full p-5 sm:p-6 rounded-2xl transition-all cursor-pointer flex items-center justify-between gap-4 text-left border hover:scale-[1.01]"
+          className="w-full p-5 sm:p-6 rounded-2xl transition-all cursor-pointer flex items-center justify-between gap-4 text-left border"
           style={
             activeSection === 'cashouts'
               ? {
-                  background: 'linear-gradient(135deg, rgba(224, 38, 216, 0.18) 0%, rgba(14, 10, 36, 0.98) 100%)',
-                  border: '1.5px solid #E026D8',
-                  boxShadow: '0 0 30px rgba(224, 38, 216, 0.28), inset 0 0 20px rgba(224, 38, 216, 0.1)',
+                  backgroundColor: '#0C0A1E',
+                  border: '1.5px solid rgba(224, 38, 216, 0.45)',
+                  boxShadow: '0 0 25px rgba(224, 38, 216, 0.15)',
                   color: '#E026D8',
                   fontFamily: 'Lexend, sans-serif',
                 }
               : {
-                  backgroundColor: '#0E0A24',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  color: '#9A91A8',
+                  backgroundColor: '#0C0A1E',
+                  border: '1px solid rgba(224, 38, 216, 0.14)',
+                  color: '#94A3B8',
                   fontFamily: 'Lexend, sans-serif',
                 }
           }
@@ -595,38 +638,37 @@ export default function CoinOperationsDesk({
               style={
                 activeSection === 'cashouts'
                   ? {
-                      backgroundColor: 'rgba(224, 38, 216, 0.22)',
-                      border: '1px solid rgba(224, 38, 216, 0.5)',
+                      backgroundColor: 'rgba(224, 38, 216, 0.15)',
+                      border: '1px solid rgba(224, 38, 216, 0.35)',
                       color: '#E026D8',
-                      boxShadow: '0 0 15px rgba(224, 38, 216, 0.3)',
                     }
                   : {
-                      backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      color: '#9A91A8',
+                      backgroundColor: 'rgba(224, 38, 216, 0.05)',
+                      border: '1px solid rgba(224, 38, 216, 0.12)',
+                      color: '#94A3B8',
                     }
               }
             >
               <ShieldCheck size={24} />
             </div>
             <div className="truncate">
-              <span className="block text-sm sm:text-base font-black truncate text-white">Cashout Proof Verifications</span>
-              <span className="block text-xs opacity-75 truncate mt-0.5">Stage 1 screenshot audit</span>
+              <span className="block text-sm sm:text-base font-bold truncate text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-pink-200">Cashout Proof Verifications</span>
+              <span className="block text-xs text-slate-400 truncate mt-0.5">Stage 1 screenshot audit</span>
             </div>
           </div>
           <span
-            className="px-3.5 py-1.5 rounded-full text-xs font-black shrink-0 font-mono"
+            className="px-3.5 py-1.5 rounded-full text-xs font-bold shrink-0 font-mono"
             style={
               pendingCashouts.length > 0
                 ? {
-                    backgroundColor: '#E026D8',
-                    color: '#FFFFFF',
-                    boxShadow: '0 0 15px #E026D8',
+                    backgroundColor: 'rgba(224, 38, 216, 0.15)',
+                    color: '#E026D8',
+                    border: '1px solid rgba(224, 38, 216, 0.3)',
                   }
                 : {
-                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.06)',
                     color: '#9A91A8',
-                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
                   }
             }
           >
@@ -642,25 +684,25 @@ export default function CoinOperationsDesk({
         <div className="flex flex-col gap-6 sm:gap-8">
           {/* A. Pending Game Load Requests (TOP) */}
           <div
-            className="rounded-2xl p-6 sm:p-8 shadow-2xl"
+            className="rounded-2xl p-6 sm:p-8 shadow-xl"
             style={{
-              backgroundColor: '#0E0A24',
-              border: '1px solid rgba(0, 240, 255, 0.25)',
-              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6), 0 0 25px rgba(0, 240, 255, 0.1)',
+              backgroundColor: '#0C0A1E',
+              border: '1px solid rgba(0, 240, 255, 0.2)',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
             }}
           >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-7">
               <div className="flex items-center gap-2.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#00F0FF] shadow-[0_0_10px_#00F0FF]" />
-                <h3 className="text-sm sm:text-base font-black text-white m-0 tracking-wide" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                <span className="w-2.5 h-2.5 rounded-full bg-[#00F0FF]" />
+                <h3 className="text-sm sm:text-base font-bold text-white m-0 tracking-wide" style={{ fontFamily: 'Lexend, sans-serif' }}>
                   Pending Game Load Requests
                 </h3>
                 <span
-                  className="px-2.5 py-0.5 rounded-full text-[11px] font-bold font-mono"
+                  className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold font-mono"
                   style={{
-                    backgroundColor: 'rgba(0, 240, 255, 0.12)',
+                    backgroundColor: 'rgba(0, 240, 255, 0.1)',
                     color: '#00F0FF',
-                    border: '1px solid rgba(0, 240, 255, 0.3)',
+                    border: '1px solid rgba(0, 240, 255, 0.25)',
                   }}
                 >
                   {pendingLoads.length} Pending
@@ -671,11 +713,11 @@ export default function CoinOperationsDesk({
               <div
                 className="flex items-center gap-2 rounded-xl px-3.5 py-2 w-full sm:w-72 transition-all"
                 style={{
-                  backgroundColor: '#070514',
-                  border: '1px solid rgba(0, 240, 255, 0.25)',
+                  backgroundColor: '#0A0819',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
                 }}
               >
-                <Search size={14} className="text-cyan-400 shrink-0" />
+                <Search size={14} className="text-gray-400 shrink-0" />
                 <input
                   type="text"
                   placeholder="Search player, email or game..."
@@ -1006,11 +1048,11 @@ export default function CoinOperationsDesk({
 
           {/* B. Processed Game Load History (BOTTOM) */}
           <div
-            className="rounded-2xl p-6 sm:p-8 shadow-2xl"
+            className="rounded-2xl p-6 sm:p-8 shadow-xl"
             style={{
-              backgroundColor: '#0E0A24',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
-              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5)',
+              backgroundColor: '#0C0A1E',
+              border: '1px solid rgba(0, 240, 255, 0.16)',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
             }}
           >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-7">
@@ -1267,16 +1309,16 @@ export default function CoinOperationsDesk({
         <div className="flex flex-col gap-6 sm:gap-8">
           {/* A. Pending Cashout Screenshot Verifications (TOP) */}
           <div
-            className="rounded-2xl p-6 sm:p-8 shadow-2xl"
+            className="rounded-2xl p-6 sm:p-8 shadow-xl"
             style={{
-              backgroundColor: '#0E0A24',
-              border: '1px solid rgba(224, 38, 216, 0.25)',
-              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6), 0 0 25px rgba(224, 38, 216, 0.1)',
+              backgroundColor: '#0C0A1E',
+              border: '1px solid rgba(224, 38, 216, 0.22)',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
             }}
           >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-7">
               <div className="flex items-center gap-2.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#E026D8] shadow-[0_0_10px_#E026D8]" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#E026D8]" />
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="text-sm sm:text-base font-black text-white m-0 tracking-wide" style={{ fontFamily: 'Lexend, sans-serif' }}>
@@ -1681,11 +1723,11 @@ export default function CoinOperationsDesk({
 
           {/* B. Processed Cashout History (BOTTOM) */}
           <div
-            className="rounded-2xl p-6 sm:p-8 shadow-2xl"
+            className="rounded-2xl p-6 sm:p-8 shadow-xl"
             style={{
-              backgroundColor: '#0E0A24',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
-              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5)',
+              backgroundColor: '#0C0A1E',
+              border: '1px solid rgba(224, 38, 216, 0.16)',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
             }}
           >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-7">
@@ -2039,10 +2081,9 @@ export default function CoinOperationsDesk({
             className="vegas-modal-card w-full max-w-lg p-5 sm:p-6 max-h-[90vh] overflow-y-auto modal-scrollable relative space-y-4"
             onClick={(e) => e.stopPropagation()}
             style={{
-              backgroundColor: '#0E0A24',
-              background: 'linear-gradient(145deg, #0E0A24 0%, #150E36 100%)',
-              border: '1px solid rgba(0, 240, 255, 0.45)',
-              boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 40px rgba(0, 240, 255, 0.25)',
+              backgroundColor: '#0C0A1E',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.8)',
               borderRadius: '20px',
               fontFamily: 'Lexend, -apple-system, sans-serif',
             }}
@@ -2361,10 +2402,9 @@ export default function CoinOperationsDesk({
             className="vegas-modal-card w-full max-w-lg p-5 sm:p-6 max-h-[90vh] overflow-y-auto modal-scrollable relative space-y-4"
             onClick={(e) => e.stopPropagation()}
             style={{
-              backgroundColor: '#0E0A24',
-              background: 'linear-gradient(145deg, #0E0A24 0%, #150E36 100%)',
-              border: '1px solid rgba(244, 63, 94, 0.45)',
-              boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 40px rgba(244, 63, 94, 0.25)',
+              backgroundColor: '#0C0A1E',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.8)',
               borderRadius: '20px',
               fontFamily: 'Lexend, -apple-system, sans-serif',
             }}
@@ -2482,10 +2522,9 @@ export default function CoinOperationsDesk({
             className="vegas-modal-card w-full max-w-lg p-5 sm:p-6 max-h-[90vh] overflow-y-auto modal-scrollable relative space-y-4"
             onClick={(e) => e.stopPropagation()}
             style={{
-              backgroundColor: '#0E0A24',
-              background: 'linear-gradient(145deg, #0E0A24 0%, #150E36 100%)',
-              border: '1px solid rgba(244, 63, 94, 0.45)',
-              boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 40px rgba(244, 63, 94, 0.25)',
+              backgroundColor: '#0C0A1E',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.8)',
               borderRadius: '20px',
               fontFamily: 'Lexend, -apple-system, sans-serif',
             }}
@@ -2603,10 +2642,9 @@ export default function CoinOperationsDesk({
             className="vegas-modal-card relative w-full max-w-4xl p-5 sm:p-6 max-h-[92vh] overflow-hidden flex flex-col gap-3"
             onClick={(e) => e.stopPropagation()}
             style={{
-              backgroundColor: '#0E0A24',
-              background: 'linear-gradient(145deg, #0E0A24 0%, #150E36 100%)',
-              border: '1.5px solid #00F0FF',
-              boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 40px rgba(0, 240, 255, 0.3)',
+              backgroundColor: '#0C0A1E',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.8)',
               borderRadius: '20px',
               fontFamily: 'Lexend, -apple-system, sans-serif',
             }}

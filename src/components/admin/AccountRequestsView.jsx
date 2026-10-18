@@ -72,43 +72,43 @@ export default function AccountRequestsView({
     <div className="flex flex-col gap-6 sm:gap-8 w-full" style={{ fontFamily: 'Lexend, -apple-system, sans-serif' }}>
       {/* Top Filter & Search Bar */}
       <div
-        className="p-5 sm:p-6 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 shadow-2xl"
+        className="p-5 sm:p-6 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4"
         style={{
-          backgroundColor: '#0E0A24',
-          background: 'linear-gradient(135deg, #0E0A24 0%, #140E33 100%)',
-          border: '1px solid rgba(0, 240, 255, 0.28)',
-          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6), 0 0 25px rgba(0, 240, 255, 0.1)',
+          backgroundColor: '#0C0A1E',
+          border: '1px solid rgba(0, 240, 255, 0.22)',
+          boxShadow: '0 8px 30px rgba(0, 0, 0, 0.4)',
         }}
       >
         <div
-          className="flex items-center gap-2 p-1.5 rounded-xl w-full md:w-auto overflow-x-auto"
+          className="flex items-center gap-1.5 p-1 rounded-xl w-full md:w-auto overflow-x-auto"
           style={{
             backgroundColor: '#070514',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
+            border: '1px solid rgba(0, 240, 255, 0.15)',
           }}
         >
           {[
             { key: 'PENDING', label: 'Pending', count: pendingCount, color: '#F59E0B' },
             { key: 'READY', label: 'Ready', count: readyCount, color: '#10B981' },
             { key: 'ALL', label: 'All Requests', count: accountOnlyRequests.length, color: '#00F0FF' },
-          ].map(({ key, label, count, color }) => {
+          ].map(({ key, label, count }) => {
             const isActive = filter === key;
             return (
               <button
                 key={key}
                 type="button"
                 onClick={() => onFilterChange(key)}
-                className="px-4 py-2 rounded-lg text-xs font-black transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer hover:scale-[1.02]"
+                className="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer"
                 style={
                   isActive
                     ? {
-                        backgroundColor: color,
-                        color: key === 'READY' ? '#FFFFFF' : '#070514',
-                        boxShadow: `0 0 16px ${color}55`,
+                        backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                        border: '1px solid rgba(255, 255, 255, 0.15)',
+                        color: '#FFFFFF',
                       }
                     : {
                         backgroundColor: 'transparent',
-                        color: '#9A91A8',
+                        border: '1px solid transparent',
+                        color: '#94A3B8',
                       }
                 }
               >
@@ -116,8 +116,7 @@ export default function AccountRequestsView({
                   <span
                     className="w-2 h-2 rounded-full"
                     style={{
-                      backgroundColor: isActive ? '#070514' : '#F59E0B',
-                      boxShadow: isActive ? 'none' : '0 0 8px #F59E0B',
+                      backgroundColor: '#F59E0B',
                     }}
                   />
                 )}
@@ -125,8 +124,8 @@ export default function AccountRequestsView({
                 <span
                   className="px-2 py-0.5 rounded-full text-[10.5px] font-mono font-bold"
                   style={{
-                    backgroundColor: isActive ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.08)',
-                    color: isActive ? 'inherit' : '#9A91A8',
+                    backgroundColor: isActive ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)',
+                    color: isActive ? '#FFFFFF' : '#94A3B8',
                   }}
                 >
                   {count}
@@ -138,26 +137,26 @@ export default function AccountRequestsView({
 
         <div className="flex items-center gap-3 w-full md:w-auto">
           <div
-            className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl w-full md:w-72 transition-all"
+            className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl w-full md:w-72 transition-all"
             style={{
               backgroundColor: '#070514',
-              border: '1px solid rgba(0, 240, 255, 0.28)',
+              border: '1px solid rgba(0, 240, 255, 0.2)',
             }}
           >
-            <Search size={14} className="text-cyan-400 shrink-0" />
+            <Search size={14} className="text-slate-400 shrink-0" />
             <input
               type="text"
               placeholder="Search player, game, ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-transparent text-xs text-white placeholder-gray-500 focus:outline-none p-0 border-none"
+              className="w-full bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none p-0 border-none"
               style={{ fontFamily: 'Lexend, sans-serif' }}
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="text-gray-400 hover:text-white shrink-0 cursor-pointer"
+                className="text-slate-400 hover:text-white shrink-0 cursor-pointer"
               >
                 <X size={12} />
               </button>
@@ -168,14 +167,7 @@ export default function AccountRequestsView({
             type="button"
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all shrink-0 cursor-pointer hover:scale-[1.03]"
-            style={{
-              background: 'linear-gradient(135deg, rgba(0, 240, 255, 0.15) 0%, rgba(224, 38, 216, 0.15) 100%)',
-              border: '1px solid rgba(0, 240, 255, 0.4)',
-              color: '#00F0FF',
-              boxShadow: '0 0 15px rgba(0, 240, 255, 0.2)',
-              fontFamily: 'Lexend, sans-serif',
-            }}
+            className="px-3.5 py-2 rounded-xl font-bold text-xs flex items-center gap-2 transition-all shrink-0 cursor-pointer bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white"
           >
             <RefreshCw size={13} strokeWidth={2.5} className={isRefreshing ? 'animate-spin' : ''} />
             <span className="hidden sm:inline">Refresh</span>
@@ -186,64 +178,43 @@ export default function AccountRequestsView({
       {filtered.length === 0 ? (
         <div
           style={{
-            padding: '72px 28px',
+            padding: '60px 24px',
             textAlign: 'center',
-            background: 'radial-gradient(ellipse at center, rgba(0, 240, 255, 0.12) 0%, rgba(7, 5, 20, 0.95) 75%)',
+            backgroundColor: '#0C0A1E',
             borderRadius: '20px',
-            border: '1.5px dashed rgba(0, 240, 255, 0.35)',
-            boxShadow: 'inset 0 0 40px rgba(0, 240, 255, 0.06)',
+            border: '1.5px dashed rgba(0, 240, 255, 0.25)',
           }}
         >
           <div
             style={{
-              width: '68px',
-              height: '68px',
-              borderRadius: '20px',
-              background: 'linear-gradient(135deg, rgba(0, 240, 255, 0.25) 0%, rgba(245, 158, 11, 0.2) 100%)',
-              border: '1.5px solid rgba(0, 240, 255, 0.5)',
-              boxShadow: '0 0 30px rgba(0, 240, 255, 0.4)',
+              width: '56px',
+              height: '56px',
+              borderRadius: '16px',
+              backgroundColor: 'rgba(0, 240, 255, 0.08)',
+              border: '1px solid rgba(0, 240, 255, 0.25)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              margin: '0 auto 18px auto',
+              margin: '0 auto 16px auto',
             }}
           >
-            <Gamepad2 size={34} color="#00F0FF" />
+            <Gamepad2 size={28} className="text-cyan-400" />
           </div>
-          <div
-            style={{
-              display: 'inline-block',
-              padding: '4px 14px',
-              borderRadius: '20px',
-              backgroundColor: 'rgba(0, 240, 255, 0.15)',
-              border: '1px solid rgba(0, 240, 255, 0.35)',
-              color: '#00F0FF',
-              fontSize: '11px',
-              fontWeight: 900,
-              letterSpacing: '1px',
-              textTransform: 'uppercase',
-              marginBottom: '10px',
-              fontFamily: 'Lexend, sans-serif',
-            }}
-          >
-            All Clear · Zero Pending Backlog
-          </div>
-          <p style={{ margin: 0, fontFamily: 'Lexend, sans-serif', fontSize: '17px', fontWeight: 900, color: '#FFFFFF' }}>
+          <p className="text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-cyan-300" style={{ margin: 0, fontFamily: 'Lexend, sans-serif', fontSize: '16px', fontWeight: 800 }}>
             No Game Account Requests Found
           </p>
-          <p style={{ margin: '8px auto 0 auto', maxWidth: '480px', fontSize: '13px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif', lineHeight: 1.6 }}>
-            Incoming player credentials requests will ring and arrive here in real-time.
+          <p style={{ margin: '6px auto 0 auto', maxWidth: '440px', fontSize: '12.5px', color: '#94A3B8', fontFamily: 'Lexend, sans-serif', lineHeight: 1.5 }}>
+            Incoming player credentials requests will arrive here in real-time.
           </p>
         </div>
       ) : (
         <>
           {/* DESKTOP TABLE */}
           <div
-            className="hidden lg:block rounded-2xl overflow-hidden shadow-2xl"
+            className="hidden lg:block rounded-2xl overflow-hidden shadow-xl"
             style={{
-              backgroundColor: '#0E0A24',
-              border: '1px solid rgba(0, 240, 255, 0.28)',
-              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.7), 0 0 25px rgba(0, 240, 255, 0.1)',
+              backgroundColor: '#0C0A1E',
+              border: '1px solid rgba(0, 240, 255, 0.18)',
             }}
           >
             <table className="w-full text-left text-xs border-collapse" style={{ fontFamily: 'Lexend, sans-serif' }}>
@@ -255,7 +226,7 @@ export default function AccountRequestsView({
                 <col style={{ width: '12%' }} />
                 <col style={{ width: '12%' }} />
               </colgroup>
-              <thead style={{ backgroundColor: '#070514', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
+              <thead style={{ backgroundColor: '#070514', borderBottom: '1px solid rgba(0, 240, 255, 0.15)' }}>
                 <tr>
                   <th style={{ padding: '14px 18px', color: '#9A91A8', fontWeight: 900, fontSize: '11px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Player</th>
                   <th style={{ padding: '14px 18px', color: '#9A91A8', fontWeight: 900, fontSize: '11px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Requested Game</th>

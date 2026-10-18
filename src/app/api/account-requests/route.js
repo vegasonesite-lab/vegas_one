@@ -146,26 +146,11 @@ export async function POST(req) {
         );
       }
 
-      // FREEZE the coins immediately in user wallet
+      // FREEZE the coins immediately in user wallet escrow until staff approves
       await usersCol.updateOne(
         { _id: user._id },
         { $inc: { frozenBalance: transferAmount } }
       );
-
-      await ledgerCol.insertOne({
-        userId: user._id.toString(),
-        username: user.username,
-        type: 'game_load_freeze',
-        currency: 'SC',
-        amount: transferAmount,
-        balanceBefore: currentSC,
-        balanceAfter: currentSC,
-        frozenAmount: transferAmount,
-        performedBy: 'player',
-        referenceId: gameTitle,
-        notes: `Frozen $${transferAmount.toFixed(2)} SC in escrow for coin load into ${gameTitle}`,
-        createdAt: new Date(),
-      });
 
       const newRequest = {
         type: 'COIN_LOAD',

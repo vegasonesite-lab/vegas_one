@@ -1199,44 +1199,132 @@ export default function Player360ProfileModal({
             position: 'fixed',
             inset: 0,
             zIndex: 100000,
-            backgroundColor: 'rgba(2, 1, 6, 0.95)',
-            backdropFilter: 'blur(20px)',
+            backgroundColor: 'rgba(5, 3, 15, 0.92)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             padding: '16px',
+            fontFamily: 'Lexend, -apple-system, sans-serif',
           }}
           onClick={() => setPreviewImage(null)}
         >
           <div
+            className="relative overflow-hidden"
             style={{
-              maxWidth: '650px',
+              maxWidth: '680px',
               width: '100%',
-              backgroundColor: '#0c081e',
-              border: '1px solid rgba(0, 240, 255, 0.4)',
-              borderRadius: '20px',
-              padding: '16px',
+              backgroundColor: '#0C0A1E',
+              border: '1px solid rgba(0, 240, 255, 0.35)',
+              borderRadius: '24px',
+              padding: '24px',
               display: 'flex',
               flexDirection: 'column',
-              gap: '12px',
+              gap: '16px',
+              boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 35px rgba(0, 240, 255, 0.2)',
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', paddingBottom: '10px' }}>
-              <span style={{ fontSize: '12px', fontWeight: 900, color: '#00F0FF', textTransform: 'uppercase' }}>
-                Document Proof Preview
-              </span>
+            {/* Ambient Glow */}
+            <div
+              style={{
+                position: 'absolute',
+                top: '-40px',
+                right: '-40px',
+                width: '150px',
+                height: '150px',
+                backgroundColor: 'rgba(0, 240, 255, 0.15)',
+                borderRadius: '50%',
+                filter: 'blur(45px)',
+                pointerEvents: 'none',
+              }}
+            />
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(0, 240, 255, 0.15)', paddingBottom: '14px', position: 'relative' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div
+                  style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '12px',
+                    backgroundColor: 'rgba(0, 240, 255, 0.12)',
+                    border: '1px solid rgba(0, 240, 255, 0.35)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 0 15px rgba(0, 240, 255, 0.2)',
+                  }}
+                >
+                  <Eye size={18} color="#00F0FF" />
+                </div>
+                <div>
+                  <span style={{ fontSize: '14px', fontWeight: 900, color: '#FFFFFF', display: 'block' }}>
+                    Document Proof Preview
+                  </span>
+                  <span style={{ fontSize: '11px', color: '#9A91A8', display: 'block' }}>
+                    Player attached payment receipt / KYC verification document
+                  </span>
+                </div>
+              </div>
               <button
                 type="button"
                 onClick={() => setPreviewImage(null)}
-                style={{ background: 'none', border: 'none', color: '#9A91A8', cursor: 'pointer' }}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '10px',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#9A91A8',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
               >
-                <X size={18} />
+                <X size={16} />
               </button>
             </div>
-            <div style={{ maxHeight: '75vh', overflow: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+
+            <div
+              style={{
+                maxHeight: '68vh',
+                overflow: 'auto',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#070514',
+                borderRadius: '16px',
+                border: '1px solid rgba(0, 240, 255, 0.15)',
+                padding: '16px',
+              }}
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={previewImage} alt="Document Proof" style={{ maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain', borderRadius: '12px' }} />
+              <img src={previewImage} alt="Document Proof" style={{ maxWidth: '100%', maxHeight: '60vh', objectFit: 'contain', borderRadius: '10px' }} />
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setPreviewImage(null)}
+                style={{
+                  padding: '9px 20px',
+                  borderRadius: '12px',
+                  backgroundColor: '#00F0FF',
+                  color: '#070514',
+                  border: 'none',
+                  fontSize: '12px',
+                  fontWeight: 900,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                  cursor: 'pointer',
+                  boxShadow: '0 0 18px rgba(0, 240, 255, 0.35)',
+                }}
+              >
+                Close Preview
+              </button>
             </div>
           </div>
         </div>

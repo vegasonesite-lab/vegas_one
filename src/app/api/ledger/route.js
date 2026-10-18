@@ -49,9 +49,14 @@ export async function GET(req) {
         query.type = { $regex: /staff|credit|debit|adjust/i };
       } else if (t === 'bonus') {
         query.type = { $regex: /bonus|promo|welcome|daily|freeplay/i };
+      } else if (t === 'allotment' || t === 'transfer') {
+        query.type = { $regex: /transfer|allotment/i };
       } else {
         query.type = { $regex: new RegExp(`^${type}$`, 'i') };
       }
+    } else {
+      // Exclude internal escrow freezes from standard ledger statements
+      query.type = { $ne: 'game_load_freeze' };
     }
 
     const items = await ledgerCol
@@ -175,8 +180,24 @@ export async function GET(req) {
       } else if (rawT.includes('bonus') || rawT.includes('freeplay') || rawT.includes('promo')) {
         normalizedType = 'bonus';
         displayType = 'Bonus';
+      } else if (rawT.includes('game_transfer') || rawT.includes('transfer') || rawT.includes('allotment')) {
+        normalizedType = 'game_transfer';
+        displayType = 'Coin Allotment';
       } else {
         displayType = r.type ? r.type.replace(/_/g, ' ') : 'Adjustment';
+      }
+
+      // Intelligent payment method / game destination detection
+      let detectedMethod = r.methodName || dep?.methodName || red?.payoutMethod || null;
+      if (!detectedMethod) {
+        if (rawT.includes('transfer') || rawT.includes('allotment')) {
+          const match = r.notes ? r.notes.match(/into\s+([^(\-]+)/i) : null;
+          detectedMethod = match ? match[1].trim() : 'Game Allotment';
+        } else if (rawT.includes('bonus')) {
+          detectedMethod = 'Welcome Reward';
+        } else {
+          detectedMethod = 'Direct Cashier';
+        }
       }
 
       return {
@@ -198,8 +219,13 @@ export async function GET(req) {
         referenceId: refId,
         proofImage: proofScreenshot,
         hasProof,
-        methodName,
+        methodName: detectedMethod,
         txHash,
+        bonusName: dep?.bonusName || r.bonusName || null,
+        bonusPercent: dep?.bonusPercent !== undefined ? dep.bonusPercent : (r.bonusPercent !== undefined ? r.bonusPercent : null),
+        bonusSC: dep?.bonusSC !== undefined ? dep.bonusSC : (r.bonusSC !== undefined ? r.bonusSC : null),
+        bonusType: dep?.bonusType || r.bonusType || null,
+        totalSC: dep?.totalSC !== undefined ? dep.totalSC : (r.totalSC !== undefined ? r.totalSC : null),
       };
     });
 
@@ -243,6 +269,11 @@ export async function GET(req) {
               hasProof: Boolean(dep.proofImage || dep.hasProofImage || true),
               methodName: dep.methodName || 'Payment Gateway',
               txHash: dep.txHash || null,
+              bonusName: dep.bonusName || null,
+              bonusPercent: dep.bonusPercent !== undefined ? dep.bonusPercent : null,
+              bonusSC: dep.bonusSC !== undefined ? dep.bonusSC : null,
+              bonusType: dep.bonusType || null,
+              totalSC: dep.totalSC !== undefined ? dep.totalSC : null,
             });
           }
         }

@@ -423,24 +423,84 @@ export default function FinanceRedemptionsView({
 
       {/* Reject Reason Modal */}
       {rejectModal.open && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="w-full max-w-md bg-[#0d1021] border border-red-500/30 rounded-3xl p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-red-400">
-                <AlertTriangle size={20} />
-                <h3 className="text-base font-black text-white">Reject &amp; Refund Cashout</h3>
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 99999,
+            backgroundColor: 'rgba(5, 3, 15, 0.92)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+            fontFamily: 'Lexend, -apple-system, sans-serif',
+          }}
+          onClick={() => setRejectModal({ open: false, item: null, reason: '' })}
+        >
+          <div
+            className="relative overflow-hidden w-full max-w-md p-6 space-y-4"
+            style={{
+              backgroundColor: '#0C0A1E',
+              border: '1px solid rgba(244, 63, 94, 0.45)',
+              borderRadius: '24px',
+              boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 40px rgba(244, 63, 94, 0.2)',
+              color: '#FFFFFF',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Ambient Glow */}
+            <div
+              style={{
+                position: 'absolute',
+                top: '-40px',
+                right: '-40px',
+                width: '140px',
+                height: '140px',
+                backgroundColor: 'rgba(244, 63, 94, 0.15)',
+                borderRadius: '50%',
+                filter: 'blur(45px)',
+                pointerEvents: 'none',
+              }}
+            />
+
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3" style={{ borderBottom: '1px solid rgba(244, 63, 94, 0.2)' }}>
+              <div className="flex items-center gap-3">
+                <div
+                  style={{
+                    width: '42px',
+                    height: '42px',
+                    borderRadius: '12px',
+                    backgroundColor: 'rgba(244, 63, 94, 0.15)',
+                    border: '1px solid rgba(244, 63, 94, 0.4)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 0 15px rgba(244, 63, 94, 0.25)',
+                    color: '#FB7185',
+                  }}
+                >
+                  <AlertTriangle size={20} />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-white m-0">Reject &amp; Refund Cashout</h3>
+                  <p className="text-[11px] text-gray-400 m-0">Refund balance directly to player</p>
+                </div>
               </div>
               <button
+                type="button"
                 onClick={() => setRejectModal({ open: false, item: null, reason: '' })}
-                className="text-gray-400 hover:text-white"
+                className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white flex items-center justify-center transition border border-white/10 cursor-pointer"
               >
-                <X size={18} />
+                <X size={16} />
               </button>
             </div>
 
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-300">
               Rejecting cashout of{' '}
-              <strong className="text-purple-300">${rejectModal.item?.amount} SC</strong> for{' '}
+              <strong className="text-[#00F0FF] font-mono">${rejectModal.item?.amount} SC</strong> for{' '}
               <strong className="text-white">{rejectModal.item?.username}</strong>. Coins will be refunded
               to player balance.
             </p>
@@ -450,19 +510,30 @@ export default function FinanceRedemptionsView({
               value={rejectModal.reason}
               onChange={(e) => setRejectModal({ ...rejectModal, reason: e.target.value })}
               placeholder="Enter reason for rejection (e.g. Invalid Cashtag or KYC required)..."
-              className="w-full p-3 rounded-xl bg-black/50 border border-white/15 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-red-400"
+              className="w-full p-3 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none transition resize-none"
+              style={{
+                backgroundColor: '#070514',
+                border: '1px solid rgba(244, 63, 94, 0.35)',
+              }}
             />
 
-            <div className="flex items-center justify-end gap-2 pt-2">
+            <div className="flex items-center justify-end gap-2.5 pt-2" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
               <button
+                type="button"
                 onClick={() => setRejectModal({ open: false, item: null, reason: '' })}
-                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-gray-300 text-xs font-bold"
+                className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 text-xs font-bold transition cursor-pointer"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleConfirmReject}
-                className="px-5 py-2 rounded-xl bg-red-500 hover:bg-red-400 text-white text-xs font-black shadow-lg shadow-red-500/30"
+                className="px-6 py-2.5 rounded-xl text-white text-xs font-black uppercase tracking-wider transition cursor-pointer"
+                style={{
+                  backgroundColor: '#F43F5E',
+                  boxShadow: '0 0 20px rgba(244, 63, 94, 0.45)',
+                  border: 'none',
+                }}
               >
                 Refund Coins &amp; Reject
               </button>

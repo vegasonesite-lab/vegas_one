@@ -109,45 +109,64 @@ export default function FinanceUnifiedDesk({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', fontFamily: 'Lexend, sans-serif' }}>
       {/* Top Header & Navigation Bar */}
       <div
+        className="relative overflow-hidden"
         style={{
-          backgroundColor: '#0E0824',
-          border: '1px solid rgba(0, 240, 255, 0.25)',
+          backgroundColor: '#0C0A1E',
+          border: '1px solid rgba(0, 240, 255, 0.22)',
           borderRadius: '20px',
-          padding: '18px 22px',
+          padding: '24px 28px',
           display: 'flex',
           flexWrap: 'wrap',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: '16px',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.6), 0 0 20px rgba(0, 240, 255, 0.08)',
+          gap: '20px',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
         }}
       >
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 900, color: '#FFFFFF', letterSpacing: '-0.02em' }}>
-              Financial Desk &amp; Payment Operations
-            </h2>
-            <span
-              style={{
-                fontSize: '10px',
-                fontWeight: 800,
-                padding: '3px 8px',
-                borderRadius: '9999px',
-                backgroundColor: 'rgba(0, 240, 255, 0.15)',
-                border: '1px solid rgba(0, 240, 255, 0.4)',
-                color: '#00F0FF',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '5px',
-              }}
-            >
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#00F0FF' }} />
-              Live Sync
-            </span>
+        <div className="absolute -top-24 -right-24 w-72 h-72 bg-[#00F0FF]/10 rounded-full blur-3xl pointer-events-none" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', position: 'relative', zIndex: 10 }}>
+          <div
+            className="rounded-2xl flex items-center justify-center shrink-0"
+            style={{
+              width: '56px',
+              height: '56px',
+              minWidth: '56px',
+              padding: '14px',
+              background: 'rgba(0, 240, 255, 0.1)',
+              border: '1.5px solid rgba(0, 240, 255, 0.35)',
+              color: '#00F0FF',
+              boxShadow: '0 0 20px rgba(0, 240, 255, 0.15)',
+            }}
+          >
+            <Wallet className="w-full h-full text-[#00F0FF]" />
           </div>
-          <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#94A3B8' }}>
-            Top Box: Pending Deposits Desk • Bottom Box: Pending Withdrawal / Cashout Desk
-          </p>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h2 className="text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-cyan-300" style={{ margin: 0, fontSize: '20px', fontWeight: 900, letterSpacing: '-0.01em', fontFamily: 'Lexend, sans-serif' }}>
+                Financial Desk &amp; Payment Operations
+              </h2>
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 800,
+                  padding: '3px 9px',
+                  borderRadius: '9999px',
+                  backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                  border: '1px solid rgba(16, 185, 129, 0.3)',
+                  color: '#10B981',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                }}
+              >
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10B981' }} />
+                Live Sync
+              </span>
+            </div>
+            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
+              Top Desk: Pending Deposits Desk • Bottom Desk: Pending Withdrawal &amp; Cashout Desk
+            </p>
+          </div>
         </div>
 
         {/* View Switcher Pills */}
@@ -156,29 +175,28 @@ export default function FinanceUnifiedDesk({
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
-            padding: '5px',
-            backgroundColor: '#070415',
-            borderRadius: '14px',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
+            padding: '4px',
+            backgroundColor: '#070514',
+            borderRadius: '12px',
+            border: '1px solid rgba(0, 240, 255, 0.15)',
             overflowX: 'auto',
           }}
         >
           <button
             onClick={() => setActiveView('live_queue')}
             style={{
-              padding: '8px 16px',
-              borderRadius: '10px',
+              padding: '8px 14px',
+              borderRadius: '9px',
               fontSize: '11.5px',
-              fontWeight: 900,
+              fontWeight: 800,
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
               cursor: 'pointer',
               whiteSpace: 'nowrap',
-              border: 'none',
-              background: activeView === 'live_queue' ? 'linear-gradient(135deg, #E026D8 0%, #A855F7 45%, #00F0FF 100%)' : 'transparent',
-              color: activeView === 'live_queue' ? '#FFFFFF' : '#94A3B8',
-              boxShadow: activeView === 'live_queue' ? '0 4px 15px rgba(0, 240, 255, 0.4), 0 0 20px rgba(224, 38, 216, 0.3)' : 'none',
+              border: activeView === 'live_queue' ? '1px solid rgba(0, 240, 255, 0.35)' : '1px solid transparent',
+              backgroundColor: activeView === 'live_queue' ? 'rgba(0, 240, 255, 0.12)' : 'transparent',
+              color: activeView === 'live_queue' ? '#00F0FF' : '#94A3B8',
               transition: 'all 0.15s ease',
             }}
           >
@@ -191,8 +209,8 @@ export default function FinanceUnifiedDesk({
                   fontWeight: 900,
                   padding: '1px 6px',
                   borderRadius: '9999px',
-                  backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                  color: '#FFFFFF',
+                  backgroundColor: 'rgba(245, 158, 11, 0.25)',
+                  color: '#FBBF24',
                   marginLeft: '4px',
                 }}
               >
@@ -205,15 +223,15 @@ export default function FinanceUnifiedDesk({
             onClick={() => setActiveView('deposit_history')}
             style={{
               padding: '8px 14px',
-              borderRadius: '10px',
+              borderRadius: '9px',
               fontSize: '11.5px',
-              fontWeight: 800,
+              fontWeight: 700,
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
               cursor: 'pointer',
               whiteSpace: 'nowrap',
-              border: 'none',
+              border: activeView === 'deposit_history' ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid transparent',
               backgroundColor: activeView === 'deposit_history' ? 'rgba(255, 255, 255, 0.12)' : 'transparent',
               color: activeView === 'deposit_history' ? '#FFFFFF' : '#94A3B8',
               transition: 'all 0.15s ease',
@@ -227,15 +245,15 @@ export default function FinanceUnifiedDesk({
             onClick={() => setActiveView('cashout_history')}
             style={{
               padding: '8px 14px',
-              borderRadius: '10px',
+              borderRadius: '9px',
               fontSize: '11.5px',
-              fontWeight: 800,
+              fontWeight: 700,
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
               cursor: 'pointer',
               whiteSpace: 'nowrap',
-              border: 'none',
+              border: activeView === 'cashout_history' ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid transparent',
               backgroundColor: activeView === 'cashout_history' ? 'rgba(255, 255, 255, 0.12)' : 'transparent',
               color: activeView === 'cashout_history' ? '#FFFFFF' : '#94A3B8',
               transition: 'all 0.15s ease',
@@ -249,15 +267,15 @@ export default function FinanceUnifiedDesk({
             onClick={() => setActiveView('methods')}
             style={{
               padding: '8px 14px',
-              borderRadius: '10px',
+              borderRadius: '9px',
               fontSize: '11.5px',
-              fontWeight: 800,
+              fontWeight: 700,
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
               cursor: 'pointer',
               whiteSpace: 'nowrap',
-              border: 'none',
+              border: activeView === 'methods' ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid transparent',
               backgroundColor: activeView === 'methods' ? 'rgba(255, 255, 255, 0.12)' : 'transparent',
               color: activeView === 'methods' ? '#FFFFFF' : '#94A3B8',
               transition: 'all 0.15s ease',
@@ -278,7 +296,7 @@ export default function FinanceUnifiedDesk({
           gap: '12px',
           padding: '12px 18px',
           backgroundColor: '#0c0f24',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
+          border: '1px solid rgba(0, 240, 255, 0.18)',
           borderRadius: '16px',
           flexWrap: 'wrap',
         }}
@@ -355,11 +373,11 @@ export default function FinanceUnifiedDesk({
           {/* ============================================================== */}
           <div
             style={{
-              backgroundColor: '#0c0f24',
-              border: '1.5px solid rgba(245, 158, 11, 0.4)',
+              backgroundColor: '#0C0A1E',
+              border: '1px solid rgba(245, 158, 11, 0.22)',
               borderRadius: '20px',
-              padding: '22px',
-              boxShadow: '0 15px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(245, 158, 11, 0.08)',
+              padding: '24px',
+              boxShadow: '0 8px 30px rgba(0, 0, 0, 0.4)',
               marginBottom: '32px',
             }}
           >
@@ -371,13 +389,12 @@ export default function FinanceUnifiedDesk({
                     width: '38px',
                     height: '38px',
                     borderRadius: '12px',
-                    backgroundColor: 'rgba(245, 158, 11, 0.18)',
-                    border: '1px solid rgba(245, 158, 11, 0.45)',
+                    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                    border: '1px solid rgba(245, 158, 11, 0.35)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: '#FBBF24',
-                    boxShadow: '0 0 15px rgba(245, 158, 11, 0.2)',
                   }}
                 >
                   <Coins size={18} />
@@ -535,19 +552,23 @@ export default function FinanceUnifiedDesk({
                                   style={{
                                     fontSize: '9.5px',
                                     fontWeight: 900,
-                                    padding: '1px 6px',
+                                    padding: '2px 8px',
                                     borderRadius: '6px',
-                                    backgroundColor: bonusType === 'welcome' ? 'rgba(0, 240, 255, 0.15)' : 'rgba(168, 85, 247, 0.15)',
-                                    color: bonusType === 'welcome' ? '#00F0FF' : '#C084FC',
-                                    border: `1px solid ${bonusType === 'welcome' ? 'rgba(0, 240, 255, 0.35)' : 'rgba(168, 85, 247, 0.35)'}`,
+                                    backgroundColor: d.bonusType === 'method'
+                                      ? 'rgba(245, 158, 11, 0.18)'
+                                      : (bonusType === 'welcome' ? 'rgba(0, 240, 255, 0.15)' : 'rgba(168, 85, 247, 0.15)'),
+                                    color: d.bonusType === 'method'
+                                      ? '#FBBF24'
+                                      : (bonusType === 'welcome' ? '#00F0FF' : '#C084FC'),
+                                    border: `1px solid ${d.bonusType === 'method' ? 'rgba(245, 158, 11, 0.4)' : (bonusType === 'welcome' ? 'rgba(0, 240, 255, 0.35)' : 'rgba(168, 85, 247, 0.35)')}`,
                                     textTransform: 'uppercase',
                                   }}
                                 >
-                                  +{bonusPercent}% {bonusType}
+                                  +{bonusPercent}% {d.bonusName || (d.bonusType === 'method' ? `${d.methodName} Bonus` : bonusType)}
                                 </span>
                               </div>
                               <span style={{ fontSize: '10.5px', color: '#94A3B8' }}>
-                                Base: ${d.amount} + Bonus: ${bonusSC} SC
+                                Base: ${d.amount} + Bonus: ${bonusSC} SC ({d.bonusName || d.bonusType})
                               </span>
 
                               {/* Editable Input Box */}
@@ -809,11 +830,11 @@ export default function FinanceUnifiedDesk({
           {/* ============================================================== */}
           <div
             style={{
-              backgroundColor: '#0c0f24',
-              border: '1.5px solid rgba(168, 85, 247, 0.4)',
+              backgroundColor: '#0C0A1E',
+              border: '1px solid rgba(168, 85, 247, 0.22)',
               borderRadius: '20px',
-              padding: '22px',
-              boxShadow: '0 15px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(168, 85, 247, 0.08)',
+              padding: '24px',
+              boxShadow: '0 8px 30px rgba(0, 0, 0, 0.4)',
             }}
           >
             {/* Box Header */}
@@ -824,13 +845,12 @@ export default function FinanceUnifiedDesk({
                     width: '38px',
                     height: '38px',
                     borderRadius: '12px',
-                    backgroundColor: 'rgba(168, 85, 247, 0.18)',
-                    border: '1px solid rgba(168, 85, 247, 0.45)',
+                    backgroundColor: 'rgba(168, 85, 247, 0.15)',
+                    border: '1px solid rgba(168, 85, 247, 0.35)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: '#C084FC',
-                    boxShadow: '0 0 15px rgba(168, 85, 247, 0.2)',
                   }}
                 >
                   <Wallet size={18} />
@@ -1415,16 +1435,17 @@ export default function FinanceUnifiedDesk({
             style={{
               width: '100%',
               maxWidth: '620px',
-              backgroundColor: '#0d1024',
-              border: '1px solid rgba(0, 240, 255, 0.4)',
+              backgroundColor: '#0C0A1E',
+              border: '1px solid rgba(0, 240, 255, 0.35)',
               borderRadius: '24px',
               padding: '20px',
-              boxShadow: '0 30px 80px rgba(0,0,0,0.95), 0 0 40px rgba(0, 240, 255, 0.15)',
+              boxShadow: '0 30px 80px rgba(0,0,0,0.98), 0 0 40px rgba(0, 240, 255, 0.2)',
               display: 'flex',
               flexDirection: 'column',
               gap: '14px',
               color: '#FFFFFF',
               maxHeight: '92vh',
+              fontFamily: 'Lexend, -apple-system, sans-serif',
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -1434,7 +1455,7 @@ export default function FinanceUnifiedDesk({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                borderBottom: '1px solid rgba(0, 240, 255, 0.2)',
                 paddingBottom: '12px',
               }}
             >
@@ -1602,41 +1623,58 @@ export default function FinanceUnifiedDesk({
             alignItems: 'center',
             justifyContent: 'center',
             padding: '16px',
-            backgroundColor: 'rgba(3, 4, 10, 0.88)',
-            backdropFilter: 'blur(12px)',
+            backgroundColor: 'rgba(5, 3, 15, 0.92)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            fontFamily: 'Lexend, -apple-system, sans-serif',
           }}
         >
           <div
+            className="vegas-modal-card relative overflow-hidden space-y-4"
             style={{
               width: '100%',
               maxWidth: '460px',
-              backgroundColor: '#0d1024',
-              border: '1px solid rgba(239, 68, 68, 0.4)',
-              borderRadius: '20px',
-              padding: '22px',
-              boxShadow: '0 25px 60px rgba(0,0,0,0.95)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '14px',
+              backgroundColor: '#0C0A1E',
+              border: '1px solid rgba(244, 63, 94, 0.4)',
+              borderRadius: '24px',
+              padding: '24px',
+              boxShadow: '0 30px 80px rgba(0,0,0,0.98), 0 0 35px rgba(244, 63, 94, 0.2)',
               color: '#FFFFFF',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#F87171' }}>
-                <AlertTriangle size={20} />
-                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 900, color: '#FFFFFF' }}>Reject Deposit Request</h3>
+            <div className="absolute -top-16 -right-16 w-48 h-48 bg-rose-500/10 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="flex items-center justify-between border-b border-rose-500/20 pb-3 relative z-10">
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center text-rose-400 shrink-0"
+                  style={{
+                    backgroundColor: 'rgba(244, 63, 94, 0.15)',
+                    border: '1.5px solid rgba(244, 63, 94, 0.4)',
+                    boxShadow: '0 0 15px rgba(244, 63, 94, 0.25)',
+                  }}
+                >
+                  <AlertTriangle size={20} />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-white m-0 tracking-wide">Reject Deposit Request</h3>
+                  <p className="text-xs text-[#9A91A8] m-0">Log mandatory rejection reason for player</p>
+                </div>
               </div>
               <button
+                type="button"
                 onClick={() => setRejectDepositModal({ open: false, deposit: null, reason: '' })}
-                style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer' }}
+                className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white flex items-center justify-center transition border border-white/10 cursor-pointer"
               >
-                <X size={18} />
+                <X size={16} />
               </button>
             </div>
-            <p style={{ margin: 0, fontSize: '12px', color: '#94A3B8' }}>
+
+            <p style={{ margin: 0, fontSize: '12px', color: '#94A3B8' }} className="relative z-10">
               Rejecting deposit of <strong style={{ color: '#FFFFFF' }}>${rejectDepositModal.deposit?.amount} USD</strong> for{' '}
-              <strong style={{ color: '#FDE68A' }}>{rejectDepositModal.deposit?.username}</strong>.
+              <strong style={{ color: '#00F0FF' }}>{rejectDepositModal.deposit?.username}</strong>.
             </p>
+
             <textarea
               rows={3}
               value={rejectDepositModal.reason}
@@ -1644,34 +1682,29 @@ export default function FinanceUnifiedDesk({
               placeholder="Enter rejection reason for player..."
               style={{
                 width: '100%',
-                padding: '10px 12px',
-                borderRadius: '12px',
-                backgroundColor: '#141832',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
+                padding: '12px 14px',
+                borderRadius: '14px',
+                backgroundColor: '#070514',
+                border: '1px solid rgba(244, 63, 94, 0.3)',
                 fontSize: '12px',
                 color: '#FFFFFF',
                 fontFamily: 'Lexend, sans-serif',
                 boxSizing: 'border-box',
                 outline: 'none',
               }}
+              className="relative z-10 focus:border-rose-400 transition"
             />
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', paddingTop: '6px' }}>
+
+            <div className="flex items-center justify-end gap-3 pt-2 border-t border-rose-500/20 relative z-10">
               <button
+                type="button"
                 onClick={() => setRejectDepositModal({ open: false, deposit: null, reason: '' })}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: '10px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                  color: '#CBD5E1',
-                  fontSize: '12px',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                }}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold text-gray-400 hover:text-white transition cursor-pointer"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={async () => {
                   const cleanReason = (rejectDepositModal.reason || '').trim();
                   if (!cleanReason) {
@@ -1683,16 +1716,18 @@ export default function FinanceUnifiedDesk({
                   setRejectDepositModal({ open: false, deposit: null, reason: '' });
                 }}
                 style={{
-                  padding: '8px 18px',
-                  borderRadius: '10px',
-                  backgroundColor: '#EF4444',
+                  padding: '10px 20px',
+                  borderRadius: '12px',
+                  backgroundColor: '#F43F5E',
                   border: 'none',
                   color: '#FFFFFF',
                   fontSize: '12px',
                   fontWeight: 900,
+                  textTransform: 'uppercase',
                   cursor: 'pointer',
-                  boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)',
+                  boxShadow: '0 0 20px rgba(244, 63, 94, 0.35)',
                 }}
+                className="hover:brightness-110 transition cursor-pointer"
               >
                 Confirm Rejection &amp; Send Note
               </button>
@@ -1712,41 +1747,58 @@ export default function FinanceUnifiedDesk({
             alignItems: 'center',
             justifyContent: 'center',
             padding: '16px',
-            backgroundColor: 'rgba(3, 4, 10, 0.88)',
-            backdropFilter: 'blur(12px)',
+            backgroundColor: 'rgba(5, 3, 15, 0.92)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            fontFamily: 'Lexend, -apple-system, sans-serif',
           }}
         >
           <div
+            className="vegas-modal-card relative overflow-hidden space-y-4"
             style={{
               width: '100%',
               maxWidth: '460px',
-              backgroundColor: '#0d1024',
-              border: '1px solid rgba(239, 68, 68, 0.4)',
-              borderRadius: '20px',
-              padding: '22px',
-              boxShadow: '0 25px 60px rgba(0,0,0,0.95)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '14px',
+              backgroundColor: '#0C0A1E',
+              border: '1px solid rgba(244, 63, 94, 0.4)',
+              borderRadius: '24px',
+              padding: '24px',
+              boxShadow: '0 30px 80px rgba(0,0,0,0.98), 0 0 35px rgba(244, 63, 94, 0.2)',
               color: '#FFFFFF',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#F87171' }}>
-                <AlertTriangle size={20} />
-                <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 900, color: '#FFFFFF' }}>Reject Cashout Request</h3>
+            <div className="absolute -top-16 -right-16 w-48 h-48 bg-rose-500/10 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="flex items-center justify-between border-b border-rose-500/20 pb-3 relative z-10">
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center text-rose-400 shrink-0"
+                  style={{
+                    backgroundColor: 'rgba(244, 63, 94, 0.15)',
+                    border: '1.5px solid rgba(244, 63, 94, 0.4)',
+                    boxShadow: '0 0 15px rgba(244, 63, 94, 0.25)',
+                  }}
+                >
+                  <AlertTriangle size={20} />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-white m-0 tracking-wide">Reject Cashout Request</h3>
+                  <p className="text-xs text-[#9A91A8] m-0">Mandatory audit reason will be emailed</p>
+                </div>
               </div>
               <button
+                type="button"
                 onClick={() => setRejectRedeemModal({ open: false, item: null, reason: '' })}
-                style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer' }}
+                className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white flex items-center justify-center transition border border-white/10 cursor-pointer"
               >
-                <X size={18} />
+                <X size={16} />
               </button>
             </div>
-            <p style={{ margin: 0, fontSize: '12px', color: '#94A3B8' }}>
-              Rejecting cashout of <strong style={{ color: '#E9D5FF' }}>${rejectRedeemModal.item?.amount} SC</strong> for{' '}
+
+            <p style={{ margin: 0, fontSize: '12px', color: '#94A3B8' }} className="relative z-10">
+              Rejecting cashout of <strong style={{ color: '#00F0FF' }}>${rejectRedeemModal.item?.amount} SC</strong> for{' '}
               <strong style={{ color: '#FFFFFF' }}>{rejectRedeemModal.item?.username}</strong>. A mandatory note will be logged and emailed to the player.
             </p>
+
             <textarea
               rows={3}
               value={rejectRedeemModal.reason}
@@ -1754,34 +1806,29 @@ export default function FinanceUnifiedDesk({
               placeholder="Enter mandatory rejection reason (e.g. Game score mismatch or invalid tag name)..."
               style={{
                 width: '100%',
-                padding: '10px 12px',
-                borderRadius: '12px',
-                backgroundColor: '#141832',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
+                padding: '12px 14px',
+                borderRadius: '14px',
+                backgroundColor: '#070514',
+                border: '1px solid rgba(244, 63, 94, 0.3)',
                 fontSize: '12px',
                 color: '#FFFFFF',
                 fontFamily: 'Lexend, sans-serif',
                 boxSizing: 'border-box',
                 outline: 'none',
               }}
+              className="relative z-10 focus:border-rose-400 transition"
             />
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', paddingTop: '6px' }}>
+
+            <div className="flex items-center justify-end gap-3 pt-2 border-t border-rose-500/20 relative z-10">
               <button
+                type="button"
                 onClick={() => setRejectRedeemModal({ open: false, item: null, reason: '' })}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: '10px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                  color: '#CBD5E1',
-                  fontSize: '12px',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                }}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold text-gray-400 hover:text-white transition cursor-pointer"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={async () => {
                   const cleanReason = (rejectRedeemModal.reason || '').trim();
                   if (!cleanReason) {
@@ -1793,18 +1840,20 @@ export default function FinanceUnifiedDesk({
                   setRejectRedeemModal({ open: false, item: null, reason: '' });
                 }}
                 style={{
-                  padding: '8px 18px',
-                  borderRadius: '10px',
-                  backgroundColor: '#EF4444',
+                  padding: '10px 20px',
+                  borderRadius: '12px',
+                  backgroundColor: '#F43F5E',
                   border: 'none',
                   color: '#FFFFFF',
                   fontSize: '12px',
                   fontWeight: 900,
+                  textTransform: 'uppercase',
                   cursor: 'pointer',
-                  boxShadow: '0 4px 15px rgba(239, 68, 68, 0.3)',
+                  boxShadow: '0 0 20px rgba(244, 63, 94, 0.35)',
                 }}
+                className="hover:brightness-110 transition cursor-pointer"
               >
-                Confirm Rejection &amp; Send Note
+                Confirm Rejection &amp; Return SC
               </button>
             </div>
           </div>

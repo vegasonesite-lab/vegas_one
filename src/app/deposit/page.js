@@ -52,6 +52,7 @@ export default function DepositPage() {
   const [senderNote, setSenderNote] = useState('');
   const [txHash, setTxHash] = useState('');
   const [proofImage, setProofImage] = useState('');
+  const [selectedBonusChoice, setSelectedBonusChoice] = useState('platform'); // 'method' | 'platform'
 
   const [isGameDropdownOpen, setIsGameDropdownOpen] = useState(false);
   const [gameSearchQuery, setGameSearchQuery] = useState('');
@@ -216,6 +217,26 @@ export default function DepositPage() {
     setMessage(null);
     setLoading(true);
 
+    const hasClaimedWelcome = Boolean(user?.welcomeBonusClaimed || (user?.totalDeposited && user.totalDeposited > 0));
+    const methodBonusPercent = selectedMethod?.bonusPercentage !== undefined ? Number(selectedMethod.bonusPercentage) : 35;
+    const platformBonusPercent = hasClaimedWelcome
+      ? Number(sysSettings?.regularBonusPercent ?? 50)
+      : Number(sysSettings?.welcomeBonusPercent ?? 300);
+    const platformBonusMax = hasClaimedWelcome
+      ? Number(sysSettings?.regularBonusMax ?? 2500)
+      : Number(sysSettings?.welcomeBonusMax ?? 7500);
+
+    const isMethod = selectedBonusChoice === 'method';
+    const appliedBonusType = isMethod ? 'method' : (hasClaimedWelcome ? 'regular' : 'welcome');
+    const appliedBonusPercent = isMethod ? methodBonusPercent : platformBonusPercent;
+    const appliedBonusName = isMethod
+      ? `${selectedMethod?.name || 'Payment Method'} Special Bonus (${appliedBonusPercent}%)`
+      : (hasClaimedWelcome ? `Regular Reload Bonus (${appliedBonusPercent}%)` : `Welcome Match Bonus (${appliedBonusPercent}%)`);
+    const appliedBonusSC = isMethod
+      ? Number(((depositAmount * appliedBonusPercent) / 100).toFixed(2))
+      : Number(Math.min((depositAmount * appliedBonusPercent) / 100, platformBonusMax).toFixed(2));
+    const appliedTotalSC = Number((depositAmount + appliedBonusSC).toFixed(2));
+
     try {
       const res = await fetch('/api/payments/deposit', {
         method: 'POST',
@@ -230,6 +251,12 @@ export default function DepositPage() {
           senderNote: senderNote.trim(),
           proofImage,
           txHash,
+          bonusChoice: selectedBonusChoice,
+          bonusType: appliedBonusType,
+          bonusName: appliedBonusName,
+          bonusPercent: appliedBonusPercent,
+          bonusSC: appliedBonusSC,
+          totalSC: appliedTotalSC,
         }),
       });
 
@@ -402,106 +429,330 @@ export default function DepositPage() {
               )}
 
               <form onSubmit={handleDepositSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
-                {/* Automated Live Deposit Bonus Banner */}
+                {/* Dynamic Bonus Choice & Live Calculation Hub */}
                 {(() => {
                   const hasClaimedWelcome = Boolean(user?.welcomeBonusClaimed || (user?.totalDeposited && user.totalDeposited > 0));
-                  const bonusType = hasClaimedWelcome ? 'regular' : 'welcome';
-                  const bonusPercent = hasClaimedWelcome
+
+                  // 1. Method Bonus Calculation
+                  const methodBonusPercent = selectedMethod?.bonusPercentage !== undefined ? Number(selectedMethod.bonusPercentage) : 35;
+                  const methodBonusSC = Number(((depositAmount * methodBonusPercent) / 100).toFixed(2));
+                  const methodTotalSC = Number((depositAmount + methodBonusSC).toFixed(2));
+                  const methodBonusTitle = `${selectedMethod?.name || 'Payment Gateway'} Bonus`;
+
+                  // 2. Platform Bonus Calculation
+                  const platformBonusPercent = hasClaimedWelcome
                     ? Number(sysSettings?.regularBonusPercent ?? 50)
                     : Number(sysSettings?.welcomeBonusPercent ?? 300);
-                  const bonusMax = hasClaimedWelcome
+                  const platformBonusMax = hasClaimedWelcome
                     ? Number(sysSettings?.regularBonusMax ?? 2500)
                     : Number(sysSettings?.welcomeBonusMax ?? 7500);
+                  const platformBonusSC = Number(Math.min((depositAmount * platformBonusPercent) / 100, platformBonusMax).toFixed(2));
+                  const platformTotalSC = Number((depositAmount + platformBonusSC).toFixed(2));
+                  const platformBonusTitle = hasClaimedWelcome
+                    ? (sysSettings?.regularBonusTitle || 'Regular Reload Bonus')
+                    : (sysSettings?.welcomeBonusTitle || 'Welcome Match Bonus');
 
-                  const bonusSC = Number(Math.min((depositAmount * bonusPercent) / 100, bonusMax).toFixed(2));
-                  const totalSC = Number((depositAmount + bonusSC).toFixed(2));
+                  // 3. Applied Selection
+                  const isMethod = selectedBonusChoice === 'method';
+                  const appliedBonusTitle = isMethod ? methodBonusTitle : platformBonusTitle;
+                  const appliedBonusPercent = isMethod ? methodBonusPercent : platformBonusPercent;
+                  const appliedBonusSC = isMethod ? methodBonusSC : platformBonusSC;
+                  const appliedTotalSC = isMethod ? methodTotalSC : platformTotalSC;
                   const totalGC = (depositAmount * 10000).toLocaleString();
 
                   return (
                     <div
                       style={{
-                        background: hasClaimedWelcome
-                          ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.18) 0%, rgba(14, 10, 36, 0.95) 100%)'
-                          : 'linear-gradient(135deg, rgba(224, 38, 216, 0.22) 0%, rgba(0, 240, 255, 0.15) 50%, rgba(14, 10, 36, 0.95) 100%)',
-                        border: hasClaimedWelcome
-                          ? '1.5px solid rgba(168, 85, 247, 0.45)'
-                          : '1.5px solid rgba(0, 240, 255, 0.5)',
-                        borderRadius: '18px',
-                        padding: '16px 20px',
-                        boxShadow: '0 8px 30px rgba(0, 0, 0, 0.4)',
-                        position: 'relative',
-                        overflow: 'hidden',
+                        margin: '36px 0',
+                        padding: '30px 28px',
+                        borderRadius: '24px',
+                        backgroundColor: 'rgba(10, 8, 26, 0.96)',
+                        border: '1px solid rgba(255, 255, 255, 0.12)',
+                        boxShadow: '0 24px 60px rgba(0, 0, 0, 0.7)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '28px',
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <div
-                            style={{
-                              width: '36px',
-                              height: '36px',
-                              borderRadius: '10px',
-                              backgroundColor: hasClaimedWelcome ? 'rgba(168, 85, 247, 0.25)' : 'rgba(224, 38, 216, 0.25)',
-                              border: hasClaimedWelcome ? '1px solid rgba(168, 85, 247, 0.5)' : '1px solid rgba(224, 38, 216, 0.5)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: hasClaimedWelcome ? '#C084FC' : '#00F0FF',
-                            }}
-                          >
-                            <Sparkles size={18} />
+                      {/* Selection Header */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', borderBottom: '1px solid rgba(255, 255, 255, 0.09)', paddingBottom: '18px' }}>
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#00F0FF', boxShadow: '0 0 12px #00F0FF' }} />
+                            <label style={{ fontSize: '13px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#FFFFFF', letterSpacing: '0.08em', textTransform: 'uppercase', margin: 0 }}>
+                              CHOOSE YOUR DEPOSIT BONUS REWARD
+                            </label>
                           </div>
-                          <div>
+                          <p style={{ margin: '6px 0 0 20px', fontSize: '12px', color: '#94A3B8', lineHeight: 1.5 }}>
+                            Select whether you want to claim your payment gateway bonus or the regular platform reload bonus
+                          </p>
+                        </div>
+                        <span style={{ fontSize: '11.5px', color: '#10B981', fontFamily: 'Lexend, sans-serif', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: 'rgba(16, 185, 129, 0.12)', padding: '6px 14px', borderRadius: '9999px', border: '1px solid rgba(16, 185, 129, 0.35)' }}>
+                          <span>⚡</span> Live Real-Time Calculator
+                        </span>
+                      </div>
+
+                      {/* 2 Selectable Bonus Cards with Generous Spacing */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '22px' }}>
+                        {/* Option 1: Payment Method Bonus */}
+                        <div
+                          type="button"
+                          onClick={() => setSelectedBonusChoice('method')}
+                          style={{
+                            padding: '24px 26px',
+                            borderRadius: '20px',
+                            border: isMethod ? '2px solid #00F0FF' : '1px solid rgba(255, 255, 255, 0.12)',
+                            backgroundColor: isMethod ? 'rgba(0, 240, 255, 0.09)' : 'rgba(14, 11, 35, 0.75)',
+                            boxShadow: isMethod ? '0 12px 35px rgba(0, 240, 255, 0.22), inset 0 0 24px rgba(0, 240, 255, 0.08)' : '0 8px 24px rgba(0, 0, 0, 0.35)',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            minHeight: '145px',
+                            transition: 'all 0.2s ease',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                              <div
+                                style={{
+                                  width: '38px',
+                                  height: '38px',
+                                  borderRadius: '12px',
+                                  backgroundColor: 'rgba(245, 158, 11, 0.18)',
+                                  border: '1px solid rgba(245, 158, 11, 0.45)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  color: '#FBBF24',
+                                  flexShrink: 0,
+                                }}
+                              >
+                                <CreditCard size={18} />
+                              </div>
+                              <div>
+                                <span style={{ fontSize: '10px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#FBBF24', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block' }}>
+                                  METHOD BONUS
+                                </span>
+                                <h4 style={{ margin: '2px 0 0 0', fontSize: '14px', fontWeight: 900, color: '#FFFFFF', fontFamily: 'Lexend, sans-serif' }}>
+                                  {selectedMethod?.name || 'Gateway'} Special
+                                </h4>
+                              </div>
+                            </div>
+
                             <span
                               style={{
-                                fontSize: '10px',
-                                fontFamily: 'Lexend, sans-serif',
+                                padding: '4px 10px',
+                                borderRadius: '9999px',
+                                fontSize: '12px',
                                 fontWeight: 900,
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.06em',
-                                color: hasClaimedWelcome ? '#C084FC' : '#00F0FF',
-                                display: 'block',
+                                fontFamily: 'monospace',
+                                backgroundColor: isMethod ? '#00F0FF' : 'rgba(245, 158, 11, 0.15)',
+                                color: isMethod ? '#070514' : '#FBBF24',
+                                border: isMethod ? 'none' : '1px solid rgba(245, 158, 11, 0.35)',
+                                boxShadow: isMethod ? '0 2px 10px rgba(0, 240, 255, 0.4)' : 'none',
                               }}
                             >
-                              {hasClaimedWelcome ? '⚡ ACTIVE RELOAD PROMOTION' : '🔥 SPECIAL FIRST DEPOSIT OFFER'}
+                              +{methodBonusPercent}%
                             </span>
-                            <h3 style={{ margin: '2px 0 0 0', fontSize: '15px', fontWeight: 900, color: '#FFFFFF', fontFamily: 'Lexend, sans-serif' }}>
-                              {hasClaimedWelcome ? `${bonusPercent}% Regular Reload Bonus` : `${bonusPercent}% Welcome Match Bonus!`}
-                            </h3>
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', fontSize: '12.5px' }}>
+                            <span style={{ color: '#94A3B8' }}>Reward: <strong style={{ color: '#10B981', fontFamily: 'monospace', fontSize: '13.5px' }}>+${methodBonusSC} SC</strong></span>
+                            <span
+                              style={{
+                                padding: '4px 12px',
+                                borderRadius: '8px',
+                                backgroundColor: isMethod ? 'rgba(0, 240, 255, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                                border: isMethod ? '1px solid rgba(0, 240, 255, 0.35)' : '1px solid transparent',
+                                color: isMethod ? '#00F0FF' : '#64748B',
+                                fontWeight: 900,
+                                fontSize: '11px',
+                                letterSpacing: '0.05em',
+                                textTransform: 'uppercase',
+                              }}
+                            >
+                              {isMethod ? '✓ SELECTED' : 'Click to select'}
+                            </span>
                           </div>
                         </div>
 
-                        <div style={{ textAlign: 'right' }}>
-                          <span style={{ fontSize: '11px', color: '#94A3B8', display: 'block' }}>Total SC You Receive:</span>
-                          <span style={{ fontSize: '18px', fontWeight: 900, color: '#00F0FF', fontFamily: 'monospace' }}>
-                            ${totalSC} SC
-                          </span>
+                        {/* Option 2: Platform Regular / Welcome Bonus */}
+                        <div
+                          type="button"
+                          onClick={() => setSelectedBonusChoice('platform')}
+                          style={{
+                            padding: '24px 26px',
+                            borderRadius: '20px',
+                            border: !isMethod ? '2px solid #C084FC' : '1px solid rgba(255, 255, 255, 0.12)',
+                            backgroundColor: !isMethod ? 'rgba(168, 85, 247, 0.12)' : 'rgba(14, 11, 35, 0.75)',
+                            boxShadow: !isMethod ? '0 12px 35px rgba(168, 85, 247, 0.22), inset 0 0 24px rgba(168, 85, 247, 0.08)' : '0 8px 24px rgba(0, 0, 0, 0.35)',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            minHeight: '145px',
+                            transition: 'all 0.2s ease',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '14px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                              <div
+                                style={{
+                                  width: '42px',
+                                  height: '42px',
+                                  borderRadius: '12px',
+                                  backgroundColor: hasClaimedWelcome ? 'rgba(168, 85, 247, 0.18)' : 'rgba(0, 240, 255, 0.18)',
+                                  border: hasClaimedWelcome ? '1px solid rgba(168, 85, 247, 0.45)' : '1px solid rgba(0, 240, 255, 0.45)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  color: hasClaimedWelcome ? '#C084FC' : '#00F0FF',
+                                  flexShrink: 0,
+                                }}
+                              >
+                                <Sparkles size={20} />
+                              </div>
+                              <div>
+                                <span style={{ fontSize: '10.5px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: hasClaimedWelcome ? '#C084FC' : '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block' }}>
+                                  {hasClaimedWelcome ? 'RELOAD PROMO' : 'WELCOME OFFER'}
+                                </span>
+                                <h4 style={{ margin: '4px 0 0 0', fontSize: '15px', fontWeight: 900, color: '#FFFFFF', fontFamily: 'Lexend, sans-serif' }}>
+                                  {hasClaimedWelcome ? 'Regular Reload Bonus' : 'Welcome Match Bonus'}
+                                </h4>
+                              </div>
+                            </div>
+
+                            <span
+                              style={{
+                                padding: '6px 14px',
+                                borderRadius: '9999px',
+                                fontSize: '13px',
+                                fontWeight: 900,
+                                fontFamily: 'monospace',
+                                backgroundColor: !isMethod ? '#C084FC' : 'rgba(168, 85, 247, 0.16)',
+                                color: !isMethod ? '#070514' : '#C084FC',
+                                border: !isMethod ? 'none' : '1px solid rgba(168, 85, 247, 0.4)',
+                                boxShadow: !isMethod ? '0 4px 15px rgba(192, 132, 252, 0.4)' : 'none',
+                              }}
+                            >
+                              +{platformBonusPercent}%
+                            </span>
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', fontSize: '12.5px' }}>
+                            <span style={{ color: '#94A3B8' }}>Reward: <strong style={{ color: '#10B981', fontFamily: 'monospace', fontSize: '13.5px' }}>+${platformBonusSC} SC</strong></span>
+                            <span
+                              style={{
+                                padding: '4px 12px',
+                                borderRadius: '8px',
+                                backgroundColor: !isMethod ? 'rgba(168, 85, 247, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                                border: !isMethod ? '1px solid rgba(168, 85, 247, 0.35)' : '1px solid transparent',
+                                color: !isMethod ? '#C084FC' : '#64748B',
+                                fontWeight: 900,
+                                fontSize: '11px',
+                                letterSpacing: '0.05em',
+                                textTransform: 'uppercase',
+                              }}
+                            >
+                              {!isMethod ? '✓ SELECTED' : 'Click to select'}
+                            </span>
+                          </div>
                         </div>
                       </div>
 
-                      {/* Coin Breakdown */}
+                      {/* Live Calculated Summary Box with Clear Generous Margins & Spacing */}
                       <div
                         style={{
-                          marginTop: '12px',
-                          paddingTop: '10px',
-                          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+                          marginTop: '10px',
+                          background: isMethod
+                            ? 'linear-gradient(135deg, rgba(0, 240, 255, 0.12) 0%, rgba(10, 8, 26, 0.98) 100%)'
+                            : (hasClaimedWelcome
+                              ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.12) 0%, rgba(10, 8, 26, 0.98) 100%)'
+                              : 'linear-gradient(135deg, rgba(224, 38, 216, 0.15) 0%, rgba(0, 240, 255, 0.1) 50%, rgba(10, 8, 26, 0.98) 100%)'),
+                          border: isMethod
+                            ? '1.5px solid rgba(0, 240, 255, 0.5)'
+                            : (hasClaimedWelcome ? '1.5px solid rgba(168, 85, 247, 0.45)' : '1.5px solid rgba(0, 240, 255, 0.5)'),
+                          borderRadius: '22px',
+                          padding: '26px 30px',
+                          boxShadow: '0 16px 40px rgba(0, 0, 0, 0.55)',
                           display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          flexWrap: 'wrap',
-                          gap: '8px',
-                          fontSize: '11.5px',
-                          color: '#CBD5E1',
+                          flexDirection: 'column',
+                          gap: '20px',
                         }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span style={{ color: '#94A3B8' }}>Base Deposit:</span>
-                          <strong style={{ color: '#FFFFFF' }}>${depositAmount}</strong>
-                          <span style={{ color: '#64748B' }}>+</span>
-                          <span style={{ color: '#94A3B8' }}>Bonus ({bonusPercent}%):</span>
-                          <strong style={{ color: '#10B981' }}>+${bonusSC} SC</strong>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            <div
+                              style={{
+                                width: '48px',
+                                height: '48px',
+                                borderRadius: '14px',
+                                backgroundColor: isMethod ? 'rgba(0, 240, 255, 0.2)' : (hasClaimedWelcome ? 'rgba(168, 85, 247, 0.2)' : 'rgba(224, 38, 216, 0.2)'),
+                                border: isMethod ? '1px solid rgba(0, 240, 255, 0.5)' : (hasClaimedWelcome ? '1px solid rgba(168, 85, 247, 0.5)' : '1px solid rgba(224, 38, 216, 0.5)'),
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: isMethod ? '#00F0FF' : (hasClaimedWelcome ? '#C084FC' : '#00F0FF'),
+                                flexShrink: 0,
+                              }}
+                            >
+                              <Sparkles size={24} />
+                            </div>
+                            <div>
+                              <span
+                                style={{
+                                  fontSize: '11px',
+                                  fontFamily: 'Lexend, sans-serif',
+                                  fontWeight: 900,
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.08em',
+                                  color: isMethod ? '#00F0FF' : (hasClaimedWelcome ? '#C084FC' : '#00F0FF'),
+                                  display: 'block',
+                                }}
+                              >
+                                {isMethod ? '💳 METHOD BONUS APPLIED' : (hasClaimedWelcome ? '⚡ REGULAR RELOAD APPLIED' : '🔥 WELCOME PACK APPLIED')}
+                              </span>
+                              <h3 style={{ margin: '4px 0 0 0', fontSize: '18px', fontWeight: 900, color: '#FFFFFF', fontFamily: 'Lexend, sans-serif' }}>
+                                +{appliedBonusPercent}% {appliedBonusTitle}
+                              </h3>
+                            </div>
+                          </div>
+
+                          <div style={{ textAlign: 'right' }}>
+                            <span style={{ fontSize: '11.5px', color: '#94A3B8', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em', display: 'block', marginBottom: '4px' }}>
+                              Total SC You Receive:
+                            </span>
+                            <span style={{ fontSize: '28px', fontWeight: 900, color: '#00F0FF', fontFamily: 'monospace', textShadow: '0 0 24px rgba(0, 240, 255, 0.45)' }}>
+                              ${appliedTotalSC} SC
+                            </span>
+                          </div>
                         </div>
-                        <div style={{ color: '#FBBF24', fontWeight: 700 }}>
-                          +{totalGC} Gold Coins (GC) Included Free
+
+                        {/* Coin Breakdown */}
+                        <div
+                          style={{
+                            paddingTop: '18px',
+                            borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            flexWrap: 'wrap',
+                            gap: '14px',
+                            fontSize: '13px',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                            <span style={{ color: '#94A3B8' }}>Base Deposit:</span>
+                            <strong style={{ color: '#FFFFFF', fontFamily: 'monospace', fontSize: '14px' }}>${depositAmount}</strong>
+                            <span style={{ color: '#64748B' }}>+</span>
+                            <span style={{ color: '#94A3B8' }}>Bonus ({appliedBonusPercent}%):</span>
+                            <strong style={{ color: '#10B981', fontFamily: 'monospace', fontSize: '14px' }}>+${appliedBonusSC} SC</strong>
+                          </div>
+                          <div style={{ color: '#FBBF24', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span>🪙</span>
+                            <span>+{totalGC} Gold Coins (GC) Included Free</span>
+                          </div>
                         </div>
                       </div>
                     </div>

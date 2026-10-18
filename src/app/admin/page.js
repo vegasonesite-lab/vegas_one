@@ -10,6 +10,7 @@ import {
   CreditCard,
   Coins,
   FileSpreadsheet,
+  BookOpen,
   MessageSquare,
   ShieldCheck,
   Gift,
@@ -59,6 +60,7 @@ import {
   Flame,
   Tag,
   Video,
+  Save,
 } from 'lucide-react';
 import FinanceDepositsView from '@/components/admin/FinanceDepositsView';
 import FinanceRedemptionsView from '@/components/admin/FinanceRedemptionsView';
@@ -70,6 +72,7 @@ import IncomingRequestToast from '@/components/admin/IncomingRequestToast';
 import Player360ProfileModal from '@/components/admin/Player360ProfileModal';
 import AffiliateManagementHub from '@/components/admin/AffiliateManagementHub';
 import HomepageVideosManager from '@/components/admin/HomepageVideosManager';
+import PromotionsManager from '@/components/admin/PromotionsManager';
 import { playTune, unlockAudioContext, AVAILABLE_TUNES } from '@/lib/soundAlerts';
 
 export default function AdminPortal({ initialTab }) {
@@ -195,6 +198,8 @@ export default function AdminPortal({ initialTab }) {
   const [gameSearchQuery, setGameSearchQuery] = useState('');
   const [isAddGatewayModalOpen, setIsAddGatewayModalOpen] = useState(false);
   const [isAddStaffModalOpen, setIsAddStaffModalOpen] = useState(false);
+  const [editingStaff, setEditingStaff] = useState(null);
+  const [isSavingStaff, setIsSavingStaff] = useState(false);
 
   const handleGameImageFile = (file, callback) => {
     if (!file) return;
@@ -333,6 +338,9 @@ export default function AdminPortal({ initialTab }) {
     regularBonusMax: 2500,
     regularBonusTitle: 'REGULAR BONUS',
     regularBonusSubtitle: 'Get a 50% reload bonus on every deposit you make! Boost your wallet balance anytime.',
+    referralBonusPercent: 50,
+    referralBonusTitle: 'REFERRAL BONUS',
+    referralBonusSubtitle: 'Earn referral commission directly credited into your wallet when your invited friend makes their first deposit.',
   });
   const [savingBonusSettings, setSavingBonusSettings] = useState(false);
   const [bonusSaveMessage, setBonusSaveMessage] = useState(null);
@@ -416,6 +424,9 @@ export default function AdminPortal({ initialTab }) {
           regularBonusPercent: Number(sysSettings?.regularBonusPercent ?? 50),
           regularBonusTitle: sysSettings?.regularBonusTitle || 'REGULAR BONUS',
           regularBonusSubtitle: sysSettings?.regularBonusSubtitle || 'Get a 50% reload bonus on every deposit you make! Boost your wallet balance anytime.',
+          referralBonusPercent: Number(sysSettings?.referralBonusPercent ?? 50),
+          referralBonusTitle: sysSettings?.referralBonusTitle || 'REFERRAL BONUS',
+          referralBonusSubtitle: sysSettings?.referralBonusSubtitle || 'Earn referral commission directly credited into your wallet when your invited friend makes their first deposit.',
         }),
       });
       const data = await res.json();
@@ -1055,9 +1066,9 @@ export default function AdminPortal({ initialTab }) {
     { id: 'games', label: 'Games Library', icon: Gamepad2, category: 'Catalog & Players' },
     { id: 'users', label: 'Player Accounts', icon: Users, category: 'Catalog & Players' },
     { id: 'tx_search', label: 'Transaction Logs', icon: FileSpreadsheet, category: 'Catalog & Players' },
-    { id: 'promos', label: 'Push & Broadcasts', icon: Megaphone, category: 'Growth & Promos' },
+    { id: 'promos', label: 'Promotions & Broadcasts', icon: Gift, category: 'Growth & Promos' },
     { id: 'videos', label: 'Homepage Videos', icon: Video, category: 'Growth & Promos' },
-    { id: 'affiliates', label: 'Affiliates 50%', icon: Users, category: 'Growth & Promos' },
+    { id: 'affiliates', label: `Referrals & Affiliates (${sysSettings?.referralBonusPercent ?? 50}%)`, icon: Users, category: 'Growth & Promos' },
     { id: 'affiliate_commissions', label: 'Affiliate Commissions', icon: DollarSign, category: 'Growth & Promos' },
     { id: 'gateways', label: 'Payment Gateways', icon: SlidersHorizontal, category: 'System & Security' },
     { id: 'staff', label: 'Staff Management', icon: UserCheck, category: 'System & Security' },
@@ -1070,20 +1081,20 @@ export default function AdminPortal({ initialTab }) {
 
   return (
     <div style={{ height: '100vh', maxHeight: '100vh', backgroundColor: '#070514', color: '#F8FAFC', display: 'flex', flexDirection: 'column', fontFamily: 'Lexend, sans-serif', overflow: 'hidden' }}>
-      {/* Top Staff Navbar - Exactly matching VegasNavbar.jsx from user screenshot */}
+      {/* Top Staff Navbar - Executive Sovereign Console */}
       <header
         style={{
-          height: '82px',
-          minHeight: '82px',
-          backgroundColor: '#070514',
-          borderBottom: '1px solid rgba(0, 240, 255, 0.16)',
-          boxShadow: '0 4px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 240, 255, 0.08)',
+          height: '68px',
+          minHeight: '68px',
+          backgroundColor: '#0A0819',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)',
           zIndex: 40,
         }}
-        className="px-3 sm:px-6 flex items-center justify-between shrink-0 relative"
+        className="px-4 sm:px-6 flex items-center justify-between shrink-0 relative"
       >
-        {/* Left Section: Official Logo (always in top header) + Staff Console Pill */}
-        <div className="flex items-center gap-3 shrink-0">
+        {/* Left Section: Official Logo + Staff Console Status */}
+        <div className="flex items-center gap-3.5 shrink-0">
           <Link
             href="/admin"
             style={{
@@ -1096,8 +1107,8 @@ export default function AdminPortal({ initialTab }) {
             <img
               src="/images/logo.png"
               alt="Vegas One Admin"
-              className="vegas-navbar-logo hover:scale-105 transition-transform"
-              style={{ height: '46px', width: 'auto', objectFit: 'contain' }}
+              className="hover:opacity-90 transition-opacity"
+              style={{ height: '38px', width: 'auto', objectFit: 'contain' }}
             />
           </Link>
 
@@ -1105,60 +1116,64 @@ export default function AdminPortal({ initialTab }) {
           <div
             className="hidden sm:inline-flex items-center gap-2"
             style={{
-              backgroundColor: '#140E33',
-              border: '1px solid rgba(0, 240, 255, 0.4)',
-              padding: '7px 18px',
+              backgroundColor: 'rgba(255, 255, 255, 0.04)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              padding: '5px 14px',
               borderRadius: '9999px',
-              boxShadow: '0 0 20px rgba(0, 240, 255, 0.2)',
             }}
           >
-            <Flame size={14} color="#00F0FF" />
-            <span style={{ color: '#FFFFFF', fontSize: '11.5px', fontWeight: 800, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-              STAFF OPERATIONS CONSOLE
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34D399]" />
+            <span style={{ color: '#E2E8F0', fontSize: '11px', fontWeight: 800, letterSpacing: '0.05em', textTransform: 'uppercase', fontFamily: 'Lexend, sans-serif' }}>
+              ADMIN OPERATIONS CONSOLE
             </span>
           </div>
 
           {/* Breadcrumb Indicator */}
-          <div className="hidden xl:flex items-center gap-2 px-3 py-1 rounded-full bg-[#0E0A24] border border-white/10 shrink-0">
-            <span className="text-[10.5px] text-[#9A91A8] font-bold uppercase tracking-wider">
+          <div className="hidden xl:flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.03] border border-white/8 shrink-0">
+            <span className="text-[10.5px] text-[#94A3B8] font-bold uppercase tracking-wider font-mono">
               {currentTabObj?.category || 'Console'}
             </span>
-            <span className="text-white/30 text-xs">/</span>
+            <span className="text-white/20 text-xs">/</span>
             <span className="text-xs font-black text-[#00F0FF]">
               {currentTabObj?.label || 'Dashboard'}
             </span>
           </div>
         </div>
 
-        {/* Right Section: Telemetry Capsule, Player Lobby Button, Audio Alert, Avatar Circle */}
+        {/* Right Section: Player Lobby Link, Audio Alert Hub, Avatar Circle */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-
-          {/* Player Lobby Button (matches DEPOSIT button gradient in screenshot) */}
+          {/* Player Lobby Link */}
           <Link
             href="/"
-            className="btn-coral"
             style={{
-              borderRadius: '9999px',
-              padding: '8px 20px',
+              borderRadius: '12px',
+              padding: '7px 16px',
               fontSize: '11.5px',
-              fontWeight: 900,
-              letterSpacing: '0.04em',
+              fontWeight: 800,
+              letterSpacing: '0.03em',
               textTransform: 'uppercase',
               textDecoration: 'none',
-              boxShadow: '0 4px 20px rgba(0, 240, 255, 0.35), 0 0 25px rgba(224, 38, 216, 0.25)',
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              color: '#FFFFFF',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'all 0.2s ease',
             }}
+            className="hover:bg-white/10 hover:border-cyan-500/40"
           >
-            <ExternalLink size={13} color="#FFFFFF" />
-            <span className="hidden xs:inline">PLAYER LOBBY</span>
-            <span className="xs:hidden">LOBBY</span>
+            <ExternalLink size={13} color="#00F0FF" />
+            <span className="hidden xs:inline">Player Lobby</span>
+            <span className="xs:hidden">Lobby</span>
           </Link>
 
-          {/* Luxury Audio Alert Hub */}
+          {/* Audio Alert Hub */}
           <div
             style={{
-              backgroundColor: '#0E0A24',
-              border: '1px solid rgba(0, 240, 255, 0.3)',
-              borderRadius: '9999px',
+              backgroundColor: 'rgba(255, 255, 255, 0.04)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '12px',
               padding: '5px 12px',
               display: 'flex',
               alignItems: 'center',
@@ -1185,12 +1200,12 @@ export default function AdminPortal({ initialTab }) {
               title="Alert tune settings"
             >
               <span>{AVAILABLE_TUNES.find(t => t.id === alertTune)?.icon || '🔔'}</span>
-              <span className="hidden lg:inline text-[11px] text-gray-300">
+              <span className="hidden lg:inline text-[11px] text-gray-300 font-mono">
                 {Math.round(alertVolume * 100)}%
               </span>
             </button>
 
-            <span style={{ width: '1px', height: '12px', backgroundColor: 'rgba(255, 255, 255, 0.15)' }} />
+            <span style={{ width: '1px', height: '12px', backgroundColor: 'rgba(255, 255, 255, 0.12)' }} />
 
             <button
               onClick={() => {
@@ -1209,28 +1224,27 @@ export default function AdminPortal({ initialTab }) {
               }}
               title={audioAlertsEnabled ? 'Audio Alert ON' : 'Audio Alert MUTED'}
             >
-              {audioAlertsEnabled ? <Volume2 size={13} /> : <VolumeX size={13} />}
+              {audioAlertsEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
             </button>
           </div>
 
-          {/* Staff Profile Avatar Circle (matches SU circle in screenshot) */}
+          {/* Staff Profile Avatar Circle */}
           <div className="relative" ref={profileDropdownRef}>
             <button
               type="button"
               onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
               style={{
-                width: '38px',
-                height: '38px',
-                borderRadius: '50%',
-                backgroundColor: '#0E0A24',
-                border: '1.5px solid #00F0FF',
+                width: '36px',
+                height: '36px',
+                borderRadius: '10px',
+                backgroundColor: 'rgba(0, 240, 255, 0.1)',
+                border: '1px solid rgba(0, 240, 255, 0.4)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 color: '#00F0FF',
                 fontWeight: 900,
-                fontSize: '13px',
-                boxShadow: '0 0 14px rgba(0, 240, 255, 0.3)',
+                fontSize: '12.5px',
                 cursor: 'pointer',
                 padding: 0,
               }}
@@ -1243,28 +1257,28 @@ export default function AdminPortal({ initialTab }) {
             {/* Dropdown Menu Panel */}
             {profileDropdownOpen && (
               <div
-                className="vegas-profile-dropdown w-64 p-3 animate-in fade-in zoom-in-95 duration-150"
+                className="w-64 p-3 animate-in fade-in zoom-in-95 duration-150"
                 style={{
                   position: 'absolute',
                   top: '100%',
                   right: 0,
                   marginTop: '10px',
-                  backgroundColor: '#0E0A24',
-                  border: '1px solid rgba(0, 240, 255, 0.4)',
+                  backgroundColor: '#0D0B1F',
+                  border: '1px solid rgba(255, 255, 255, 0.12)',
                   borderRadius: '18px',
-                  boxShadow: '0 20px 50px rgba(0, 0, 0, 0.95), 0 0 25px rgba(0, 240, 255, 0.2)',
+                  boxShadow: '0 20px 50px rgba(0, 0, 0, 0.95)',
                   zIndex: 99999,
                   fontFamily: 'Lexend, sans-serif',
                 }}
               >
-                <div className="p-3 bg-[#070514] rounded-xl border border-white/10 mb-2">
+                <div className="p-3 bg-black/40 rounded-xl border border-white/8 mb-2">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-full bg-[#140E33] border border-[#00F0FF]/50 flex items-center justify-center text-[#00F0FF] font-black text-sm uppercase shrink-0">
+                    <div className="w-9 h-9 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 font-black text-sm uppercase shrink-0">
                       {user.username?.substring(0, 2).toUpperCase() || 'SU'}
                     </div>
                     <div className="overflow-hidden">
                       <p className="m-0 text-sm font-black text-white truncate">{user.username}</p>
-                      <span className="inline-block px-2 py-0.5 mt-0.5 rounded-md bg-[#00F0FF]/15 border border-[#00F0FF]/30 text-[#00F0FF] text-[9.5px] font-black uppercase tracking-wider font-mono">
+                      <span className="inline-block px-2 py-0.5 mt-0.5 rounded-md bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-[9.5px] font-black uppercase tracking-wider font-mono">
                         {user.role?.replace('_', ' ')}
                       </span>
                     </div>
@@ -1320,15 +1334,15 @@ export default function AdminPortal({ initialTab }) {
             )}
           </div>
 
-          {/* Mobile Drawer Hamburger Button (strictly hidden on desktop >= 768px) */}
+          {/* Mobile Drawer Hamburger Button */}
           <button
             onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
-            className="admin-mobile-hamburger items-center justify-center w-10 h-10 rounded-xl text-[#00F0FF] bg-[#0E0A24] border border-[#00F0FF]/40 shrink-0 transition relative cursor-pointer"
+            className="md:hidden flex items-center justify-center w-9 h-9 rounded-xl text-[#00F0FF] bg-[#0D0B1F] border border-white/10 shrink-0 transition relative cursor-pointer"
             aria-label="Toggle navigation drawer"
           >
-            {mobileSidebarOpen ? <X size={20} /> : <Menu size={20} />}
+            {mobileSidebarOpen ? <X size={18} /> : <Menu size={18} />}
             {totalPendingBadges > 0 && !mobileSidebarOpen && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#E026D8] text-white font-black text-[9px] flex items-center justify-center border-2 border-[#070514] animate-pulse shadow-[0_0_8px_#E026D8]">
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white font-black text-[9px] flex items-center justify-center border-2 border-[#070514]">
                 {totalPendingBadges > 9 ? '9+' : totalPendingBadges}
               </span>
             )}
@@ -1346,28 +1360,28 @@ export default function AdminPortal({ initialTab }) {
           />
         )}
 
-        {/* Left Admin Navigation - EXACT MATCH to VegasSidebar.jsx in user screenshot */}
+        {/* Left Admin Navigation - Sleek Executive Architecture */}
         <aside
           className={`transition-all duration-300 z-50 md:static ${mobileSidebarOpen
-            ? 'fixed inset-y-0 left-0 flex shadow-[0_0_60px_rgba(0,0,0,0.95)] border-r border-[#00F0FF]/30'
+            ? 'fixed inset-y-0 left-0 flex shadow-2xl border-r border-white/10'
             : 'hidden md:flex'
             }`}
           style={{
-            width: '280px',
-            minWidth: '280px',
+            width: '260px',
+            minWidth: '260px',
             maxWidth: '85vw',
             height: '100%',
             maxHeight: '100dvh',
-            backgroundColor: '#070514',
-            borderRight: '1px solid rgba(0, 240, 255, 0.16)',
+            backgroundColor: '#080716',
+            borderRight: '1px solid rgba(255, 255, 255, 0.08)',
             flexDirection: 'column',
             overflow: 'hidden',
             fontFamily: 'Lexend, -apple-system, sans-serif',
           }}
         >
-          {/* Mobile Drawer Top Bar (strictly mobile only, desktop logo lives in the top header) */}
+          {/* Mobile Drawer Top Bar */}
           <div
-            className="md:hidden flex items-center justify-between px-4 py-3 border-b border-white/10 bg-[#070514] flex-shrink-0"
+            className="md:hidden flex items-center justify-between px-4 py-3 border-b border-white/10 bg-[#080716] flex-shrink-0"
             style={{
               paddingTop: 'max(14px, env(safe-area-inset-top, 14px))',
             }}
@@ -1386,7 +1400,7 @@ export default function AdminPortal({ initialTab }) {
             </button>
           </div>
 
-          {/* Categorized Navigation Links - using exact .vegas-sidebar-nav-btn and .vegas-sidebar-section-header */}
+          {/* Categorized Navigation Links */}
           <div
             className="modal-scrollable"
             style={{
@@ -1395,19 +1409,19 @@ export default function AdminPortal({ initialTab }) {
               overflowY: 'auto',
               WebkitOverflowScrolling: 'touch',
               touchAction: 'pan-y',
-              padding: '14px 10px',
+              padding: '16px 12px',
             }}
           >
             {['Operations', 'Catalog & Players', 'Growth & Promos', 'System & Security'].map((category, secIdx) => {
               const categoryTabs = visibleTabs.filter(t => t.category === category);
               if (categoryTabs.length === 0) return null;
               return (
-                <div key={secIdx} style={{ marginBottom: '14px' }}>
-                  <div className="vegas-sidebar-section-header">
-                    <span>{category}</span>
+                <div key={secIdx} style={{ marginBottom: '18px' }}>
+                  <div style={{ padding: '0 10px 8px 10px', fontSize: '10px', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    {category}
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     {categoryTabs.map(tab => {
                       const Icon = tab.icon;
                       const isSelected = activeTab === tab.id;
@@ -1417,31 +1431,57 @@ export default function AdminPortal({ initialTab }) {
                         <button
                           key={tab.id}
                           type="button"
-                          className={`vegas-sidebar-nav-btn ${isSelected ? 'active' : ''}`}
                           onClick={() => {
                             setActiveTab(tab.id);
                             setMobileSidebarOpen(false);
                           }}
+                          style={{
+                            width: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '9px 12px',
+                            borderRadius: '12px',
+                            border: isSelected ? '1px solid rgba(0, 240, 255, 0.3)' : '1px solid transparent',
+                            backgroundColor: isSelected ? 'rgba(0, 240, 255, 0.08)' : 'transparent',
+                            color: isSelected ? '#FFFFFF' : '#94A3B8',
+                            fontSize: '12.5px',
+                            fontWeight: isSelected ? 800 : 600,
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            transition: 'all 0.15s ease',
+                          }}
+                          className="hover:bg-white/[0.04] hover:text-white"
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <div className="vegas-sidebar-icon-box">
-                              <Icon
-                                size={16}
-                                color={isSelected ? '#00F0FF' : '#9A91A8'}
-                              />
+                            <div
+                              style={{
+                                width: '28px',
+                                height: '28px',
+                                borderRadius: '8px',
+                                backgroundColor: isSelected ? 'rgba(0, 240, 255, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: isSelected ? '#00F0FF' : '#94A3B8',
+                              }}
+                            >
+                              <Icon size={15} />
                             </div>
-                            <span style={{ fontSize: '12.5px', fontWeight: isSelected ? 800 : 600 }}>
-                              {tab.label}
-                            </span>
+                            <span>{tab.label}</span>
                           </div>
 
                           {hasBadge && (
                             <span
-                              className="vegas-sidebar-badge"
                               style={{
-                                backgroundColor: isSelected ? 'rgba(0, 240, 255, 0.2)' : 'rgba(224, 38, 216, 0.15)',
-                                color: isSelected ? '#00F0FF' : '#E026D8',
-                                borderColor: isSelected ? 'rgba(0, 240, 255, 0.4)' : 'rgba(224, 38, 216, 0.35)',
+                                padding: '2px 8px',
+                                borderRadius: '9999px',
+                                fontSize: '10.5px',
+                                fontWeight: 900,
+                                fontFamily: 'monospace',
+                                backgroundColor: isSelected ? 'rgba(0, 240, 255, 0.2)' : 'rgba(244, 63, 94, 0.18)',
+                                color: isSelected ? '#00F0FF' : '#FB7185',
+                                border: isSelected ? '1px solid rgba(0, 240, 255, 0.4)' : '1px solid rgba(244, 63, 94, 0.4)',
                               }}
                             >
                               {tab.badge}
@@ -1456,47 +1496,66 @@ export default function AdminPortal({ initialTab }) {
             })}
           </div>
 
-          {/* Luxury Support & Trust Footer - Exactly matching VegasSidebar.jsx in screenshot */}
+          {/* Executive Staff Profile & Session Footer */}
           <div
-            className="vegas-sidebar-footer-box flex-shrink-0"
+            className="flex-shrink-0"
             style={{
-              padding: '14px 16px',
-              paddingBottom: 'max(24px, calc(16px + env(safe-area-inset-bottom, 0px)))',
-              borderTop: '1px solid rgba(0, 240, 255, 0.14)',
-              backgroundColor: '#070514',
+              padding: '14px 14px',
+              paddingBottom: 'max(16px, calc(14px + env(safe-area-inset-bottom, 0px)))',
+              borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+              backgroundColor: '#060512',
             }}
           >
-            <button
-              type="button"
-              onClick={() => setActiveTab('chat')}
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                backgroundColor: '#140E33',
-                border: '1px solid rgba(0, 240, 255, 0.35)',
-                borderRadius: '12px',
-                padding: '11px 14px',
-                color: '#00F0FF',
-                fontFamily: 'Lexend, sans-serif',
-                fontSize: '11.5px',
-                fontWeight: 800,
-                cursor: 'pointer',
-                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4), 0 0 12px rgba(0, 240, 255, 0.1)',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              <Headphones size={15} color="#00F0FF" />
-              <span>24/7 VIP LIVE SUPPORT</span>
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
+                <div
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '8px',
+                    backgroundColor: 'rgba(0, 240, 255, 0.12)',
+                    border: '1px solid rgba(0, 240, 255, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#00F0FF',
+                    fontWeight: 900,
+                    fontSize: '11px',
+                    flexShrink: 0,
+                  }}
+                >
+                  {user.username?.substring(0, 2).toUpperCase() || 'SU'}
+                </div>
+                <div style={{ overflow: 'hidden' }}>
+                  <div style={{ fontSize: '12px', fontWeight: 800, color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {user.username}
+                  </div>
+                  <div style={{ fontSize: '10px', color: '#64748B', fontWeight: 700, textTransform: 'uppercase', fontFamily: 'monospace' }}>
+                    {user.role?.replace('_', ' ')}
+                  </div>
+                </div>
+              </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', marginTop: '10px', opacity: 0.7 }}>
-              <ShieldCheck size={12} color="#10B981" />
-              <span style={{ fontSize: '9.5px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
-                100% Legal US Sweepstakes
-              </span>
+              <button
+                type="button"
+                onClick={handleLogout}
+                style={{
+                  width: '30px',
+                  height: '30px',
+                  borderRadius: '8px',
+                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                  border: '1px solid rgba(239, 68, 68, 0.25)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#F87171',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                }}
+                title="Sign out of console"
+              >
+                <LogOut size={13} />
+              </button>
             </div>
           </div>
         </aside>
@@ -1507,339 +1566,388 @@ export default function AdminPortal({ initialTab }) {
             }`}
           style={{ flex: 1 }}
         >
-          {/* TAB 1: OVERVIEW (COMMAND CENTER) - Ultra-Luxurious Vegas One Marquee Architecture */}
+          {/* TAB 1: OVERVIEW (COMMAND CENTER) - Executive Dashboard Architecture */}
           {activeTab === 'overview' && (
-            <div className="flex flex-col gap-6 sm:gap-8 w-full" style={{ fontFamily: 'var(--font-lexend, Lexend), sans-serif' }}>
-              {/* Header Hero Card matching casino theme */}
+            <div className="flex flex-col gap-6 sm:gap-7 w-full" style={{ fontFamily: 'Lexend, -apple-system, sans-serif' }}>
+              {/* Header Hero Card */}
               <div
-                className="p-6 sm:p-7 sm:py-6 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-5 sm:gap-6 shadow-2xl"
+                className="relative overflow-hidden"
                 style={{
-                  backgroundColor: '#0E0A24',
-                  background: 'linear-gradient(135deg, #0E0A24 0%, #140E33 100%)',
-                  border: '1px solid rgba(0, 240, 255, 0.28)',
-                  boxShadow: '0 25px 60px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 240, 255, 0.12)',
+                  backgroundColor: '#0C0A1E',
+                  border: '1px solid rgba(0, 240, 255, 0.22)',
+                  borderRadius: '24px',
+                  padding: '24px 28px',
+                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '24px',
                 }}
               >
-                <div className="flex items-center gap-5 sm:gap-6">
+                <div className="absolute -top-24 -right-24 w-72 h-72 bg-[#00F0FF]/10 rounded-full blur-3xl pointer-events-none" />
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '20px',
+                    position: 'relative',
+                    zIndex: 10,
+                    flex: '1 1 auto',
+                    minWidth: '280px',
+                  }}
+                >
                   <div
-                    className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shrink-0 shadow-lg"
+                    className="shrink-0"
                     style={{
-                      background: 'linear-gradient(135deg, rgba(0, 240, 255, 0.25) 0%, rgba(224, 38, 216, 0.2) 100%)',
-                      border: '1.5px solid rgba(0, 240, 255, 0.5)',
-                      boxShadow: '0 0 25px rgba(0, 240, 255, 0.35)',
+                      width: '56px',
+                      height: '56px',
+                      minWidth: '56px',
+                      padding: '14px',
+                      background: 'rgba(0, 240, 255, 0.1)',
+                      border: '1.5px solid rgba(0, 240, 255, 0.35)',
                       color: '#00F0FF',
+                      boxShadow: '0 0 20px rgba(0, 240, 255, 0.15)',
+                      borderRadius: '16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                     }}
                   >
-                    <Flame size={32} />
+                    <LayoutDashboard className="w-full h-full text-[#00F0FF]" />
                   </div>
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-                      <h1 className="text-xl sm:text-2xl font-black text-white m-0 tracking-tight" style={{ letterSpacing: '-0.02em' }}>
-                        Command Center &amp; <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00F0FF] via-[#A855F7] to-[#E026D8]">Live Telemetry</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                      <h1 className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-cyan-300 m-0 tracking-tight" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                        Executive Command Center
                       </h1>
                       <span
-                        className="text-[10.5px] px-3 py-1 rounded-full font-black tracking-wider whitespace-nowrap shadow-sm"
                         style={{
-                          backgroundColor: 'rgba(0, 240, 255, 0.12)',
+                          fontSize: '10px',
+                          padding: '3px 12px',
+                          borderRadius: '9999px',
+                          fontWeight: 800,
+                          letterSpacing: '0.04em',
+                          whiteSpace: 'nowrap',
+                          backgroundColor: 'rgba(0, 240, 255, 0.1)',
+                          border: '1px solid rgba(0, 240, 255, 0.3)',
                           color: '#00F0FF',
-                          border: '1px solid rgba(0, 240, 255, 0.35)',
-                          boxShadow: '0 0 10px rgba(0, 240, 255, 0.2)',
                         }}
                       >
-                        DIRECT PLATFORM ACCESS • 24/7
+                        LIVE PLATFORM TELEMETRY
                       </span>
                     </div>
-                    <p className="text-xs sm:text-[13px] text-[#9A91A8] mt-1.5 leading-relaxed m-0 font-medium">
-                      Real-time Vegas One cashier velocity, player liquidity, and sweepstakes platform activity overview
+                    <p className="text-xs sm:text-[13px] text-[#9A91A8] mt-1 m-0 leading-relaxed" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                      Real-time casino velocity, player liquidity, and sweepstakes operations overview
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2.5 shrink-0 pt-1 sm:pt-0">
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    position: 'relative',
+                    zIndex: 10,
+                    flexShrink: 0,
+                  }}
+                >
                   <div
-                    className="px-4 py-2.5 rounded-xl text-xs font-black font-mono flex items-center gap-2 shadow-lg"
                     style={{
-                      backgroundColor: 'rgba(16, 185, 129, 0.12)',
-                      border: '1px solid rgba(16, 185, 129, 0.4)',
-                      color: '#10B981',
-                      boxShadow: '0 0 15px rgba(16, 185, 129, 0.2)',
+                      padding: '8px 16px',
+                      borderRadius: '12px',
+                      fontSize: '12px',
+                      fontWeight: 800,
+                      fontFamily: 'monospace',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                      border: '1px solid rgba(16, 185, 129, 0.3)',
+                      color: '#34D399',
                     }}
                   >
-                    <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse shadow-[0_0_8px_#10B981]" />
-                    <span>SYSTEM ONLINE • INSTANT LOAD ACTIVE</span>
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34D399]" />
+                    <span>SYSTEM ONLINE • SYNC ACTIVE</span>
                   </div>
                 </div>
               </div>
 
-              {/* 4 Premium Metric Hero Cards with Glassmorphic Gradient */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+              {/* 4 Clean Metric Cards */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                  gap: '20px',
+                  width: '100%',
+                }}
+              >
                 {/* 1. Players Card */}
                 <div
-                  className="p-6 rounded-2xl relative overflow-hidden transition-all duration-300 hover:scale-[1.02] cursor-pointer group shadow-2xl"
+                  className="p-5 sm:p-6 rounded-2xl relative overflow-hidden transition-all duration-200 hover:border-cyan-500/40 cursor-pointer group"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(20, 14, 51, 0.95) 0%, rgba(14, 10, 36, 0.98) 100%)',
-                    border: '1px solid rgba(0, 240, 255, 0.35)',
-                    boxShadow: '0 15px 35px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 25px rgba(0, 240, 255, 0.12)',
+                    backgroundColor: '#0C0A1E',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
                   }}
                   onClick={() => setActiveTab('users')}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-black text-[#9A91A8] uppercase tracking-wider">
-                      TOTAL REGISTERED PLAYERS
+                    <span className="text-[11px] font-bold text-[#94A3B8] uppercase tracking-wider">
+                      Registered Players
                     </span>
-                    <div className="w-11 h-11 rounded-xl bg-[#00F0FF]/15 border border-[#00F0FF]/50 flex items-center justify-center text-[#00F0FF] shadow-[0_0_15px_rgba(0,240,255,0.3)]">
-                      <Users size={20} />
+                    <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center text-cyan-400">
+                      <Users size={18} />
                     </div>
                   </div>
-                  <p className="text-3xl sm:text-4xl font-black mt-4 mb-2 tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-100 to-[#00F0FF]">
+                  <p className="text-3xl font-black text-white mt-4 mb-1 font-mono tracking-tight">
                     {stats?.totalPlayers || 0}
                   </p>
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-[#00F0FF]">
-                    <Sparkles size={13} />
-                    <span>VIP accounts directory</span>
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-cyan-400">
+                    <span>Manage player directory →</span>
                   </div>
                 </div>
 
                 {/* 2. Deposits Card */}
                 <div
-                  className="p-6 rounded-2xl relative overflow-hidden transition-all duration-300 hover:scale-[1.02] cursor-pointer group shadow-2xl"
+                  className="p-5 sm:p-6 rounded-2xl relative overflow-hidden transition-all duration-200 hover:border-emerald-500/40 cursor-pointer group"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(20, 14, 51, 0.95) 0%, rgba(14, 10, 36, 0.98) 100%)',
-                    border: '1px solid rgba(16, 185, 129, 0.4)',
-                    boxShadow: '0 15px 35px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 25px rgba(16, 185, 129, 0.12)',
+                    backgroundColor: '#0C0A1E',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
                   }}
                   onClick={() => { setActiveTab('finance'); setFinanceSubTab('deposits'); }}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-black text-[#9A91A8] uppercase tracking-wider">
-                      APPROVED DEPOSITS
+                    <span className="text-[11px] font-bold text-[#94A3B8] uppercase tracking-wider">
+                      Verified Deposits
                     </span>
-                    <div className="w-11 h-11 rounded-xl bg-[#10B981]/15 border border-[#10B981]/50 flex items-center justify-center text-[#10B981] shadow-[0_0_15px_rgba(16,185,129,0.3)]">
-                      <ArrowDownLeft size={20} />
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400">
+                      <ArrowDownLeft size={18} />
                     </div>
                   </div>
-                  <p className="text-3xl sm:text-4xl font-black text-[#10B981] mt-4 mb-2 tracking-tight drop-shadow-[0_0_15px_rgba(16,185,129,0.35)]">
+                  <p className="text-3xl font-black text-emerald-400 mt-4 mb-1 font-mono tracking-tight">
                     ${Number(stats?.totalDeposited || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-[#10B981]">
-                    <span>Total verified inflow</span>
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-400">
+                    <span>Total approved inflow →</span>
                   </div>
                 </div>
 
                 {/* 3. Redemptions Card */}
                 <div
-                  className="p-6 rounded-2xl relative overflow-hidden transition-all duration-300 hover:scale-[1.02] cursor-pointer group shadow-2xl"
+                  className="p-5 sm:p-6 rounded-2xl relative overflow-hidden transition-all duration-200 hover:border-purple-500/40 cursor-pointer group"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(20, 14, 51, 0.95) 0%, rgba(14, 10, 36, 0.98) 100%)',
-                    border: '1px solid rgba(224, 38, 216, 0.4)',
-                    boxShadow: '0 15px 35px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 25px rgba(224, 38, 216, 0.12)',
+                    backgroundColor: '#0C0A1E',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
                   }}
                   onClick={() => { setActiveTab('finance'); setFinanceSubTab('redemptions'); }}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-black text-[#9A91A8] uppercase tracking-wider">
-                      DISPATCHED REDEMPTIONS
+                    <span className="text-[11px] font-bold text-[#94A3B8] uppercase tracking-wider">
+                      Dispatched Cashouts
                     </span>
-                    <div className="w-11 h-11 rounded-xl bg-[#E026D8]/15 border border-[#E026D8]/50 flex items-center justify-center text-[#E026D8] shadow-[0_0_15px_rgba(224,38,216,0.3)]">
-                      <ArrowUpRight size={20} />
+                    <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/25 flex items-center justify-center text-purple-400">
+                      <ArrowUpRight size={18} />
                     </div>
                   </div>
-                  <p className="text-3xl sm:text-4xl font-black text-[#E026D8] mt-4 mb-2 tracking-tight drop-shadow-[0_0_15px_rgba(224,38,216,0.35)]">
+                  <p className="text-3xl font-black text-purple-400 mt-4 mb-1 font-mono tracking-tight">
                     ${Number(stats?.totalRedeemed || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-[#E026D8]">
-                    <span>Settled player cashouts</span>
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-purple-400">
+                    <span>Settled redemptions →</span>
                   </div>
                 </div>
 
-                {/* 4. Net House Margin Card */}
+                {/* 4. Net Hold Card */}
                 <div
-                  className="p-6 rounded-2xl relative overflow-hidden transition-all duration-300 hover:scale-[1.02] cursor-pointer group shadow-2xl"
+                  className="p-5 sm:p-6 rounded-2xl relative overflow-hidden transition-all duration-200 hover:border-amber-500/40 cursor-pointer group"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(20, 14, 51, 0.95) 0%, rgba(14, 10, 36, 0.98) 100%)',
-                    border: '1px solid rgba(245, 158, 11, 0.4)',
-                    boxShadow: '0 15px 35px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 25px rgba(245, 158, 11, 0.12)',
+                    backgroundColor: '#0C0A1E',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
                   }}
                   onClick={() => setActiveTab('tx_search')}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-black text-[#9A91A8] uppercase tracking-wider">
-                      NET HOUSE MARGIN (NGR)
+                    <span className="text-[11px] font-bold text-[#94A3B8] uppercase tracking-wider">
+                      Net House Hold (NGR)
                     </span>
-                    <div className="w-11 h-11 rounded-xl bg-[#F59E0B]/15 border border-[#F59E0B]/50 flex items-center justify-center text-[#F59E0B] shadow-[0_0_15px_rgba(245,158,11,0.3)]">
-                      <DollarSign size={20} />
+                    <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-400">
+                      <DollarSign size={18} />
                     </div>
                   </div>
-                  <p className="text-3xl sm:text-4xl font-black text-[#F59E0B] mt-4 mb-2 tracking-tight drop-shadow-[0_0_15px_rgba(245,158,11,0.35)]">
+                  <p className="text-3xl font-black text-amber-400 mt-4 mb-1 font-mono tracking-tight">
                     ${Number(stats?.netGGR || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-[#F59E0B]">
-                    <span>Net gross casino hold</span>
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-400">
+                    <span>Platform net margin →</span>
                   </div>
                 </div>
               </div>
 
-              {/* Action Queues Hub - Luminous Sovereign Card */}
+              {/* Action Queues Hub */}
               <div
-                className="p-6 sm:p-8 rounded-2xl shadow-2xl"
+                className="p-6 sm:p-7 rounded-2xl shadow-xl"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(14, 10, 36, 0.98) 0%, rgba(7, 5, 20, 0.98) 100%)',
-                  border: '1px solid rgba(0, 240, 255, 0.28)',
-                  boxShadow: '0 25px 60px rgba(0, 0, 0, 0.75), 0 0 30px rgba(0, 240, 255, 0.1)',
+                  backgroundColor: '#0C0A1E',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
                 }}
               >
-                <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
-                  <h3 className="text-sm sm:text-base font-black uppercase tracking-wider text-white flex items-center gap-2.5 m-0">
-                    <Flame size={18} color="#00F0FF" />
-                    <span>PENDING OPERATIONAL ACTION QUEUES</span>
-                  </h3>
-                  <span className="text-xs font-bold text-[#00F0FF] bg-[#00F0FF]/15 border border-[#00F0FF]/35 px-3.5 py-1.5 rounded-full shadow-sm">
-                    Live Dispatch Queue
+                <div className="flex items-center justify-between mb-5 pb-3 border-b border-white/8">
+                  <div className="flex items-center gap-2">
+                    <Activity size={17} className="text-cyan-400" />
+                    <h3 className="text-sm font-black uppercase tracking-wider text-white m-0">
+                      Pending Operational Action Queues
+                    </h3>
+                  </div>
+                  <span className="text-xs font-bold text-cyan-400 bg-cyan-500/10 border border-cyan-500/25 px-3 py-1 rounded-full font-mono">
+                    Live Dispatch Queues
                   </span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   {/* Queue 1: Deposits */}
-                  <div className="bg-[#140E33] border border-amber-500/35 hover:border-amber-400 p-5 rounded-2xl flex items-center justify-between transition-all shadow-xl group">
+                  <div className="bg-black/30 border border-white/8 hover:border-amber-500/40 p-4 sm:p-5 rounded-2xl flex items-center justify-between transition-all group">
                     <div>
-                      <p className="text-[11px] text-[#9A91A8] font-black uppercase tracking-wider m-0">Pending Deposits</p>
-                      <p className="text-3xl font-black text-[#F59E0B] mt-2 mb-0">{stats?.pendingDeposits || 0}</p>
+                      <p className="text-[11px] text-[#94A3B8] font-bold uppercase tracking-wider m-0">Pending Deposits</p>
+                      <p className="text-2xl font-black text-amber-400 mt-1 mb-0 font-mono">{stats?.pendingDeposits || 0}</p>
                     </div>
                     <button
                       type="button"
                       onClick={() => { setActiveTab('finance'); setFinanceSubTab('deposits'); }}
-                      className="px-4 py-2.5 rounded-xl text-xs font-black transition cursor-pointer active:scale-95 shadow-md flex items-center gap-1.5 text-black bg-gradient-to-r from-amber-400 to-amber-500 hover:brightness-110 shadow-amber-500/20"
+                      className="px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer text-amber-300 bg-amber-500/15 border border-amber-500/30 hover:bg-amber-500/25"
                     >
-                      <span>Review Cashier</span>
+                      Review
                     </button>
                   </div>
 
                   {/* Queue 2: Redemptions */}
-                  <div className="bg-[#140E33] border border-fuchsia-500/35 hover:border-fuchsia-400 p-5 rounded-2xl flex items-center justify-between transition-all shadow-xl group">
+                  <div className="bg-black/30 border border-white/8 hover:border-purple-500/40 p-4 sm:p-5 rounded-2xl flex items-center justify-between transition-all group">
                     <div>
-                      <p className="text-[11px] text-[#9A91A8] font-black uppercase tracking-wider m-0">Pending Redemptions</p>
-                      <p className="text-3xl font-black text-[#E026D8] mt-2 mb-0">{stats?.pendingRedemptions || 0}</p>
+                      <p className="text-[11px] text-[#94A3B8] font-bold uppercase tracking-wider m-0">Pending Cashouts</p>
+                      <p className="text-2xl font-black text-purple-400 mt-1 mb-0 font-mono">{stats?.pendingRedemptions || 0}</p>
                     </div>
                     <button
                       type="button"
                       onClick={() => { setActiveTab('finance'); setFinanceSubTab('redemptions'); }}
-                      className="px-4 py-2.5 rounded-xl text-xs font-black transition cursor-pointer active:scale-95 shadow-md flex items-center gap-1.5 text-white bg-gradient-to-r from-[#E026D8] via-[#A855F7] to-[#00F0FF] hover:brightness-110 shadow-[0_0_15px_rgba(224,38,216,0.3)]"
+                      className="px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer text-purple-300 bg-purple-500/15 border border-purple-500/30 hover:bg-purple-500/25"
                     >
-                      <span>Review Cashouts</span>
+                      Review
                     </button>
                   </div>
 
                   {/* Queue 3: Account Requests */}
-                  <div className="bg-[#140E33] border border-cyan-500/35 hover:border-cyan-400 p-5 rounded-2xl flex items-center justify-between transition-all shadow-xl group">
+                  <div className="bg-black/30 border border-white/8 hover:border-cyan-500/40 p-4 sm:p-5 rounded-2xl flex items-center justify-between transition-all group">
                     <div>
-                      <p className="text-[11px] text-[#9A91A8] font-black uppercase tracking-wider m-0">Account Requests</p>
-                      <p className="text-3xl font-black text-[#00F0FF] mt-2 mb-0">
+                      <p className="text-[11px] text-[#94A3B8] font-bold uppercase tracking-wider m-0">Account Requests</p>
+                      <p className="text-2xl font-black text-cyan-400 mt-1 mb-0 font-mono">
                         {accountRequests.filter(r => (r.status || '').toUpperCase() === 'PENDING').length}
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={() => setActiveTab('account_requests')}
-                      className="px-4 py-2.5 rounded-xl text-xs font-black transition cursor-pointer active:scale-95 shadow-md flex items-center gap-1.5 text-black bg-gradient-to-r from-[#00F0FF] to-cyan-300 hover:brightness-110 shadow-[0_0_15px_rgba(0,240,255,0.3)]"
+                      className="px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer text-cyan-300 bg-cyan-500/15 border border-cyan-500/30 hover:bg-cyan-500/25"
                     >
-                      <span>Fulfill IDs</span>
+                      Fulfill
                     </button>
                   </div>
 
                   {/* Queue 4: Support */}
-                  <div className="bg-[#140E33] border border-rose-500/35 hover:border-rose-400 p-5 rounded-2xl flex items-center justify-between transition-all shadow-xl group">
+                  <div className="bg-black/30 border border-white/8 hover:border-rose-500/40 p-4 sm:p-5 rounded-2xl flex items-center justify-between transition-all group">
                     <div>
-                      <p className="text-[11px] text-[#9A91A8] font-black uppercase tracking-wider m-0">Unread Live Chat</p>
-                      <p className="text-3xl font-black text-rose-400 mt-2 mb-0">
+                      <p className="text-[11px] text-[#94A3B8] font-bold uppercase tracking-wider m-0">Unread Live Chat</p>
+                      <p className="text-2xl font-black text-rose-400 mt-1 mb-0 font-mono">
                         {chatConversations.filter(c => c.unreadStaff).length}
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={() => setActiveTab('chat')}
-                      className="px-4 py-2.5 rounded-xl text-xs font-black transition cursor-pointer active:scale-95 shadow-md flex items-center gap-1.5 text-white bg-gradient-to-r from-rose-500 via-pink-600 to-[#E026D8] hover:brightness-110 shadow-[0_0_15px_rgba(244,63,94,0.3)]"
+                      className="px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer text-rose-300 bg-rose-500/15 border border-rose-500/30 hover:bg-rose-500/25"
                     >
-                      <span>Open Live Desk</span>
+                      Open Desk
                     </button>
                   </div>
                 </div>
               </div>
 
-              {/* Fast Operations Launchpad (Instant Access Shortcuts for Admin Staff) */}
+              {/* Staff Operational Quick-Actions */}
               <div
-                className="p-6 sm:p-8 rounded-2xl shadow-xl"
+                className="p-6 sm:p-7 rounded-2xl shadow-xl"
                 style={{
-                  background: 'linear-gradient(135deg, #0E0A24 0%, #070514 100%)',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  backgroundColor: '#0C0A1E',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
                 }}
               >
-                <div className="flex items-center justify-between mb-5 pb-3 border-b border-white/10">
-                  <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-white flex items-center gap-2 m-0">
-                    <SlidersHorizontal size={16} color="#00F0FF" />
-                    <span>STAFF OPERATIONAL QUICK-ACTIONS</span>
-                  </h3>
-                  <span className="text-xs text-[#9A91A8]">1-Tap Fast Launch</span>
+                <div className="flex items-center justify-between mb-5 pb-3 border-b border-white/8">
+                  <div className="flex items-center gap-2">
+                    <SlidersHorizontal size={17} className="text-cyan-400" />
+                    <h3 className="text-sm font-black uppercase tracking-wider text-white m-0">
+                      Operations Launchpad
+                    </h3>
+                  </div>
+                  <span className="text-xs text-[#94A3B8] font-mono">Instant Console Shortcuts</span>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                   <button
                     type="button"
                     onClick={() => setActiveTab('account_requests')}
-                    className="p-4 rounded-xl bg-[#140E33] hover:bg-[#1D144A] border border-white/10 hover:border-[#00F0FF]/40 text-left transition flex flex-col gap-2 cursor-pointer shadow-md hover:scale-[1.02]"
+                    className="p-4 rounded-xl bg-black/25 hover:bg-white/[0.04] border border-white/8 hover:border-cyan-500/30 text-left transition flex flex-col gap-2 cursor-pointer group"
                   >
-                    <Key size={20} className="text-[#00F0FF]" />
-                    <span className="text-xs font-black text-white">Issue Game ID</span>
-                    <span className="text-[11px] text-[#9A91A8]">Credentials queue</span>
+                    <Key size={18} className="text-cyan-400" />
+                    <span className="text-xs font-bold text-white">Issue Game ID</span>
+                    <span className="text-[10.5px] text-[#94A3B8]">Credentials desk</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setActiveTab('coins_allotment')}
-                    className="p-4 rounded-xl bg-[#140E33] hover:bg-[#1D144A] border border-white/10 hover:border-[#00F0FF]/40 text-left transition flex flex-col gap-2 cursor-pointer shadow-md hover:scale-[1.02]"
+                    className="p-4 rounded-xl bg-black/25 hover:bg-white/[0.04] border border-white/8 hover:border-cyan-500/30 text-left transition flex flex-col gap-2 cursor-pointer group"
                   >
-                    <Coins size={20} className="text-[#00F0FF]" />
-                    <span className="text-xs font-black text-white">Allot Coins</span>
-                    <span className="text-[11px] text-[#9A91A8]">1 SC ($) Balance load</span>
+                    <Coins size={18} className="text-cyan-400" />
+                    <span className="text-xs font-bold text-white">Allot Coins</span>
+                    <span className="text-[10.5px] text-[#94A3B8]">Load 1 SC balance</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => { setActiveTab('finance'); setFinanceSubTab('deposits'); }}
-                    className="p-4 rounded-xl bg-[#140E33] hover:bg-[#1D144A] border border-white/10 hover:border-[#10B981]/40 text-left transition flex flex-col gap-2 cursor-pointer shadow-md hover:scale-[1.02]"
+                    className="p-4 rounded-xl bg-black/25 hover:bg-white/[0.04] border border-white/8 hover:border-cyan-500/30 text-left transition flex flex-col gap-2 cursor-pointer group"
                   >
-                    <ArrowDownLeft size={18} className="text-[#10B981]" />
-                    <span className="text-xs font-black text-white">Cashier Review</span>
-                    <span className="text-[10px] text-[#9A91A8]">Incoming deposits</span>
+                    <ArrowDownLeft size={18} className="text-amber-400" />
+                    <span className="text-xs font-bold text-white">Deposit Inflows</span>
+                    <span className="text-[10.5px] text-[#94A3B8]">Review bank slips</span>
                   </button>
 
                   <button
                     type="button"
-                    onClick={() => { setActiveTab('finance'); setFinanceSubTab('redemptions'); }}
-                    className="p-3 rounded-xl bg-[#140E33] hover:bg-[#1D144A] border border-white/10 hover:border-[#E026D8]/40 text-left transition flex flex-col gap-1.5 cursor-pointer"
+                    onClick={() => setActiveTab('games')}
+                    className="p-4 rounded-xl bg-black/25 hover:bg-white/[0.04] border border-white/8 hover:border-cyan-500/30 text-left transition flex flex-col gap-2 cursor-pointer group"
                   >
-                    <ArrowUpRight size={18} className="text-[#E026D8]" />
-                    <span className="text-xs font-black text-white">Cashout Payouts</span>
-                    <span className="text-[10px] text-[#9A91A8]">Verified redemptions</span>
+                    <Gamepad2 size={18} className="text-emerald-400" />
+                    <span className="text-xs font-bold text-white">Games Catalog</span>
+                    <span className="text-[10.5px] text-[#94A3B8]">Portals &amp; badges</span>
                   </button>
 
                   <button
                     type="button"
-                    onClick={() => setIsAddGameModalOpen(true)}
-                    className="p-3 rounded-xl bg-[#140E33] hover:bg-[#1D144A] border border-white/10 hover:border-amber-400/40 text-left transition flex flex-col gap-1.5 cursor-pointer"
+                    onClick={() => setActiveTab('users')}
+                    className="p-4 rounded-xl bg-black/25 hover:bg-white/[0.04] border border-white/8 hover:border-cyan-500/30 text-left transition flex flex-col gap-2 cursor-pointer group"
                   >
-                    <Plus size={18} className="text-amber-400" />
-                    <span className="text-xs font-black text-white">Add New Game</span>
-                    <span className="text-[10px] text-[#9A91A8]">Upload cover & link</span>
+                    <Users size={18} className="text-purple-400" />
+                    <span className="text-xs font-bold text-white">Player Directory</span>
+                    <span className="text-[10.5px] text-[#94A3B8]">Accounts &amp; balances</span>
                   </button>
 
                   <button
                     type="button"
-                    onClick={() => setActiveTab('promos')}
-                    className="p-3 rounded-xl bg-[#140E33] hover:bg-[#1D144A] border border-white/10 hover:border-violet-400/40 text-left transition flex flex-col gap-1.5 cursor-pointer"
+                    onClick={() => setActiveTab('gateways')}
+                    className="p-4 rounded-xl bg-black/25 hover:bg-white/[0.04] border border-white/8 hover:border-cyan-500/30 text-left transition flex flex-col gap-2 cursor-pointer group"
                   >
-                    <Megaphone size={18} className="text-violet-400" />
-                    <span className="text-xs font-black text-white">Push Broadcast</span>
-                    <span className="text-[10px] text-[#9A91A8]">Player alerts</span>
+                    <SlidersHorizontal size={18} className="text-pink-400" />
+                    <span className="text-xs font-bold text-white">Gateways &amp; Bonuses</span>
+                    <span className="text-[10.5px] text-[#94A3B8]">Method % bonuses</span>
                   </button>
                 </div>
               </div>
@@ -1849,80 +1957,118 @@ export default function AdminPortal({ initialTab }) {
           {/* TAB: ACCOUNT REQUESTS (Sweepstakes Platform Fulfillment) */}
           {activeTab === 'account_requests' && (
             <div className="flex flex-col gap-6 sm:gap-8 w-full" style={{ fontFamily: 'Lexend, -apple-system, sans-serif' }}>
-              {/* Header Toolbar matching luxury casino theme */}
+              {/* Header Toolbar */}
               <div
-                className="p-6 sm:p-7 sm:py-6 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-5 sm:gap-6"
+                className="relative overflow-hidden"
                 style={{
-                  backgroundColor: '#0E0A24',
-                  background: 'linear-gradient(135deg, #0E0A24 0%, #140E33 100%)',
-                  border: '1px solid rgba(0, 240, 255, 0.28)',
-                  boxShadow: '0 25px 60px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 240, 255, 0.12)',
+                  backgroundColor: '#0C0A1E',
+                  border: '1px solid rgba(0, 240, 255, 0.22)',
+                  borderRadius: '24px',
+                  padding: '24px 28px',
+                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '24px',
                 }}
               >
-                <div className="flex items-center gap-5 sm:gap-6">
+                <div className="absolute -top-24 -right-24 w-72 h-72 bg-[#00F0FF]/10 rounded-full blur-3xl pointer-events-none" />
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '20px',
+                    position: 'relative',
+                    zIndex: 10,
+                    flex: '1 1 auto',
+                    minWidth: '280px',
+                  }}
+                >
                   <div
-                    className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shrink-0 shadow-lg"
+                    className="shrink-0"
                     style={{
-                      background: 'linear-gradient(135deg, rgba(0, 240, 255, 0.25) 0%, rgba(245, 158, 11, 0.2) 100%)',
-                      border: '1.5px solid rgba(0, 240, 255, 0.5)',
-                      boxShadow: '0 0 25px rgba(0, 240, 255, 0.35)',
+                      width: '56px',
+                      height: '56px',
+                      minWidth: '56px',
+                      padding: '14px',
+                      background: 'rgba(0, 240, 255, 0.1)',
+                      border: '1.5px solid rgba(0, 240, 255, 0.35)',
                       color: '#00F0FF',
+                      boxShadow: '0 0 20px rgba(0, 240, 255, 0.15)',
+                      borderRadius: '16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                     }}
                   >
-                    <Key size={30} />
+                    <Key className="w-full h-full text-[#00F0FF]" />
                   </div>
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-                      <h2 className="text-xl sm:text-2xl font-black text-white m-0 tracking-tight" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                      <h2 className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-cyan-300 m-0 tracking-tight" style={{ fontFamily: 'Lexend, sans-serif' }}>
                         Player Game Account Requests
                       </h2>
                       <span
-                        className="text-[10.5px] px-3 py-1 rounded-full font-black tracking-wider whitespace-nowrap shadow-sm"
                         style={{
-                          backgroundColor: 'rgba(255, 215, 0, 0.14)',
-                          color: '#FFD700',
-                          border: '1px solid rgba(255, 215, 0, 0.45)',
-                          boxShadow: '0 0 12px rgba(255, 215, 0, 0.25)',
+                          fontSize: '10px',
+                          padding: '3px 12px',
+                          borderRadius: '9999px',
+                          fontWeight: 800,
+                          letterSpacing: '0.04em',
+                          whiteSpace: 'nowrap',
+                          backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                          border: '1px solid rgba(245, 158, 11, 0.3)',
+                          color: '#FCD34D',
                         }}
                       >
                         SWEEPSTAKES FULFILLMENT
                       </span>
                       <span
-                        className="text-[11px] px-3 py-1 rounded-full font-bold flex items-center gap-1.5 font-mono shadow-sm"
                         style={{
-                          backgroundColor: 'rgba(0, 240, 255, 0.12)',
+                          fontSize: '11px',
+                          padding: '3px 12px',
+                          borderRadius: '9999px',
+                          fontWeight: 700,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          fontFamily: 'monospace',
+                          backgroundColor: 'rgba(0, 240, 255, 0.1)',
+                          border: '1px solid rgba(0, 240, 255, 0.25)',
                           color: '#00F0FF',
-                          border: '1px solid rgba(0, 240, 255, 0.35)',
                         }}
                       >
-                        <span className="w-2 h-2 rounded-full bg-[#00F0FF] animate-pulse shadow-[0_0_8px_#00F0FF]" />
+                        <span className="w-2 h-2 rounded-full bg-[#00F0FF] animate-pulse" />
                         <span>Pending: {accountRequests.filter(r => (r.status || '').toUpperCase() === 'PENDING').length}</span>
                       </span>
                     </div>
-                    <p className="text-xs sm:text-[13px] text-[#9A91A8] mt-1.5 leading-relaxed m-0" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                    <p className="text-xs sm:text-[13px] text-[#9A91A8] mt-1 m-0 leading-relaxed" style={{ fontFamily: 'Lexend, sans-serif' }}>
                       Approve and issue credentials for Juwa, Fire Kirin, Game Vault, Orion Stars, and Sweepstakes platforms
                     </p>
                   </div>
                 </div>
 
                 {/* Instant Sync */}
-                <div className="flex items-center self-start sm:self-auto shrink-0 pt-1 sm:pt-0">
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    position: 'relative',
+                    zIndex: 10,
+                    flexShrink: 0,
+                  }}
+                >
                   <button
                     type="button"
                     onClick={() => {
                       fetchAccountRequests();
                       syncRequestsAndAlerts();
                     }}
-                    className="px-5 py-3 rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-2.5 transition-all cursor-pointer hover:scale-[1.03] active:scale-[0.97]"
-                    style={{
-                      background: 'linear-gradient(135deg, #00F0FF 0%, #00d0e8 40%, #E026D8 100%)',
-                      color: '#070514',
-                      boxShadow: '0 0 25px rgba(0, 240, 255, 0.45)',
-                      border: 'none',
-                      fontFamily: 'Lexend, sans-serif',
-                    }}
+                    className="px-5 py-3 rounded-xl bg-[#00F0FF] hover:bg-[#38bdf8] text-[#070514] font-black uppercase tracking-wider text-xs shadow-[0_0_20px_rgba(0,240,255,0.35)] cursor-pointer flex items-center gap-2 transition shrink-0"
                   >
-                    <RefreshCw size={14} strokeWidth={2.5} />
+                    <RefreshCw size={14} className="stroke-[2.5]" />
                     <span>Sync Requests</span>
                   </button>
                 </div>
@@ -1962,93 +2108,112 @@ export default function AdminPortal({ initialTab }) {
                     padding: '16px',
                     fontFamily: 'Lexend, -apple-system, sans-serif',
                   }}
+                  onClick={() => setApprovalModal({ open: false, request: null, username: '', password: '' })}
                 >
                   <div
-                    className="vegas-modal-card rounded-2xl max-w-md w-full p-6 space-y-4 animate-in fade-in zoom-in-95"
+                    className="vegas-modal-card rounded-2xl max-w-md w-full p-6 space-y-4 relative overflow-hidden"
+                    onClick={(e) => e.stopPropagation()}
                     style={{
-                      backgroundColor: '#0E0A24',
-                      background: 'linear-gradient(145deg, #0E0A24 0%, #150E36 100%)',
-                      border: '1px solid rgba(0, 240, 255, 0.45)',
-                      boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 40px rgba(0, 240, 255, 0.25)',
+                      backgroundColor: '#0C0A1E',
+                      border: '1px solid rgba(0, 240, 255, 0.35)',
+                      borderRadius: '24px',
+                      boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 35px rgba(0, 240, 255, 0.2)',
                     }}
                   >
-                    <div className="flex items-center justify-between pb-3 border-b border-white/10">
-                      <div>
-                        <h3 className="font-heading font-black text-lg text-white m-0">
-                          Fulfill {approvalModal.request.gameTitle}
-                        </h3>
-                        <p className="text-xs text-[#9A91A8] mt-0.5">
-                          Player: <strong className="text-white">{approvalModal.request.userName}</strong> ({approvalModal.request.userEmail})
-                        </p>
+                    <div className="absolute -top-16 -right-16 w-48 h-48 bg-[#00F0FF]/15 rounded-full blur-3xl pointer-events-none" />
+
+                    <div className="flex items-center justify-between pb-3.5 border-b border-cyan-500/20 relative z-10">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-10 h-10 rounded-xl flex items-center justify-center text-[#00F0FF] shrink-0"
+                          style={{
+                            background: 'rgba(0, 240, 255, 0.15)',
+                            border: '1.5px solid rgba(0, 240, 255, 0.4)',
+                            boxShadow: '0 0 15px rgba(0, 240, 255, 0.25)',
+                          }}
+                        >
+                          <Key size={18} />
+                        </div>
+                        <div>
+                          <h3 className="text-base font-black text-white m-0 tracking-wide">
+                            Fulfill {approvalModal.request.gameTitle}
+                          </h3>
+                          <p className="text-xs text-[#9A91A8] mt-0.5 m-0">
+                            Player: <strong className="text-white">{approvalModal.request.userName}</strong> ({approvalModal.request.userEmail})
+                          </p>
+                        </div>
                       </div>
                       <button
+                        type="button"
                         onClick={() => setApprovalModal({ open: false, request: null, username: '', password: '' })}
-                        className="text-gray-400 hover:text-white cursor-pointer"
+                        className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white flex items-center justify-center transition border border-white/10 cursor-pointer"
                       >
-                        <X size={18} />
+                        <X size={16} />
                       </button>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="space-y-3.5 relative z-10">
                       <div>
-                        <label className="text-xs font-bold text-gray-300 block mb-1">
-                          Game Platform Username
+                        <label className="text-[11px] font-bold text-gray-300 block mb-1 uppercase tracking-wider">
+                          Game Platform Username *
                         </label>
                         <input
                           type="text"
                           value={approvalModal.username}
                           onChange={(e) => setApprovalModal({ ...approvalModal, username: e.target.value })}
-                          className="w-full bg-[#140E33] border border-[#00F0FF]/40 rounded-xl px-3.5 py-2.5 text-sm font-mono font-bold text-[#00F0FF] outline-none focus:border-[#00F0FF]"
+                          className="w-full bg-[#070514] border border-cyan-500/25 focus:border-[#00F0FF] rounded-xl px-3.5 py-2.5 text-sm font-mono font-bold text-[#00F0FF] outline-none transition"
                           placeholder="Username"
                           required
-                          style={{ fontFamily: 'Lexend, monospace' }}
                         />
                       </div>
 
                       <div>
-                        <label className="text-xs font-bold text-gray-300 block mb-1">
-                          Game Platform Password
+                        <label className="text-[11px] font-bold text-gray-300 block mb-1 uppercase tracking-wider">
+                          Game Platform Password *
                         </label>
                         <input
                           type="text"
                           value={approvalModal.password}
                           onChange={(e) => setApprovalModal({ ...approvalModal, password: e.target.value })}
-                          className="w-full bg-[#140E33] border border-amber-500/40 rounded-xl px-3.5 py-2.5 text-sm font-mono font-bold text-amber-300 outline-none focus:border-amber-400"
+                          className="w-full bg-[#070514] border border-amber-500/30 focus:border-amber-400 rounded-xl px-3.5 py-2.5 text-sm font-mono font-bold text-amber-300 outline-none transition"
                           placeholder="Password"
                           required
-                          style={{ fontFamily: 'Lexend, monospace' }}
                         />
                       </div>
 
-                      <div className="p-3 rounded-xl bg-[#140E33] border border-amber-500/30 text-[11px] text-amber-300">
+                      <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-[11px] text-amber-300 leading-relaxed">
                         ⚡ Random credentials generated automatically. You can confirm them or type custom ones before issuing to the player.
                       </div>
                     </div>
 
-                    <div className="pt-2 flex items-center justify-end gap-3">
+                    <div className="pt-3 flex items-center justify-end gap-3 border-t border-cyan-500/20 relative z-10">
                       <button
                         type="button"
                         onClick={() => setApprovalModal({ open: false, request: null, username: '', password: '' })}
-                        className="px-4 py-2 rounded-xl text-xs font-bold text-gray-400 hover:text-white cursor-pointer"
+                        className="px-4 py-2.5 rounded-xl text-xs font-bold text-gray-400 hover:text-white transition cursor-pointer"
                       >
                         Cancel
                       </button>
-
                       <button
                         type="button"
-                        disabled={submittingApproval}
                         onClick={handleConfirmApproval}
-                        className="btn-coral py-2.5 px-5 text-xs font-black uppercase flex items-center gap-2 shadow-lg cursor-pointer"
+                        disabled={submittingApproval}
+                        style={{
+                          backgroundColor: '#00F0FF',
+                          color: '#070514',
+                          boxShadow: '0 0 20px rgba(0, 240, 255, 0.35)',
+                        }}
+                        className="px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer hover:bg-[#38bdf8] flex items-center gap-2"
                       >
                         {submittingApproval ? (
                           <>
-                            <RefreshCw size={14} className="animate-spin" />
+                            <RefreshCw size={13} className="animate-spin" />
                             <span>Issuing...</span>
                           </>
                         ) : (
                           <>
-                            <Check size={15} />
-                            <span>Confirm &amp; Issue Credentials</span>
+                            <Check size={14} className="stroke-[3]" />
+                            <span>Issue Credentials</span>
                           </>
                         )}
                       </button>
@@ -2081,42 +2246,95 @@ export default function AdminPortal({ initialTab }) {
             return (
               <div className="space-y-6" style={{ fontFamily: 'Lexend, -apple-system, sans-serif' }}>
                 {/* Header & Action Controls */}
-                <div className="bg-[#0E0A24] border border-[#00F0FF]/25 p-4 sm:p-5 rounded-2xl shadow-xl space-y-4">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00F0FF]/20 to-[#0E0A24] border border-[#00F0FF]/40 flex items-center justify-center text-[#00F0FF] shadow-lg shadow-[#00F0FF]/15 shrink-0">
-                          <Gamepad2 size={20} />
+                <div
+                  className="relative overflow-hidden space-y-5"
+                  style={{
+                    backgroundColor: '#0C0A1E',
+                    border: '1px solid rgba(0, 240, 255, 0.22)',
+                    borderRadius: '24px',
+                    padding: '24px 28px',
+                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+                  }}
+                >
+                  <div className="absolute -top-24 -right-24 w-72 h-72 bg-[#00F0FF]/10 rounded-full blur-3xl pointer-events-none" />
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '24px',
+                      position: 'relative',
+                      zIndex: 10,
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '20px',
+                        flex: '1 1 auto',
+                        minWidth: '280px',
+                      }}
+                    >
+                      <div
+                        className="rounded-2xl flex items-center justify-center shrink-0"
+                        style={{
+                          width: '56px',
+                          height: '56px',
+                          minWidth: '56px',
+                          padding: '14px',
+                          background: 'rgba(0, 240, 255, 0.1)',
+                          border: '1.5px solid rgba(0, 240, 255, 0.35)',
+                          color: '#00F0FF',
+                          boxShadow: '0 0 20px rgba(0, 240, 255, 0.15)',
+                          borderRadius: '16px',
+                        }}
+                      >
+                        <Gamepad2 className="w-full h-full text-[#00F0FF]" />
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <div className="flex items-center gap-2.5 flex-wrap">
+                          <h2 className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-cyan-300 tracking-tight m-0" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                            Games Catalog Control
+                          </h2>
+                          <span
+                            style={{
+                              fontSize: '10px',
+                              padding: '3px 12px',
+                              borderRadius: '9999px',
+                              fontWeight: 800,
+                              letterSpacing: '0.04em',
+                              whiteSpace: 'nowrap',
+                              backgroundColor: 'rgba(0, 240, 255, 0.1)',
+                              border: '1px solid rgba(0, 240, 255, 0.3)',
+                              color: '#00F0FF',
+                            }}
+                          >
+                            Sweepstakes Portals
+                          </span>
                         </div>
-                        <div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <h2 className="text-xl sm:text-2xl font-black text-white tracking-wide m-0">
-                              Games Catalog Control
-                            </h2>
-                            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#00F0FF]/15 text-[#00F0FF] border border-[#00F0FF]/30 whitespace-nowrap">
-                              Sweepstakes Portals
-                            </span>
-                          </div>
-                          <p className="text-xs text-[#9A91A8] mt-0.5">
-                            Manage sweepstakes portals, upload covers, control ON/OFF visibility, and assign badges
-                          </p>
-                        </div>
+                        <p className="text-xs sm:text-[13px] text-[#9A91A8] mt-1 m-0 leading-relaxed" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                          Manage sweepstakes portals, upload covers, control ON/OFF visibility, and assign badges
+                        </p>
                       </div>
                     </div>
 
                     {/* Header Action Button: + Add New Game */}
-                    <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        flexShrink: 0,
+                      }}
+                    >
                       <button
                         type="button"
                         onClick={() => setIsAddGameModalOpen(true)}
-                        style={{
-                          background: 'linear-gradient(135deg, #00F0FF 0%, #00d0e8 40%, #E026D8 100%)',
-                          color: '#070514',
-                          boxShadow: '0 0 25px rgba(0, 240, 255, 0.45)',
-                        }}
-                        className="w-full sm:w-auto px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shrink-0"
+                        className="w-full sm:w-auto px-5 py-3 rounded-xl bg-[#00F0FF] hover:bg-[#38bdf8] text-[#070514] font-black uppercase tracking-wider text-xs shadow-[0_0_20px_rgba(0,240,255,0.35)] cursor-pointer flex items-center justify-center gap-2 transition shrink-0"
                       >
-                        <Plus size={16} strokeWidth={3} color="#070514" />
+                        <Plus size={16} className="stroke-[3]" />
                         <span>Add New Game</span>
                       </button>
                     </div>
@@ -2136,20 +2354,41 @@ export default function AdminPortal({ initialTab }) {
                       </span>
                     </div>
 
-                    <div className="relative w-full sm:w-64">
-                      <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        backgroundColor: '#070514',
+                        border: '1px solid rgba(0, 240, 255, 0.25)',
+                        borderRadius: '12px',
+                        padding: '8px 12px',
+                        width: '100%',
+                        maxWidth: '260px',
+                      }}
+                    >
+                      <Search size={14} className="text-cyan-400 shrink-0" />
                       <input
                         type="text"
                         placeholder="Search catalog games..."
                         value={gameSearchQuery}
                         onChange={(e) => setGameSearchQuery(e.target.value)}
-                        className="w-full bg-[#070514] border border-white/15 focus:border-[#00F0FF] rounded-xl pl-9 pr-3 py-1.5 text-xs text-white placeholder-gray-500 outline-none transition"
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          outline: 'none',
+                          color: '#FFFFFF',
+                          fontSize: '12px',
+                          width: '100%',
+                          fontFamily: 'Lexend, sans-serif',
+                        }}
                       />
                       {gameSearchQuery && (
                         <button
                           type="button"
                           onClick={() => setGameSearchQuery('')}
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                          className="text-gray-400 hover:text-white cursor-pointer shrink-0"
+                          style={{ background: 'transparent', border: 'none', padding: 0 }}
                         >
                           <X size={12} />
                         </button>
@@ -2182,26 +2421,28 @@ export default function AdminPortal({ initialTab }) {
                       className="vegas-modal-card w-full max-w-xl p-5 sm:p-6 max-h-[90vh] overflow-y-auto modal-scrollable relative space-y-4"
                       onClick={(e) => e.stopPropagation()}
                       style={{
-                        backgroundColor: '#0E0A24',
-                        background: 'linear-gradient(145deg, #0E0A24 0%, #150E36 100%)',
-                        border: '1px solid rgba(0, 240, 255, 0.45)',
-                        boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 40px rgba(0, 240, 255, 0.25)',
-                        borderRadius: '20px',
+                        backgroundColor: '#0C0A1E',
+                        border: '1px solid rgba(0, 240, 255, 0.35)',
+                        boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 35px rgba(0, 240, 255, 0.2)',
+                        borderRadius: '24px',
                         fontFamily: 'Lexend, -apple-system, sans-serif',
                       }}
                     >
+                      {/* Ambient Glow */}
+                      <div className="absolute -top-14 -right-14 w-44 h-44 bg-[#00F0FF]/15 rounded-full blur-3xl pointer-events-none" />
+
                       {/* Modal Header */}
-                      <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                        <div className="flex items-center gap-2.5">
+                      <div className="flex items-center justify-between border-b border-[#00F0FF]/20 pb-3.5 relative">
+                        <div className="flex items-center gap-3">
                           <div
-                            className="w-9 h-9 rounded-xl flex items-center justify-center text-[#00F0FF]"
+                            className="w-10 h-10 rounded-xl flex items-center justify-center text-[#00F0FF]"
                             style={{
-                              background: 'linear-gradient(135deg, rgba(0, 240, 255, 0.2) 0%, rgba(224, 38, 216, 0.15) 100%)',
-                              border: '1px solid rgba(0, 240, 255, 0.4)',
-                              boxShadow: '0 0 15px rgba(0, 240, 255, 0.25)',
+                              backgroundColor: 'rgba(0, 240, 255, 0.12)',
+                              border: '1px solid rgba(0, 240, 255, 0.35)',
+                              boxShadow: '0 0 18px rgba(0, 240, 255, 0.22)',
                             }}
                           >
-                            <Plus size={18} strokeWidth={2.5} />
+                            <Plus size={20} strokeWidth={2.5} />
                           </div>
                           <div>
                             <h3 className="text-base font-black text-white m-0 tracking-wide">Add New Game / Sweepstakes Portal</h3>
@@ -2211,9 +2452,9 @@ export default function AdminPortal({ initialTab }) {
                         <button
                           type="button"
                           onClick={() => setIsAddGameModalOpen(false)}
-                          className="p-1.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                          className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white flex items-center justify-center transition border border-white/10 cursor-pointer"
                         >
-                          <X size={18} />
+                          <X size={16} />
                         </button>
                       </div>
 
@@ -2265,7 +2506,7 @@ export default function AdminPortal({ initialTab }) {
                               className="w-full rounded-xl px-3.5 py-2.5 text-white text-xs outline-none transition-all"
                               style={{
                                 backgroundColor: '#070514',
-                                border: '1px solid rgba(255, 255, 255, 0.15)',
+                                border: '1px solid rgba(0, 240, 255, 0.25)',
                               }}
                             />
                           </div>
@@ -2280,7 +2521,7 @@ export default function AdminPortal({ initialTab }) {
                               className="w-full rounded-xl px-3.5 py-2.5 text-white text-xs outline-none transition-all"
                               style={{
                                 backgroundColor: '#070514',
-                                border: '1px solid rgba(255, 255, 255, 0.15)',
+                                border: '1px solid rgba(0, 240, 255, 0.25)',
                               }}
                             />
                           </div>
@@ -2295,7 +2536,7 @@ export default function AdminPortal({ initialTab }) {
                               className="w-full rounded-xl px-3.5 py-2.5 text-white text-xs outline-none transition-all font-bold cursor-pointer"
                               style={{
                                 backgroundColor: '#070514',
-                                border: '1px solid rgba(255, 255, 255, 0.15)',
+                                border: '1px solid rgba(0, 240, 255, 0.25)',
                               }}
                             >
                               <option value="HOT">🔥 HOT</option>
@@ -2316,7 +2557,7 @@ export default function AdminPortal({ initialTab }) {
                               className="w-full rounded-xl px-3.5 py-2.5 text-white text-xs outline-none transition-all"
                               style={{
                                 backgroundColor: '#070514',
-                                border: '1px solid rgba(255, 255, 255, 0.15)',
+                                border: '1px solid rgba(0, 240, 255, 0.25)',
                               }}
                             />
                           </div>
@@ -2329,8 +2570,8 @@ export default function AdminPortal({ initialTab }) {
                             <label
                               className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl cursor-pointer text-xs font-bold transition-all"
                               style={{
-                                backgroundColor: '#140E33',
-                                border: '1px solid rgba(0, 240, 255, 0.3)',
+                                backgroundColor: '#070514',
+                                border: '1px solid rgba(0, 240, 255, 0.35)',
                                 color: '#00F0FF',
                               }}
                             >
@@ -2340,8 +2581,8 @@ export default function AdminPortal({ initialTab }) {
                                 type="file"
                                 accept="image/*"
                                 onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) handleGameImageFile(file, (dataUrl) => setNewGame({ ...newGame, thumbnail: dataUrl }));
+                                   const file = e.target.files?.[0];
+                                   if (file) handleGameImageFile(file, (dataUrl) => setNewGame({ ...newGame, thumbnail: dataUrl }));
                                 }}
                                 className="hidden"
                               />
@@ -2366,7 +2607,7 @@ export default function AdminPortal({ initialTab }) {
                           className="flex items-center justify-between p-3.5 rounded-xl"
                           style={{
                             backgroundColor: '#070514',
-                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            border: '1px solid rgba(0, 240, 255, 0.2)',
                           }}
                         >
                           <div>
@@ -2398,7 +2639,7 @@ export default function AdminPortal({ initialTab }) {
                         </div>
 
                         {/* Modal Action Buttons */}
-                        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-white/10">
+                        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#00F0FF]/15">
                           <button
                             type="button"
                             onClick={() => setIsAddGameModalOpen(false)}
@@ -2411,9 +2652,9 @@ export default function AdminPortal({ initialTab }) {
                             disabled={isSavingGame}
                             className="py-2.5 px-6 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
                             style={{
-                              background: 'linear-gradient(135deg, #00F0FF 0%, #00d0e8 40%, #E026D8 100%)',
+                              backgroundColor: '#00F0FF',
                               color: '#070514',
-                              boxShadow: '0 0 25px rgba(0, 240, 255, 0.45)',
+                              boxShadow: '0 0 20px rgba(0, 240, 255, 0.35)',
                               border: 'none',
                             }}
                           >
@@ -2892,25 +3133,27 @@ export default function AdminPortal({ initialTab }) {
                       className="vegas-modal-card w-full max-w-lg p-5 sm:p-6 max-h-[90vh] overflow-y-auto modal-scrollable relative space-y-4"
                       onClick={(e) => e.stopPropagation()}
                       style={{
-                        backgroundColor: '#0E0A24',
-                        background: 'linear-gradient(145deg, #0E0A24 0%, #150E36 100%)',
-                        border: '1px solid rgba(0, 240, 255, 0.45)',
-                        boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 40px rgba(0, 240, 255, 0.25)',
-                        borderRadius: '20px',
+                        backgroundColor: '#0C0A1E',
+                        border: '1px solid rgba(0, 240, 255, 0.35)',
+                        boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 35px rgba(0, 240, 255, 0.2)',
+                        borderRadius: '24px',
                         fontFamily: 'Lexend, -apple-system, sans-serif',
                       }}
                     >
-                      <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                        <div className="flex items-center gap-2.5">
+                      {/* Ambient Glow */}
+                      <div className="absolute -top-14 -right-14 w-44 h-44 bg-[#00F0FF]/15 rounded-full blur-3xl pointer-events-none" />
+
+                      <div className="flex items-center justify-between border-b border-[#00F0FF]/20 pb-3.5 relative">
+                        <div className="flex items-center gap-3">
                           <div
-                            className="w-9 h-9 rounded-xl flex items-center justify-center text-[#00F0FF]"
+                            className="w-10 h-10 rounded-xl flex items-center justify-center text-[#00F0FF]"
                             style={{
-                              background: 'linear-gradient(135deg, rgba(0, 240, 255, 0.2) 0%, rgba(224, 38, 216, 0.15) 100%)',
-                              border: '1px solid rgba(0, 240, 255, 0.4)',
-                              boxShadow: '0 0 15px rgba(0, 240, 255, 0.25)',
+                              backgroundColor: 'rgba(0, 240, 255, 0.12)',
+                              border: '1px solid rgba(0, 240, 255, 0.35)',
+                              boxShadow: '0 0 18px rgba(0, 240, 255, 0.22)',
                             }}
                           >
-                            <Edit2 size={16} />
+                            <Edit2 size={18} strokeWidth={2.2} />
                           </div>
                           <div>
                             <h3 className="text-base font-black text-white m-0 tracking-wide">Edit Game: {editingGame.title}</h3>
@@ -2920,9 +3163,9 @@ export default function AdminPortal({ initialTab }) {
                         <button
                           type="button"
                           onClick={() => setEditingGame(null)}
-                          className="p-1.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                          className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white flex items-center justify-center transition border border-white/10 cursor-pointer"
                         >
-                          <X size={18} />
+                          <X size={16} />
                         </button>
                       </div>
 
@@ -2962,7 +3205,7 @@ export default function AdminPortal({ initialTab }) {
                             className="w-full rounded-xl px-3.5 py-2.5 text-white text-xs outline-none transition-all"
                             style={{
                               backgroundColor: '#070514',
-                              border: '1px solid rgba(255, 255, 255, 0.15)',
+                              border: '1px solid rgba(0, 240, 255, 0.25)',
                             }}
                           />
                         </div>
@@ -2977,7 +3220,7 @@ export default function AdminPortal({ initialTab }) {
                               className="w-full rounded-xl px-3.5 py-2.5 text-white text-xs outline-none transition-all"
                               style={{
                                 backgroundColor: '#070514',
-                                border: '1px solid rgba(255, 255, 255, 0.15)',
+                                border: '1px solid rgba(0, 240, 255, 0.25)',
                               }}
                             />
                           </div>
@@ -2990,7 +3233,7 @@ export default function AdminPortal({ initialTab }) {
                               className="w-full rounded-xl px-3.5 py-2.5 text-white text-xs outline-none transition-all font-bold cursor-pointer"
                               style={{
                                 backgroundColor: '#070514',
-                                border: '1px solid rgba(255, 255, 255, 0.15)',
+                                border: '1px solid rgba(0, 240, 255, 0.25)',
                               }}
                             >
                               <option value="HOT">🔥 HOT</option>
@@ -3019,8 +3262,8 @@ export default function AdminPortal({ initialTab }) {
                             <label
                               className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl cursor-pointer text-xs font-bold transition-all"
                               style={{
-                                backgroundColor: '#140E33',
-                                border: '1px solid rgba(0, 240, 255, 0.3)',
+                                backgroundColor: '#070514',
+                                border: '1px solid rgba(0, 240, 255, 0.35)',
                                 color: '#00F0FF',
                               }}
                             >
@@ -3050,7 +3293,7 @@ export default function AdminPortal({ initialTab }) {
                             className="w-full rounded-xl px-3.5 py-2.5 text-white text-xs outline-none transition-all"
                             style={{
                               backgroundColor: '#070514',
-                              border: '1px solid rgba(255, 255, 255, 0.15)',
+                              border: '1px solid rgba(0, 240, 255, 0.25)',
                             }}
                           />
                         </div>
@@ -3060,7 +3303,7 @@ export default function AdminPortal({ initialTab }) {
                           className="flex items-center justify-between p-3.5 rounded-xl"
                           style={{
                             backgroundColor: '#070514',
-                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            border: '1px solid rgba(0, 240, 255, 0.2)',
                           }}
                         >
                           <div>
@@ -3091,7 +3334,7 @@ export default function AdminPortal({ initialTab }) {
                           </button>
                         </div>
 
-                        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-white/10">
+                        <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#00F0FF]/15">
                           <button
                             type="button"
                             onClick={() => setEditingGame(null)}
@@ -3104,9 +3347,9 @@ export default function AdminPortal({ initialTab }) {
                             disabled={isSavingGame}
                             className="py-2.5 px-6 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
                             style={{
-                              background: 'linear-gradient(135deg, #00F0FF 0%, #00d0e8 40%, #E026D8 100%)',
+                              backgroundColor: '#00F0FF',
                               color: '#070514',
-                              boxShadow: '0 0 25px rgba(0, 240, 255, 0.45)',
+                              boxShadow: '0 0 20px rgba(0, 240, 255, 0.35)',
                               border: 'none',
                             }}
                           >
@@ -3243,25 +3486,92 @@ export default function AdminPortal({ initialTab }) {
 
           {/* TAB 4: PLAYERS LEDGER */}
           {activeTab === 'ledger' && (
-            <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h2 className="text-2xl font-black text-white">Immutable Players Ledger</h2>
-                  <p className="text-xs text-gray-400">Complete double-entry audit trail of all coin transactions</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', fontFamily: 'Lexend, -apple-system, sans-serif', width: '100%' }}>
+              <div
+                className="relative overflow-hidden"
+                style={{
+                  backgroundColor: '#0C0A1E',
+                  border: '1px solid rgba(0, 240, 255, 0.22)',
+                  borderRadius: '24px',
+                  padding: '24px 28px',
+                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '24px',
+                }}
+              >
+                <div className="absolute -top-24 -right-24 w-72 h-72 bg-[#00F0FF]/10 rounded-full blur-3xl pointer-events-none" />
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '20px',
+                    position: 'relative',
+                    zIndex: 10,
+                    flex: '1 1 auto',
+                    minWidth: '280px',
+                  }}
+                >
+                  <div
+                    className="shrink-0"
+                    style={{
+                      width: '56px',
+                      height: '56px',
+                      minWidth: '56px',
+                      padding: '14px',
+                      background: 'rgba(0, 240, 255, 0.1)',
+                      border: '1.5px solid rgba(0, 240, 255, 0.35)',
+                      color: '#00F0FF',
+                      boxShadow: '0 0 20px rgba(0, 240, 255, 0.15)',
+                      borderRadius: '16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <BookOpen className="w-full h-full text-[#00F0FF]" />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <h2 className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-cyan-300 tracking-tight m-0" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                        Immutable Players Ledger
+                      </h2>
+                      <span
+                        style={{
+                          fontSize: '10px',
+                          padding: '3px 12px',
+                          borderRadius: '9999px',
+                          fontWeight: 800,
+                          letterSpacing: '0.04em',
+                          whiteSpace: 'nowrap',
+                          backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                          border: '1px solid rgba(168, 85, 247, 0.3)',
+                          color: '#D8B4FE',
+                        }}
+                      >
+                        AUDITED DOUBLE-ENTRY
+                      </span>
+                    </div>
+                    <p className="text-xs sm:text-[13px] text-[#9A91A8] mt-1 m-0 leading-relaxed" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                      Complete double-entry audit trail of all coin transactions, bets, wins, and administrative adjustments
+                    </p>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2 sm:gap-3 flex-wrap w-full sm:w-auto">
+                <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap relative z-10 shrink-0">
                   <input
                     type="text"
                     placeholder="Filter username..."
                     value={ledgerFilterUser}
                     onChange={(e) => setLedgerFilterUser(e.target.value)}
-                    className="py-1.5 px-3 text-xs w-full xs:max-w-[180px] bg-[#070514] border border-white/10 rounded-xl text-white"
+                    className="py-2.5 px-3.5 text-xs bg-[#070514] border border-cyan-500/25 focus:border-[#00F0FF] rounded-xl text-white outline-none transition"
                   />
                   <select
                     value={ledgerFilterType}
                     onChange={(e) => setLedgerFilterType(e.target.value)}
-                    className="py-1.5 px-3 text-xs w-full xs:max-w-[160px] bg-[#070514] border border-white/10 rounded-xl text-white"
+                    className="py-2.5 px-3.5 text-xs bg-[#070514] border border-cyan-500/25 focus:border-[#00F0FF] rounded-xl text-white outline-none cursor-pointer transition"
                   >
                     <option value="all">All Types</option>
                     <option value="deposit">Deposits</option>
@@ -3275,9 +3585,9 @@ export default function AdminPortal({ initialTab }) {
                   </select>
                   <a
                     href={`/api/ledger?format=csv&username=${encodeURIComponent(ledgerFilterUser)}&type=${ledgerFilterType}`}
-                    className="btn-gold py-2 px-3 text-xs font-bold flex items-center gap-1.5 w-full xs:w-auto justify-center"
+                    className="px-4 py-2.5 rounded-xl bg-[#00F0FF] hover:bg-[#38bdf8] text-[#070514] font-black text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(0,240,255,0.35)] flex items-center gap-1.5 transition cursor-pointer"
                   >
-                    <Download size={14} />
+                    <Download size={14} className="stroke-[2.5]" />
                     <span>Export CSV</span>
                   </a>
                 </div>
@@ -3421,14 +3731,33 @@ export default function AdminPortal({ initialTab }) {
                 style={{ fontFamily: 'Lexend, -apple-system, sans-serif' }}
               >
                 {/* Top Luxury Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/10 shrink-0">
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-cyan-500/25 via-purple-600/30 to-amber-500/20 border border-cyan-400/40 flex items-center justify-center text-cyan-300 shadow-[0_0_20px_rgba(0,240,255,0.2)]">
-                      <Headphones size={22} />
+                <div
+                  className="p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0 shadow-[0_15px_30px_rgba(0,0,0,0.4)] relative overflow-hidden"
+                  style={{
+                    backgroundColor: '#0C0A1E',
+                    border: '1px solid rgba(0, 240, 255, 0.22)',
+                  }}
+                >
+                  <div className="absolute -top-24 -right-24 w-72 h-72 bg-[#00F0FF]/10 rounded-full blur-3xl pointer-events-none" />
+                  <div className="flex items-center gap-4 sm:gap-5 relative z-10">
+                    <div
+                      className="rounded-2xl flex items-center justify-center shrink-0"
+                      style={{
+                        width: '56px',
+                        height: '56px',
+                        minWidth: '56px',
+                        padding: '14px',
+                        background: 'rgba(0, 240, 255, 0.1)',
+                        border: '1.5px solid rgba(0, 240, 255, 0.35)',
+                        color: '#00F0FF',
+                        boxShadow: '0 0 20px rgba(0, 240, 255, 0.15)',
+                      }}
+                    >
+                      <Headphones className="w-full h-full text-[#00F0FF]" />
                     </div>
                     <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h2 className="text-xl sm:text-2xl font-black text-white tracking-wide">
+                      <div className="flex items-center gap-2.5 flex-wrap">
+                        <h2 className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-cyan-300 tracking-wide m-0" style={{ fontFamily: 'Lexend, sans-serif' }}>
                           Live Support Concierge
                         </h2>
                         <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-black uppercase tracking-wider">
@@ -3436,13 +3765,13 @@ export default function AdminPortal({ initialTab }) {
                           Live Socket Desk
                         </span>
                       </div>
-                      <p className="text-xs text-gray-400">
-                        24/7 Real-Time VIP Player Inquiries & Hospitality Assistance
+                      <p className="text-xs text-[#9A91A8] mt-1 m-0">
+                        24/7 Real-Time VIP Player Inquiries &amp; Hospitality Assistance
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-2.5 flex-wrap relative z-10 shrink-0">
                     <div className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center gap-2 text-xs font-bold text-amber-300">
                       <ShieldCheck size={14} className="text-amber-400" />
                       <span>Strict Compliance: Immutable Chat Audit</span>
@@ -3462,62 +3791,96 @@ export default function AdminPortal({ initialTab }) {
                           });
                         }
                       }}
-                      className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white flex items-center gap-1.5 text-xs font-bold transition"
+                      className="px-4 py-2 rounded-xl bg-[#00F0FF] hover:bg-[#38bdf8] text-[#070514] font-black text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(0,240,255,0.35)] flex items-center gap-1.5 transition cursor-pointer"
                       title="Refresh Inbox"
                     >
-                      <RefreshCw size={13} />
+                      <RefreshCw size={13} className="stroke-[2.5]" />
                       <span>Refresh</span>
                     </button>
                   </div>
                 </div>
 
                 {/* Main Chat Workspace */}
-                <div className="flex-1 min-h-0 flex flex-col md:flex-row gap-3 overflow-hidden relative">
+                <div className="flex-1 min-h-0 flex flex-col md:flex-row gap-4 overflow-hidden relative">
                   {/* Left: Active Inquiries List */}
-                  <div className={`${activeChatConv ? 'hidden md:flex' : 'flex'} w-full md:w-80 lg:w-96 h-full bg-gradient-to-b from-[#0f0c29]/90 to-[#070518]/90 border border-white/10 rounded-2xl flex-col overflow-hidden shadow-2xl backdrop-blur-xl shrink-0`}>
+                  <div
+                    className={`${activeChatConv ? 'hidden md:flex' : 'flex'} w-full md:w-80 lg:w-96 h-full rounded-2xl flex-col overflow-hidden shrink-0 shadow-[0_20px_40px_rgba(0,0,0,0.4)] relative backdrop-blur-xl`}
+                    style={{
+                      backgroundColor: '#0C0A1E',
+                      border: '1px solid rgba(0, 240, 255, 0.22)',
+                    }}
+                  >
+                    <div className="absolute -top-16 -left-16 w-48 h-48 bg-[#00F0FF]/10 rounded-full blur-3xl pointer-events-none" />
+
                     {/* Inbox Header & Search */}
-                    <div className="p-3.5 border-b border-white/10 space-y-3 bg-[#0a071c]/70">
+                    <div
+                      className="p-4 border-b space-y-3 relative z-10 shrink-0"
+                      style={{
+                        backgroundColor: '#070514',
+                        borderColor: 'rgba(0, 240, 255, 0.15)',
+                      }}
+                    >
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <MessageSquare size={15} className="text-cyan-400" />
-                          <span className="text-xs font-black uppercase tracking-wider text-white">
+                        <div className="flex items-center gap-2.5">
+                          <MessageSquare size={16} className="text-[#00F0FF]" />
+                          <span className="text-xs font-black uppercase tracking-wider text-white" style={{ fontFamily: 'Lexend, sans-serif' }}>
                             Active Inquiries
                           </span>
                         </div>
-                        <span className="text-[11px] font-black px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                        <span className="text-[11px] font-black px-2.5 py-0.5 rounded-full bg-[#00F0FF]/15 text-[#00F0FF] border border-[#00F0FF]/30">
                           {chatConversations.length} Open
                         </span>
                       </div>
 
                       {/* Search Bar */}
-                      <div className="relative">
-                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          backgroundColor: '#0C0A1E',
+                          border: '1px solid rgba(0, 240, 255, 0.25)',
+                          borderRadius: '12px',
+                          padding: '10px 14px',
+                          width: '100%',
+                        }}
+                      >
+                        <Search size={15} className="text-[#00F0FF] shrink-0" style={{ opacity: 0.8 }} />
                         <input
                           type="text"
                           value={chatSearchQuery}
                           onChange={(e) => setChatSearchQuery(e.target.value)}
                           placeholder="Search player or keyword..."
-                          className="w-full bg-[#141033] border border-white/10 rounded-xl pl-9 pr-8 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400/80 transition"
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            outline: 'none',
+                            color: '#FFFFFF',
+                            fontSize: '12px',
+                            width: '100%',
+                            fontFamily: 'Lexend, sans-serif',
+                          }}
                         />
                         {chatSearchQuery && (
                           <button
                             type="button"
                             onClick={() => setChatSearchQuery('')}
-                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white text-xs"
+                            className="text-gray-400 hover:text-white cursor-pointer shrink-0"
+                            style={{ background: 'transparent', border: 'none', padding: 0 }}
                           >
-                            <X size={13} />
+                            <X size={14} />
                           </button>
                         )}
                       </div>
 
                       {/* Filter Tabs */}
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-2">
                         <button
                           type="button"
                           onClick={() => setChatFilterTab('all')}
-                          className={`flex-1 py-1.5 px-2 rounded-lg text-[11px] font-bold text-center transition ${chatFilterTab === 'all'
-                            ? 'bg-cyan-500/25 text-cyan-300 border border-cyan-400/50 shadow-sm'
-                            : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
+                          className={`flex-1 py-1.5 px-3 rounded-lg text-[11px] font-black uppercase tracking-wider text-center transition cursor-pointer ${chatFilterTab === 'all'
+                            ? 'bg-[#00F0FF]/20 text-[#00F0FF] border border-[#00F0FF]/40 shadow-[0_0_12px_rgba(0,240,255,0.2)]'
+                            : 'bg-[#0C0A1E] text-gray-400 hover:text-white border border-white/5'
                             }`}
                         >
                           All ({chatConversations.length})
@@ -3525,9 +3888,9 @@ export default function AdminPortal({ initialTab }) {
                         <button
                           type="button"
                           onClick={() => setChatFilterTab('unread')}
-                          className={`flex-1 py-1.5 px-2 rounded-lg text-[11px] font-bold text-center transition flex items-center justify-center gap-1.5 ${chatFilterTab === 'unread'
-                            ? 'bg-red-500/25 text-red-300 border border-red-400/50 shadow-sm'
-                            : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
+                          className={`flex-1 py-1.5 px-3 rounded-lg text-[11px] font-black uppercase tracking-wider text-center transition flex items-center justify-center gap-1.5 cursor-pointer ${chatFilterTab === 'unread'
+                            ? 'bg-red-500/25 text-red-300 border border-red-400/50 shadow-[0_0_12px_rgba(239,68,68,0.2)]'
+                            : 'bg-[#0C0A1E] text-gray-400 hover:text-white border border-white/5'
                             }`}
                         >
                           <span>Unread</span>
@@ -3541,7 +3904,7 @@ export default function AdminPortal({ initialTab }) {
                     </div>
 
                     {/* List of Conversations */}
-                    <div className="flex-1 overflow-y-auto p-2 space-y-1.5 divide-y divide-white/[0.04]">
+                    <div className="flex-1 overflow-y-auto p-3 space-y-2 relative z-10">
                       {filteredChatConvs.length === 0 ? (
                         <div className="p-8 text-center flex flex-col items-center justify-center text-gray-500">
                           <MessageSquare size={32} className="text-gray-600 mb-2" />
@@ -3558,43 +3921,45 @@ export default function AdminPortal({ initialTab }) {
                             <div
                               key={c._id}
                               onClick={() => setActiveChatConv(c)}
-                              className={`p-3 rounded-xl cursor-pointer transition-all duration-200 border ${isSelected
-                                ? 'bg-gradient-to-r from-cyan-950/60 via-[#191444] to-[#120f35] border-cyan-400/60 shadow-[0_0_15px_rgba(0,240,255,0.15)] ring-1 ring-cyan-400/30'
+                              className={`p-3 rounded-xl cursor-pointer transition-all duration-200 border overflow-hidden w-full ${isSelected
+                                ? 'bg-gradient-to-r from-cyan-950/70 via-[#130E33] to-[#0C0A1E] border-cyan-400/60 shadow-[0_0_20px_rgba(0,240,255,0.18)] ring-1 ring-cyan-400/40'
                                 : hasUnread
-                                  ? 'bg-[#1b123d]/70 hover:bg-[#22174d] border-red-500/30'
-                                  : 'bg-white/[0.02] hover:bg-white/[0.06] border-transparent'
+                                  ? 'bg-[#170E2C] hover:bg-[#20133E] border-red-500/35 shadow-[0_0_12px_rgba(239,68,68,0.15)]'
+                                  : 'bg-[#070514] hover:bg-[#0E0B24] border-cyan-500/15 hover:border-cyan-500/40'
                                 }`}
                             >
-                              <div className="flex items-start gap-3">
+                              <div className="flex items-start gap-3 w-full min-w-0 overflow-hidden">
                                 {/* Avatar */}
                                 <div className="relative shrink-0">
-                                  <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600/40 via-cyan-500/20 to-amber-500/20 border border-white/20 flex items-center justify-center text-white font-black text-sm uppercase shadow-sm">
+                                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 via-[#140D33] to-purple-600/30 border border-cyan-400/35 flex items-center justify-center text-[#00F0FF] font-black text-sm uppercase shadow-[0_0_12px_rgba(0,240,255,0.15)]">
                                     {c.username ? c.username.charAt(0) : 'P'}
                                   </div>
-                                  <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-[#0e0a24]" />
+                                  <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-[#070514] shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
                                 </div>
 
                                 {/* Info */}
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center justify-between gap-1 mb-1">
-                                    <span className={`text-xs font-black truncate ${isSelected ? 'text-cyan-300' : 'text-white'}`}>
+                                <div className="flex-1 min-w-0 overflow-hidden pr-1">
+                                  <div className="flex items-center justify-between gap-1 mb-1 w-full min-w-0">
+                                    <span className={`text-xs font-black truncate block min-w-0 ${isSelected ? 'text-[#00F0FF]' : 'text-white'}`}>
                                       {c.username || 'Anonymous'}
                                     </span>
-                                    <span className="text-[10px] text-gray-500 shrink-0 font-medium">
+                                    <span className="text-[10px] text-gray-500 shrink-0 font-medium pl-1">
                                       {formatChatTime(c.updatedAt)}
                                     </span>
                                   </div>
-                                  <p className="text-[11px] text-gray-400 truncate leading-tight">
-                                    {c.lastSenderRole === 'staff' ? (
-                                      <span className="text-cyan-400 font-semibold">You: </span>
-                                    ) : null}
-                                    {c.lastMessage || 'Active inquiry'}
-                                  </p>
+                                  <div className="w-full min-w-0 overflow-hidden">
+                                    <p className="text-[11px] text-gray-400 truncate leading-tight block w-full m-0 overflow-hidden text-ellipsis whitespace-nowrap">
+                                      {c.lastSenderRole === 'staff' && (
+                                        <span className="text-[#00F0FF] font-bold inline">You: </span>
+                                      )}
+                                      <span>{c.lastMessage || 'Active inquiry'}</span>
+                                    </p>
+                                  </div>
                                 </div>
 
                                 {/* Unread Pill */}
                                 {hasUnread && (
-                                  <span className="shrink-0 px-1.5 py-0.5 rounded-full bg-red-500 text-white font-black text-[9px] shadow-sm animate-pulse">
+                                  <span className="shrink-0 px-2 py-0.5 rounded-full bg-red-500 text-white font-black text-[9px] shadow-[0_0_10px_rgba(239,68,68,0.5)] animate-pulse ml-0.5 self-center">
                                     {c.unreadCount}
                                   </span>
                                 )}
@@ -3607,55 +3972,140 @@ export default function AdminPortal({ initialTab }) {
                   </div>
 
                   {/* Right: Active Chat View OR Concierge Welcome Hub */}
-                  <div className={`${activeChatConv ? 'flex' : 'hidden md:flex'} flex-1 h-full min-h-0 bg-gradient-to-b from-[#0f0c29]/95 to-[#070518]/95 border border-white/10 rounded-2xl flex-col overflow-hidden shadow-2xl backdrop-blur-xl relative`}>
+                  <div
+                    className={`${activeChatConv ? 'flex' : 'hidden md:flex'} flex-1 h-full min-h-0 rounded-2xl flex-col overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.4)] relative backdrop-blur-xl`}
+                    style={{
+                      backgroundColor: '#0C0A1E',
+                      border: '1px solid rgba(0, 240, 255, 0.22)',
+                    }}
+                  >
                     {activeChatConv ? (
                       <>
                         {/* Active Chat Header */}
-                        <div className="p-3.5 bg-[#0a071c]/90 border-b border-white/10 flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-3 min-w-0">
+                        <div
+                          style={{
+                            padding: '14px 20px',
+                            background: '#070514',
+                            borderBottom: '1px solid rgba(0, 240, 255, 0.2)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '12px',
+                            flexShrink: 0,
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
                             {/* Mobile Back Button */}
                             <button
                               type="button"
                               onClick={() => setActiveChatConv(null)}
-                              className="md:hidden px-2.5 py-1.5 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/25 flex items-center gap-1 text-xs font-bold transition shrink-0"
+                              className="md:hidden"
+                              style={{
+                                padding: '6px 12px',
+                                borderRadius: '10px',
+                                background: 'rgba(0, 240, 255, 0.15)',
+                                border: '1px solid rgba(0, 240, 255, 0.35)',
+                                color: '#00F0FF',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                fontSize: '11px',
+                                fontWeight: 800,
+                                cursor: 'pointer',
+                                flexShrink: 0,
+                              }}
                             >
                               <ArrowLeft size={14} />
-                              <span>Back</span>
+                              <span>Inquiries</span>
                             </button>
 
-                            <div className="relative shrink-0">
-                              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500/30 to-purple-600/30 border border-cyan-400/40 flex items-center justify-center text-white font-black text-sm uppercase">
+                            <div style={{ position: 'relative', flexShrink: 0 }}>
+                              <div
+                                style={{
+                                  width: '42px',
+                                  height: '42px',
+                                  borderRadius: '12px',
+                                  background: 'rgba(0, 240, 255, 0.1)',
+                                  border: '1.5px solid rgba(0, 240, 255, 0.35)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  color: '#00F0FF',
+                                  fontWeight: 900,
+                                  fontSize: '15px',
+                                  textTransform: 'uppercase',
+                                  boxShadow: '0 0 16px rgba(0, 240, 255, 0.2)',
+                                }}
+                              >
                                 {activeChatConv.username ? activeChatConv.username.charAt(0) : 'P'}
                               </div>
-                              <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-[#0e0a24]" />
+                              <span
+                                style={{
+                                  position: 'absolute',
+                                  bottom: -2,
+                                  right: -2,
+                                  width: '12px',
+                                  height: '12px',
+                                  borderRadius: '50%',
+                                  backgroundColor: '#10B981',
+                                  border: '2px solid #070514',
+                                }}
+                              />
                             </div>
 
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-2">
-                                <p className="font-black text-white text-sm truncate">
-                                  {activeChatConv.username}
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <p style={{ margin: 0, fontWeight: 900, color: '#FFFFFF', fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontFamily: 'Lexend, sans-serif' }}>
+                                  {activeChatConv.username || 'VIP Player'}
                                 </p>
-                                <span className="px-2 py-0.5 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold">
-                                  Online
+                                <span
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                    padding: '2px 8px',
+                                    borderRadius: '6px',
+                                    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                                    border: '1px solid rgba(16, 185, 129, 0.35)',
+                                    color: '#34D399',
+                                    fontSize: '10px',
+                                    fontWeight: 800,
+                                  }}
+                                >
+                                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10B981' }} />
+                                  <span>Active Player</span>
                                 </span>
                               </div>
-                              <p className="text-[10px] text-gray-400 font-mono truncate">
-                                Player ID: {activeChatConv.userId}
+                              <p style={{ margin: '2px 0 0 0', fontSize: '10.5px', color: '#94A3B8', fontFamily: 'monospace', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                ID: {activeChatConv.userId}
                               </p>
                             </div>
                           </div>
 
                           {/* Action Buttons in Header */}
-                          <div className="flex items-center gap-2 shrink-0">
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                             {activeChatConv.userId && (
                               <button
                                 type="button"
                                 onClick={() => setSelectedPlayerId(activeChatConv.userId)}
-                                className="px-3 py-1.5 rounded-xl bg-purple-500/15 border border-purple-500/35 text-purple-300 hover:bg-purple-500/25 flex items-center gap-1.5 text-xs font-bold transition shadow-sm"
+                                style={{
+                                  padding: '7px 14px',
+                                  borderRadius: '10px',
+                                  background: 'rgba(0, 240, 255, 0.12)',
+                                  border: '1px solid rgba(0, 240, 255, 0.35)',
+                                  color: '#00F0FF',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '6px',
+                                  fontSize: '11px',
+                                  fontWeight: 800,
+                                  cursor: 'pointer',
+                                  transition: 'all 0.2s',
+                                }}
                                 title="Open Player Profile"
                               >
                                 <User size={13} />
-                                <span className="hidden sm:inline">Player Profile</span>
+                                <span className="hidden sm:inline">Profile</span>
                               </button>
                             )}
                             <button
@@ -3670,7 +4120,17 @@ export default function AdminPortal({ initialTab }) {
                                   }
                                 });
                               }}
-                              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white transition"
+                              style={{
+                                padding: '8px',
+                                borderRadius: '10px',
+                                background: 'rgba(255, 255, 255, 0.04)',
+                                border: '1px solid rgba(0, 240, 255, 0.2)',
+                                color: '#CBD5E1',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                              }}
                               title="Refresh Chat"
                             >
                               <RefreshCw size={14} />
@@ -3678,7 +4138,17 @@ export default function AdminPortal({ initialTab }) {
                             <button
                               type="button"
                               onClick={() => setActiveChatConv(null)}
-                              className="p-2 rounded-xl bg-white/5 hover:bg-red-500/20 hover:text-red-300 border border-white/10 text-gray-400 transition hidden md:block"
+                              className="hidden md:flex"
+                              style={{
+                                padding: '8px',
+                                borderRadius: '10px',
+                                background: 'rgba(255, 255, 255, 0.04)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                color: '#94A3B8',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                              }}
                               title="Close Chat"
                             >
                               <X size={14} />
@@ -3687,20 +4157,42 @@ export default function AdminPortal({ initialTab }) {
                         </div>
 
                         {/* Chat Messages Stream */}
-                        <div className="flex-1 p-4 overflow-y-auto space-y-3.5 bg-[#070518]/60">
+                        <div
+                          style={{
+                            flex: 1,
+                            padding: '18px 20px',
+                            overflowY: 'auto',
+                            backgroundColor: '#070514',
+                            display: 'flex',
+                            flexDirection: 'column',
+                          }}
+                        >
                           {/* Session Notice */}
-                          <div className="flex items-center justify-center my-1">
-                            <span className="px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-[10px] text-gray-400 font-medium flex items-center gap-1.5">
-                              <ShieldCheck size={12} className="text-cyan-400" />
-                              Immutable Vegas One Support Session
+                          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+                            <span
+                              style={{
+                                padding: '4px 14px',
+                                borderRadius: '9999px',
+                                backgroundColor: '#0C0A1E',
+                                border: '1px solid rgba(0, 240, 255, 0.2)',
+                                fontSize: '10px',
+                                color: '#94A3B8',
+                                fontWeight: 700,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                              }}
+                            >
+                              <ShieldCheck size={12} color="#00F0FF" />
+                              <span>Immutable Vegas One Support Session</span>
                             </span>
                           </div>
 
                           {chatMessages.length === 0 ? (
-                            <div className="h-full flex flex-col items-center justify-center text-gray-500 text-xs text-center py-12">
-                              <MessageSquare size={32} className="text-gray-600 mb-2" />
-                              <p className="font-bold text-gray-400">No messages in this inquiry yet.</p>
-                              <p className="text-[11px] text-gray-600 mt-1">
+                            <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#64748B', fontSize: '13px', textAlign: 'center', padding: '30px' }}>
+                              <MessageSquare size={36} color="#00F0FF" style={{ opacity: 0.4, marginBottom: '8px' }} />
+                              <p style={{ margin: 0, fontWeight: 800, color: '#E2E8F0' }}>No messages in this inquiry yet.</p>
+                              <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#64748B' }}>
                                 Send a message or choose a quick response below.
                               </p>
                             </div>
@@ -3712,61 +4204,96 @@ export default function AdminPortal({ initialTab }) {
                                 Boolean(m.staffName) ||
                                 String(m.id).startsWith('temp_');
 
+                              const prevMsg = idx > 0 ? chatMessages[idx - 1] : null;
+                              const prevIsStaff = prevMsg
+                                ? prevMsg.senderRole === 'staff' || prevMsg.role === 'staff' || Boolean(prevMsg.staffName) || String(prevMsg.id).startsWith('temp_')
+                                : null;
+                              const isFirstInCluster = prevIsStaff !== isStaff;
+
                               return (
                                 <div
                                   key={m.id || idx}
-                                  className={`flex flex-col ${isStaff ? 'items-end' : 'items-start'} mb-1`}
+                                  style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: isStaff ? 'flex-end' : 'flex-start',
+                                    width: '100%',
+                                    marginTop: isFirstInCluster ? (idx === 0 ? '0px' : '12px') : '3px',
+                                  }}
                                 >
                                   {/* Identity Label */}
-                                  <div
-                                    className={`flex items-center gap-1.5 mb-1 px-1 text-[10px] font-black uppercase tracking-wider ${
-                                      isStaff ? 'text-cyan-400' : 'text-purple-400'
-                                    }`}
-                                  >
-                                    {isStaff ? (
-                                      <>
-                                        <ShieldCheck size={11} className="text-cyan-400" />
-                                        <span>{m.staffName || user?.username || 'You (Support)'}</span>
-                                      </>
-                                    ) : (
-                                      <>
-                                        <User size={11} className="text-purple-400" />
-                                        <span>{m.username || activeChatConv?.username || 'Player'}</span>
-                                      </>
-                                    )}
-                                  </div>
-
-                                  <div className={`flex items-start gap-2 max-w-[85%] sm:max-w-[75%] ${isStaff ? 'flex-row-reverse' : 'flex-row'}`}>
-                                    {/* Avatar icon */}
-                                    <div className="w-7 h-7 rounded-lg shrink-0 flex items-center justify-center text-[10px] font-black uppercase mt-0.5 border shadow-sm">
+                                  {isFirstInCluster && (
+                                    <div
+                                      style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        marginBottom: '3px',
+                                        padding: '0 4px',
+                                        fontSize: '10px',
+                                        fontWeight: 800,
+                                        letterSpacing: '0.04em',
+                                        color: isStaff ? '#00F0FF' : '#E026D8',
+                                      }}
+                                    >
                                       {isStaff ? (
-                                        <div className="w-full h-full rounded-lg bg-gradient-to-tr from-cyan-400 to-cyan-600 text-black flex items-center justify-center font-black">
-                                          V1
-                                        </div>
+                                        <>
+                                          <ShieldCheck size={11} color="#00F0FF" />
+                                          <span>{m.staffName || user?.username || 'You (Support)'}</span>
+                                        </>
                                       ) : (
-                                        <div className="w-full h-full rounded-lg bg-gradient-to-tr from-purple-600/50 to-pink-600/40 text-purple-200 border border-white/20 flex items-center justify-center font-black">
-                                          {m.username ? m.username.charAt(0) : activeChatConv?.username ? activeChatConv.username.charAt(0) : 'P'}
-                                        </div>
+                                        <>
+                                          <User size={11} color="#E026D8" />
+                                          <span>{m.username || activeChatConv?.username || 'Player'}</span>
+                                        </>
                                       )}
                                     </div>
+                                  )}
 
-                                    {/* Bubble */}
-                                    <div>
-                                      <div className={`px-4 py-2.5 rounded-2xl text-xs leading-relaxed shadow-lg ${isStaff
-                                        ? 'bg-gradient-to-r from-cyan-500 to-cyan-400 text-slate-950 font-bold rounded-tr-none shadow-[0_4px_15px_rgba(0,240,255,0.25)]'
-                                        : 'bg-[#181238] text-gray-100 border border-white/10 rounded-tl-none shadow-md'
-                                        }`}>
-                                        {m.text}
-                                      </div>
-                                      <div className={`flex items-center gap-1.5 mt-1 text-[10px] text-gray-500 font-mono ${isStaff ? 'justify-end' : 'justify-start'}`}>
-                                        <span>{new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                        {isStaff && (
-                                          <span className="text-cyan-400 font-bold flex items-center gap-0.5">
-                                            <CheckCheck size={12} />
-                                          </span>
-                                        )}
-                                      </div>
-                                    </div>
+                                  {/* Message Bubble */}
+                                  <div
+                                    style={{
+                                      maxWidth: '75%',
+                                      borderRadius: '16px',
+                                      borderBottomRightRadius: isStaff ? '3px' : '16px',
+                                      borderBottomLeftRadius: isStaff ? '16px' : '3px',
+                                      padding: '10px 16px',
+                                      fontSize: '13px',
+                                      lineHeight: 1.45,
+                                      color: isStaff ? '#070514' : '#FFFFFF',
+                                      fontWeight: isStaff ? 800 : 500,
+                                      border: isStaff ? 'none' : '1px solid rgba(0, 240, 255, 0.25)',
+                                      background: isStaff
+                                        ? 'linear-gradient(135deg, #00F0FF 0%, #00B4D8 100%)'
+                                        : '#0C0A1E',
+                                      boxShadow: isStaff
+                                        ? '0 4px 18px rgba(0, 240, 255, 0.35)'
+                                        : '0 6px 20px rgba(0, 0, 0, 0.5)',
+                                      wordBreak: 'break-word',
+                                    }}
+                                  >
+                                    {m.text}
+                                  </div>
+
+                                  {/* Timestamp */}
+                                  <div
+                                    style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '4px',
+                                      marginTop: '3px',
+                                      padding: '0 4px',
+                                      fontSize: '9.5px',
+                                      color: '#64748B',
+                                      fontFamily: 'monospace',
+                                    }}
+                                  >
+                                    <span>{new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                    {isStaff && (
+                                      <span style={{ color: '#00F0FF', display: 'flex', alignItems: 'center' }}>
+                                        <CheckCheck size={12} />
+                                      </span>
+                                    )}
                                   </div>
                                 </div>
                               );
@@ -3776,16 +4303,53 @@ export default function AdminPortal({ initialTab }) {
                         </div>
 
                         {/* Canned Quick Replies */}
-                        <div className="px-3.5 py-2 bg-[#09071c] border-t border-white/5 overflow-x-auto flex items-center gap-2 no-scrollbar">
-                          <span className="text-[10px] font-black uppercase text-gray-400 shrink-0 flex items-center gap-1">
-                            <Sparkles size={11} className="text-amber-400" /> Quick Replies:
+                        <div
+                          style={{
+                            padding: '10px 18px',
+                            backgroundColor: '#0A071E',
+                            borderTop: '1px solid rgba(0, 240, 255, 0.15)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            overflowX: 'auto',
+                            flexShrink: 0,
+                          }}
+                          className="no-scrollbar"
+                        >
+                          <span
+                            style={{
+                              fontSize: '10px',
+                              fontWeight: 900,
+                              color: '#94A3B8',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.05em',
+                              flexShrink: 0,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                            }}
+                          >
+                            <Sparkles size={11} color="#00F0FF" /> Quick Replies:
                           </span>
                           {cannedReplies.map((reply, idx) => (
                             <button
                               key={idx}
                               type="button"
                               onClick={() => handleSendChatMessage(null, reply)}
-                              className="shrink-0 px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-cyan-500/20 border border-white/10 hover:border-cyan-400/40 text-gray-300 hover:text-cyan-200 text-[11px] font-medium transition active:scale-95"
+                              style={{
+                                flexShrink: 0,
+                                padding: '6px 13px',
+                                borderRadius: '10px',
+                                backgroundColor: '#070514',
+                                border: '1px solid rgba(0, 240, 255, 0.22)',
+                                color: '#CBD5E1',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                whiteSpace: 'nowrap',
+                                transition: 'all 0.2s',
+                              }}
+                              className="hover:border-[#00F0FF] hover:text-[#00F0FF]"
                             >
                               {reply}
                             </button>
@@ -3796,9 +4360,15 @@ export default function AdminPortal({ initialTab }) {
                         <form
                           onSubmit={handleSendChatMessage}
                           style={{
-                            paddingBottom: adminChatKeyboardOffset > 0 ? `${adminChatKeyboardOffset + 10}px` : undefined,
+                            padding: '14px 18px',
+                            paddingBottom: adminChatKeyboardOffset > 0 ? `${adminChatKeyboardOffset + 14}px` : '14px',
+                            backgroundColor: '#0C0A1E',
+                            borderTop: '1px solid rgba(0, 240, 255, 0.22)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            flexShrink: 0,
                           }}
-                          className="p-3 bg-[#0a071c] border-t border-white/10 flex items-center gap-2 transition-all duration-150"
                         >
                           <input
                             ref={adminChatInputRef}
@@ -3806,53 +4376,116 @@ export default function AdminPortal({ initialTab }) {
                             placeholder={`Reply to ${activeChatConv.username}...`}
                             value={chatReplyText}
                             onChange={(e) => setChatReplyText(e.target.value)}
-                            className="flex-1 py-2.5 px-4 text-xs bg-[#141033] border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400/80 transition"
+                            style={{
+                              flex: 1,
+                              padding: '11px 18px',
+                              fontSize: '12.5px',
+                              borderRadius: '12px',
+                              color: '#FFFFFF',
+                              backgroundColor: '#070514',
+                              border: '1.5px solid rgba(0, 240, 255, 0.3)',
+                              outline: 'none',
+                              fontFamily: 'Lexend, sans-serif',
+                            }}
+                            className="focus:border-[#00F0FF] transition"
                           />
                           <button
                             type="submit"
                             disabled={!chatReplyText.trim()}
-                            className="btn-gold py-2.5 px-5 text-xs font-black flex items-center gap-1.5 shadow-md disabled:opacity-50 transition cursor-pointer"
+                            style={{
+                              padding: '11px 22px',
+                              borderRadius: '12px',
+                              border: 'none',
+                              cursor: !chatReplyText.trim() ? 'not-allowed' : 'pointer',
+                              opacity: !chatReplyText.trim() ? 0.45 : 1,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '6px',
+                              background: '#00F0FF',
+                              color: '#070514',
+                              fontWeight: 900,
+                              fontSize: '12px',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.04em',
+                              boxShadow: '0 0 20px rgba(0, 240, 255, 0.35)',
+                              flexShrink: 0,
+                              transition: 'all 0.2s',
+                            }}
+                            className="hover:bg-[#38bdf8]"
                           >
-                            <Send size={13} />
+                            <Send size={14} color="#070514" className="stroke-[2.5]" />
                             <span>Send</span>
                           </button>
                         </form>
                       </>
                     ) : (
-                      /* Concierge Command Welcome Hub (replaces the empty void) */
+                      /* Concierge Command Welcome Hub (Coin Allotment Luxury Terminal) */
                       <div className="h-full flex flex-col items-center justify-center text-center p-8 relative overflow-hidden">
                         {/* Ambient background glows */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-                        <div className="absolute top-1/3 left-1/3 w-64 h-64 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] h-[420px] bg-[#00F0FF]/10 rounded-full blur-3xl pointer-events-none" />
 
                         <div className="relative z-10 max-w-md flex flex-col items-center">
-                          <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-cyan-500/25 via-purple-600/30 to-amber-500/20 border border-cyan-400/40 flex items-center justify-center shadow-[0_0_35px_rgba(0,240,255,0.25)] mb-5">
-                            <Headphones size={36} className="text-cyan-300" />
+                          <div
+                            className="rounded-2xl flex items-center justify-center shrink-0 mb-5"
+                            style={{
+                              width: '64px',
+                              height: '64px',
+                              minWidth: '64px',
+                              padding: '16px',
+                              background: 'rgba(0, 240, 255, 0.1)',
+                              border: '1.5px solid rgba(0, 240, 255, 0.35)',
+                              color: '#00F0FF',
+                              boxShadow: '0 0 30px rgba(0, 240, 255, 0.25)',
+                            }}
+                          >
+                            <Headphones className="w-full h-full text-[#00F0FF]" />
                           </div>
 
-                          <h3 className="text-2xl font-black text-white tracking-wide mb-2">
+                          <h3
+                            className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-cyan-300 tracking-wide mb-2"
+                            style={{ fontFamily: 'Lexend, sans-serif' }}
+                          >
                             Vegas One Concierge Terminal
                           </h3>
-                          <p className="text-xs text-gray-400 leading-relaxed mb-6">
+                          <p className="text-xs text-[#9A91A8] leading-relaxed mb-6 max-w-sm">
                             Select an active player inquiry from the left to start live messaging, review tickets, or view player 360° profiles.
                           </p>
 
                           {/* Quick KPI stats */}
                           <div className="grid grid-cols-3 gap-3 w-full mb-6">
-                            <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10">
-                              <p className="text-[10px] uppercase font-bold text-gray-400">Total Inquiries</p>
-                              <p className="text-lg font-black text-cyan-300 mt-0.5">{chatConversations.length}</p>
+                            <div
+                              className="p-3.5 rounded-xl text-center"
+                              style={{
+                                backgroundColor: '#070514',
+                                border: '1px solid rgba(0, 240, 255, 0.2)',
+                              }}
+                            >
+                              <p className="text-[10px] uppercase font-black tracking-wider text-gray-400">Total Inquiries</p>
+                              <p className="text-xl font-black text-[#00F0FF] mt-1 m-0">{chatConversations.length}</p>
                             </div>
-                            <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10">
-                              <p className="text-[10px] uppercase font-bold text-gray-400">Unread</p>
-                              <p className={`text-lg font-black mt-0.5 ${totalUnreadChat > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+                            <div
+                              className="p-3.5 rounded-xl text-center"
+                              style={{
+                                backgroundColor: '#070514',
+                                border: '1px solid rgba(0, 240, 255, 0.2)',
+                              }}
+                            >
+                              <p className="text-[10px] uppercase font-black tracking-wider text-gray-400">Unread</p>
+                              <p className={`text-xl font-black mt-1 m-0 ${totalUnreadChat > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
                                 {totalUnreadChat}
                               </p>
                             </div>
-                            <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10">
-                              <p className="text-[10px] uppercase font-bold text-gray-400">Policy</p>
-                              <p className="text-xs font-black text-amber-300 mt-1.5 flex items-center justify-center gap-1">
-                                <ShieldCheck size={12} /> Append-Only
+                            <div
+                              className="p-3.5 rounded-xl text-center"
+                              style={{
+                                backgroundColor: '#070514',
+                                border: '1px solid rgba(0, 240, 255, 0.2)',
+                              }}
+                            >
+                              <p className="text-[10px] uppercase font-black tracking-wider text-gray-400">Policy</p>
+                              <p className="text-xs font-black text-amber-300 mt-2 m-0 flex items-center justify-center gap-1">
+                                <ShieldCheck size={12} className="text-amber-400" /> Append-Only
                               </p>
                             </div>
                           </div>
@@ -3864,9 +4497,9 @@ export default function AdminPortal({ initialTab }) {
                                 const target = chatConversations.find(c => (c.unreadCount || 0) > 0) || chatConversations[0];
                                 setActiveChatConv(target);
                               }}
-                              className="btn-gold px-6 py-3 rounded-xl font-black text-xs flex items-center gap-2 shadow-[0_0_20px_rgba(255,184,0,0.3)] hover:scale-105 transition"
+                              className="px-6 py-3.5 rounded-xl bg-[#00F0FF] hover:bg-[#38bdf8] text-[#070514] font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-[0_0_25px_rgba(0,240,255,0.4)] hover:scale-[1.02] active:scale-[0.98] transition cursor-pointer"
                             >
-                              <MessageSquare size={15} />
+                              <MessageSquare size={15} className="stroke-[2.5]" />
                               <span>Open Latest Player Inquiry</span>
                             </button>
                           )}
@@ -3879,375 +4512,8 @@ export default function AdminPortal({ initialTab }) {
             );
           })()}
 
-          {/* TAB 9: PUSH NOTIFICATIONS & BROADCASTS */}
-          {activeTab === 'promos' && (() => {
-            const handleDispatchBroadcast = async (e) => {
-              e.preventDefault();
-              if (!pushTitle.trim() || !pushBody.trim()) {
-                alert('Please provide both headline and message body.');
-                return;
-              }
-
-              setIsDispatchingPush(true);
-              const channel = document.getElementById('promoChannel')?.value || 'all';
-              const segment = document.getElementById('promoSegment')?.value || 'all';
-              const actionUrl = document.getElementById('promoActionUrl')?.value || '/';
-
-              try {
-                const res = await fetch('/api/notifications', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    title: pushTitle,
-                    message: pushBody,
-                    channel,
-                    segment,
-                    url: actionUrl,
-                    target: segment === 'all' ? 'all' : 'active',
-                  }),
-                });
-                const d = await res.json();
-                if (d.success) {
-                  setPushStatus(`✓ Broadcast sent via [${channel.toUpperCase()}] to [${segment.toUpperCase()}]!`);
-                  setPushTitle('');
-                  setPushBody('');
-                  // Refresh logs
-                  const logsRes = await fetch('/api/notifications?admin=true').then(r => r.json());
-                  if (logsRes.success) setBroadcastLogs(logsRes.broadcasts || []);
-                  setTimeout(() => setPushStatus(null), 6000);
-                } else {
-                  alert(d.error || 'Failed to dispatch broadcast.');
-                }
-              } catch (err) {
-                alert(err.message || 'Error dispatching broadcast.');
-              } finally {
-                setIsDispatchingPush(false);
-              }
-            };
-
-            return (
-              <div className="space-y-6" style={{ fontFamily: 'Lexend, -apple-system, sans-serif' }}>
-                {/* Top Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-cyan-500/25 via-blue-600/30 to-purple-600/20 border border-cyan-400/40 flex items-center justify-center text-cyan-300 shadow-[0_0_20px_rgba(0,240,255,0.25)]">
-                      <Megaphone size={22} />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h2 className="text-xl sm:text-2xl font-black text-white tracking-wide">
-                          Push Notifications &amp; Omnichannel Broadcasts
-                        </h2>
-                        <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-[10px] font-black uppercase tracking-wider">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                          Live Socket Engine
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-400">
-                        Dispatch real-time player push notifications, email alerts, in-app banners, and Facebook community drops.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        fetch('/api/notifications?admin=true').then(r => r.json()).then(d => { if (d.success) setBroadcastLogs(d.broadcasts || []); });
-                      }}
-                      className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white flex items-center gap-1.5 text-xs font-bold transition"
-                      title="Refresh Dispatch History"
-                    >
-                      <RefreshCw size={13} />
-                      <span>Refresh Logs</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* KPI Stats Bar */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  <div className="p-4 rounded-2xl bg-gradient-to-br from-[#120d2b] to-[#0a0718] border border-cyan-500/25 shadow-lg">
-                    <p className="text-[10px] font-black uppercase tracking-wider text-cyan-300">
-                      Total Dispatches
-                    </p>
-                    <p className="text-2xl font-black text-white mt-1">
-                      {broadcastLogs.length} <span className="text-xs text-gray-400 font-bold">Campaigns</span>
-                    </p>
-                  </div>
-                  <div className="p-4 rounded-2xl bg-gradient-to-br from-[#120d2b] to-[#0a0718] border border-white/10 shadow-lg">
-                    <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">
-                      Delivery Channels
-                    </p>
-                    <p className="text-2xl font-black text-purple-300 mt-1">5 Channels</p>
-                  </div>
-                  <div className="p-4 rounded-2xl bg-gradient-to-br from-[#120d2b] to-[#0a0718] border border-white/10 shadow-lg">
-                    <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">
-                      Delivery Success
-                    </p>
-                    <p className="text-2xl font-black text-emerald-400 mt-1">99.8%</p>
-                  </div>
-                  <div className="p-4 rounded-2xl bg-gradient-to-br from-[#120d2b] to-[#0a0718] border border-white/10 shadow-lg">
-                    <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">
-                      Engine Status
-                    </p>
-                    <p className="text-xs font-black text-emerald-400 mt-2 flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                      FCM &amp; WebPush Live
-                    </p>
-                  </div>
-                </div>
-
-                {/* Main Workspace (2-Column Grid) */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-                  {/* Left: Broadcast Composer (7 cols) */}
-                  <div className="lg:col-span-7 bg-[#0e0a24] border border-cyan-500/30 p-6 rounded-2xl space-y-4 shadow-xl">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Megaphone size={16} className="text-cyan-400" />
-                        <h3 className="text-xs font-black text-white uppercase tracking-wider">
-                          Omnichannel Dispatcher
-                        </h3>
-                      </div>
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                        Live Engine
-                      </span>
-                    </div>
-
-                    <form onSubmit={handleDispatchBroadcast} className="space-y-3.5">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                          <label className="text-[11px] font-bold text-gray-300 block mb-1">
-                            Broadcast Target Channel
-                          </label>
-                          <select
-                            className="w-full bg-[#141033] border border-white/15 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400"
-                            id="promoChannel"
-                            defaultValue="all"
-                          >
-                            <option value="all">🌐 Omnichannel (Push + Email + In-App)</option>
-                            <option value="push">📱 Mobile Push Notifications Only</option>
-                            <option value="email">📧 Player Email Broadcast Only</option>
-                            <option value="in_app">🔔 In-App Notification Banner Only</option>
-                            <option value="facebook">🔵 Facebook VIP Community Drop Announcement</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="text-[11px] font-bold text-gray-300 block mb-1">
-                            Target Player Segment
-                          </label>
-                          <select
-                            className="w-full bg-[#141033] border border-white/15 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-400"
-                            id="promoSegment"
-                            defaultValue="all"
-                          >
-                            <option value="all">👥 All Registered Players</option>
-                            <option value="active">💳 Active Depositors Only</option>
-                            <option value="vip">👑 Tier II &amp; VIP Players Only</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Quick Tag Buttons */}
-                      <div>
-                        <label className="text-[11px] font-bold text-gray-300 block mb-1.5">
-                          Broadcast Headline
-                        </label>
-                        <div className="flex items-center gap-1.5 mb-2 overflow-x-auto pb-1 no-scrollbar">
-                          <span className="text-[10px] font-bold text-gray-500 shrink-0">Quick Tag:</span>
-                          {[
-                            '⚡ FLASH DROP:',
-                            '🎁 FREE BONUS:',
-                            '🔥 300% BOOST:',
-                            '🎰 JACKPOT ALERT:',
-                            '👑 VIP DROP:',
-                            '📢 SYSTEM NOTICE:',
-                          ].map((tagText, idx) => (
-                            <button
-                              key={idx}
-                              type="button"
-                              onClick={() => setPushTitle(prev => (prev ? `${tagText} ${prev}` : `${tagText} `))}
-                              className="shrink-0 px-2 py-0.5 rounded-md bg-white/5 hover:bg-cyan-500/20 border border-white/10 hover:border-cyan-400/40 text-gray-300 hover:text-white text-[10px] font-bold transition"
-                            >
-                              {tagText}
-                            </button>
-                          ))}
-                        </div>
-                        <input
-                          type="text"
-                          placeholder="e.g. ⚡ FLASH DROP: Free $10 SC Drop on Facebook Group!"
-                          value={pushTitle}
-                          onChange={(e) => setPushTitle(e.target.value)}
-                          className="w-full bg-[#141033] border border-white/15 rounded-xl p-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 transition"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="text-[11px] font-bold text-gray-300 block mb-1">
-                          Message Body &amp; Details
-                        </label>
-                        <textarea
-                          rows="3"
-                          placeholder="e.g. Log in now to claim your exclusive VIP loyalty bonus or follow our Facebook VIP group for the drop announcement!..."
-                          value={pushBody}
-                          onChange={(e) => setPushBody(e.target.value)}
-                          className="w-full bg-[#141033] border border-white/15 rounded-xl p-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 transition"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="text-[11px] font-bold text-gray-300 block mb-1">
-                          Deep Link / Action URL
-                        </label>
-                        <input
-                          type="text"
-                          id="promoActionUrl"
-                          defaultValue="/wallet"
-                          placeholder="e.g. /wallet, /promotions, or https://facebook.com/groups/..."
-                          className="w-full bg-[#141033] border border-white/15 rounded-xl p-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 transition font-mono"
-                        />
-                      </div>
-
-                      <div className="pt-2 flex items-center justify-between gap-3">
-                        <button
-                          type="submit"
-                          disabled={isDispatchingPush || !pushTitle.trim() || !pushBody.trim()}
-                          className="btn-purple py-3 px-6 text-xs font-black uppercase flex items-center gap-2 shadow-lg hover:scale-105 transition disabled:opacity-50"
-                        >
-                          {isDispatchingPush ? (
-                            <RefreshCw size={14} className="animate-spin" />
-                          ) : (
-                            <Send size={14} />
-                          )}
-                          <span>Dispatch Multi-Channel Broadcast</span>
-                        </button>
-                        {pushStatus && (
-                          <p className="text-xs text-emerald-400 font-bold animate-in fade-in">
-                            {pushStatus}
-                          </p>
-                        )}
-                      </div>
-                    </form>
-                  </div>
-
-                  {/* Right: Live Mobile Push Notification Preview (5 cols) */}
-                  <div className="lg:col-span-5 flex flex-col justify-between p-6 rounded-2xl bg-gradient-to-b from-[#130d2d] to-[#070518] border border-white/10 shadow-xl">
-                    <div>
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                          <Smartphone size={16} className="text-cyan-400" />
-                          <h4 className="text-xs font-black text-white uppercase tracking-wider">
-                            Player Mobile Lockscreen Preview
-                          </h4>
-                        </div>
-                        <span className="text-[10px] font-mono text-gray-400">Live Simulation</span>
-                      </div>
-
-                      {/* Phone Notification Card Mockup */}
-                      <div className="p-4 rounded-2xl bg-[#1e173e]/90 border border-cyan-500/30 shadow-[0_10px_30px_rgba(0,0,0,0.5)] space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="w-5 h-5 rounded-md bg-gradient-to-tr from-cyan-400 to-purple-500 flex items-center justify-center text-[10px] font-black text-black">
-                              V1
-                            </div>
-                            <span className="text-[11px] font-bold text-gray-300">VEGAS ONE VIP</span>
-                          </div>
-                          <span className="text-[10px] text-gray-500 font-mono">now</span>
-                        </div>
-                        <div>
-                          <p className="text-xs font-black text-white line-clamp-1">
-                            {pushTitle || '⚡ FLASH DROP: Free $10 SC on Vegas One!'}
-                          </p>
-                          <p className="text-[11px] text-gray-300 line-clamp-3 leading-relaxed mt-0.5">
-                            {pushBody || 'Log in now to claim your exclusive VIP loyalty bonus. Tap here to open your player wallet!'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mt-6 pt-4 border-t border-white/10">
-                      <p className="text-[11px] text-gray-400 leading-relaxed">
-                        💡 <strong>Omnichannel Delivery</strong> automatically fires through Web Push, SMS/Email queues, in-app notifications banner, and logs an announcement for official Facebook player communities.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Bottom: Recent Broadcast Dispatch History (Audit Log Table) */}
-                <div className="bg-[#0e0a24] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
-                  <div className="p-4 bg-[#0a071c] border-b border-white/10 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Clock size={15} className="text-cyan-400" />
-                      <h3 className="text-xs font-black uppercase text-white tracking-wider">
-                        Recent Dispatch History (Audit Log)
-                      </h3>
-                    </div>
-                    <span className="text-[11px] font-bold text-gray-400">
-                      {broadcastLogs.length} Records
-                    </span>
-                  </div>
-
-                  {broadcastLogs.length === 0 ? (
-                    <div className="p-8 text-center text-xs text-gray-500">
-                      No broadcast records sent yet.
-                    </div>
-                  ) : (
-                    <div className="overflow-x-auto w-full">
-                      <table className="w-full min-w-[650px] text-left text-xs">
-                        <thead className="bg-[#070514] text-gray-400 uppercase text-[10px] font-black tracking-wider border-b border-white/5">
-                          <tr>
-                            <th className="p-3.5">Timestamp</th>
-                            <th className="p-3.5">Headline &amp; Message</th>
-                            <th className="p-3.5">Channel</th>
-                            <th className="p-3.5">Segment</th>
-                            <th className="p-3.5">Sent By</th>
-                            <th className="p-3.5 text-right">Status</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/5">
-                          {broadcastLogs.map((log) => (
-                            <tr key={log.id} className="hover:bg-white/[0.02] transition">
-                              <td className="p-3.5 text-gray-400 whitespace-nowrap font-mono text-[11px]">
-                                {new Date(log.createdAt).toLocaleString([], {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                })}
-                              </td>
-                              <td className="p-3.5 max-w-sm">
-                                <p className="font-bold text-white truncate">{log.title}</p>
-                                <p className="text-[11px] text-gray-400 truncate">{log.message}</p>
-                              </td>
-                              <td className="p-3.5">
-                                <span className="px-2 py-0.5 rounded-md bg-purple-500/15 border border-purple-500/30 text-purple-300 text-[10px] font-black uppercase">
-                                  {log.channel || 'all'}
-                                </span>
-                              </td>
-                              <td className="p-3.5">
-                                <span className="px-2 py-0.5 rounded-md bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 text-[10px] font-bold uppercase">
-                                  {log.segment || 'all'}
-                                </span>
-                              </td>
-                              <td className="p-3.5 font-bold text-gray-300 font-mono text-[11px]">
-                                {log.sentBy}
-                              </td>
-                              <td className="p-3.5 text-right">
-                                <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] font-black uppercase">
-                                  Delivered ✓
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })()}
+          {/* TAB 9: PROMOTIONS & BROADCASTS */}
+          {activeTab === 'promos' && <PromotionsManager />}
 
           {/* TAB: HOMEPAGE VIDEOS */}
           {activeTab === 'videos' && <HomepageVideosManager />}
@@ -4274,59 +4540,178 @@ export default function AdminPortal({ initialTab }) {
 
           {activeTab === 'staff' && user.role === 'super_admin' && (
             <div className="space-y-6" style={{ fontFamily: 'Lexend, sans-serif' }}>
-              {/* Header & Action Button */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/10">
-                <div>
-                  <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#00F0FF] shadow-[0_0_10px_#00F0FF]" />
-                    Role-Based Staff Access Control (RBAC)
-                  </h2>
-                  <p className="text-xs text-[#9A91A8] mt-1">
-                    Create staff accounts, assign granular module permissions, and manage active internal credentials
-                  </p>
+              {/* Header Card */}
+              <div
+                className="p-6 sm:p-7 rounded-2xl relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-5"
+                style={{
+                  backgroundColor: '#0C0A1E',
+                  border: '1px solid rgba(0, 240, 255, 0.22)',
+                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+                }}
+              >
+                <div className="absolute -top-24 -right-24 w-72 h-72 bg-[#00F0FF]/10 rounded-full blur-3xl pointer-events-none" />
+                <div className="flex items-center gap-4 sm:gap-5 relative z-10">
+                  <div
+                    className="rounded-2xl flex items-center justify-center shrink-0"
+                    style={{
+                      width: '56px',
+                      height: '56px',
+                      minWidth: '56px',
+                      padding: '14px',
+                      background: 'rgba(0, 240, 255, 0.1)',
+                      border: '1.5px solid rgba(0, 240, 255, 0.35)',
+                      color: '#00F0FF',
+                      boxShadow: '0 0 20px rgba(0, 240, 255, 0.15)',
+                    }}
+                  >
+                    <ShieldCheck className="w-full h-full text-[#00F0FF]" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <h2
+                        className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-cyan-300 tracking-wide m-0"
+                        style={{ fontFamily: 'Lexend, sans-serif' }}
+                      >
+                        Role-Based Staff Access Control (RBAC)
+                      </h2>
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-500/15 border border-purple-500/30 text-purple-300">
+                        <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" />
+                        Super Admin Access
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#9A91A8] mt-1 m-0">
+                      Create staff accounts, assign granular module permissions, and manage active internal credentials
+                    </p>
+                  </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setIsAddStaffModalOpen(true)}
-                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#00F0FF] to-[#E026D8] text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(0,240,255,0.35)] hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer shrink-0"
-                >
-                  <Plus size={15} className="text-black stroke-[3]" />
-                  <span>Create Staff Officer</span>
-                </button>
+                <div className="flex items-center gap-3 relative z-10">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddStaffModalOpen(true)}
+                    style={{
+                      backgroundColor: '#00F0FF',
+                      color: '#070514',
+                      boxShadow: '0 0 20px rgba(0, 240, 255, 0.35)',
+                    }}
+                    className="px-5 py-3 rounded-xl hover:bg-[#38bdf8] font-black uppercase tracking-wider text-xs cursor-pointer flex items-center gap-2 transition shrink-0"
+                  >
+                    <Plus size={16} className="stroke-[3]" />
+                    <span>Create Staff Officer</span>
+                  </button>
+                </div>
               </div>
 
               {/* Staff Metric Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="bg-[#0E0A24] border border-[#00F0FF]/25 p-4 rounded-xl shadow-md">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-gray-400 uppercase font-black tracking-wider">Total Staff Officers</span>
-                    <UserCheck size={16} className="text-[#00F0FF]" />
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                  gap: '20px',
+                  width: '100%',
+                }}
+              >
+                <div
+                  className="p-6 rounded-2xl transition-all relative overflow-hidden flex flex-col justify-between"
+                  style={{
+                    backgroundColor: '#0C0A1E',
+                    border: '1px solid rgba(0, 240, 255, 0.22)',
+                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+                    borderRadius: '24px',
+                  }}
+                >
+                  <div className="absolute -top-12 -right-12 w-32 h-32 bg-[#00F0FF]/10 rounded-full blur-2xl pointer-events-none" />
+                  <div className="flex items-center justify-between relative z-10">
+                    <span className="text-[11px] text-[#9A91A8] uppercase font-black tracking-wider flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#00F0FF] shadow-[0_0_8px_#00F0FF]" />
+                      Total Staff Officers
+                    </span>
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                      style={{
+                        background: 'rgba(0, 240, 255, 0.1)',
+                        border: '1px solid rgba(0, 240, 255, 0.3)',
+                        color: '#00F0FF',
+                        boxShadow: '0 0 12px rgba(0, 240, 255, 0.15)',
+                      }}
+                    >
+                      <UserCheck size={18} />
+                    </div>
                   </div>
-                  <span className="text-2xl font-black text-white mt-1 block font-mono">{staffList.length}</span>
-                  <span className="text-[11px] text-[#00F0FF] mt-0.5 block">Configured staff accounts</span>
+                  <div className="mt-4 relative z-10">
+                    <span className="text-3xl font-black text-[#00F0FF] block font-mono">{staffList.length}</span>
+                    <span className="text-xs text-[#9A91A8] mt-1 block">Configured staff accounts</span>
+                  </div>
                 </div>
 
-                <div className="bg-[#0E0A24] border border-emerald-500/30 p-4 rounded-xl shadow-md">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-gray-400 uppercase font-black tracking-wider">Active On-Duty</span>
-                    <CheckCircle2 size={16} className="text-emerald-400" />
+                <div
+                  className="p-6 rounded-2xl transition-all relative overflow-hidden flex flex-col justify-between"
+                  style={{
+                    backgroundColor: '#0C0A1E',
+                    border: '1px solid rgba(16, 185, 129, 0.25)',
+                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+                    borderRadius: '24px',
+                  }}
+                >
+                  <div className="absolute -top-12 -right-12 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+                  <div className="flex items-center justify-between relative z-10">
+                    <span className="text-[11px] text-[#9A91A8] uppercase font-black tracking-wider flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#10B981]" />
+                      Active On-Duty
+                    </span>
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                      style={{
+                        background: 'rgba(16, 185, 129, 0.1)',
+                        border: '1px solid rgba(16, 185, 129, 0.35)',
+                        color: '#34D399',
+                        boxShadow: '0 0 12px rgba(16, 185, 129, 0.15)',
+                      }}
+                    >
+                      <CheckCircle2 size={18} />
+                    </div>
                   </div>
-                  <span className="text-2xl font-black text-emerald-400 mt-1 block font-mono">
-                    {staffList.filter(s => !s.isBanned).length}
-                  </span>
-                  <span className="text-[11px] text-emerald-400/80 mt-0.5 block">Full portal credentials active</span>
+                  <div className="mt-4 relative z-10">
+                    <span className="text-3xl font-black text-[#34D399] block font-mono">
+                      {staffList.filter(s => !s.isBanned).length}
+                    </span>
+                    <span className="text-xs text-[#9A91A8] mt-1 block">Full portal credentials active</span>
+                  </div>
                 </div>
 
-                <div className="bg-[#0E0A24] border border-rose-500/30 p-4 rounded-xl shadow-md">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] text-gray-400 uppercase font-black tracking-wider">Suspended Staff</span>
-                    <X size={16} className="text-rose-400" />
+                <div
+                  className="p-6 rounded-2xl transition-all relative overflow-hidden flex flex-col justify-between"
+                  style={{
+                    backgroundColor: '#0C0A1E',
+                    border: '1px solid rgba(244, 63, 94, 0.25)',
+                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+                    borderRadius: '24px',
+                  }}
+                >
+                  <div className="absolute -top-12 -right-12 w-32 h-32 bg-rose-500/10 rounded-full blur-2xl pointer-events-none" />
+                  <div className="flex items-center justify-between relative z-10">
+                    <span className="text-[11px] text-[#9A91A8] uppercase font-black tracking-wider flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-rose-400 shadow-[0_0_8px_#F43F5E]" />
+                      Suspended Staff
+                    </span>
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                      style={{
+                        background: 'rgba(244, 63, 94, 0.1)',
+                        border: '1px solid rgba(244, 63, 94, 0.35)',
+                        color: '#FB7185',
+                        boxShadow: '0 0 12px rgba(244, 63, 94, 0.15)',
+                      }}
+                    >
+                      <X size={18} />
+                    </div>
                   </div>
-                  <span className="text-2xl font-black text-rose-400 mt-1 block font-mono">
-                    {staffList.filter(s => s.isBanned).length}
-                  </span>
-                  <span className="text-[11px] text-gray-400 mt-0.5 block">Access blocked</span>
+                  <div className="mt-4 relative z-10">
+                    <span className="text-3xl font-black text-[#FB7185] block font-mono">
+                      {staffList.filter(s => s.isBanned).length}
+                    </span>
+                    <span className="text-xs text-[#9A91A8] mt-1 block">Access blocked</span>
+                  </div>
                 </div>
               </div>
 
@@ -4347,34 +4732,73 @@ export default function AdminPortal({ initialTab }) {
                     alignItems: 'center',
                     justifyContent: 'center',
                     padding: '16px',
+                    fontFamily: 'Lexend, -apple-system, sans-serif',
                   }}
                   onClick={() => setIsAddStaffModalOpen(false)}
                 >
                   <div
-                    className="vegas-modal-card w-full max-w-lg p-5 sm:p-6 max-h-[90vh] overflow-y-auto modal-scrollable relative space-y-4"
+                    className="vegas-modal-card w-full max-w-xl max-h-[90vh] overflow-y-auto modal-scrollable relative"
                     onClick={(e) => e.stopPropagation()}
                     style={{
-                      backgroundColor: '#0E0A24',
-                      background: 'linear-gradient(145deg, #0E0A24 0%, #150E36 100%)',
-                      border: '1px solid rgba(0, 240, 255, 0.45)',
-                      boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 40px rgba(0, 240, 255, 0.25)',
-                      borderRadius: '20px',
+                      backgroundColor: '#0C0A1E',
+                      border: '1px solid rgba(0, 240, 255, 0.35)',
+                      boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 35px rgba(0, 240, 255, 0.2)',
+                      borderRadius: '24px',
+                      padding: '32px',
+                      color: '#FFFFFF',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '24px',
                     }}
                   >
-                    <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-[#00F0FF]/15 border border-[#00F0FF]/30 flex items-center justify-center text-[#00F0FF]">
-                          <Plus size={16} />
+                    <div className="absolute -top-16 -right-16 w-48 h-48 bg-[#00F0FF]/15 rounded-full blur-3xl pointer-events-none" />
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        borderBottom: '1px solid rgba(0, 240, 255, 0.15)',
+                        paddingBottom: '20px',
+                        position: 'relative',
+                        zIndex: 10,
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+                        <div
+                          className="shrink-0"
+                          style={{
+                            width: '56px',
+                            height: '56px',
+                            minWidth: '56px',
+                            borderRadius: '16px',
+                            background: 'rgba(0, 240, 255, 0.1)',
+                            border: '1.5px solid rgba(0, 240, 255, 0.35)',
+                            color: '#00F0FF',
+                            boxShadow: '0 0 20px rgba(0, 240, 255, 0.2)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <ShieldCheck size={26} className="text-[#00F0FF]" />
                         </div>
-                        <div>
-                          <h3 className="text-base font-black text-white m-0">Create New Staff Officer</h3>
-                          <p className="text-[11px] text-gray-400 m-0">Instant role delegation with session tokens</p>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <h3
+                            className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-cyan-300 tracking-tight m-0"
+                            style={{ fontFamily: 'Lexend, sans-serif' }}
+                          >
+                            Create New Staff Officer
+                          </h3>
+                          <p className="text-xs text-[#9A91A8] m-0 leading-relaxed" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                            Instant role delegation with secure session credentials
+                          </p>
                         </div>
                       </div>
                       <button
                         type="button"
                         onClick={() => setIsAddStaffModalOpen(false)}
-                        className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+                        className="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white flex items-center justify-center transition border border-white/10 cursor-pointer shrink-0"
                       >
                         <X size={18} />
                       </button>
@@ -4398,70 +4822,153 @@ export default function AdminPortal({ initialTab }) {
                           alert(d.error);
                         }
                       }}
-                      className="space-y-3.5"
+                      style={{ display: 'flex', flexDirection: 'column', gap: '20px', position: 'relative', zIndex: 10 }}
                     >
-                      <div>
-                        <label className="text-[11px] font-bold text-gray-300 block mb-1 uppercase">Username *</label>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#CBD5E1', margin: 0, fontFamily: 'Lexend, sans-serif' }}>
+                          Username *
+                        </label>
                         <input
                           type="text"
                           placeholder="e.g. officer_alex"
                           value={newStaff.username}
                           onChange={(e) => setNewStaff({ ...newStaff, username: e.target.value })}
-                          className="w-full bg-[#070514] border border-white/15 focus:border-[#00F0FF] rounded-xl px-3 py-2.5 text-xs text-white outline-none transition"
+                          style={{
+                            backgroundColor: '#070514',
+                            border: '1px solid rgba(0, 240, 255, 0.25)',
+                            borderRadius: '14px',
+                            padding: '12px 16px',
+                            color: '#FFFFFF',
+                            fontSize: '13px',
+                            outline: 'none',
+                            transition: 'all 0.2s',
+                            fontFamily: 'Lexend, sans-serif',
+                            width: '100%',
+                          }}
                           required
                         />
                       </div>
 
-                      <div>
-                        <label className="text-[11px] font-bold text-gray-300 block mb-1 uppercase">Staff Email *</label>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#CBD5E1', margin: 0, fontFamily: 'Lexend, sans-serif' }}>
+                          Staff Email *
+                        </label>
                         <input
                           type="email"
                           placeholder="alex@vegasone.games"
                           value={newStaff.email}
                           onChange={(e) => setNewStaff({ ...newStaff, email: e.target.value })}
-                          className="w-full bg-[#070514] border border-white/15 focus:border-[#00F0FF] rounded-xl px-3 py-2.5 text-xs text-white outline-none transition"
+                          style={{
+                            backgroundColor: '#070514',
+                            border: '1px solid rgba(0, 240, 255, 0.25)',
+                            borderRadius: '14px',
+                            padding: '12px 16px',
+                            color: '#FFFFFF',
+                            fontSize: '13px',
+                            outline: 'none',
+                            transition: 'all 0.2s',
+                            fontFamily: 'Lexend, sans-serif',
+                            width: '100%',
+                          }}
                           required
                         />
                       </div>
 
-                      <div>
-                        <label className="text-[11px] font-bold text-gray-300 block mb-1 uppercase">Password *</label>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#CBD5E1', margin: 0, fontFamily: 'Lexend, sans-serif' }}>
+                          Password *
+                        </label>
                         <input
                           type="password"
                           placeholder="••••••••••••"
                           value={newStaff.password}
                           onChange={(e) => setNewStaff({ ...newStaff, password: e.target.value })}
-                          className="w-full bg-[#070514] border border-white/15 focus:border-[#00F0FF] rounded-xl px-3 py-2.5 text-xs text-white outline-none transition"
+                          style={{
+                            backgroundColor: '#070514',
+                            border: '1px solid rgba(0, 240, 255, 0.25)',
+                            borderRadius: '14px',
+                            padding: '12px 16px',
+                            color: '#FFFFFF',
+                            fontSize: '13px',
+                            outline: 'none',
+                            transition: 'all 0.2s',
+                            fontFamily: 'Lexend, sans-serif',
+                            width: '100%',
+                          }}
                           required
                         />
                       </div>
 
-                      <div>
-                        <label className="text-[11px] font-bold text-gray-300 block mb-1 uppercase">Assigned Role *</label>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#CBD5E1', margin: 0, fontFamily: 'Lexend, sans-serif' }}>
+                          Assigned Role *
+                        </label>
                         <select
                           value={newStaff.role}
                           onChange={(e) => setNewStaff({ ...newStaff, role: e.target.value })}
-                          className="w-full bg-[#070514] border border-white/15 focus:border-[#00F0FF] rounded-xl px-3 py-2.5 text-xs text-white outline-none cursor-pointer transition"
+                          style={{
+                            backgroundColor: '#070514',
+                            border: '1px solid rgba(0, 240, 255, 0.25)',
+                            borderRadius: '14px',
+                            padding: '12px 16px',
+                            color: '#FFFFFF',
+                            fontSize: '13px',
+                            outline: 'none',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            fontFamily: 'Lexend, sans-serif',
+                            width: '100%',
+                          }}
                         >
-                          <option value="operation_admin">Operations Manager</option>
-                          <option value="financial_manager">Financial Manager</option>
-                          <option value="coin_manager">Coin Allotment Officer</option>
-                          <option value="chat_support">Live Chat Support Agent</option>
-                          <option value="super_admin">Super Admin</option>
+                          <option value="operation_admin">Operation Admin (Catalog &amp; Gameplay)</option>
+                          <option value="financial_manager">Financial Manager (Cashier &amp; Proofs)</option>
+                          <option value="coin_manager">Coin Manager (Allotment &amp; Float)</option>
+                          <option value="chat_support">Chat Support (Inquiries &amp; Messages)</option>
+                          <option value="super_admin">Super Admin (Full Root Clearance)</option>
                         </select>
                       </div>
 
-                      <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-white/10">
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'flex-end',
+                          gap: '14px',
+                          paddingTop: '20px',
+                          borderTop: '1px solid rgba(0, 240, 255, 0.15)',
+                        }}
+                      >
                         <button
                           type="button"
                           onClick={() => setIsAddStaffModalOpen(false)}
-                          className="px-4 py-2 rounded-xl text-xs font-bold text-gray-400 hover:text-white transition"
+                          style={{
+                            padding: '12px 22px',
+                            borderRadius: '14px',
+                            color: '#94A3B8',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                            backgroundColor: 'transparent',
+                            cursor: 'pointer',
+                          }}
                         >
                           Cancel
                         </button>
                         <button
                           type="submit"
-                          className="btn-sovereign-coral py-2.5 px-6 text-xs font-black uppercase tracking-wider rounded-xl cursor-pointer"
+                          style={{
+                            backgroundColor: '#00F0FF',
+                            color: '#070514',
+                            padding: '12px 28px',
+                            borderRadius: '14px',
+                            fontWeight: 900,
+                            fontSize: '12px',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em',
+                            boxShadow: '0 0 25px rgba(0, 240, 255, 0.4)',
+                            border: 'none',
+                            cursor: 'pointer',
+                          }}
                         >
                           <span>Create &amp; Assign Role</span>
                         </button>
@@ -4471,62 +4978,443 @@ export default function AdminPortal({ initialTab }) {
                 </div>
               )}
 
+              {/* MODAL: EDIT STAFF OFFICER */}
+              {editingStaff && (
+                <div
+                  className="vegas-modal-overlay"
+                  style={{
+                    position: 'fixed',
+                    inset: 0,
+                    width: '100vw',
+                    height: '100vh',
+                    backgroundColor: 'rgba(5, 3, 15, 0.92)',
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
+                    zIndex: 999999,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '16px',
+                    fontFamily: 'Lexend, -apple-system, sans-serif',
+                  }}
+                  onClick={() => setEditingStaff(null)}
+                >
+                  <div
+                    className="vegas-modal-card w-full max-w-xl max-h-[90vh] overflow-y-auto modal-scrollable relative"
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      backgroundColor: '#0C0A1E',
+                      border: '1px solid rgba(0, 240, 255, 0.35)',
+                      boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 35px rgba(0, 240, 255, 0.2)',
+                      borderRadius: '24px',
+                      padding: '32px',
+                      color: '#FFFFFF',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '24px',
+                    }}
+                  >
+                    <div className="absolute -top-16 -right-16 w-48 h-48 bg-[#00F0FF]/15 rounded-full blur-3xl pointer-events-none" />
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        borderBottom: '1px solid rgba(0, 240, 255, 0.15)',
+                        paddingBottom: '20px',
+                        position: 'relative',
+                        zIndex: 10,
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+                        <div
+                          className="shrink-0"
+                          style={{
+                            width: '56px',
+                            height: '56px',
+                            minWidth: '56px',
+                            borderRadius: '16px',
+                            background: 'rgba(0, 240, 255, 0.1)',
+                            border: '1.5px solid rgba(0, 240, 255, 0.35)',
+                            color: '#00F0FF',
+                            boxShadow: '0 0 20px rgba(0, 240, 255, 0.2)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <Edit2 size={24} className="text-[#00F0FF]" />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <h3
+                            className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-cyan-300 tracking-tight m-0"
+                            style={{ fontFamily: 'Lexend, sans-serif' }}
+                          >
+                            Edit Staff Officer
+                          </h3>
+                          <p className="text-xs text-[#9A91A8] m-0 leading-relaxed" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                            Update credentials, role delegation &amp; administrative permissions
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setEditingStaff(null)}
+                        className="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white flex items-center justify-center transition border border-white/10 cursor-pointer shrink-0"
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+
+                    <form
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        setIsSavingStaff(true);
+                        try {
+                          const res = await fetch('/api/admin/staff', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              staffId: editingStaff.id,
+                              username: editingStaff.username,
+                              email: editingStaff.email,
+                              role: editingStaff.role,
+                              newPassword: editingStaff.newPassword || undefined,
+                            }),
+                          });
+                          const d = await res.json();
+                          if (d.success) {
+                            alert(d.message);
+                            setStaffList(staffList.map(item => item.id === editingStaff.id ? {
+                              ...item,
+                              username: editingStaff.username.trim().toLowerCase(),
+                              email: editingStaff.email.trim().toLowerCase(),
+                              role: editingStaff.role,
+                            } : item));
+                            setEditingStaff(null);
+                          } else {
+                            alert(d.error || 'Failed to update staff member.');
+                          }
+                        } catch (err) {
+                          alert(err.message);
+                        } finally {
+                          setIsSavingStaff(false);
+                        }
+                      }}
+                      style={{ display: 'flex', flexDirection: 'column', gap: '20px', position: 'relative', zIndex: 10 }}
+                    >
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#CBD5E1', margin: 0, fontFamily: 'Lexend, sans-serif' }}>
+                          Username *
+                        </label>
+                        <input
+                          type="text"
+                          value={editingStaff.username}
+                          onChange={(e) => setEditingStaff({ ...editingStaff, username: e.target.value })}
+                          style={{
+                            backgroundColor: '#070514',
+                            border: '1px solid rgba(0, 240, 255, 0.25)',
+                            borderRadius: '14px',
+                            padding: '12px 16px',
+                            color: '#FFFFFF',
+                            fontSize: '13px',
+                            outline: 'none',
+                            transition: 'all 0.2s',
+                            fontFamily: 'Lexend, sans-serif',
+                            width: '100%',
+                          }}
+                          required
+                        />
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#CBD5E1', margin: 0, fontFamily: 'Lexend, sans-serif' }}>
+                          Staff Email *
+                        </label>
+                        <input
+                          type="email"
+                          value={editingStaff.email}
+                          onChange={(e) => setEditingStaff({ ...editingStaff, email: e.target.value })}
+                          style={{
+                            backgroundColor: '#070514',
+                            border: '1px solid rgba(0, 240, 255, 0.25)',
+                            borderRadius: '14px',
+                            padding: '12px 16px',
+                            color: '#FFFFFF',
+                            fontSize: '13px',
+                            outline: 'none',
+                            transition: 'all 0.2s',
+                            fontFamily: 'Lexend, sans-serif',
+                            width: '100%',
+                          }}
+                          required
+                        />
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#CBD5E1', margin: 0, fontFamily: 'Lexend, sans-serif' }}>
+                          Assign Administrative Role *
+                        </label>
+                        <select
+                          value={editingStaff.role}
+                          onChange={(e) => setEditingStaff({ ...editingStaff, role: e.target.value })}
+                          style={{
+                            backgroundColor: '#070514',
+                            border: '1px solid rgba(0, 240, 255, 0.25)',
+                            borderRadius: '14px',
+                            padding: '12px 16px',
+                            color: '#FFFFFF',
+                            fontSize: '13px',
+                            outline: 'none',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            fontFamily: 'Lexend, sans-serif',
+                            width: '100%',
+                          }}
+                        >
+                          <option value="financial_manager">Financial Manager (Cashier &amp; Proofs)</option>
+                          <option value="operation_admin">Operation Admin (Catalog &amp; Gameplay)</option>
+                          <option value="coin_manager">Coin Manager (Allotment &amp; Float)</option>
+                          <option value="chat_support">Chat Support (Inquiries &amp; Messages)</option>
+                          <option value="super_admin">Super Admin (Full Root Clearance)</option>
+                        </select>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#CBD5E1', margin: 0, fontFamily: 'Lexend, sans-serif' }}>
+                          New Password <span style={{ color: '#94A3B8', fontWeight: 400, textTransform: 'none' }}>(leave blank to keep current)</span>
+                        </label>
+                        <input
+                          type="password"
+                          placeholder="••••••••••••"
+                          value={editingStaff.newPassword || ''}
+                          onChange={(e) => setEditingStaff({ ...editingStaff, newPassword: e.target.value })}
+                          style={{
+                            backgroundColor: '#070514',
+                            border: '1px solid rgba(0, 240, 255, 0.25)',
+                            borderRadius: '14px',
+                            padding: '12px 16px',
+                            color: '#FFFFFF',
+                            fontSize: '13px',
+                            outline: 'none',
+                            transition: 'all 0.2s',
+                            fontFamily: 'Lexend, sans-serif',
+                            width: '100%',
+                          }}
+                        />
+                      </div>
+
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'flex-end',
+                          gap: '14px',
+                          paddingTop: '20px',
+                          borderTop: '1px solid rgba(0, 240, 255, 0.15)',
+                        }}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setEditingStaff(null)}
+                          style={{
+                            padding: '12px 22px',
+                            borderRadius: '14px',
+                            color: '#94A3B8',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            border: '1px solid rgba(255, 255, 255, 0.08)',
+                            backgroundColor: 'transparent',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={isSavingStaff}
+                          style={{
+                            backgroundColor: '#00F0FF',
+                            color: '#070514',
+                            padding: '12px 28px',
+                            borderRadius: '14px',
+                            fontWeight: 900,
+                            fontSize: '12px',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em',
+                            boxShadow: '0 0 25px rgba(0, 240, 255, 0.4)',
+                            border: 'none',
+                            cursor: 'pointer',
+                            opacity: isSavingStaff ? 0.6 : 1,
+                          }}
+                        >
+                          <span>{isSavingStaff ? 'Saving...' : 'Save Changes'}</span>
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
+
               {/* Staff List Table */}
-              <div className="bg-[#0E0A24] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+              <div
+                className="rounded-2xl overflow-hidden"
+                style={{
+                  backgroundColor: '#0C0A1E',
+                  border: '1px solid rgba(0, 240, 255, 0.22)',
+                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+                }}
+              >
                 <div className="overflow-x-auto w-full">
-                  <table className="w-full min-w-[650px] text-left text-xs">
-                    <thead className="bg-[#070514] text-gray-400 uppercase border-b border-white/10 font-bold text-[10.5px]">
+                  <table className="w-full min-w-[700px] text-left text-xs">
+                    <thead
+                      style={{
+                        backgroundColor: '#070514',
+                        borderBottom: '1px solid rgba(0, 240, 255, 0.2)',
+                      }}
+                      className="text-[#00F0FF] uppercase font-black text-[11px] tracking-wider"
+                    >
                       <tr>
-                        <th className="p-3.5">Staff Officer</th>
-                        <th className="p-3.5">Email</th>
-                        <th className="p-3.5">Assigned Role</th>
-                        <th className="p-3.5">Status</th>
-                        <th className="p-3.5 text-right">Actions</th>
+                        <th className="p-4 pl-6">Staff Officer</th>
+                        <th className="p-4">Email</th>
+                        <th className="p-4">Assigned Role</th>
+                        <th className="p-4">Status</th>
+                        <th className="p-4 pr-6 text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
                       {staffList.map(s => (
                         <tr key={s.id} className="hover:bg-white/[0.03] transition-colors">
-                          <td className="p-3.5 font-bold text-white">
-                            <div className="flex items-center gap-2.5">
-                              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500/20 to-[#00F0FF]/20 border border-white/10 flex items-center justify-center text-white font-black text-xs uppercase">
+                          <td className="p-4 pl-6 font-bold text-white">
+                            <div className="flex items-center gap-3">
+                              <div
+                                className="rounded-xl flex items-center justify-center font-black text-xs uppercase"
+                                style={{
+                                  width: '38px',
+                                  height: '38px',
+                                  minWidth: '38px',
+                                  background: 'rgba(0, 240, 255, 0.1)',
+                                  border: '1.5px solid rgba(0, 240, 255, 0.35)',
+                                  color: '#00F0FF',
+                                  boxShadow: '0 0 12px rgba(0, 240, 255, 0.15)',
+                                }}
+                              >
                                 {s.username?.substring(0, 2) || 'ST'}
                               </div>
-                              <span>{s.username}</span>
+                              <span className="font-extrabold text-white text-sm">{s.username}</span>
                             </div>
                           </td>
-                          <td className="p-3.5 text-gray-300 font-mono">{s.email}</td>
-                          <td className="p-3.5">
-                            <span className="px-2.5 py-1 rounded-lg bg-purple-500/15 border border-purple-500/30 text-purple-300 font-bold text-[11px] capitalize">
+                          <td className="p-4 text-slate-300 font-mono text-xs">{s.email}</td>
+                          <td className="p-4">
+                            <span
+                              className="px-3.5 py-1 rounded-xl font-bold text-[11px] capitalize inline-block"
+                              style={{
+                                backgroundColor: 'rgba(168, 85, 247, 0.15)',
+                                border: '1px solid rgba(168, 85, 247, 0.35)',
+                                color: '#C084FC',
+                              }}
+                            >
                               {s.role.replace('_', ' ')}
                             </span>
                           </td>
-                          <td className="p-3.5">
-                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${s.isBanned
-                              ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                              : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                              }`}>
-                              {s.isBanned ? 'Suspended' : 'Active'}
+                          <td className="p-4">
+                            <span
+                              className="px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider inline-flex items-center gap-1.5"
+                              style={{
+                                backgroundColor: s.isBanned ? 'rgba(244, 63, 94, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                                borderColor: s.isBanned ? 'rgba(244, 63, 94, 0.35)' : 'rgba(16, 185, 129, 0.35)',
+                                color: s.isBanned ? '#FB7185' : '#34D399',
+                                boxShadow: s.isBanned ? '0 0 10px rgba(244, 63, 94, 0.2)' : '0 0 10px rgba(16, 185, 129, 0.2)',
+                                borderWidth: '1px',
+                              }}
+                            >
+                              <span
+                                className="w-1.5 h-1.5 rounded-full"
+                                style={{
+                                  backgroundColor: s.isBanned ? '#F43F5E' : '#10B981',
+                                  boxShadow: s.isBanned ? '0 0 6px #F43F5E' : '0 0 6px #10B981',
+                                }}
+                              />
+                              <span>{s.isBanned ? 'Suspended' : 'Active'}</span>
                             </span>
                           </td>
-                          <td className="p-3.5 text-right">
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                await fetch('/api/admin/staff', {
-                                  method: 'PUT',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ staffId: s.id, isBanned: !s.isBanned }),
-                                });
-                                setStaffList(staffList.map(item => item.id === s.id ? { ...item, isBanned: !s.isBanned } : item));
-                              }}
-                              className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition border ${s.isBanned
-                                ? 'bg-emerald-500/15 hover:bg-emerald-500/25 border-emerald-500/35 text-emerald-300'
-                                : 'bg-rose-500/15 hover:bg-rose-500/25 border-rose-500/35 text-rose-300'
-                                }`}
-                            >
-                              {s.isBanned ? '✓ Reactivate' : '✕ Suspend'}
-                            </button>
+                          <td className="p-4 pr-6 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              {/* Edit Button */}
+                              <button
+                                type="button"
+                                onClick={() => setEditingStaff({ ...s, newPassword: '' })}
+                                style={{
+                                  backgroundColor: 'rgba(0, 240, 255, 0.12)',
+                                  borderColor: 'rgba(0, 240, 255, 0.35)',
+                                  color: '#00F0FF',
+                                  boxShadow: '0 0 10px rgba(0, 240, 255, 0.12)',
+                                }}
+                                className="px-3 py-1.5 rounded-xl text-xs font-bold transition border cursor-pointer hover:brightness-110 flex items-center gap-1.5"
+                                title="Edit Staff Officer Profile & Permissions"
+                              >
+                                <Edit2 size={13} />
+                                <span>Edit</span>
+                              </button>
+
+                              {/* Suspend / Reactivate */}
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  await fetch('/api/admin/staff', {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ staffId: s.id, isBanned: !s.isBanned }),
+                                  });
+                                  setStaffList(staffList.map(item => item.id === s.id ? { ...item, isBanned: !s.isBanned } : item));
+                                }}
+                                style={{
+                                  backgroundColor: s.isBanned ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.12)',
+                                  borderColor: s.isBanned ? 'rgba(16, 185, 129, 0.35)' : 'rgba(244, 63, 94, 0.35)',
+                                  color: s.isBanned ? '#34D399' : '#FB7185',
+                                  boxShadow: s.isBanned ? '0 0 10px rgba(16, 185, 129, 0.12)' : '0 0 10px rgba(244, 63, 94, 0.12)',
+                                }}
+                                className="px-3 py-1.5 rounded-xl text-xs font-bold transition border cursor-pointer hover:brightness-110"
+                              >
+                                {s.isBanned ? '✓ Reactivate' : '✕ Suspend'}
+                              </button>
+
+                              {/* Delete Button */}
+                              <button
+                                type="button"
+                                disabled={s.username === user.username}
+                                onClick={async () => {
+                                  if (!window.confirm(`Are you sure you want to permanently delete staff officer "${s.username}"? This cannot be undone.`)) return;
+                                  try {
+                                    const res = await fetch(`/api/admin/staff?id=${encodeURIComponent(s.id)}`, {
+                                      method: 'DELETE',
+                                    });
+                                    const d = await res.json();
+                                    if (d.success) {
+                                      alert(d.message);
+                                      setStaffList(staffList.filter(item => item.id !== s.id));
+                                    } else {
+                                      alert(d.error || 'Failed to delete staff member.');
+                                    }
+                                  } catch (err) {
+                                    alert(err.message);
+                                  }
+                                }}
+                                style={{
+                                  backgroundColor: 'rgba(244, 63, 94, 0.12)',
+                                  borderColor: 'rgba(244, 63, 94, 0.35)',
+                                  color: '#FB7185',
+                                  boxShadow: '0 0 10px rgba(244, 63, 94, 0.12)',
+                                  opacity: s.username === user.username ? 0.4 : 1,
+                                  cursor: s.username === user.username ? 'not-allowed' : 'pointer',
+                                }}
+                                className="p-1.5 rounded-xl text-xs font-bold transition border hover:brightness-110 flex items-center justify-center"
+                                title={s.username === user.username ? 'Cannot delete your own account' : 'Delete Staff Officer Permanently'}
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -4539,98 +5427,337 @@ export default function AdminPortal({ initialTab }) {
 
           {/* TAB 12: SYSTEM SETTINGS */}
           {activeTab === 'settings' && user.role === 'super_admin' && (
-            <div className="space-y-6" style={{ fontFamily: 'Lexend, sans-serif' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', fontFamily: 'Lexend, -apple-system, sans-serif', width: '100%' }}>
               {/* Header */}
-              <div>
-                <h2 className="text-2xl font-black text-white flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#00F0FF] shadow-[0_0_10px_#00F0FF]" />
-                  System Settings &amp; USA Compliance
-                </h2>
-                <p className="text-xs text-[#9A91A8] mt-1">
-                  Federal sweepstakes compliance, geo-blocking controls, minimum cashout limits &amp; bonus parameters
-                </p>
-              </div>
-
-              {/* Top Compliance Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Geo-lock card */}
-                <div className="bg-[#0E0A24] border border-[#00F0FF]/25 p-5 rounded-2xl shadow-xl space-y-3">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-black text-[#00F0FF] uppercase tracking-wider block">
-                      Platform Geo &amp; State Access Policy
-                    </label>
-                    <ShieldCheck size={16} className="text-[#00F0FF]" />
-                  </div>
-                  <select
-                    value={sysSettings?.geoRestrictionEnabled ? 'enabled' : 'disabled'}
-                    onChange={async (e) => {
-                      const enabled = e.target.value === 'enabled';
-                      await fetch('/api/admin/settings', {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ geoRestrictionEnabled: enabled }),
-                      });
-                      setSysSettings(prev => ({ ...prev, geoRestrictionEnabled: enabled }));
+              <div
+                className="relative overflow-hidden"
+                style={{
+                  backgroundColor: '#0C0A1E',
+                  border: '1px solid rgba(0, 240, 255, 0.22)',
+                  borderRadius: '24px',
+                  padding: '24px 28px',
+                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '24px',
+                }}
+              >
+                <div className="absolute -top-24 -right-24 w-72 h-72 bg-[#00F0FF]/10 rounded-full blur-3xl pointer-events-none" />
+                <div className="flex items-center gap-4 sm:gap-5 relative z-10">
+                  <div
+                    className="rounded-2xl flex items-center justify-center shrink-0"
+                    style={{
+                      width: '56px',
+                      height: '56px',
+                      minWidth: '56px',
+                      padding: '14px',
+                      background: 'rgba(0, 240, 255, 0.1)',
+                      border: '1.5px solid rgba(0, 240, 255, 0.35)',
+                      color: '#00F0FF',
+                      boxShadow: '0 0 20px rgba(0, 240, 255, 0.15)',
                     }}
-                    className="w-full bg-[#070514] border border-white/15 focus:border-[#00F0FF] rounded-xl px-3 py-2.5 text-xs text-white outline-none cursor-pointer transition"
                   >
-                    <option value="disabled">All 50 US States &amp; Regions Permitted (Unrestricted)</option>
-                    <option value="enabled">USA Standard Traffic</option>
-                  </select>
-                  <p className="text-[11px] text-gray-400">
-                    No state restrictions. Players from all regions and states have full access to play and cash out.
-                  </p>
-                </div>
-
-                {/* Minimum Redemption Payout */}
-                <div className="bg-[#0E0A24] border border-emerald-500/25 p-5 rounded-2xl shadow-xl space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-black text-emerald-400 uppercase tracking-wider block">
-                      Minimum Cashout Threshold
-                    </span>
-                    <DollarSign size={16} className="text-emerald-400" />
+                    <SlidersHorizontal className="w-full h-full text-[#00F0FF]" />
                   </div>
-                  <p className="text-lg text-emerald-400 font-mono font-black mt-2">50.00 SC ($50 USD)</p>
-                  <p className="text-[11px] text-gray-400">
-                    Default threshold verified against 1x coin rollover playthrough requirements.
-                  </p>
-                </div>
-              </div>
-
-              {/* Dynamic Bonus Configuration (Welcome Pack & Regular Reload) */}
-              <div className="bg-[#0E0A24] border border-cyan-500/20 p-6 rounded-2xl space-y-6 max-w-4xl">
-                <div className="flex items-center justify-between border-b border-white/10 pb-4">
                   <div>
-                    <h3 className="text-lg font-black text-white flex items-center gap-2">
-                      <span className="text-cyan-400">🎁</span> Dynamic Player Bonus Engine
-                    </h3>
-                    <p className="text-xs text-gray-400 mt-1">
-                      Configure first-deposit welcome bonus vs subsequent reload bonus. Changes update the hero banner &amp; automatic deposit coin calculations in real-time.
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <h2
+                        className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-cyan-300 tracking-wide m-0"
+                        style={{ fontFamily: 'Lexend, sans-serif' }}
+                      >
+                        System Settings &amp; Bonus Engine
+                      </h2>
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/15 border border-amber-500/30 text-amber-300">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                        System Core
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#9A91A8] mt-1 m-0">
+                      Federal compliance, geo-blocking, cashout thresholds &amp; automated player / referral bonus parameters
                     </p>
                   </div>
-                  {bonusSaveMessage && (
-                    <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/30">
-                      ✓ {bonusSaveMessage}
-                    </span>
-                  )}
                 </div>
 
-                <form onSubmit={handleSaveBonusSettings} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Welcome Bonus Card */}
-                    <div className="bg-[#070514] border border-cyan-500/30 p-5 rounded-xl space-y-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-extrabold text-cyan-400 uppercase tracking-wider">
-                          1. Welcome Pack (First Deposit)
-                        </span>
-                        <span className="text-[10px] px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 font-bold uppercase">
-                          New Players Only
-                        </span>
-                      </div>
+                {bonusSaveMessage && (
+                  <div className="inline-flex items-center gap-2 text-xs font-bold text-emerald-400 bg-emerald-500/10 px-4 py-2.5 rounded-xl border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)] animate-in fade-in relative z-10">
+                    <CheckCircle2 size={16} />
+                    <span>{bonusSaveMessage}</span>
+                  </div>
+                )}
+              </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                          <label className="text-[11px] font-bold text-gray-300 block mb-1">Bonus Match %</label>
+              {/* Top 3 Compliance & Operational Status Cards */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                  gap: '20px',
+                  width: '100%',
+                }}
+              >
+                {/* 1. Geo-lock card */}
+                <div
+                  className="p-6 rounded-2xl relative overflow-hidden transition-all duration-300 hover:border-cyan-400/50 flex flex-col justify-between gap-4"
+                  style={{
+                    backgroundColor: '#0C0A1E',
+                    border: '1px solid rgba(0, 240, 255, 0.22)',
+                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+                  }}
+                >
+                  <div className="absolute -top-16 -right-16 w-48 h-48 bg-[#00F0FF]/10 rounded-full blur-3xl pointer-events-none" />
+                  <div className="flex items-center justify-between relative z-10">
+                    <span className="text-xs font-black text-[#00F0FF] uppercase tracking-wider flex items-center gap-2" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#00F0FF] shadow-[0_0_8px_#00F0FF]" />
+                      Platform Geo Access Policy
+                    </span>
+                    <div
+                      className="rounded-xl flex items-center justify-center shrink-0"
+                      style={{
+                        width: '44px',
+                        height: '44px',
+                        minWidth: '44px',
+                        background: 'rgba(0, 240, 255, 0.1)',
+                        border: '1.5px solid rgba(0, 240, 255, 0.35)',
+                        color: '#00F0FF',
+                        boxShadow: '0 0 15px rgba(0, 240, 255, 0.2)',
+                      }}
+                    >
+                      <ShieldCheck size={20} />
+                    </div>
+                  </div>
+                  <div className="relative z-10 space-y-2">
+                    <select
+                      value={sysSettings?.geoRestrictionEnabled ? 'enabled' : 'disabled'}
+                      onChange={async (e) => {
+                        const enabled = e.target.value === 'enabled';
+                        await fetch('/api/admin/settings', {
+                          method: 'PUT',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ geoRestrictionEnabled: enabled }),
+                        });
+                        setSysSettings(prev => ({ ...prev, geoRestrictionEnabled: enabled }));
+                      }}
+                      className="w-full rounded-xl px-4 py-3 text-xs text-white outline-none cursor-pointer transition font-bold"
+                      style={{
+                        backgroundColor: '#070514',
+                        border: '1px solid rgba(0, 240, 255, 0.25)',
+                      }}
+                    >
+                      <option value="disabled">All 50 US States Permitted</option>
+                      <option value="enabled">USA Standard Traffic (Restricted)</option>
+                    </select>
+                    <p className="text-xs text-[#9A91A8] leading-relaxed m-0">
+                      No state restrictions. Players from all regions have full access to play and redeem.
+                    </p>
+                  </div>
+                </div>
+
+                {/* 2. Minimum Redemption Payout */}
+                <div
+                  className="p-6 rounded-2xl relative overflow-hidden transition-all duration-300 hover:border-emerald-500/50 flex flex-col justify-between gap-4"
+                  style={{
+                    backgroundColor: '#0C0A1E',
+                    border: '1px solid rgba(16, 185, 129, 0.25)',
+                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+                  }}
+                >
+                  <div className="absolute -top-16 -right-16 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+                  <div className="flex items-center justify-between relative z-10">
+                    <span className="text-xs font-black text-emerald-400 uppercase tracking-wider flex items-center gap-2" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#10B981]" />
+                      Minimum Cashout Threshold
+                    </span>
+                    <div
+                      className="rounded-xl flex items-center justify-center shrink-0"
+                      style={{
+                        width: '44px',
+                        height: '44px',
+                        minWidth: '44px',
+                        background: 'rgba(16, 185, 129, 0.1)',
+                        border: '1.5px solid rgba(16, 185, 129, 0.35)',
+                        color: '#34D399',
+                        boxShadow: '0 0 15px rgba(16, 185, 129, 0.2)',
+                      }}
+                    >
+                      <DollarSign size={20} />
+                    </div>
+                  </div>
+                  <div className="relative z-10 space-y-1">
+                    <p className="text-2xl sm:text-3xl text-emerald-400 font-mono font-black m-0 tracking-wide">
+                      50.00 SC <span className="text-sm font-bold text-emerald-500/80">($50 USD)</span>
+                    </p>
+                    <p className="text-xs text-[#9A91A8] leading-relaxed m-0 pt-1">
+                      Standard threshold verified against 1x coin rollover playthrough requirements before withdrawal.
+                    </p>
+                  </div>
+                </div>
+
+                {/* 3. Referral Commission Engine Status */}
+                <div
+                  className="p-6 rounded-2xl relative overflow-hidden transition-all duration-300 hover:border-cyan-400/50 flex flex-col justify-between gap-4"
+                  style={{
+                    backgroundColor: '#0C0A1E',
+                    border: '1px solid rgba(0, 240, 255, 0.22)',
+                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+                  }}
+                >
+                  <div className="absolute -top-16 -right-16 w-48 h-48 bg-[#00F0FF]/10 rounded-full blur-3xl pointer-events-none" />
+                  <div className="flex items-center justify-between relative z-10">
+                    <span className="text-xs font-black text-[#00F0FF] uppercase tracking-wider flex items-center gap-2" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#00F0FF] shadow-[0_0_8px_#00F0FF]" />
+                      Referral Reward Engine
+                    </span>
+                    <div
+                      className="rounded-xl flex items-center justify-center shrink-0"
+                      style={{
+                        width: '44px',
+                        height: '44px',
+                        minWidth: '44px',
+                        background: 'rgba(0, 240, 255, 0.1)',
+                        border: '1.5px solid rgba(0, 240, 255, 0.35)',
+                        color: '#00F0FF',
+                        boxShadow: '0 0 15px rgba(0, 240, 255, 0.2)',
+                      }}
+                    >
+                      <Users size={20} />
+                    </div>
+                  </div>
+                  <div className="relative z-10 space-y-1">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-2xl sm:text-3xl text-[#00F0FF] font-mono font-black tracking-wide">
+                        {sysSettings?.referralBonusPercent ?? 50}%
+                      </span>
+                      <span className="text-[11px] font-bold text-cyan-300/80 uppercase tracking-wider">First Deposit</span>
+                    </div>
+                    <p className="text-xs text-[#9A91A8] leading-relaxed m-0 pt-1">
+                      Auto-credits directly to referrer&apos;s wallet balance + sends in-app and email notifications upon approval.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Dynamic Bonus Configuration Engine Form */}
+              <div
+                className="relative overflow-hidden"
+                style={{
+                  backgroundColor: '#0C0A1E',
+                  border: '1px solid rgba(0, 240, 255, 0.22)',
+                  borderRadius: '24px',
+                  padding: '28px',
+                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '28px',
+                }}
+              >
+                <div className="absolute -top-24 -right-24 w-72 h-72 bg-[#00F0FF]/10 rounded-full blur-3xl pointer-events-none" />
+
+                <div
+                  style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '24px',
+                    borderBottom: '1px solid rgba(0, 240, 255, 0.15)',
+                    paddingBottom: '24px',
+                    position: 'relative',
+                    zIndex: 10,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '20px',
+                      flex: '1 1 auto',
+                      minWidth: '280px',
+                    }}
+                  >
+                    <div
+                      className="shrink-0"
+                      style={{
+                        width: '56px',
+                        height: '56px',
+                        minWidth: '56px',
+                        padding: '14px',
+                        background: 'rgba(0, 240, 255, 0.1)',
+                        border: '1.5px solid rgba(0, 240, 255, 0.35)',
+                        color: '#00F0FF',
+                        boxShadow: '0 0 20px rgba(0, 240, 255, 0.15)',
+                        borderRadius: '16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Gift size={26} className="text-[#00F0FF]" />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <h3
+                        className="text-lg sm:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-cyan-300 m-0"
+                        style={{ fontFamily: 'Lexend, sans-serif' }}
+                      >
+                        Dynamic Player &amp; Referral Bonus Engine
+                      </h3>
+                      <p className="text-xs text-[#9A91A8] mt-1 m-0 leading-relaxed">
+                        Configure first-deposit welcome boost, reload match, and friend referral commission rates in real-time.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleSaveBonusSettings}
+                    disabled={savingBonusSettings}
+                    style={{
+                      backgroundColor: '#00F0FF',
+                      color: '#070514',
+                      boxShadow: '0 0 20px rgba(0, 240, 255, 0.35)',
+                    }}
+                    className="px-6 py-3 rounded-xl hover:bg-[#38bdf8] font-black uppercase tracking-wider text-xs cursor-pointer flex items-center justify-center gap-2 shrink-0 transition"
+                  >
+                    <Save size={15} className="stroke-[2.5]" />
+                    <span>{savingBonusSettings ? 'Saving...' : 'Save Bonus Configuration'}</span>
+                  </button>
+                </div>
+
+                <form onSubmit={handleSaveBonusSettings} style={{ display: 'flex', flexDirection: 'column', gap: '28px', position: 'relative', zIndex: 10 }}>
+                  {/* 3 Balanced Cards */}
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                      gap: '24px',
+                      width: '100%',
+                    }}
+                  >
+                    {/* 1. Welcome Bonus Card */}
+                    <div
+                      style={{
+                        backgroundColor: '#070514',
+                        border: '1px solid rgba(0, 240, 255, 0.25)',
+                        boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
+                        borderRadius: '24px',
+                        padding: '24px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        gap: '24px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-black text-[#00F0FF] uppercase tracking-wider" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                            1. Welcome Pack (First Deposit)
+                          </span>
+                          <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-[#00F0FF]/15 border border-[#00F0FF]/40 text-[#00F0FF] font-black uppercase tracking-wider">
+                            New Players Only
+                          </span>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <label className="text-[11px] font-bold text-slate-300 block m-0 uppercase tracking-wider">Bonus Match %</label>
                           <div className="relative">
                             <input
                               type="number"
@@ -4638,51 +5765,93 @@ export default function AdminPortal({ initialTab }) {
                               max="1000"
                               value={sysSettings?.welcomeBonusPercent ?? 300}
                               onChange={(e) => setSysSettings(prev => ({ ...prev, welcomeBonusPercent: e.target.value }))}
-                              className="w-full bg-[#0E0A24] border border-white/10 rounded-lg px-3 py-2 text-white font-black text-sm pr-7"
+                              className="w-full rounded-xl px-3.5 py-2.5 text-white font-mono font-black text-sm pr-8 outline-none transition"
+                              style={{
+                                backgroundColor: '#0C0A1E',
+                                border: '1px solid rgba(0, 240, 255, 0.25)',
+                              }}
                               required
                             />
-                            <span className="absolute right-2.5 top-2 text-xs font-bold text-gray-400">%</span>
+                            <span className="absolute right-3.5 top-2.5 text-xs font-bold text-[#00F0FF]">%</span>
                           </div>
                         </div>
 
-                        <div>
-                          <label className="text-[11px] font-bold text-gray-300 block mb-1">Banner Title</label>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <label className="text-[11px] font-bold text-slate-300 block m-0 uppercase tracking-wider">Banner Title</label>
                           <input
                             type="text"
                             value={sysSettings?.welcomeBonusTitle || 'WELCOME BONUS'}
                             onChange={(e) => setSysSettings(prev => ({ ...prev, welcomeBonusTitle: e.target.value }))}
-                            className="w-full bg-[#0E0A24] border border-white/10 rounded-lg px-3 py-2 text-white font-bold text-sm"
+                            className="w-full rounded-xl px-3.5 py-2.5 text-white font-bold text-xs outline-none transition"
+                            style={{
+                              backgroundColor: '#0C0A1E',
+                              border: '1px solid rgba(0, 240, 255, 0.25)',
+                            }}
+                            required
+                          />
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <label className="text-[11px] font-bold text-slate-300 block m-0 uppercase tracking-wider">Banner Subtitle / Description</label>
+                          <textarea
+                            rows={3}
+                            value={sysSettings?.welcomeBonusSubtitle || 'Get a 300% bonus on your first deposit! Instant approval & fast cashouts.'}
+                            onChange={(e) => setSysSettings(prev => ({ ...prev, welcomeBonusSubtitle: e.target.value }))}
+                            className="w-full rounded-xl px-3.5 py-2.5 text-white text-xs leading-relaxed outline-none transition"
+                            style={{
+                              backgroundColor: '#0C0A1E',
+                              border: '1px solid rgba(0, 240, 255, 0.25)',
+                            }}
                             required
                           />
                         </div>
                       </div>
 
-                      <div>
-                        <label className="text-[11px] font-bold text-gray-300 block mb-1">Banner Subtitle / Description</label>
-                        <textarea
-                          rows={2}
-                          value={sysSettings?.welcomeBonusSubtitle || 'Get a 300% bonus on your first deposit! Instant approval & fast cashouts.'}
-                          onChange={(e) => setSysSettings(prev => ({ ...prev, welcomeBonusSubtitle: e.target.value }))}
-                          className="w-full bg-[#0E0A24] border border-white/10 rounded-lg px-3 py-2 text-white text-xs leading-relaxed"
-                          required
-                        />
+                      {/* Simulation Tag */}
+                      <div style={{ paddingTop: '16px', borderTop: '1px solid rgba(0, 240, 255, 0.15)' }}>
+                        <div
+                          className="rounded-xl p-3 text-[11px]"
+                          style={{
+                            backgroundColor: '#0C0A1E',
+                            border: '1px solid rgba(0, 240, 255, 0.25)',
+                            color: '#00F0FF',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '4px',
+                          }}
+                        >
+                          <span className="font-bold block text-cyan-200">Simulation:</span>
+                          <span>Deposit $50 → Base $50 + ${(50 * (Number(sysSettings?.welcomeBonusPercent || 300) / 100)).toFixed(0)} SC = ${(50 + 50 * (Number(sysSettings?.welcomeBonusPercent || 300) / 100)).toFixed(0)} SC Total</span>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Regular Reload Bonus Card */}
-                    <div className="bg-[#070514] border border-purple-500/30 p-5 rounded-xl space-y-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-extrabold text-purple-400 uppercase tracking-wider">
-                          2. Regular Reload (Subsequent Deposits)
-                        </span>
-                        <span className="text-[10px] px-2 py-0.5 rounded bg-purple-500/15 text-purple-300 font-bold uppercase">
-                          After Welcome Claimed
-                        </span>
-                      </div>
+                    {/* 2. Regular Reload Bonus Card */}
+                    <div
+                      style={{
+                        backgroundColor: '#070514',
+                        border: '1px solid rgba(168, 85, 247, 0.3)',
+                        boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
+                        borderRadius: '24px',
+                        padding: '24px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        gap: '24px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-black text-purple-400 uppercase tracking-wider" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                            2. Regular Reload (Subsequent)
+                          </span>
+                          <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-purple-500/15 border border-purple-500/40 text-purple-300 font-black uppercase tracking-wider">
+                            Returning Players
+                          </span>
+                        </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                          <label className="text-[11px] font-bold text-gray-300 block mb-1">Reload Match %</label>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <label className="text-[11px] font-bold text-slate-300 block m-0 uppercase tracking-wider">Reload Match %</label>
                           <div className="relative">
                             <input
                               type="number"
@@ -4690,45 +5859,194 @@ export default function AdminPortal({ initialTab }) {
                               max="500"
                               value={sysSettings?.regularBonusPercent ?? 50}
                               onChange={(e) => setSysSettings(prev => ({ ...prev, regularBonusPercent: e.target.value }))}
-                              className="w-full bg-[#0E0A24] border border-white/10 rounded-lg px-3 py-2 text-white font-black text-sm pr-7"
+                              className="w-full rounded-xl px-3.5 py-2.5 text-white font-mono font-black text-sm pr-8 outline-none transition"
+                              style={{
+                                backgroundColor: '#0C0A1E',
+                                border: '1px solid rgba(168, 85, 247, 0.25)',
+                              }}
                               required
                             />
-                            <span className="absolute right-2.5 top-2 text-xs font-bold text-gray-400">%</span>
+                            <span className="absolute right-3.5 top-2.5 text-xs font-bold text-purple-400/70">%</span>
                           </div>
                         </div>
 
-                        <div>
-                          <label className="text-[11px] font-bold text-gray-300 block mb-1">Banner Title</label>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <label className="text-[11px] font-bold text-slate-300 block m-0 uppercase tracking-wider">Banner Title</label>
                           <input
                             type="text"
                             value={sysSettings?.regularBonusTitle || 'REGULAR BONUS'}
                             onChange={(e) => setSysSettings(prev => ({ ...prev, regularBonusTitle: e.target.value }))}
-                            className="w-full bg-[#0E0A24] border border-white/10 rounded-lg px-3 py-2 text-white font-bold text-sm"
+                            className="w-full rounded-xl px-3.5 py-2.5 text-white font-bold text-xs outline-none transition"
+                            style={{
+                              backgroundColor: '#0C0A1E',
+                              border: '1px solid rgba(168, 85, 247, 0.25)',
+                            }}
+                            required
+                          />
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <label className="text-[11px] font-bold text-slate-300 block m-0 uppercase tracking-wider">Banner Subtitle / Description</label>
+                          <textarea
+                            rows={3}
+                            value={sysSettings?.regularBonusSubtitle || 'Get a 50% reload bonus on every deposit you make! Boost your wallet balance anytime.'}
+                            onChange={(e) => setSysSettings(prev => ({ ...prev, regularBonusSubtitle: e.target.value }))}
+                            className="w-full rounded-xl px-3.5 py-2.5 text-white text-xs leading-relaxed outline-none transition"
+                            style={{
+                              backgroundColor: '#0C0A1E',
+                              border: '1px solid rgba(168, 85, 247, 0.25)',
+                            }}
                             required
                           />
                         </div>
                       </div>
 
-                      <div>
-                        <label className="text-[11px] font-bold text-gray-300 block mb-1">Banner Subtitle / Description</label>
-                        <textarea
-                          rows={2}
-                          value={sysSettings?.regularBonusSubtitle || 'Get a 50% reload bonus on every deposit you make! Boost your wallet balance anytime.'}
-                          onChange={(e) => setSysSettings(prev => ({ ...prev, regularBonusSubtitle: e.target.value }))}
-                          className="w-full bg-[#0E0A24] border border-white/10 rounded-lg px-3 py-2 text-white text-xs leading-relaxed"
-                          required
-                        />
+                      {/* Simulation Tag */}
+                      <div style={{ paddingTop: '16px', borderTop: '1px solid rgba(168, 85, 247, 0.15)' }}>
+                        <div
+                          className="rounded-xl p-3 text-[11px]"
+                          style={{
+                            backgroundColor: '#0C0A1E',
+                            border: '1px solid rgba(168, 85, 247, 0.25)',
+                            color: '#C084FC',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '4px',
+                          }}
+                        >
+                          <span className="font-bold block text-purple-200">Simulation:</span>
+                          <span>Deposit $50 → Base $50 + ${(50 * (Number(sysSettings?.regularBonusPercent || 50) / 100)).toFixed(0)} SC = ${(50 + 50 * (Number(sysSettings?.regularBonusPercent || 50) / 100)).toFixed(0)} SC Total</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 3. Referral & Friend Bonus Card */}
+                    <div
+                      style={{
+                        backgroundColor: '#070514',
+                        border: '1px solid rgba(16, 185, 129, 0.3)',
+                        boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
+                        borderRadius: '24px',
+                        padding: '24px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        gap: '24px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-black text-emerald-400 uppercase tracking-wider" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                            3. Referral &amp; Friend Bonus
+                          </span>
+                          <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 font-black uppercase tracking-wider">
+                            Inviter Reward
+                          </span>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <label className="text-[11px] font-bold text-slate-300 block m-0 uppercase tracking-wider">Referral Reward %</label>
+                          <div className="relative">
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={sysSettings?.referralBonusPercent ?? 50}
+                              onChange={(e) => setSysSettings(prev => ({ ...prev, referralBonusPercent: e.target.value }))}
+                              className="w-full rounded-xl px-3.5 py-2.5 text-white font-mono font-black text-sm pr-8 outline-none transition"
+                              style={{
+                                backgroundColor: '#0C0A1E',
+                                border: '1px solid rgba(16, 185, 129, 0.25)',
+                              }}
+                              required
+                            />
+                            <span className="absolute right-3.5 top-2.5 text-xs font-bold text-emerald-400/70">%</span>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <label className="text-[11px] font-bold text-slate-300 block m-0 uppercase tracking-wider">Banner / Badge Title</label>
+                          <input
+                            type="text"
+                            value={sysSettings?.referralBonusTitle || 'REFERRAL BONUS'}
+                            onChange={(e) => setSysSettings(prev => ({ ...prev, referralBonusTitle: e.target.value }))}
+                            className="w-full rounded-xl px-3.5 py-2.5 text-white font-bold text-xs outline-none transition"
+                            style={{
+                              backgroundColor: '#0C0A1E',
+                              border: '1px solid rgba(16, 185, 129, 0.25)',
+                            }}
+                            required
+                          />
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <label className="text-[11px] font-bold text-slate-300 block m-0 uppercase tracking-wider">Reward Description / Policy</label>
+                          <textarea
+                            rows={3}
+                            value={sysSettings?.referralBonusSubtitle || 'Earn referral commission directly credited into your wallet when your invited friend makes their first deposit.'}
+                            onChange={(e) => setSysSettings(prev => ({ ...prev, referralBonusSubtitle: e.target.value }))}
+                            className="w-full rounded-xl px-3.5 py-2.5 text-white text-xs leading-relaxed outline-none transition"
+                            style={{
+                              backgroundColor: '#0C0A1E',
+                              border: '1px solid rgba(16, 185, 129, 0.25)',
+                            }}
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      {/* Simulation Tag & Instant Features */}
+                      <div style={{ paddingTop: '16px', borderTop: '1px solid rgba(16, 185, 129, 0.15)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        <div
+                          className="rounded-xl p-3 text-[11px]"
+                          style={{
+                            backgroundColor: '#0C0A1E',
+                            border: '1px solid rgba(16, 185, 129, 0.25)',
+                            color: '#34D399',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '4px',
+                          }}
+                        >
+                          <span className="font-bold block text-emerald-200">Simulation:</span>
+                          <span>Friend deposits $50 → Referrer automatically receives <strong>+${(50 * (Number(sysSettings?.referralBonusPercent || 50) / 100)).toFixed(2)} SC</strong> directly in their wallet!</span>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '10px', color: '#94A3B8', padding: '0 4px', fontWeight: 600 }}>
+                          <span className="text-emerald-400 font-bold">✓ Direct Wallet Credit (balanceSC)</span>
+                          <span className="text-emerald-400 font-bold">✓ Instant In-App Player Notification</span>
+                          <span className="text-emerald-400 font-bold">✓ Automated Email Dispatch</span>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-end gap-3 pt-2">
+                  {/* Bottom Save Bar */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '16px',
+                      paddingTop: '24px',
+                      borderTop: '1px solid rgba(0, 240, 255, 0.15)',
+                    }}
+                  >
+                    <p className="text-xs text-slate-400 m-0">
+                      Settings apply immediately across all player deposits, promo calculations, and affiliate commission credits.
+                    </p>
                     <button
                       type="submit"
                       disabled={savingBonusSettings}
-                      className="btn-gold py-2.5 px-6 text-xs font-black uppercase tracking-wider flex items-center gap-2"
+                      style={{
+                        backgroundColor: '#00F0FF',
+                        color: '#070514',
+                        boxShadow: '0 0 20px rgba(0, 240, 255, 0.35)',
+                      }}
+                      className="py-3 px-8 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 rounded-xl hover:bg-[#38bdf8] transition cursor-pointer self-start sm:self-auto shrink-0"
                     >
-                      {savingBonusSettings ? 'Saving...' : '💾 Save Bonus Configuration'}
+                      <Save size={15} className="stroke-[2.5]" />
+                      <span>{savingBonusSettings ? 'Saving...' : 'Save Bonus Configuration'}</span>
                     </button>
                   </div>
                 </form>
@@ -4754,22 +6072,108 @@ export default function AdminPortal({ initialTab }) {
             });
 
             return (
-              <div className="space-y-6" style={{ fontFamily: 'Lexend, -apple-system, BlinkMacSystemFont, sans-serif' }}>
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
-                    <h2 className="text-2xl font-black text-white flex items-center gap-2" style={{ fontFamily: 'Lexend, sans-serif' }}>
-                      <span className="w-2.5 h-2.5 rounded-full bg-[#00F0FF] shadow-[0_0_10px_#00F0FF]" />
-                      Player Accounts Directory
-                    </h2>
-                    <p className="text-xs text-[#9A91A8] mt-1" style={{ fontFamily: 'Lexend, sans-serif' }}>
-                      Manage player profiles, balances, deposits, cashouts, referrals &amp; account control
-                    </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', fontFamily: 'Lexend, -apple-system, BlinkMacSystemFont, sans-serif', width: '100%' }}>
+                {/* Header & Search */}
+                <div
+                  className="relative overflow-hidden"
+                  style={{
+                    backgroundColor: '#0C0A1E',
+                    border: '1px solid rgba(0, 240, 255, 0.22)',
+                    borderRadius: '24px',
+                    padding: '24px 28px',
+                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '24px',
+                  }}
+                >
+                  <div className="absolute -top-24 -right-24 w-72 h-72 bg-[#00F0FF]/10 rounded-full blur-3xl pointer-events-none" />
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '20px',
+                      position: 'relative',
+                      zIndex: 10,
+                      flex: '1 1 auto',
+                      minWidth: '280px',
+                    }}
+                  >
+                    <div
+                      className="shrink-0"
+                      style={{
+                        width: '56px',
+                        height: '56px',
+                        minWidth: '56px',
+                        padding: '14px',
+                        background: 'rgba(0, 240, 255, 0.1)',
+                        border: '1.5px solid rgba(0, 240, 255, 0.35)',
+                        color: '#00F0FF',
+                        boxShadow: '0 0 20px rgba(0, 240, 255, 0.15)',
+                        borderRadius: '16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Users className="w-full h-full text-[#00F0FF]" />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                        <h2
+                          className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-cyan-300 m-0 tracking-tight"
+                          style={{ fontFamily: 'Lexend, sans-serif' }}
+                        >
+                          Player Accounts Directory
+                        </h2>
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            padding: '3px 12px',
+                            borderRadius: '9999px',
+                            fontWeight: 700,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            fontFamily: 'monospace',
+                            backgroundColor: 'rgba(0, 240, 255, 0.08)',
+                            color: '#00F0FF',
+                            border: '1px solid rgba(0, 240, 255, 0.25)',
+                          }}
+                        >
+                          <span className="w-2 h-2 rounded-full bg-[#00F0FF] animate-pulse" />
+                          <span>{totalPlayers} Registered</span>
+                        </span>
+                      </div>
+                      <p
+                        className="text-xs sm:text-[13px] text-slate-400 mt-1 leading-relaxed m-0"
+                        style={{ fontFamily: 'Lexend, sans-serif' }}
+                      >
+                        Manage player profiles, balances, deposits, cashouts, referrals &amp; account control.
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <div className="flex items-center gap-2.5 px-3 py-2 bg-[#140E33] border border-white/10 rounded-xl focus-within:border-cyan-400 w-full sm:w-64 transition">
-                      <Search size={14} className="text-gray-400 shrink-0" />
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      position: 'relative',
+                      zIndex: 10,
+                      flexShrink: 0,
+                    }}
+                  >
+                    <div
+                      className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl w-full sm:w-72 transition"
+                      style={{
+                        backgroundColor: '#070514',
+                        border: '1px solid rgba(0, 240, 255, 0.25)',
+                      }}
+                    >
+                      <Search size={14} className="text-cyan-400 shrink-0" />
                       <input
                         type="text"
                         placeholder="Search username, email, code..."
@@ -4782,9 +6186,22 @@ export default function AdminPortal({ initialTab }) {
                               .then(d => { if (d.success) setUsersList(d.users || []); });
                           }
                         }}
-                        className="w-full bg-transparent text-xs text-white placeholder-gray-500 focus:outline-none p-0 border-none"
-                        style={{ fontFamily: 'Lexend, sans-serif' }}
+                        className="w-full bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none p-0 border-none"
                       />
+                      {userSearchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUserSearchQuery('');
+                            fetch('/api/users')
+                              .then(r => r.json())
+                              .then(d => { if (d.success) setUsersList(d.users || []); });
+                          }}
+                          className="text-slate-400 hover:text-white text-xs font-bold cursor-pointer"
+                        >
+                          ✕
+                        </button>
+                      )}
                     </div>
                     <button
                       onClick={() => {
@@ -4792,17 +6209,117 @@ export default function AdminPortal({ initialTab }) {
                           .then(r => r.json())
                           .then(d => { if (d.success) setUsersList(d.users || []); });
                       }}
-                      className="btn-sovereign-coral text-xs py-2 px-3.5 font-bold shrink-0"
-                      style={{ fontFamily: 'Lexend, sans-serif' }}
+                      className="px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-2 transition hover:opacity-95 active:scale-95 cursor-pointer shrink-0"
+                      style={{
+                        backgroundColor: '#00F0FF',
+                        color: '#070514',
+                        border: 'none',
+                        boxShadow: '0 0 20px rgba(0, 240, 255, 0.35)',
+                        fontFamily: 'Lexend, sans-serif',
+                      }}
                     >
-                      <span>Search</span>
+                      Search
                     </button>
                   </div>
                 </div>
 
-                {/* Filter Pills */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 max-w-full">
+                {/* KPI Metrics Strip */}
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                    gap: '20px',
+                    width: '100%',
+                  }}
+                >
+                  <div
+                    className="p-5 transition hover:translate-y-[-2px]"
+                    style={{
+                      backgroundColor: '#0C0A1E',
+                      border: '1px solid rgba(0, 240, 255, 0.22)',
+                      boxShadow: '0 10px 30px rgba(0, 0, 0, 0.35)',
+                      borderRadius: '24px',
+                    }}
+                  >
+                    <p className="text-[10.5px] font-bold uppercase tracking-wider flex items-center gap-1.5" style={{ color: '#00F0FF' }}>
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#00F0FF] shadow-[0_0_6px_#00F0FF]" />
+                      Total Players
+                    </p>
+                    <p className="text-2xl font-black text-white mt-1.5 font-mono">
+                      {totalPlayers} <span className="text-xs text-slate-400 font-bold font-sans">Users</span>
+                    </p>
+                  </div>
+                  <div
+                    className="p-5 transition hover:translate-y-[-2px]"
+                    style={{
+                      backgroundColor: '#0C0A1E',
+                      border: '1px solid rgba(16, 185, 129, 0.25)',
+                      boxShadow: '0 10px 30px rgba(0, 0, 0, 0.35)',
+                      borderRadius: '24px',
+                    }}
+                  >
+                    <p className="text-[10.5px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34D399]" />
+                      Active Players
+                    </p>
+                    <p className="text-2xl font-black text-emerald-400 mt-1.5 font-mono">
+                      {usersList.filter(u => !u.isBanned).length}
+                    </p>
+                  </div>
+                  <div
+                    className="p-5 transition hover:translate-y-[-2px]"
+                    style={{
+                      backgroundColor: '#0C0A1E',
+                      border: '1px solid rgba(251, 191, 36, 0.25)',
+                      boxShadow: '0 10px 30px rgba(0, 0, 0, 0.35)',
+                      borderRadius: '24px',
+                    }}
+                  >
+                    <p className="text-[10.5px] font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_#FBBF24]" />
+                      Total Vault Float
+                    </p>
+                    <p className="text-2xl font-black text-amber-400 mt-1.5 font-mono">
+                      ${totalFloatSC.toFixed(2)} <span className="text-xs text-amber-300 font-bold font-mono">SC</span>
+                    </p>
+                  </div>
+                  <div
+                    className="p-5 transition hover:translate-y-[-2px]"
+                    style={{
+                      backgroundColor: '#0C0A1E',
+                      border: '1px solid rgba(192, 132, 252, 0.25)',
+                      boxShadow: '0 10px 30px rgba(0, 0, 0, 0.35)',
+                      borderRadius: '24px',
+                    }}
+                  >
+                    <p className="text-[10.5px] font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_6px_#C084FC]" />
+                      Lifetime Deposited
+                    </p>
+                    <p className="text-2xl font-black text-purple-300 mt-1.5 font-mono">
+                      ${totalDeposits.toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Filter Pills & Tip */}
+                <div
+                  style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '16px',
+                    width: '100%',
+                  }}
+                >
+                  <div
+                    className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto no-scrollbar max-w-full"
+                    style={{
+                      backgroundColor: '#070514',
+                      border: '1px solid rgba(0, 240, 255, 0.2)',
+                    }}
+                  >
                     {[
                       { id: 'all', label: 'All Players', count: totalPlayers },
                       { id: 'active', label: 'Active', count: usersList.filter(u => !u.isBanned).length },
@@ -4812,127 +6329,160 @@ export default function AdminPortal({ initialTab }) {
                     ].map(f => (
                       <button
                         key={f.id}
+                        type="button"
                         onClick={() => setPlayerFilter(f.id)}
-                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 ${playerFilter === f.id
-                          ? 'bg-[#00F0FF] text-black shadow-[0_0_15px_rgba(0,240,255,0.4)] font-black'
-                          : 'bg-[#140E33] text-gray-400 hover:text-white border border-white/10'
-                          }`}
-                        style={{ fontFamily: 'Lexend, sans-serif' }}
+                        className="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shrink-0 cursor-pointer"
+                        style={{
+                          backgroundColor: playerFilter === f.id ? 'rgba(0, 240, 255, 0.15)' : 'transparent',
+                          border: playerFilter === f.id ? '1px solid rgba(0, 240, 255, 0.45)' : '1px solid transparent',
+                          color: playerFilter === f.id ? '#00F0FF' : '#94A3B8',
+                          boxShadow: playerFilter === f.id ? '0 0 12px rgba(0, 240, 255, 0.15)' : 'none',
+                        }}
                       >
                         <span>{f.label}</span>
-                        <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${playerFilter === f.id ? 'bg-black/20 text-black font-black' : 'bg-white/10 text-gray-300'
-                          }`}>
+                        <span
+                          className="px-1.5 py-0.2 rounded-full text-[10px] font-mono"
+                          style={{
+                            backgroundColor: playerFilter === f.id ? 'rgba(0, 240, 255, 0.25)' : 'rgba(255, 255, 255, 0.06)',
+                            color: playerFilter === f.id ? '#00F0FF' : '#94A3B8',
+                          }}
+                        >
                           {f.count}
                         </span>
                       </button>
                     ))}
                   </div>
 
-                  <span className="text-[11px] text-[#9A91A8]" style={{ fontFamily: 'Lexend, sans-serif' }}>
-                    💡 Click <strong className="text-[#00F0FF]">&quot;360° Profile&quot;</strong> on any user to adjust balance, view deposits, cashouts &amp; referrals
-                  </span>
+                  <div
+                    className="flex items-center gap-2 text-xs px-3.5 py-2 rounded-xl shrink-0"
+                    style={{
+                      backgroundColor: 'rgba(0, 240, 255, 0.06)',
+                      border: '1px solid rgba(0, 240, 255, 0.2)',
+                      color: '#94A3B8',
+                    }}
+                  >
+                    <span className="text-cyan-400">💡</span>
+                    <span>Click on any player row or <strong className="text-[#00F0FF]">Profile</strong> to open full 360° audit desk.</span>
+                  </div>
                 </div>
 
                 {/* Users Table */}
-                <div className="bg-[#0E0A24] border border-[#00F0FF]/25 rounded-2xl overflow-hidden shadow-2xl">
-                  {/* Mobile Cards View (Visible on small screens) */}
+                <div
+                  className="overflow-hidden shadow-2xl"
+                  style={{
+                    backgroundColor: '#0C0A1E',
+                    border: '1px solid rgba(0, 240, 255, 0.22)',
+                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+                    borderRadius: '24px',
+                  }}
+                >
+                  {/* Mobile Cards View */}
                   <div className="block sm:hidden divide-y divide-white/5">
                     {filteredUsers.length === 0 ? (
-                      <div className="p-8 text-center text-gray-500 font-medium text-xs">
+                      <div className="p-8 text-center text-slate-500 font-medium text-xs">
                         No player accounts matching selection.
                       </div>
                     ) : (
                       filteredUsers.map(u => (
-                        <div
-                          key={u.id}
-                          className="p-3.5 space-y-3 bg-[#140E33]/70"
-                        >
-                          {/* Top row: Avatar + Name + Referral + Status */}
+                        <div key={u.id} className="p-4 space-y-3 bg-[#070514]/60 hover:bg-[#070514] transition">
                           <div className="flex items-start justify-between gap-2">
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#00F0FF]/15 via-purple-500/10 to-[#E026D8]/20 border border-white/10 flex items-center justify-center font-black text-xs text-white shrink-0">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div
+                                className="w-10 h-10 rounded-2xl flex items-center justify-center font-black text-xs shrink-0 shadow-md"
+                                style={{
+                                  background: 'rgba(0, 240, 255, 0.1)',
+                                  border: '1.5px solid rgba(0, 240, 255, 0.35)',
+                                  color: '#00F0FF',
+                                  boxShadow: '0 0 15px rgba(0, 240, 255, 0.1)',
+                                }}
+                              >
                                 {u.username?.substring(0, 2).toUpperCase() || 'P'}
                               </div>
                               <div className="min-w-0">
                                 <div className="font-bold text-white text-sm flex items-center gap-1.5">
                                   <span className="truncate">{u.username}</span>
                                   {u.referralCode && (
-                                    <span className="text-[10px] text-amber-300 font-bold bg-amber-500/10 px-1.5 py-0.2 rounded border border-amber-500/20 shrink-0">
+                                    <span
+                                      className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded shrink-0"
+                                      style={{
+                                        backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                                        color: '#FFD700',
+                                        border: '1px solid rgba(255, 215, 0, 0.25)',
+                                      }}
+                                    >
                                       {u.referralCode}
                                     </span>
                                   )}
                                 </div>
-                                <div className="text-[11px] text-gray-400 truncate flex items-center gap-1.5 flex-wrap">
-                                  <span>{u.email}</span>
-                                  <span className="text-[9px] px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/30">
-                                    Age: {u.age || (u.dob ? Math.floor((Date.now() - new Date(u.dob).getTime()) / 31557600000) : '18+')}
-                                  </span>
-                                  {u.ageVerified && (
-                                    <span className="text-[9px] text-emerald-400 font-bold">✓ 18+</span>
-                                  )}
-                                </div>
+                                <div className="text-[11px] text-slate-400 truncate mt-0.5">{u.email}</div>
                               </div>
                             </div>
 
-                            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border shrink-0 ${u.isBanned
-                              ? 'bg-red-500/20 text-red-400 border-red-500/40'
-                              : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                              }`}>
+                            <span
+                              className="text-[10px] font-black px-2.5 py-0.5 rounded-full shrink-0"
+                              style={{
+                                backgroundColor: u.isBanned ? 'rgba(244, 63, 94, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                                color: u.isBanned ? '#FB7185' : '#34D399',
+                                border: u.isBanned ? '1px solid rgba(244, 63, 94, 0.35)' : '1px solid rgba(16, 185, 129, 0.35)',
+                              }}
+                            >
                               {u.isBanned ? 'BANNED' : 'ACTIVE'}
                             </span>
                           </div>
 
-                          {/* Stats Grid */}
-                          <div className="grid grid-cols-2 gap-2 p-2.5 rounded-xl bg-[#070514] border border-white/10 text-xs">
+                          <div
+                            className="grid grid-cols-2 gap-2 p-2.5 rounded-xl text-xs"
+                            style={{
+                              backgroundColor: '#070514',
+                              border: '1px solid rgba(0, 240, 255, 0.15)',
+                            }}
+                          >
                             <div>
-                              <span className="text-[10px] text-gray-400 block font-medium">Cash Balance</span>
-                              <span className="font-extrabold text-emerald-400 text-sm">
+                              <span className="text-[10px] text-slate-400 block font-medium">Cash Balance</span>
+                              <span className="font-black text-emerald-400 text-sm">
                                 ${Number(u.balanceSC || 0).toFixed(2)}{' '}
                                 <span className="text-[10px] font-bold text-emerald-500">SC</span>
                               </span>
                             </div>
                             <div>
-                              <span className="text-[10px] text-gray-400 block font-medium">Device</span>
+                              <span className="text-[10px] text-slate-400 block font-medium">Device</span>
                               {u.deviceId ? (
-                                <span className="text-[10px] font-bold text-emerald-300 flex items-center gap-1">
-                                  <Smartphone size={10} /> Bound
+                                <span className="text-[10px] font-bold text-emerald-300 flex items-center gap-1 mt-0.5">
+                                  <Smartphone size={11} /> Bound
                                 </span>
                               ) : (
-                                <span className="text-[10px] font-bold text-gray-400">Unbound</span>
+                                <span className="text-[10px] font-bold text-slate-400 mt-0.5 block">Unbound</span>
                               )}
-                            </div>
-                            <div>
-                              <span className="text-[10px] text-gray-400 block font-medium">Deposited</span>
-                              <span className="font-bold text-white text-xs">
-                                ${Number(u.totalDeposits || 0).toFixed(2)}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="text-[10px] text-gray-400 block font-medium">Cashed Out</span>
-                              <span className="font-bold text-cyan-300 text-xs">
-                                ${Number(u.totalWithdrawals || 0).toFixed(2)}
-                              </span>
                             </div>
                           </div>
 
-                          {/* Action Buttons */}
-                          <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                          <div className="flex items-center gap-2 pt-1">
                             <button
                               type="button"
                               onClick={() => setSelectedPlayerId(u.id)}
-                              className="flex-1 py-1.5 px-2.5 rounded-xl bg-[#00F0FF]/15 text-[#00F0FF] border border-[#00F0FF]/40 text-xs font-bold flex items-center justify-center gap-1 shadow-sm"
+                              className="flex-1 py-2 px-3 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition cursor-pointer"
+                              style={{
+                                backgroundColor: 'rgba(0, 240, 255, 0.12)',
+                                border: '1px solid rgba(0, 240, 255, 0.35)',
+                                color: '#00F0FF',
+                              }}
                             >
-                              <Eye size={12} />
-                              <span>Player Profile</span>
+                              <Eye size={13} />
+                              <span>360° Profile</span>
                             </button>
 
                             <button
                               type="button"
                               onClick={() => setResetPassModal({ open: true, user: u, newPass: '' })}
-                              className="py-1.5 px-2.5 rounded-xl bg-purple-500/10 text-purple-300 border border-purple-500/30 text-xs font-bold flex items-center gap-1"
+                              className="w-8 h-8 rounded-xl flex items-center justify-center transition cursor-pointer"
+                              style={{
+                                backgroundColor: 'rgba(168, 85, 247, 0.12)',
+                                border: '1px solid rgba(168, 85, 247, 0.35)',
+                                color: '#C084FC',
+                              }}
+                              title="Reset Password"
                             >
-                              <Key size={12} />
-                              <span>Reset</span>
+                              <Key size={13} />
                             </button>
 
                             {u.deviceId && (
@@ -4951,10 +6501,15 @@ export default function AdminPortal({ initialTab }) {
                                     setUsersList(usersList.map(x => x.id === u.id ? { ...x, deviceId: null } : x));
                                   }
                                 }}
-                                className="py-1.5 px-2.5 rounded-xl bg-sky-500/10 text-sky-300 border border-sky-500/30 text-xs font-bold flex items-center gap-1"
+                                className="w-8 h-8 rounded-xl flex items-center justify-center transition cursor-pointer"
+                                style={{
+                                  backgroundColor: 'rgba(14, 165, 233, 0.12)',
+                                  border: '1px solid rgba(14, 165, 233, 0.35)',
+                                  color: '#38BDF8',
+                                }}
+                                title="Unbind Device"
                               >
-                                <Smartphone size={12} />
-                                <span>Unbind</span>
+                                <Smartphone size={13} />
                               </button>
                             )}
 
@@ -4975,13 +6530,15 @@ export default function AdminPortal({ initialTab }) {
                                   setUsersList(usersList.map(x => x.id === u.id ? { ...x, isBanned: d.isBanned } : x));
                                 }
                               }}
-                              className={`py-1.5 px-2.5 rounded-xl text-xs font-bold border flex items-center gap-1 ${u.isBanned
-                                ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
-                                : 'bg-red-500/15 text-red-300 border-red-500/30'
-                                }`}
+                              className="w-8 h-8 rounded-xl flex items-center justify-center transition cursor-pointer"
+                              style={{
+                                backgroundColor: u.isBanned ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.15)',
+                                border: u.isBanned ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid rgba(244, 63, 94, 0.35)',
+                                color: u.isBanned ? '#34D399' : '#FB7185',
+                              }}
+                              title={u.isBanned ? 'Unban' : 'Ban'}
                             >
-                              <ShieldCheck size={12} />
-                              <span>{u.isBanned ? 'Unban' : 'Ban'}</span>
+                              <ShieldCheck size={13} />
                             </button>
                           </div>
                         </div>
@@ -4989,25 +6546,32 @@ export default function AdminPortal({ initialTab }) {
                     )}
                   </div>
 
-                  {/* Desktop Table View (Hidden on mobile) */}
+                  {/* Desktop Table View */}
                   <div className="hidden sm:block overflow-x-auto w-full">
-                    <table className="w-full min-w-[760px] text-left text-xs" style={{ fontFamily: 'Lexend, sans-serif' }}>
-                      <thead className="bg-[#070514] text-[#9A91A8] uppercase border-b border-white/10 font-bold" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                    <table className="w-full min-w-[780px] text-left text-xs">
+                      <thead
+                        className="uppercase text-[10px] font-black tracking-wider"
+                        style={{
+                          backgroundColor: '#070514',
+                          borderBottom: '1px solid rgba(0, 240, 255, 0.2)',
+                          color: '#00F0FF',
+                        }}
+                      >
                         <tr>
-                          <th className="p-3.5">Player / Identity</th>
-                          <th className="p-3.5">Cash Balance</th>
-                          <th className="p-3.5">Deposited</th>
-                          <th className="p-3.5">Cashed Out</th>
-                          <th className="p-3.5">Referrals</th>
-                          <th className="p-3.5">Device Binding</th>
-                          <th className="p-3.5">Status</th>
-                          <th className="p-3.5 text-right">Actions</th>
+                          <th className="p-4">Player / Identity</th>
+                          <th className="p-4">Cash Balance</th>
+                          <th className="p-4">Deposited</th>
+                          <th className="p-4">Cashed Out</th>
+                          <th className="p-4">Referrals</th>
+                          <th className="p-4">Device Binding</th>
+                          <th className="p-4">Status</th>
+                          <th className="p-4 text-right">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-white/5">
+                      <tbody className="divide-y" style={{ borderColor: 'rgba(0, 240, 255, 0.1)' }}>
                         {filteredUsers.length === 0 ? (
                           <tr>
-                            <td colSpan="8" className="p-10 text-center text-gray-500 font-medium">
+                            <td colSpan="8" className="p-10 text-center text-slate-500 font-medium">
                               No player accounts matching selection.
                             </td>
                           </tr>
@@ -5015,32 +6579,61 @@ export default function AdminPortal({ initialTab }) {
                           filteredUsers.map(u => (
                             <tr
                               key={u.id}
-                              className="hover:bg-white/[0.03] transition-colors cursor-pointer group"
+                              className="even:bg-white/[0.015] hover:bg-cyan-500/[0.05] transition-colors cursor-pointer group"
                               onClick={() => setSelectedPlayerId(u.id)}
                             >
                               {/* Player Identity */}
-                              <td className="p-3.5">
+                              <td className="p-4">
                                 <div className="flex items-center gap-3">
-                                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#00F0FF]/15 via-purple-500/10 to-[#E026D8]/20 border border-white/10 flex items-center justify-center font-black text-xs text-white shrink-0 group-hover:border-[#00F0FF]/50 transition">
+                                  <div
+                                    className="w-10 h-10 rounded-2xl flex items-center justify-center font-black text-xs shrink-0 shadow-md transition group-hover:scale-105"
+                                    style={{
+                                      background: 'rgba(0, 240, 255, 0.1)',
+                                      border: '1.5px solid rgba(0, 240, 255, 0.35)',
+                                      color: '#00F0FF',
+                                      boxShadow: '0 0 15px rgba(0, 240, 255, 0.1)',
+                                    }}
+                                  >
                                     {u.username?.substring(0, 2).toUpperCase() || 'P'}
                                   </div>
                                   <div>
-                                    <div className="font-bold text-white text-sm flex items-center gap-1.5" style={{ fontFamily: 'Lexend, sans-serif' }}>
-                                      <span>{u.username}</span>
+                                    <div className="font-black text-white text-sm flex items-center gap-1.5">
+                                      <span className="group-hover:text-cyan-300 transition">{u.username}</span>
                                       {u.referralCode && (
-                                        <span className="text-[10px] text-amber-300 font-bold bg-amber-500/10 px-1.5 py-0.2 rounded border border-amber-500/20">
+                                        <span
+                                          className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded"
+                                          style={{
+                                            backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                                            color: '#FFD700',
+                                            border: '1px solid rgba(255, 215, 0, 0.25)',
+                                          }}
+                                        >
                                           {u.referralCode}
                                         </span>
                                       )}
                                     </div>
-                                    <div className="text-[11px] text-gray-400">{u.email}</div>
-                                    <div className="text-[10px] text-gray-400 mt-1 flex items-center gap-1.5 flex-wrap">
-                                      <span>Joined: {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'Recent'}</span>
-                                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/30">
+                                    <div className="text-[11px] text-slate-400 mt-0.5">{u.email}</div>
+                                    <div className="text-[10px] text-slate-500 mt-1 flex items-center gap-1.5 flex-wrap">
+                                      <span>Joined {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'Recent'}</span>
+                                      <span
+                                        className="text-[9px] px-1.5 py-0.2 rounded font-bold"
+                                        style={{
+                                          backgroundColor: 'rgba(0, 240, 255, 0.1)',
+                                          color: '#00F0FF',
+                                          border: '1px solid rgba(0, 240, 255, 0.25)',
+                                        }}
+                                      >
                                         Age: {u.age || (u.dob ? Math.floor((Date.now() - new Date(u.dob).getTime()) / 31557600000) : '18+')}
                                       </span>
                                       {u.ageVerified && (
-                                        <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-1.5 py-0.2 rounded border border-emerald-500/30">
+                                        <span
+                                          className="text-[9px] font-bold px-1.5 py-0.2 rounded"
+                                          style={{
+                                            backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                                            color: '#34D399',
+                                            border: '1px solid rgba(16, 185, 129, 0.3)',
+                                          }}
+                                        >
                                           ✓ 18+ Verified
                                         </span>
                                       )}
@@ -5050,79 +6643,125 @@ export default function AdminPortal({ initialTab }) {
                               </td>
 
                               {/* Cash Balance */}
-                              <td className="p-3.5" onClick={(e) => e.stopPropagation()}>
-                                <div className="font-extrabold text-emerald-400 text-sm tracking-tight" style={{ fontFamily: 'Lexend, sans-serif' }}>
-                                  ${Number(u.balanceSC || 0).toFixed(2)}{' '}
+                              <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                                <div
+                                  className="font-black text-sm tracking-tight inline-flex items-baseline gap-1 px-2.5 py-1 rounded-lg"
+                                  style={{
+                                    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                                    color: '#34D399',
+                                    border: '1px solid rgba(16, 185, 129, 0.3)',
+                                  }}
+                                >
+                                  ${Number(u.balanceSC || 0).toFixed(2)}
                                   <span className="text-[10px] font-bold text-emerald-500">SC</span>
                                 </div>
                               </td>
 
                               {/* Deposited */}
-                              <td className="p-3.5 font-bold text-white text-xs" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                              <td className="p-4 font-bold text-white text-xs">
                                 ${Number(u.totalDeposits || 0).toFixed(2)}
                               </td>
 
                               {/* Cashed Out */}
-                              <td className="p-3.5 font-bold text-cyan-300 text-xs" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                              <td className="p-4 font-bold text-cyan-300 text-xs">
                                 ${Number(u.totalWithdrawals || 0).toFixed(2)}
                               </td>
 
                               {/* Referrals */}
-                              <td className="p-3.5 text-xs" style={{ fontFamily: 'Lexend, sans-serif' }}>
-                                <span className="font-bold text-amber-400 flex items-center gap-1">
+                              <td className="p-4 text-xs">
+                                <span
+                                  className="font-bold inline-flex items-center gap-1 px-2 py-0.5 rounded-md"
+                                  style={{
+                                    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                                    color: '#FFD700',
+                                    border: '1px solid rgba(255, 215, 0, 0.25)',
+                                  }}
+                                >
                                   <Users size={12} /> {u.referralsCount || 0}
                                 </span>
                               </td>
 
                               {/* Device Binding */}
-                              <td className="p-3.5" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                              <td className="p-4">
                                 {u.deviceId ? (
-                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 w-max">
-                                    <Smartphone size={10} /> Bound
+                                  <span
+                                    className="text-[10px] font-bold px-2.5 py-1 rounded-full inline-flex items-center gap-1.5"
+                                    style={{
+                                      backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                                      color: '#34D399',
+                                      border: '1px solid rgba(16, 185, 129, 0.3)',
+                                    }}
+                                  >
+                                    <Smartphone size={11} /> Bound
                                   </span>
                                 ) : (
-                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-500/10 text-gray-400 border border-gray-500/20 w-max inline-block">
+                                  <span
+                                    className="text-[10px] font-bold px-2.5 py-1 rounded-full inline-block"
+                                    style={{
+                                      backgroundColor: 'rgba(148, 163, 184, 0.08)',
+                                      color: '#94A3B8',
+                                      border: '1px solid rgba(148, 163, 184, 0.2)',
+                                    }}
+                                  >
                                     Unbound
                                   </span>
                                 )}
                               </td>
 
                               {/* Status */}
-                              <td className="p-3.5" style={{ fontFamily: 'Lexend, sans-serif' }}>
-                                <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border ${u.isBanned
-                                  ? 'bg-red-500/20 text-red-400 border-red-500/40'
-                                  : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                                  }`}>
+                              <td className="p-4">
+                                <span
+                                  className="text-[10px] font-black px-2.5 py-1 rounded-full inline-flex items-center gap-1"
+                                  style={{
+                                    backgroundColor: u.isBanned ? 'rgba(244, 63, 94, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                                    color: u.isBanned ? '#FB7185' : '#34D399',
+                                    border: u.isBanned ? '1px solid rgba(244, 63, 94, 0.35)' : '1px solid rgba(16, 185, 129, 0.35)',
+                                  }}
+                                >
+                                  <span
+                                    className="w-1.5 h-1.5 rounded-full"
+                                    style={{ backgroundColor: u.isBanned ? '#FB7185' : '#34D399' }}
+                                  />
                                   {u.isBanned ? 'BANNED' : 'ACTIVE'}
                                 </span>
                               </td>
 
-                              {/* Action Buttons with Clear Labels */}
-                              <td className="p-3.5 text-right" onClick={(e) => e.stopPropagation()} style={{ fontFamily: 'Lexend, sans-serif' }}>
-                                <div className="flex items-center justify-end gap-1.5 flex-wrap">
-                                  {/* 1. Full 360 Profile & Balances */}
+                              {/* Actions Column (Clean Primary Pill + Compact Icon Tools) */}
+                              <td className="p-4 text-right" onClick={(e) => e.stopPropagation()}>
+                                <div className="flex items-center justify-end gap-1.5">
+                                  {/* 1. Primary 360° Profile Button */}
                                   <button
                                     type="button"
                                     onClick={() => setSelectedPlayerId(u.id)}
-                                    className="text-xs bg-[#00F0FF]/15 text-[#00F0FF] border border-[#00F0FF]/40 hover:bg-[#00F0FF]/25 px-2.5 py-1.5 rounded-xl font-bold flex items-center gap-1.5 shadow-sm transition"
-                                    title="View Complete Player Profile, History & Balance Adjuster"
+                                    className="px-3.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5 transition cursor-pointer hover:opacity-95 active:scale-95"
+                                    style={{
+                                      backgroundColor: 'rgba(0, 240, 255, 0.12)',
+                                      border: '1px solid rgba(0, 240, 255, 0.4)',
+                                      color: '#00F0FF',
+                                      boxShadow: '0 0 12px rgba(0, 240, 255, 0.15)',
+                                    }}
+                                    title="View Full Player Profile & Balances"
                                   >
-                                    <Eye size={12} />
-                                    <span>Player Profile</span>
+                                    <Eye size={13} />
+                                    <span>Profile</span>
                                   </button>
 
-                                  {/* 2. Reset Password */}
+                                  {/* 2. Reset Password Icon Button */}
                                   <button
                                     type="button"
                                     onClick={() => setResetPassModal({ open: true, user: u, newPass: '' })}
-                                    className="text-[11px] px-2.5 py-1.5 rounded-xl bg-purple-500/10 text-purple-300 border border-purple-500/30 hover:bg-purple-500/20 font-bold flex items-center gap-1 transition"
+                                    className="w-8 h-8 rounded-xl flex items-center justify-center transition cursor-pointer hover:opacity-90 active:scale-95"
+                                    style={{
+                                      backgroundColor: 'rgba(168, 85, 247, 0.12)',
+                                      border: '1px solid rgba(168, 85, 247, 0.35)',
+                                      color: '#C084FC',
+                                    }}
                                     title="Reset Player Password"
                                   >
-                                    <Key size={12} />
-                                    <span>Reset Pass</span>
+                                    <Key size={13} />
                                   </button>
 
-                                  {/* 3. Unbind Device (only shown if device is bound) */}
+                                  {/* 3. Unbind Device Icon Button */}
                                   {u.deviceId && (
                                     <button
                                       type="button"
@@ -5139,15 +6778,19 @@ export default function AdminPortal({ initialTab }) {
                                           setUsersList(usersList.map(x => x.id === u.id ? { ...x, deviceId: null } : x));
                                         }
                                       }}
-                                      className="text-[11px] px-2.5 py-1.5 rounded-xl bg-sky-500/10 text-sky-300 border border-sky-500/30 hover:bg-sky-500/20 font-bold flex items-center gap-1 transition"
-                                      title="Clear Device Hardware Binding"
+                                      className="w-8 h-8 rounded-xl flex items-center justify-center transition cursor-pointer hover:opacity-90 active:scale-95"
+                                      style={{
+                                        backgroundColor: 'rgba(14, 165, 233, 0.12)',
+                                        border: '1px solid rgba(14, 165, 233, 0.35)',
+                                        color: '#38BDF8',
+                                      }}
+                                      title="Unbind Hardware Device"
                                     >
-                                      <Smartphone size={12} />
-                                      <span>Unbind</span>
+                                      <Smartphone size={13} />
                                     </button>
                                   )}
 
-                                  {/* 4. Ban / Unban with clear label */}
+                                  {/* 4. Ban / Unban Icon Button */}
                                   <button
                                     type="button"
                                     onClick={async () => {
@@ -5165,14 +6808,15 @@ export default function AdminPortal({ initialTab }) {
                                         setUsersList(usersList.map(x => x.id === u.id ? { ...x, isBanned: d.isBanned } : x));
                                       }
                                     }}
-                                    className={`text-[11px] px-2.5 py-1.5 rounded-xl font-bold border transition flex items-center gap-1 ${u.isBanned
-                                      ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/25'
-                                      : 'bg-red-500/15 text-red-300 border-red-500/30 hover:bg-red-500/25'
-                                      }`}
-                                    title={u.isBanned ? 'Unban Player' : 'Ban Player'}
+                                    className="w-8 h-8 rounded-xl flex items-center justify-center transition cursor-pointer hover:opacity-90 active:scale-95"
+                                    style={{
+                                      backgroundColor: u.isBanned ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.15)',
+                                      border: u.isBanned ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid rgba(244, 63, 94, 0.35)',
+                                      color: u.isBanned ? '#34D399' : '#FB7185',
+                                    }}
+                                    title={u.isBanned ? 'Unban Player Account' : 'Ban & Suspend Player Account'}
                                   >
-                                    <ShieldCheck size={12} />
-                                    <span>{u.isBanned ? 'Unban' : 'Ban'}</span>
+                                    <ShieldCheck size={13} />
                                   </button>
                                 </div>
                               </td>
@@ -5189,27 +6833,112 @@ export default function AdminPortal({ initialTab }) {
 
           {/* TAB 15: PAYMENT GATEWAYS (Dedicated Gateway Tab) */}
           {activeTab === 'gateways' && (
-            <div className="space-y-6" style={{ fontFamily: 'Lexend, -apple-system, BlinkMacSystemFont, sans-serif' }}>
-              {/* Header with Add Button */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0E0A24]/80 backdrop-blur-md p-4 sm:p-5 rounded-2xl border border-white/10">
-                <div>
-                  <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#00F0FF] shadow-[0_0_10px_#00F0FF]" />
-                    Payment Gateways &amp; Cashtags
-                  </h2>
-                  <p className="text-xs text-[#9A91A8] mt-1">
-                    Configure Cash App, Zelle, Venmo, Crypto, Direct Payment Links &amp; QR Codes for player deposits
-                  </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', fontFamily: 'Lexend, -apple-system, BlinkMacSystemFont, sans-serif', width: '100%' }}>
+              {/* Header Toolbar */}
+              <div
+                className="relative overflow-hidden"
+                style={{
+                  backgroundColor: '#0C0A1E',
+                  border: '1px solid rgba(0, 240, 255, 0.22)',
+                  borderRadius: '24px',
+                  padding: '24px 28px',
+                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '24px',
+                }}
+              >
+                <div className="absolute -top-24 -right-24 w-72 h-72 bg-[#00F0FF]/10 rounded-full blur-3xl pointer-events-none" />
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '20px',
+                    position: 'relative',
+                    zIndex: 10,
+                    flex: '1 1 auto',
+                    minWidth: '280px',
+                  }}
+                >
+                  <div
+                    className="shrink-0"
+                    style={{
+                      width: '56px',
+                      height: '56px',
+                      minWidth: '56px',
+                      padding: '14px',
+                      background: 'rgba(0, 240, 255, 0.1)',
+                      border: '1.5px solid rgba(0, 240, 255, 0.35)',
+                      color: '#00F0FF',
+                      boxShadow: '0 0 20px rgba(0, 240, 255, 0.15)',
+                      borderRadius: '16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <CreditCard className="w-full h-full text-[#00F0FF]" />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <h2
+                        className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-cyan-300 tracking-wide m-0"
+                        style={{ fontFamily: 'Lexend, sans-serif' }}
+                      >
+                        Payment Gateways &amp; Cashtags
+                      </h2>
+                      <span
+                        style={{
+                          fontSize: '10px',
+                          padding: '3px 12px',
+                          borderRadius: '9999px',
+                          fontWeight: 800,
+                          letterSpacing: '0.04em',
+                          whiteSpace: 'nowrap',
+                          backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                          border: '1px solid rgba(16, 185, 129, 0.35)',
+                          color: '#34D399',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                        }}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        Live Routing
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#9A91A8] mt-1 m-0 leading-relaxed" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                      Configure Cash App, Zelle, Venmo, Crypto, Direct Payment Links &amp; QR Codes for player deposits
+                    </p>
+                  </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setIsAddGatewayModalOpen(true)}
-                  className="btn-sovereign-coral px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-[#00F0FF]/15 whitespace-nowrap self-start sm:self-auto cursor-pointer"
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    position: 'relative',
+                    zIndex: 10,
+                    flexShrink: 0,
+                  }}
                 >
-                  <Plus size={15} />
-                  <span>Add Payment Method</span>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsAddGatewayModalOpen(true)}
+                    style={{
+                      backgroundColor: '#00F0FF',
+                      color: '#070514',
+                      boxShadow: '0 0 20px rgba(0, 240, 255, 0.35)',
+                    }}
+                    className="px-5 py-3 rounded-xl hover:bg-[#38bdf8] font-black uppercase tracking-wider text-xs cursor-pointer flex items-center gap-2 transition shrink-0"
+                  >
+                    <Plus size={16} className="stroke-[3]" />
+                    <span>Add Payment Method</span>
+                  </button>
+                </div>
               </div>
 
               {/* Add Gateway Modal */}
@@ -5237,27 +6966,26 @@ export default function AdminPortal({ initialTab }) {
                     className="vegas-modal-card relative w-full max-w-2xl p-5 sm:p-6 max-h-[90vh] overflow-y-auto my-auto animate-in fade-in zoom-in-95 duration-200"
                     onClick={(e) => e.stopPropagation()}
                     style={{
-                      backgroundColor: '#0E0A24',
-                      background: 'linear-gradient(145deg, #0E0A24 0%, #150E36 100%)',
-                      border: '1px solid rgba(0, 240, 255, 0.45)',
-                      boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 40px rgba(0, 240, 255, 0.25)',
+                      backgroundColor: '#0C0A1E',
+                      border: '1px solid rgba(0, 240, 255, 0.3)',
+                      boxShadow: '0 25px 60px rgba(0, 0, 0, 0.95), 0 0 35px rgba(0, 240, 255, 0.15)',
                       borderRadius: '20px',
                     }}
                   >
                     <div className="flex items-center justify-between pb-4 mb-4 border-b border-white/10">
                       <div>
-                        <h3 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-[#00F0FF]" />
+                        <h3 className="text-base sm:text-lg font-black text-white flex items-center gap-2 m-0">
+                          <span className="w-2 h-2 rounded-full bg-[#00F0FF] shadow-[0_0_8px_#00F0FF]" />
                           Add New Payment Method
                         </h3>
-                        <p className="text-xs text-[#9A91A8] mt-0.5">
+                        <p className="text-xs text-[#9A91A8] mt-1 m-0">
                           Supports Direct Pay Links &amp; Scannable QR Codes for player checkout
                         </p>
                       </div>
                       <button
                         type="button"
                         onClick={() => setIsAddGatewayModalOpen(false)}
-                        className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white flex items-center justify-center transition border border-white/10"
+                        className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white flex items-center justify-center transition border border-white/10 cursor-pointer"
                       >
                         <X size={16} />
                       </button>
@@ -5305,7 +7033,11 @@ export default function AdminPortal({ initialTab }) {
                             placeholder="e.g. Cash App VIP / Zelle Official"
                             value={newMethod.name}
                             onChange={(e) => setNewMethod({ ...newMethod, name: e.target.value })}
-                            className="w-full bg-[#070514] border border-white/15 rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#00F0FF] transition"
+                            className="w-full rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#00F0FF] transition"
+                            style={{
+                              backgroundColor: '#070514',
+                              border: '1px solid rgba(0, 240, 255, 0.25)',
+                            }}
                             required
                           />
                         </div>
@@ -5317,7 +7049,11 @@ export default function AdminPortal({ initialTab }) {
                             placeholder="e.g. $VegasOnePay or pay@vegasone.games"
                             value={newMethod.accountDetails}
                             onChange={(e) => setNewMethod({ ...newMethod, accountDetails: e.target.value })}
-                            className="w-full bg-[#070514] border border-white/15 rounded-xl p-2.5 text-xs text-white font-mono outline-none focus:border-[#00F0FF] transition"
+                            className="w-full rounded-xl p-2.5 text-xs text-white font-mono outline-none focus:border-[#00F0FF] transition"
+                            style={{
+                              backgroundColor: '#070514',
+                              border: '1px solid rgba(0, 240, 255, 0.25)',
+                            }}
                             required
                           />
                         </div>
@@ -5333,34 +7069,46 @@ export default function AdminPortal({ initialTab }) {
                             placeholder="e.g. https://cash.app/$VegasOnePay"
                             value={newMethod.paymentUrl}
                             onChange={(e) => setNewMethod({ ...newMethod, paymentUrl: e.target.value })}
-                            className="w-full bg-[#070514] border border-white/15 rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#00F0FF] transition"
+                            className="w-full rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#00F0FF] transition"
+                            style={{
+                              backgroundColor: '#070514',
+                              border: '1px solid rgba(0, 240, 255, 0.25)',
+                            }}
                           />
                         </div>
 
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <label className="text-[11px] font-bold text-gray-300 block mb-1 uppercase">Tag Badge</label>
-                              <input
-                                type="text"
-                                placeholder="e.g. Instant / Zero Fee"
-                                value={newMethod.tag}
-                                onChange={(e) => setNewMethod({ ...newMethod, tag: e.target.value })}
-                                className="w-full bg-[#070514] border border-white/15 rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#00F0FF] transition"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-[11px] font-bold text-[#FBBF24] block mb-1 uppercase">Bonus % (+)</label>
-                              <input
-                                type="number"
-                                min="0"
-                                max="500"
-                                placeholder="40"
-                                value={newMethod.bonusPercentage ?? 40}
-                                onChange={(e) => setNewMethod({ ...newMethod, bonusPercentage: Number(e.target.value) })}
-                                className="w-full bg-[#070514] border border-[#FBBF24]/40 rounded-xl p-2.5 text-xs text-[#FBBF24] font-black outline-none focus:border-[#FBBF24] transition"
-                              />
-                            </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-[11px] font-bold text-gray-300 block mb-1 uppercase">Tag Badge</label>
+                            <input
+                              type="text"
+                              placeholder="e.g. Instant"
+                              value={newMethod.tag}
+                              onChange={(e) => setNewMethod({ ...newMethod, tag: e.target.value })}
+                              className="w-full rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#00F0FF] transition"
+                              style={{
+                                backgroundColor: '#070514',
+                                border: '1px solid rgba(0, 240, 255, 0.25)',
+                              }}
+                            />
                           </div>
+                          <div>
+                            <label className="text-[11px] font-bold text-[#FBBF24] block mb-1 uppercase">Bonus % (+)</label>
+                            <input
+                              type="number"
+                              min="0"
+                              max="500"
+                              placeholder="40"
+                              value={newMethod.bonusPercentage ?? 40}
+                              onChange={(e) => setNewMethod({ ...newMethod, bonusPercentage: Number(e.target.value) })}
+                              className="w-full rounded-xl p-2.5 text-xs text-[#FBBF24] font-black outline-none focus:border-[#FBBF24] transition"
+                              style={{
+                                backgroundColor: '#070514',
+                                border: '1px solid rgba(245, 158, 11, 0.4)',
+                              }}
+                            />
+                          </div>
+                        </div>
 
                         <div className="grid grid-cols-2 gap-2">
                           <div>
@@ -5370,7 +7118,11 @@ export default function AdminPortal({ initialTab }) {
                               min="1"
                               value={newMethod.minDeposit}
                               onChange={(e) => setNewMethod({ ...newMethod, minDeposit: Number(e.target.value) })}
-                              className="w-full bg-[#070514] border border-white/15 rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#00F0FF] transition"
+                              className="w-full rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#00F0FF] transition"
+                              style={{
+                                backgroundColor: '#070514',
+                                border: '1px solid rgba(0, 240, 255, 0.25)',
+                              }}
                             />
                           </div>
                           <div>
@@ -5380,7 +7132,11 @@ export default function AdminPortal({ initialTab }) {
                               min="10"
                               value={newMethod.maxDeposit}
                               onChange={(e) => setNewMethod({ ...newMethod, maxDeposit: Number(e.target.value) })}
-                              className="w-full bg-[#070514] border border-white/15 rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#00F0FF] transition"
+                              className="w-full rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#00F0FF] transition"
+                              style={{
+                                backgroundColor: '#070514',
+                                border: '1px solid rgba(0, 240, 255, 0.25)',
+                              }}
                             />
                           </div>
                         </div>
@@ -5420,7 +7176,7 @@ export default function AdminPortal({ initialTab }) {
                               style={{
                                 flex: 1,
                                 backgroundColor: '#070514',
-                                border: '1px solid rgba(255, 255, 255, 0.15)',
+                                border: '1px solid rgba(0, 240, 255, 0.25)',
                                 borderRadius: '12px',
                                 padding: '9px 12px',
                                 fontSize: '12px',
@@ -5468,7 +7224,11 @@ export default function AdminPortal({ initialTab }) {
                             placeholder="e.g. Send payment with your username as note. Upload screenshot."
                             value={newMethod.instructions}
                             onChange={(e) => setNewMethod({ ...newMethod, instructions: e.target.value })}
-                            className="w-full bg-[#070514] border border-white/15 rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#00F0FF] transition resize-none"
+                            className="w-full rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#00F0FF] transition resize-none"
+                            style={{
+                              backgroundColor: '#070514',
+                              border: '1px solid rgba(0, 240, 255, 0.25)',
+                            }}
                           />
                         </div>
                       </div>
@@ -5477,15 +7237,20 @@ export default function AdminPortal({ initialTab }) {
                         <button
                           type="button"
                           onClick={() => setIsAddGatewayModalOpen(false)}
-                          className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white font-bold text-xs transition"
+                          className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white font-bold text-xs transition cursor-pointer"
                         >
                           Cancel
                         </button>
                         <button
                           type="submit"
-                          className="btn-sovereign-coral text-xs py-2.5 px-6 font-black uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+                          style={{
+                            backgroundColor: '#00F0FF',
+                            color: '#070514',
+                            boxShadow: '0 0 20px rgba(0, 240, 255, 0.35)',
+                          }}
+                          className="px-6 py-2.5 rounded-xl hover:bg-[#38bdf8] font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer"
                         >
-                          <Plus size={14} />
+                          <Plus size={14} className="stroke-[3]" />
                           <span>Save &amp; Activate Method</span>
                         </button>
                       </div>
@@ -5495,173 +7260,281 @@ export default function AdminPortal({ initialTab }) {
               )}
 
               {/* Active Methods List */}
-              <div className="space-y-3">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-black text-white uppercase tracking-wider">
-                    Configured Payment Gateways ({paymentMethods.length})
-                  </h3>
-                  <span className="text-xs text-gray-400">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#00F0FF] shadow-[0_0_10px_#00F0FF]" />
+                    <h3 className="text-sm font-black text-white uppercase tracking-wider m-0" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                      Configured Payment Gateways ({paymentMethods.length})
+                    </h3>
+                  </div>
+                  <span className="text-xs text-[#9A91A8]">
                     Player deposit views update automatically
                   </span>
                 </div>
 
                 {paymentMethods.length === 0 ? (
-                  <div className="bg-[#140E33] border border-white/10 p-8 rounded-2xl text-center text-gray-400">
+                  <div
+                    className="p-10 rounded-2xl text-center text-[#9A91A8]"
+                    style={{
+                      backgroundColor: '#0C0A1E',
+                      border: '1px solid rgba(0, 240, 255, 0.22)',
+                      boxShadow: '0 15px 30px rgba(0,0,0,0.3)',
+                      borderRadius: '24px',
+                    }}
+                  >
                     No payment gateways configured. Add a payment method above to accept player deposits.
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '24px',
+                      width: '100%',
+                    }}
+                  >
                     {paymentMethods.map(m => (
                       <div
                         key={m.id}
-                        className={`p-5 rounded-2xl border transition shadow-xl flex flex-col justify-between gap-4 ${m.isActive
-                          ? 'bg-[#120D2C] border-white/15 hover:border-[#00F0FF]/40'
-                          : 'bg-[#0E0A1E]/80 border-white/5 opacity-70'
-                          }`}
+                        className="p-6 sm:p-7 transition-all duration-300 relative overflow-hidden"
+                        style={{
+                          backgroundColor: '#0C0A1E',
+                          border: m.isActive ? '1px solid rgba(0, 240, 255, 0.25)' : '1px solid rgba(0, 240, 255, 0.1)',
+                          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 240, 255, 0.08)',
+                          borderRadius: '24px',
+                          opacity: m.isActive ? 1 : 0.75,
+                        }}
                       >
-                        <div className="space-y-3">
-                          {/* Header */}
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2.5">
-                              <div className="w-8 h-8 rounded-xl bg-[#00F0FF]/15 border border-[#00F0FF]/30 flex items-center justify-center font-black text-xs text-[#00F0FF]">
+                        <div className="absolute -top-24 -right-24 w-72 h-72 bg-[#00F0FF]/10 rounded-full blur-3xl pointer-events-none" />
+
+                        <div className="space-y-4 relative z-10">
+                          {/* Header of Card */}
+                          <div className="flex items-center justify-between gap-3 flex-wrap">
+                            <div className="flex items-center gap-3.5">
+                              <div
+                                className="rounded-2xl flex items-center justify-center shrink-0 font-black text-sm uppercase"
+                                style={{
+                                  width: '52px',
+                                  height: '52px',
+                                  minWidth: '52px',
+                                  background: 'rgba(0, 240, 255, 0.1)',
+                                  border: '1.5px solid rgba(0, 240, 255, 0.35)',
+                                  color: '#00F0FF',
+                                  boxShadow: '0 0 15px rgba(0, 240, 255, 0.2)',
+                                }}
+                              >
                                 {m.name?.substring(0, 2).toUpperCase()}
                               </div>
                               <div>
-                                <h4 className="font-black text-white text-base leading-tight">{m.name}</h4>
-                                <span className="text-[10px] text-[#00F0FF] uppercase font-bold tracking-wider">{m.tag || 'Instant'}</span>
+                                <h4 className="font-black text-white text-lg tracking-wide m-0" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                                  {m.name}
+                                </h4>
+                                <span className="text-[11px] text-[#00F0FF] uppercase font-black tracking-wider mt-0.5 block">
+                                  {m.tag || 'Instant'}
+                                </span>
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-1.5">
-                              <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${m.isActive
-                                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                                : 'bg-gray-500/20 text-gray-400 border-gray-500/30'
-                                }`}>
-                                {m.isActive ? 'ACTIVE' : 'DISABLED'}
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span
+                                className="text-[10px] font-black uppercase tracking-wider px-3.5 py-1 rounded-full border inline-flex items-center gap-1.5"
+                                style={{
+                                  backgroundColor: m.isActive ? 'rgba(16, 185, 129, 0.15)' : 'rgba(148, 163, 184, 0.1)',
+                                  borderColor: m.isActive ? 'rgba(16, 185, 129, 0.4)' : 'rgba(148, 163, 184, 0.25)',
+                                  color: m.isActive ? '#34D399' : '#94A3B8',
+                                  boxShadow: m.isActive ? '0 0 12px rgba(16, 185, 129, 0.2)' : 'none',
+                                }}
+                              >
+                                <span
+                                  className="w-1.5 h-1.5 rounded-full"
+                                  style={{
+                                    backgroundColor: m.isActive ? '#10B981' : '#94A3B8',
+                                    boxShadow: m.isActive ? '0 0 8px #10B981' : 'none',
+                                  }}
+                                />
+                                <span>{m.isActive ? 'ACTIVE' : 'DISABLED'}</span>
+                              </span>
+                              <span
+                                className="text-[10px] font-black font-mono tracking-wider px-3.5 py-1 rounded-full border inline-flex items-center"
+                                style={{
+                                  backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                                  borderColor: 'rgba(245, 158, 11, 0.4)',
+                                  color: '#FBBF24',
+                                  boxShadow: '0 0 12px rgba(245, 158, 11, 0.2)',
+                                }}
+                              >
+                                +{m.bonusPercentage ?? 40}% BONUS
                               </span>
                               {m.tag && (
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                                <span
+                                  className="text-[10px] font-bold px-3 py-1 rounded-full border inline-flex items-center"
+                                  style={{
+                                    backgroundColor: 'rgba(168, 85, 247, 0.15)',
+                                    borderColor: 'rgba(168, 85, 247, 0.35)',
+                                    color: '#C084FC',
+                                  }}
+                                >
                                   {m.tag}
                                 </span>
                               )}
                             </div>
                           </div>
 
-                          {/* Identifier & Direct Link */}
-                          <div className="bg-[#070514] border border-white/10 rounded-xl p-3 space-y-2">
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="text-[10px] font-bold text-gray-400 uppercase">Official Identifier:</span>
-                              <span className="font-mono font-black text-[#00F0FF] text-xs selection:bg-cyan-500 selection:text-black">
+                          {/* Middle Section: Identifier, Direct Link, Deposit Range */}
+                          <div
+                            className="p-4 sm:p-5 rounded-xl space-y-3 relative z-10"
+                            style={{
+                              backgroundColor: '#070514',
+                              border: '1px solid rgba(0, 240, 255, 0.18)',
+                            }}
+                          >
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                              <span className="text-[11px] font-black text-[#9A91A8] uppercase tracking-wider">
+                                Official Identifier:
+                              </span>
+                              <span
+                                className="font-mono font-black text-[#00F0FF] text-xs sm:text-sm tracking-wide select-all px-3 py-1 rounded-lg"
+                                style={{
+                                  backgroundColor: 'rgba(0, 240, 255, 0.08)',
+                                  border: '1px solid rgba(0, 240, 255, 0.25)',
+                                  boxShadow: '0 0 12px rgba(0, 240, 255, 0.12)',
+                                }}
+                              >
                                 {m.accountDetails || m.cashtag || 'Not specified'}
                               </span>
                             </div>
 
                             {m.paymentUrl && (
-                              <div className="flex items-center justify-between gap-2 pt-1 border-t border-white/5 text-[11px]">
-                                <span className="text-[10px] font-bold text-gray-400 uppercase">Direct Pay Link:</span>
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2.5 border-t border-cyan-500/10">
+                                <span className="text-[11px] font-black text-[#9A91A8] uppercase tracking-wider">
+                                  Direct Payment Link:
+                                </span>
                                 <a
                                   href={m.paymentUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 truncate max-w-[200px]"
+                                  className="text-emerald-400 hover:text-emerald-300 font-bold text-xs flex items-center gap-1.5 truncate max-w-md transition"
                                   title={m.paymentUrl}
                                 >
-                                  <span>Open Link</span>
-                                  <ExternalLink size={11} />
+                                  <span className="truncate">{m.paymentUrl}</span>
+                                  <ExternalLink size={13} className="shrink-0" />
                                 </a>
                               </div>
                             )}
 
-                            <div className="flex items-center justify-between gap-2 pt-1 border-t border-white/5 text-[10px] text-gray-400">
-                              <span>Deposit Range:</span>
-                              <span className="text-white font-bold">${m.minDeposit || 10} — ${m.maxDeposit || 5000}</span>
+                            <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-cyan-500/10">
+                              <span className="text-[11px] font-black text-[#9A91A8] uppercase tracking-wider">
+                                Deposit Range:
+                              </span>
+                              <span className="text-white font-black font-mono text-xs sm:text-sm">
+                                ${m.minDeposit || 10} — ${m.maxDeposit || 5000}
+                              </span>
                             </div>
                           </div>
 
-                          {/* Instructions & QR Code Preview */}
-                          <div className="flex items-start gap-3">
-                            {m.qrCode ? (
+                          {/* Bottom Row: QR Preview + Instructions + Action Buttons */}
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+                            {/* QR Code and Instructions */}
+                            <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                              {m.qrCode ? (
+                                <button
+                                  type="button"
+                                  onClick={() => setPreviewQrModal(m)}
+                                  className="shrink-0 p-1.5 bg-white rounded-xl border border-cyan-500/40 hover:scale-105 transition cursor-pointer shadow-[0_0_15px_rgba(0,240,255,0.2)]"
+                                  title="Click to zoom QR Code"
+                                >
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={m.qrCode} alt="QR Code" className="w-14 h-14 object-contain" />
+                                </button>
+                              ) : (
+                                <div className="shrink-0 w-14 h-14 rounded-xl bg-cyan-500/5 border border-dashed border-cyan-500/30 flex flex-col items-center justify-center text-cyan-400 text-[9px] text-center p-1">
+                                  <QrCode size={18} className="mb-0.5 text-cyan-400/70" />
+                                  <span>No QR</span>
+                                </div>
+                              )}
+
+                              <p className="text-xs text-slate-300 italic m-0 line-clamp-2 leading-relaxed">
+                                "{m.instructions || 'Send payment and upload proof confirmation.'}"
+                              </p>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex items-center gap-2.5 shrink-0 flex-wrap sm:flex-nowrap justify-end">
+                              {/* Edit Button */}
                               <button
                                 type="button"
-                                onClick={() => setPreviewQrModal(m)}
-                                className="shrink-0 p-1 bg-white rounded-lg border border-white/20 hover:scale-105 transition cursor-pointer"
-                                title="Click to zoom QR Code"
+                                onClick={() => setEditGatewayModal({ open: true, data: { ...m } })}
+                                style={{
+                                  backgroundColor: 'rgba(0, 240, 255, 0.12)',
+                                  border: '1px solid rgba(0, 240, 255, 0.35)',
+                                  color: '#00F0FF',
+                                  boxShadow: '0 0 10px rgba(0, 240, 255, 0.12)',
+                                }}
+                                className="px-4 py-2 rounded-xl hover:bg-[#00F0FF]/25 font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
                               >
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={m.qrCode} alt="QR Code" className="w-14 h-14 object-contain" />
+                                <Edit2 size={13} />
+                                <span>Edit Method</span>
                               </button>
-                            ) : (
-                              <div className="shrink-0 w-14 h-14 rounded-lg bg-white/5 border border-dashed border-white/15 flex flex-col items-center justify-center text-gray-500 text-[9px] text-center p-1">
-                                <QrCode size={16} className="mb-0.5 text-gray-400" />
-                                <span>No QR</span>
-                              </div>
-                            )}
 
-                            <p className="text-xs text-gray-300 italic m-0 line-clamp-3 leading-relaxed">
-                              "{m.instructions || 'Send payment and upload proof confirmation.'}"
-                            </p>
+                              {/* Toggle Active Button */}
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  const updatedActive = !m.isActive;
+                                  const res = await fetch('/api/payments/methods', {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ id: m.id, isActive: updatedActive }),
+                                  });
+                                  const d = await res.json();
+                                  if (d.success) {
+                                    setPaymentMethods(prev => prev.map(x => x.id === m.id ? { ...x, isActive: updatedActive } : x));
+                                  } else {
+                                    alert(d.error || 'Failed to update gateway status');
+                                  }
+                                }}
+                                style={{
+                                  backgroundColor: m.isActive ? 'rgba(245, 158, 11, 0.12)' : 'rgba(16, 185, 129, 0.12)',
+                                  borderColor: m.isActive ? 'rgba(245, 158, 11, 0.35)' : 'rgba(16, 185, 129, 0.35)',
+                                  color: m.isActive ? '#FBBF24' : '#34D399',
+                                  boxShadow: m.isActive ? '0 0 10px rgba(245, 158, 11, 0.12)' : '0 0 10px rgba(16, 185, 129, 0.12)',
+                                }}
+                                className="px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 transition border cursor-pointer hover:brightness-110"
+                              >
+                                <Power size={13} />
+                                <span>{m.isActive ? 'Disable' : 'Enable'}</span>
+                              </button>
+
+                              {/* Delete Button */}
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  if (!window.confirm(`Are you sure you want to delete "${m.name}" payment method?`)) return;
+                                  const res = await fetch(`/api/payments/methods?id=${encodeURIComponent(m.id)}`, {
+                                    method: 'DELETE',
+                                  });
+                                  const d = await res.json();
+                                  if (d.success) {
+                                    setPaymentMethods(paymentMethods.filter(x => x.id !== m.id));
+                                  } else {
+                                    alert(d.error || 'Failed to delete gateway');
+                                  }
+                                }}
+                                style={{
+                                  backgroundColor: 'rgba(244, 63, 94, 0.12)',
+                                  borderColor: 'rgba(244, 63, 94, 0.35)',
+                                  color: '#FB7185',
+                                  boxShadow: '0 0 10px rgba(244, 63, 94, 0.12)',
+                                }}
+                                className="px-4 py-2 rounded-xl hover:bg-rose-500/25 border font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
+                                title="Remove Gateway"
+                              >
+                                <Trash2 size={13} />
+                                <span>Delete</span>
+                              </button>
+                            </div>
                           </div>
-                        </div>
-
-                        {/* Actions Toolbar */}
-                        <div className="flex items-center justify-end gap-2 pt-3 border-t border-white/10 flex-wrap">
-                          {/* Edit Button */}
-                          <button
-                            type="button"
-                            onClick={() => setEditGatewayModal({ open: true, data: { ...m } })}
-                            className="px-3 py-1.5 rounded-xl bg-[#00F0FF]/15 text-[#00F0FF] hover:bg-[#00F0FF]/25 border border-[#00F0FF]/30 font-bold text-xs flex items-center gap-1.5 transition"
-                          >
-                            <Edit2 size={12} />
-                            <span>Edit Method</span>
-                          </button>
-
-                          {/* Toggle Active Button */}
-                          <button
-                            type="button"
-                            onClick={async () => {
-                              const updatedActive = !m.isActive;
-                              const res = await fetch('/api/payments/methods', {
-                                method: 'PUT',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ id: m.id, isActive: updatedActive }),
-                              });
-                              const d = await res.json();
-                              if (d.success) {
-                                setPaymentMethods(prev => prev.map(x => x.id === m.id ? { ...x, isActive: updatedActive } : x));
-                              } else {
-                                alert(d.error || 'Failed to update gateway status');
-                              }
-                            }}
-                            className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition border ${m.isActive
-                              ? 'bg-amber-500/10 text-amber-300 border-amber-500/30 hover:bg-amber-500/20'
-                              : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20'
-                              }`}
-                          >
-                            <Power size={12} />
-                            <span>{m.isActive ? 'Disable' : 'Enable'}</span>
-                          </button>
-
-                          {/* Delete Button */}
-                          <button
-                            type="button"
-                            onClick={async () => {
-                              if (!window.confirm(`Are you sure you want to delete "${m.name}" payment method?`)) return;
-                              const res = await fetch(`/api/payments/methods?id=${encodeURIComponent(m.id)}`, {
-                                method: 'DELETE',
-                              });
-                              const d = await res.json();
-                              if (d.success) {
-                                setPaymentMethods(paymentMethods.filter(x => x.id !== m.id));
-                              } else {
-                                alert(d.error || 'Failed to delete gateway');
-                              }
-                            }}
-                            className="px-2.5 py-1.5 rounded-xl bg-red-500/15 text-red-300 hover:bg-red-500/25 border border-red-500/30 font-bold text-xs flex items-center gap-1 transition"
-                            title="Remove Gateway"
-                          >
-                            <Trash2 size={12} />
-                            <span>Delete</span>
-                          </button>
                         </div>
                       </div>
                     ))}
@@ -5675,31 +7548,65 @@ export default function AdminPortal({ initialTab }) {
           {activeTab === 'tx_search' && (
             <div className="space-y-4 sm:space-y-6" style={{ fontFamily: 'Lexend, -apple-system, sans-serif' }}>
               {/* Header & Quick Action Bar */}
-              <div className="bg-[#0E0A24] border border-[#00F0FF]/25 p-3.5 sm:p-5 rounded-xl sm:rounded-2xl shadow-xl space-y-3.5 sm:space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-                  <div>
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-[#00F0FF]/20 to-[#0E0A24] border border-[#00F0FF]/40 flex items-center justify-center text-[#00F0FF] shadow-lg shadow-[#00F0FF]/15 shrink-0">
-                        <FileSpreadsheet size={18} />
+              <div
+                className="p-6 sm:p-7 rounded-2xl relative overflow-hidden"
+                style={{
+                  backgroundColor: '#0C0A1E',
+                  border: '1px solid rgba(0, 240, 255, 0.22)',
+                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+                }}
+              >
+                {/* Ambient glow accents */}
+                <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
+                <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-purple-500/10 blur-3xl pointer-events-none" />
+
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 relative z-10">
+                  <div className="flex items-center gap-4 sm:gap-5">
+                    <div
+                      className="rounded-2xl flex items-center justify-center shrink-0 p-3.5"
+                      style={{
+                        width: '56px',
+                        height: '56px',
+                        minWidth: '56px',
+                        background: 'rgba(0, 240, 255, 0.1)',
+                        border: '1.5px solid rgba(0, 240, 255, 0.35)',
+                        color: '#00F0FF',
+                        boxShadow: '0 0 20px rgba(0, 240, 255, 0.15)',
+                      }}
+                    >
+                      <FileSpreadsheet size={26} className="text-cyan-400" />
+                    </div>
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+                        <h2
+                          className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-cyan-300 m-0 tracking-tight"
+                          style={{ fontFamily: 'Lexend, sans-serif' }}
+                        >
+                          Transactions Log
+                        </h2>
+                        <span
+                          className="text-[11px] px-3 py-1 rounded-full font-semibold flex items-center gap-1.5 font-mono"
+                          style={{
+                            backgroundColor: 'rgba(0, 240, 255, 0.08)',
+                            color: '#00F0FF',
+                            border: '1px solid rgba(0, 240, 255, 0.2)',
+                          }}
+                        >
+                          <span className="w-2 h-2 rounded-full bg-[#00F0FF] animate-pulse" />
+                          <span>Real-Time History</span>
+                        </span>
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h2 className="text-lg sm:text-xl font-black text-white tracking-wide m-0" style={{ fontFamily: 'Lexend, sans-serif' }}>
-                            Transactions Log
-                          </h2>
-                          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#00F0FF]/15 text-[#00F0FF] border border-[#00F0FF]/30 whitespace-nowrap inline-flex items-center">
-                            Real-Time History
-                          </span>
-                        </div>
-                        <p className="text-[11px] sm:text-xs text-[#9A91A8] mt-0.5" style={{ fontFamily: 'Lexend, sans-serif' }}>
-                          Search and verify all player deposits, withdrawals, balance adjustments &amp; screenshot proofs
-                        </p>
-                      </div>
+                      <p
+                        className="text-xs sm:text-[13px] text-slate-400 mt-1.5 leading-relaxed m-0"
+                        style={{ fontFamily: 'Lexend, sans-serif' }}
+                      >
+                        Search and verify all player deposits, withdrawals, balance adjustments &amp; screenshot proofs.
+                      </p>
                     </div>
                   </div>
 
                   {/* Export & Refresh Actions */}
-                  <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
+                  <div className="flex items-center gap-3 shrink-0">
                     <button
                       type="button"
                       onClick={() => {
@@ -5707,25 +7614,53 @@ export default function AdminPortal({ initialTab }) {
                           .then(r => r.json())
                           .then(d => { if (d.success) setLedgerRecords(d.records || []); });
                       }}
-                      className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-gray-200 font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95"
+                      style={{
+                        background: 'rgba(0, 240, 255, 0.08)',
+                        border: '1px solid rgba(0, 240, 255, 0.3)',
+                        color: '#00F0FF',
+                        boxShadow: '0 0 15px rgba(0, 240, 255, 0.08)',
+                      }}
+                      className="px-4 py-2.5 rounded-xl font-bold text-xs inline-flex items-center justify-center gap-2 transition hover:bg-cyan-500/20 cursor-pointer"
                       title="Refresh Transactions"
                     >
-                      <RefreshCw size={13} />
+                      <RefreshCw size={14} />
                       <span>Refresh</span>
                     </button>
                     <a
                       href={`/api/ledger?format=csv&username=${encodeURIComponent(ledgerFilterUser)}&type=${ledgerFilterType}`}
                       download
-                      className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 text-black font-black text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-amber-500/20 hover:brightness-110 transition active:scale-95 whitespace-nowrap"
+                      style={{
+                        background: '#00F0FF',
+                        color: '#070514',
+                        border: '1px solid #00F0FF',
+                        boxShadow: '0 0 20px rgba(0, 240, 255, 0.35)',
+                      }}
+                      className="px-4 py-2.5 rounded-xl font-black text-xs inline-flex items-center justify-center gap-2 transition hover:brightness-110 cursor-pointer whitespace-nowrap"
                     >
-                      <Download size={13} />
+                      <Download size={14} />
                       <span>Export CSV</span>
                     </a>
                   </div>
                 </div>
+              </div>
 
-                {/* Quick Category Tabs Bar */}
-                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 max-w-full pt-2 border-t border-white/10">
+              {/* Dedicated Filter & Search Operations Desk */}
+              <div
+                className="p-5 sm:p-6 rounded-2xl space-y-4"
+                style={{
+                  backgroundColor: '#0C0A1E',
+                  border: '1px solid rgba(0, 240, 255, 0.22)',
+                  boxShadow: '0 15px 35px rgba(0, 0, 0, 0.35)',
+                }}
+              >
+                {/* Category Pills Bar */}
+                <div
+                  className="flex items-center gap-2 p-1.5 rounded-2xl overflow-x-auto no-scrollbar"
+                  style={{
+                    backgroundColor: '#070514',
+                    border: '1px solid rgba(0, 240, 255, 0.2)',
+                  }}
+                >
                   {[
                     { id: 'all', label: 'All Transactions', count: ledgerRecords.length },
                     {
@@ -5760,18 +7695,25 @@ export default function AdminPortal({ initialTab }) {
                         type="button"
                         onClick={() => setLedgerFilterType(tab.id)}
                         style={{
-                          backgroundColor: isSelected ? 'rgba(0, 240, 255, 0.16)' : '#070514',
-                          borderColor: isSelected ? '#00F0FF' : 'rgba(255, 255, 255, 0.1)',
-                          color: isSelected ? '#FFFFFF' : '#9A91A8',
+                          backgroundColor: isSelected ? 'rgba(0, 240, 255, 0.15)' : 'transparent',
+                          border: isSelected ? '1px solid rgba(0, 240, 255, 0.45)' : '1px solid transparent',
+                          color: isSelected ? '#00F0FF' : '#94A3B8',
+                          boxShadow: isSelected ? '0 0 12px rgba(0, 240, 255, 0.15)' : 'none',
                           fontFamily: 'Lexend, sans-serif',
                         }}
-                        className="px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 shrink-0 transition hover:border-[#00F0FF]/50"
+                        className="px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 shrink-0 transition cursor-pointer hover:text-white"
                       >
                         {tab.color && (
-                          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: tab.color }} />
+                          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: tab.color, boxShadow: `0 0 6px ${tab.color}` }} />
                         )}
                         <span className="whitespace-nowrap">{tab.label}</span>
-                        <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-white/10 font-mono text-gray-300">
+                        <span
+                          className="text-[10px] px-1.5 py-0.5 rounded-md font-mono"
+                          style={{
+                            backgroundColor: isSelected ? 'rgba(0, 240, 255, 0.25)' : 'rgba(255, 255, 255, 0.06)',
+                            color: isSelected ? '#FFFFFF' : '#94A3B8',
+                          }}
+                        >
                           {tab.count}
                         </span>
                       </button>
@@ -5780,23 +7722,29 @@ export default function AdminPortal({ initialTab }) {
                 </div>
 
                 {/* Search & Extra Filter Input */}
-                <div className="pt-2 border-t border-white/5 flex flex-col sm:flex-row items-center gap-3">
+                <div className="flex flex-col sm:flex-row items-center gap-3.5 pt-1">
                   {/* Player Username Search */}
-                  <div className="relative flex-1 w-full">
-                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                  <div
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-xl flex-1 w-full transition"
+                    style={{
+                      backgroundColor: '#070514',
+                      border: '1px solid rgba(0, 240, 255, 0.22)',
+                    }}
+                  >
+                    <Search className="text-cyan-400 shrink-0" size={15} />
                     <input
                       type="text"
                       placeholder="Search player username, cashtag, or note..."
                       value={ledgerFilterUser}
                       onChange={(e) => setLedgerFilterUser(e.target.value)}
-                      className="w-full bg-[#070514] border border-white/15 focus:border-[#00F0FF] rounded-xl pl-9 pr-9 py-2.5 text-xs text-white placeholder-gray-500 outline-none transition"
+                      className="w-full bg-transparent text-xs text-white placeholder-slate-500 focus:outline-none p-0 border-none"
                       style={{ fontFamily: 'Lexend, sans-serif' }}
                     />
                     {ledgerFilterUser && (
                       <button
                         type="button"
                         onClick={() => setLedgerFilterUser('')}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                        className="text-gray-400 hover:text-white transition cursor-pointer"
                       >
                         <X size={13} />
                       </button>
@@ -5804,149 +7752,222 @@ export default function AdminPortal({ initialTab }) {
                   </div>
 
                   {/* Filter Type Dropdown */}
-                  <div className="w-full sm:w-64">
+                  <div
+                    className="w-full sm:w-64 rounded-xl px-3.5 py-2.5 transition"
+                    style={{
+                      backgroundColor: '#070514',
+                      border: '1px solid rgba(0, 240, 255, 0.22)',
+                    }}
+                  >
                     <select
                       value={ledgerFilterType}
                       onChange={(e) => setLedgerFilterType(e.target.value)}
-                      className="w-full bg-[#070514] border border-white/15 focus:border-[#00F0FF] rounded-xl px-3 py-2.5 text-xs text-white outline-none cursor-pointer"
+                      className="w-full bg-transparent text-xs text-white focus:outline-none cursor-pointer border-none p-0"
                       style={{ fontFamily: 'Lexend, sans-serif' }}
                     >
-                      <option value="all">Filter: All Transactions</option>
-                      <option value="deposit">Filter: Deposits Only</option>
-                      <option value="withdrawal">Filter: Withdrawals Only</option>
-                      <option value="adjustment">Filter: Balance Adjustments (+ / -)</option>
-                      <option value="bonus">Filter: Bonuses &amp; Rewards</option>
+                      <option value="all" className="bg-[#0C0A1E] text-white">Filter: All Transactions</option>
+                      <option value="deposit" className="bg-[#0C0A1E] text-white">Filter: Deposits Only</option>
+                      <option value="withdrawal" className="bg-[#0C0A1E] text-white">Filter: Withdrawals Only</option>
+                      <option value="adjustment" className="bg-[#0C0A1E] text-white">Filter: Balance Adjustments (+ / -)</option>
+                      <option value="bonus" className="bg-[#0C0A1E] text-white">Filter: Bonuses &amp; Rewards</option>
                     </select>
                   </div>
                 </div>
               </div>
 
               {/* Summary Metric Cards with Modern Lexend Typography */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 {/* 1. Total Transactions */}
                 <div
-                  className="p-4 rounded-xl sm:rounded-2xl transition-all duration-300 hover:scale-[1.02]"
+                  className="p-4 sm:p-5 rounded-2xl relative overflow-hidden transition"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(20, 14, 51, 0.92) 0%, rgba(14, 10, 36, 0.98) 100%)',
-                    border: '1px solid rgba(0, 240, 255, 0.3)',
-                    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 18px rgba(0, 240, 255, 0.08)',
+                    backgroundColor: '#0C0A1E',
+                    border: '1px solid rgba(0, 240, 255, 0.22)',
+                    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.35)',
                   }}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-black text-[#9A91A8] uppercase tracking-wider" style={{ fontFamily: 'Lexend, sans-serif' }}>
-                      Total Transactions
-                    </span>
-                    <div className="w-8 h-8 rounded-lg bg-[#00F0FF]/15 border border-[#00F0FF]/40 flex items-center justify-center text-[#00F0FF]">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#00F0FF', boxShadow: '0 0 10px #00F0FF' }} />
+                      <span className="text-[11px] font-black uppercase tracking-wider text-cyan-400" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                        Total Transactions
+                      </span>
+                    </div>
+                    <div
+                      className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+                      style={{
+                        backgroundColor: 'rgba(0, 240, 255, 0.1)',
+                        border: '1px solid rgba(0, 240, 255, 0.3)',
+                        color: '#00F0FF',
+                      }}
+                    >
                       <FileSpreadsheet size={15} />
                     </div>
                   </div>
-                  <span className="text-2xl sm:text-3xl font-black text-white mt-2 block tracking-tight" style={{ fontFamily: 'Lexend, sans-serif' }}>
-                    {ledgerRecords.length}
-                  </span>
+                  <div className="mt-3 flex items-baseline gap-2">
+                    <span className="text-2xl sm:text-3xl font-extrabold text-cyan-400 font-mono tracking-tight">
+                      {ledgerRecords.length}
+                    </span>
+                    <span className="text-[11px] font-bold text-slate-400 font-mono uppercase">Records</span>
+                  </div>
                 </div>
 
                 {/* 2. Total Deposits */}
                 <div
-                  className="p-4 rounded-xl sm:rounded-2xl transition-all duration-300 hover:scale-[1.02]"
+                  className="p-4 sm:p-5 rounded-2xl relative overflow-hidden transition"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(20, 14, 51, 0.92) 0%, rgba(14, 10, 36, 0.98) 100%)',
-                    border: '1px solid rgba(16, 185, 129, 0.35)',
-                    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 18px rgba(16, 185, 129, 0.08)',
+                    backgroundColor: '#0C0A1E',
+                    border: '1px solid rgba(16, 185, 129, 0.25)',
+                    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.35)',
                   }}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-black text-[#9A91A8] uppercase tracking-wider" style={{ fontFamily: 'Lexend, sans-serif' }}>
-                      Total Deposits
-                    </span>
-                    <div className="w-8 h-8 rounded-lg bg-[#10B981]/15 border border-[#10B981]/40 flex items-center justify-center text-[#10B981]">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#10B981', boxShadow: '0 0 10px #10B981' }} />
+                      <span className="text-[11px] font-black uppercase tracking-wider text-emerald-400" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                        Total Deposits
+                      </span>
+                    </div>
+                    <div
+                      className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+                      style={{
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        border: '1px solid rgba(16, 185, 129, 0.3)',
+                        color: '#10B981',
+                      }}
+                    >
                       <ArrowDownLeft size={15} />
                     </div>
                   </div>
-                  <div className="flex items-baseline gap-1 mt-2">
-                    <span className="text-2xl sm:text-3xl font-black text-[#10B981] tracking-tight drop-shadow-[0_0_12px_rgba(16,185,129,0.35)]" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                  <div className="mt-3 flex items-baseline gap-1.5">
+                    <span className="text-2xl sm:text-3xl font-extrabold text-emerald-400 font-mono tracking-tight">
                       ${ledgerRecords
                         .filter(r => (r.type || '').includes('deposit') || (r.displayType || '').toLowerCase().includes('deposit'))
                         .reduce((acc, r) => acc + (Number(r.amount) || 0), 0)
                         .toFixed(2)}
                     </span>
-                    <span className="text-xs font-bold text-[#10B981]" style={{ fontFamily: 'Lexend, sans-serif' }}>SC</span>
+                    <span className="text-xs font-bold text-emerald-400 font-mono">SC</span>
                   </div>
                 </div>
 
                 {/* 3. Total Withdrawals */}
                 <div
-                  className="p-4 rounded-xl sm:rounded-2xl transition-all duration-300 hover:scale-[1.02]"
+                  className="p-4 sm:p-5 rounded-2xl relative overflow-hidden transition"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(20, 14, 51, 0.92) 0%, rgba(14, 10, 36, 0.98) 100%)',
-                    border: '1px solid rgba(224, 38, 216, 0.35)',
-                    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 18px rgba(224, 38, 216, 0.08)',
+                    backgroundColor: '#0C0A1E',
+                    border: '1px solid rgba(168, 85, 247, 0.25)',
+                    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.35)',
                   }}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-black text-[#9A91A8] uppercase tracking-wider" style={{ fontFamily: 'Lexend, sans-serif' }}>
-                      Total Withdrawals
-                    </span>
-                    <div className="w-8 h-8 rounded-lg bg-[#E026D8]/15 border border-[#E026D8]/40 flex items-center justify-center text-[#E026D8]">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#A855F7', boxShadow: '0 0 10px #A855F7' }} />
+                      <span className="text-[11px] font-black uppercase tracking-wider text-purple-400" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                        Total Withdrawals
+                      </span>
+                    </div>
+                    <div
+                      className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+                      style={{
+                        backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                        border: '1px solid rgba(168, 85, 247, 0.3)',
+                        color: '#A855F7',
+                      }}
+                    >
                       <ArrowUpRight size={15} />
                     </div>
                   </div>
-                  <div className="flex items-baseline gap-1 mt-2">
-                    <span className="text-2xl sm:text-3xl font-black text-[#E026D8] tracking-tight drop-shadow-[0_0_12px_rgba(224,38,216,0.35)]" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                  <div className="mt-3 flex items-baseline gap-1.5">
+                    <span className="text-2xl sm:text-3xl font-extrabold text-purple-400 font-mono tracking-tight">
                       ${Math.abs(ledgerRecords
                         .filter(r => (r.type || '').includes('withdraw') || (r.type || '').includes('redemption') || (r.displayType || '').toLowerCase().includes('withdraw'))
                         .reduce((acc, r) => acc + (Number(r.amount) || 0), 0))
                         .toFixed(2)}
                     </span>
-                    <span className="text-xs font-bold text-[#E026D8]" style={{ fontFamily: 'Lexend, sans-serif' }}>SC</span>
+                    <span className="text-xs font-bold text-purple-400 font-mono">SC</span>
                   </div>
                 </div>
 
                 {/* 4. Proof Receipts */}
                 <div
-                  className="p-4 rounded-xl sm:rounded-2xl transition-all duration-300 hover:scale-[1.02]"
+                  className="p-4 sm:p-5 rounded-2xl relative overflow-hidden transition"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(20, 14, 51, 0.92) 0%, rgba(14, 10, 36, 0.98) 100%)',
-                    border: '1px solid rgba(245, 158, 11, 0.35)',
-                    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 18px rgba(245, 158, 11, 0.08)',
+                    backgroundColor: '#0C0A1E',
+                    border: '1px solid rgba(245, 158, 11, 0.25)',
+                    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.35)',
                   }}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-black text-[#9A91A8] uppercase tracking-wider" style={{ fontFamily: 'Lexend, sans-serif' }}>
-                      Proof Receipts
-                    </span>
-                    <div className="w-8 h-8 rounded-lg bg-[#F59E0B]/15 border border-[#F59E0B]/40 flex items-center justify-center text-[#F59E0B]">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#F59E0B', boxShadow: '0 0 10px #F59E0B' }} />
+                      <span className="text-[11px] font-black uppercase tracking-wider text-amber-400" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                        Proof Receipts
+                      </span>
+                    </div>
+                    <div
+                      className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+                      style={{
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        border: '1px solid rgba(245, 158, 11, 0.3)',
+                        color: '#F59E0B',
+                      }}
+                    >
                       <Eye size={15} />
                     </div>
                   </div>
-                  <span className="text-2xl sm:text-3xl font-black text-[#F59E0B] mt-2 block tracking-tight drop-shadow-[0_0_12px_rgba(245,158,11,0.35)]" style={{ fontFamily: 'Lexend, sans-serif' }}>
-                    {ledgerRecords.filter(r => Boolean(r.proofImage)).length}
-                  </span>
+                  <div className="mt-3 flex items-baseline gap-2">
+                    <span className="text-2xl sm:text-3xl font-extrabold text-amber-400 font-mono tracking-tight">
+                      {ledgerRecords.filter(r => Boolean(r.proofImage)).length}
+                    </span>
+                    <span className="text-[11px] font-bold text-slate-400 font-mono uppercase">Uploaded</span>
+                  </div>
                 </div>
               </div>
 
               {/* Main Transactions Container */}
-              <div className="bg-[#0E0A24] border border-[#00F0FF]/25 rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl">
-                <div className="p-3 sm:p-4 bg-[#070514] border-b border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-black text-white uppercase tracking-wider" style={{ fontFamily: 'Lexend, sans-serif' }}>
+              <div
+                className="rounded-2xl overflow-hidden"
+                style={{
+                  backgroundColor: '#0C0A1E',
+                  border: '1px solid rgba(0, 240, 255, 0.22)',
+                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+                }}
+              >
+                <div
+                  className="p-3.5 sm:p-4.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+                  style={{
+                    backgroundColor: '#070514',
+                    borderBottom: '1px solid rgba(0, 240, 255, 0.18)',
+                  }}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-2 h-2 rounded-full bg-[#00F0FF] shadow-[0_0_8px_#00F0FF]" />
+                    <span className="text-xs sm:text-[13px] font-black text-white uppercase tracking-wider" style={{ fontFamily: 'Lexend, sans-serif' }}>
                       Transaction Entries
                     </span>
-                    <span className="text-[11px] font-bold text-gray-400" style={{ fontFamily: 'Lexend, sans-serif' }}>
-                      ({ledgerRecords.length} found)
+                    <span
+                      className="text-[11px] font-bold px-2.5 py-0.5 rounded-full font-mono"
+                      style={{
+                        backgroundColor: 'rgba(0, 240, 255, 0.1)',
+                        color: '#00F0FF',
+                        border: '1px solid rgba(0, 240, 255, 0.25)',
+                      }}
+                    >
+                      {ledgerRecords.length} found
                     </span>
                   </div>
-                  <span className="text-[11px] text-gray-400" style={{ fontFamily: 'Lexend, sans-serif' }}>
-                    Click on any transaction to view full receipt card
+                  <span className="text-[11px] text-slate-400" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                    💡 Click on any transaction to view full receipt card
                   </span>
                 </div>
 
                 {/* Mobile Cards View (Visible on small screens) */}
-                <div className="block sm:hidden divide-y divide-white/5">
+                <div className="block sm:hidden divide-y divide-white/5 p-2 space-y-2">
                   {ledgerRecords.length === 0 ? (
-                    <div className="p-8 text-center text-gray-400 text-xs">
-                      <FileSpreadsheet size={32} className="mx-auto text-gray-500 opacity-60 mb-2" />
+                    <div className="p-8 text-center text-slate-400 text-xs">
+                      <FileSpreadsheet size={32} className="mx-auto text-slate-500 opacity-60 mb-2" />
                       <p className="font-bold text-white text-sm m-0">No transactions match your filter</p>
-                      <p className="text-xs text-gray-400 mt-1 m-0">Select "All Transactions" or clear your player search</p>
+                      <p className="text-xs text-slate-400 mt-1 m-0">Select "All Transactions" or clear your player search</p>
                     </div>
                   ) : (
                     ledgerRecords.map((rec, i) => {
@@ -5954,17 +7975,19 @@ export default function AdminPortal({ initialTab }) {
                       const rawT = (rec.rawType || rec.type || '').toLowerCase();
                       const isDeposit = rawT.includes('deposit');
                       const isWithdrawal = rawT.includes('withdraw') || rawT.includes('redemption');
+                      const isTransfer = rawT.includes('transfer') || rawT.includes('allotment') || rawT.includes('game');
                       const isCredit = rawT.includes('credit');
                       const isDebit = rawT.includes('debit');
-                      const isBonus = rawT.includes('bonus') || rawT.includes('freeplay');
+                      const isBonus = rawT.includes('bonus') || rawT.includes('freeplay') || rawT.includes('promo');
                       const hasProof = Boolean(rec.proofImage || rec.hasProof);
 
                       let label = 'Transaction';
                       if (isDeposit) label = 'Deposit';
                       else if (isWithdrawal) label = 'Withdrawal';
+                      else if (isTransfer) label = 'Coin Allotment';
+                      else if (isBonus) label = 'Bonus Reward';
                       else if (isCredit) label = 'Balance Added';
                       else if (isDebit) label = 'Balance Deducted';
-                      else if (isBonus) label = 'Bonus';
                       else label = rec.displayType || 'Adjustment';
 
                       const rawStatus = (rec.status || 'approved').toLowerCase();
@@ -5975,91 +7998,104 @@ export default function AdminPortal({ initialTab }) {
                         <div
                           key={rec.id || i}
                           onClick={() => setSelectedTxDetail(rec)}
-                          className="p-3.5 space-y-2.5 bg-[#070514]/60 active:bg-white/[0.04] transition cursor-pointer"
-                          style={{ fontFamily: 'Lexend, sans-serif' }}
+                          className="p-3.5 rounded-xl space-y-2.5 transition cursor-pointer"
+                          style={{
+                            backgroundColor: '#070514',
+                            border: '1px solid rgba(0, 240, 255, 0.15)',
+                          }}
                         >
-                          {/* Top row: Player Avatar, Name, and Amount */}
                           <div className="flex items-start justify-between gap-2">
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              <div className="w-8 h-8 rounded-lg bg-[#00F0FF]/15 border border-[#00F0FF]/35 flex items-center justify-center text-[#00F0FF] font-black text-xs uppercase shrink-0">
+                            <div className="flex items-center gap-2">
+                              <div
+                                className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black uppercase shrink-0"
+                                style={{
+                                  backgroundColor: '#F59E0B',
+                                  color: '#070514',
+                                  border: '1px solid rgba(245, 158, 11, 0.4)',
+                                }}
+                              >
                                 {rec.username?.substring(0, 2) || 'U'}
                               </div>
-                              <div className="min-w-0">
-                                <span className="font-extrabold text-white text-xs truncate block">
-                                  {rec.username}
-                                </span>
-                                <span className="text-[10px] text-gray-400 block font-mono">
+                              <div>
+                                <div className="font-black text-white text-xs">{rec.username}</div>
+                                <span className="text-[10px] text-slate-400 font-mono">
                                   {rec.createdAt ? new Date(rec.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recent'} • {rec.createdAt ? new Date(rec.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                                 </span>
                               </div>
                             </div>
 
                             <div className="text-right shrink-0">
-                              <div className={`font-mono font-black text-sm ${isPositive ? 'text-emerald-400' : 'text-amber-400'}`}>
+                              <div className={`font-mono font-black text-sm ${isPositive ? 'text-emerald-400' : 'text-rose-400'}`}>
                                 {isPositive ? '+' : '-'}${Math.abs(Number(rec.amount || 0)).toFixed(2)} <span className="text-[10px]">SC</span>
                               </div>
                               {rec.balanceAfter !== null && rec.balanceAfter !== undefined && (
-                                <div className="text-[9.5px] text-gray-400 font-mono">
+                                <div className="text-[9.5px] text-slate-400 font-mono">
                                   Bal: ${Number(rec.balanceAfter).toFixed(2)}
                                 </div>
                               )}
                             </div>
                           </div>
 
-                          {/* Badges row: Type badge, Status badge, Method */}
                           <div className="flex items-center justify-between gap-2 text-[11px] pt-1 border-t border-white/5">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border inline-flex items-center gap-1 ${isDeposit
-                                ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/35'
-                                : isWithdrawal
-                                  ? 'bg-amber-500/15 text-amber-400 border-amber-500/35'
-                                  : isCredit
-                                    ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/35'
-                                    : isDebit
-                                      ? 'bg-rose-500/15 text-rose-400 border-rose-500/35'
-                                      : 'bg-purple-500/15 text-purple-300 border-purple-500/35'
-                                }`}>
-                                <span className={`w-1.5 h-1.5 rounded-full ${isDeposit ? 'bg-emerald-400' : isWithdrawal ? 'bg-amber-400' : isCredit ? 'bg-cyan-300' : isDebit ? 'bg-rose-400' : 'bg-purple-300'
-                                  }`} />
+                              <span
+                                className="text-[10px] font-bold px-2 py-0.5 rounded-full border inline-flex items-center gap-1"
+                                style={{
+                                  backgroundColor: isDeposit ? 'rgba(16, 185, 129, 0.12)' : isWithdrawal ? 'rgba(245, 158, 11, 0.12)' : isTransfer ? 'rgba(0, 240, 255, 0.12)' : isBonus ? 'rgba(168, 85, 247, 0.12)' : 'rgba(14, 165, 233, 0.12)',
+                                  borderColor: isDeposit ? 'rgba(16, 185, 129, 0.4)' : isWithdrawal ? 'rgba(245, 158, 11, 0.4)' : isTransfer ? 'rgba(0, 240, 255, 0.4)' : isBonus ? 'rgba(168, 85, 247, 0.4)' : 'rgba(14, 165, 233, 0.4)',
+                                  color: isDeposit ? '#10B981' : isWithdrawal ? '#F59E0B' : isTransfer ? '#00F0FF' : isBonus ? '#C084FC' : '#38BDF8',
+                                }}
+                              >
                                 <span>{label}</span>
                               </span>
 
-                              <span className={`text-[9.5px] font-bold px-1.5 py-0.5 rounded-full border ${isPending
-                                ? 'bg-amber-500/15 text-amber-300 border-amber-500/40'
-                                : isRejected
-                                  ? 'bg-red-500/15 text-red-300 border-red-500/40'
-                                  : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40'
-                                }`}>
+                              <span
+                                className="text-[9.5px] font-bold px-1.5 py-0.5 rounded-full border"
+                                style={{
+                                  backgroundColor: isPending ? 'rgba(245, 158, 11, 0.12)' : isRejected ? 'rgba(244, 63, 94, 0.12)' : 'rgba(16, 185, 129, 0.12)',
+                                  borderColor: isPending ? 'rgba(245, 158, 11, 0.4)' : isRejected ? 'rgba(244, 63, 94, 0.4)' : 'rgba(16, 185, 129, 0.4)',
+                                  color: isPending ? '#F59E0B' : isRejected ? '#F43F5E' : '#10B981',
+                                }}
+                              >
                                 {isPending ? 'Pending' : isRejected ? 'Rejected' : 'Completed'}
                               </span>
                             </div>
 
-                            <span className="text-[10.5px] text-gray-300 font-semibold truncate max-w-[130px]">
+                            <span className="text-[10.5px] text-slate-300 font-semibold truncate max-w-[130px]">
                               {rec.methodName || (isDeposit ? 'Direct Cashier' : isWithdrawal ? 'Cashier Dispatch' : 'System')}
                             </span>
                           </div>
 
-                          {/* Footer row: Screenshot Proof (if exists) & Receipt Details CTA */}
                           <div className="flex items-center justify-between gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
                             {hasProof ? (
                               <button
                                 type="button"
                                 onClick={() => handleOpenProofPreview(rec, label)}
-                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#00F0FF]/10 border border-[#00F0FF]/30 text-[#00F0FF] text-[10.5px] font-bold cursor-pointer hover:bg-[#00F0FF]/20 transition"
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10.5px] font-bold cursor-pointer transition"
+                                style={{
+                                  backgroundColor: 'rgba(0, 240, 255, 0.12)',
+                                  border: '1px solid rgba(0, 240, 255, 0.4)',
+                                  color: '#00F0FF',
+                                }}
                               >
                                 <Eye size={11} />
-                                <span>View Proof 👁️</span>
+                                <span>View Proof</span>
                               </button>
                             ) : (
-                              <span className="text-[10px] text-gray-500 italic">No proof image</span>
+                              <span className="text-slate-600 font-mono text-xs">—</span>
                             )}
 
                             <button
                               type="button"
                               onClick={() => setSelectedTxDetail(rec)}
-                              className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-[#00F0FF]/15 border border-white/10 text-gray-300 hover:text-[#00F0FF] font-bold text-[11px] transition inline-flex items-center gap-1 cursor-pointer"
+                              className="px-2.5 py-1 rounded-lg font-bold text-[11px] transition inline-flex items-center gap-1 cursor-pointer"
+                              style={{
+                                backgroundColor: 'rgba(0, 240, 255, 0.1)',
+                                border: '1px solid rgba(0, 240, 255, 0.3)',
+                                color: '#00F0FF',
+                              }}
                             >
-                              <span>View Receipt</span>
+                              <span>Receipt Details</span>
                               <ExternalLink size={10} />
                             </button>
                           </div>
@@ -6071,28 +8107,33 @@ export default function AdminPortal({ initialTab }) {
 
                 {/* Desktop Table View (Hidden on mobile) */}
                 <div className="hidden sm:block overflow-x-auto w-full">
-                  <table className="w-full min-w-[850px] text-left text-xs border-collapse">
-                    <thead className="bg-[#090618] text-[#A69FB3] uppercase text-[10.5px] font-black tracking-wider border-b border-white/10">
+                  <table className="w-full min-w-[900px] text-left text-xs border-collapse">
+                    <thead
+                      style={{
+                        backgroundColor: '#070514',
+                        borderBottom: '1px solid rgba(0, 240, 255, 0.18)',
+                      }}
+                    >
                       <tr>
-                        <th className="p-3.5">Date &amp; Time</th>
-                        <th className="p-3.5">Player</th>
-                        <th className="p-3.5">Transaction Type</th>
-                        <th className="p-3.5">Amount</th>
-                        <th className="p-3.5">Payment Method</th>
-                        <th className="p-3.5 text-center">Screenshot Proof</th>
-                        <th className="p-3.5">Status</th>
-                        <th className="p-3.5">Processed By</th>
-                        <th className="p-3.5 text-right">Receipt</th>
+                        <th className="py-3.5 px-4 font-black uppercase text-[11px] tracking-widest text-[#00F0FF]">Date &amp; Time</th>
+                        <th className="py-3.5 px-4 font-black uppercase text-[11px] tracking-widest text-[#00F0FF]">Player</th>
+                        <th className="py-3.5 px-4 font-black uppercase text-[11px] tracking-widest text-[#00F0FF]">Type</th>
+                        <th className="py-3.5 px-4 font-black uppercase text-[11px] tracking-widest text-[#00F0FF]">Amount</th>
+                        <th className="py-3.5 px-4 font-black uppercase text-[11px] tracking-widest text-[#00F0FF]">Method / Destination</th>
+                        <th className="py-3.5 px-4 font-black uppercase text-[11px] tracking-widest text-[#00F0FF] text-center">Proof</th>
+                        <th className="py-3.5 px-4 font-black uppercase text-[11px] tracking-widest text-[#00F0FF]">Status</th>
+                        <th className="py-3.5 px-4 font-black uppercase text-[11px] tracking-widest text-[#00F0FF]">Auditor / Notes</th>
+                        <th className="py-3.5 px-4 font-black uppercase text-[11px] tracking-widest text-[#00F0FF] text-right">Receipt</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/5">
+                    <tbody>
                       {ledgerRecords.length === 0 ? (
                         <tr>
-                          <td colSpan="9" className="p-12 text-center text-gray-400">
+                          <td colSpan="9" className="p-12 text-center text-slate-400">
                             <div className="max-w-xs mx-auto space-y-2">
-                              <FileSpreadsheet size={36} className="mx-auto text-gray-500 opacity-60" />
+                              <FileSpreadsheet size={36} className="mx-auto text-slate-500 opacity-60" />
                               <p className="font-bold text-white text-sm">No transactions match your filter</p>
-                              <p className="text-xs text-gray-400">Select "All Transactions" or clear your player search</p>
+                              <p className="text-xs text-slate-400">Select "All Transactions" or clear your player search</p>
                             </div>
                           </td>
                         </tr>
@@ -6102,21 +8143,38 @@ export default function AdminPortal({ initialTab }) {
                           const rawT = (rec.rawType || rec.type || '').toLowerCase();
                           const isDeposit = rawT.includes('deposit');
                           const isWithdrawal = rawT.includes('withdraw') || rawT.includes('redemption');
+                          const isTransfer = rawT.includes('transfer') || rawT.includes('allotment') || rawT.includes('game');
                           const isCredit = rawT.includes('credit');
                           const isDebit = rawT.includes('debit');
-                          const isBonus = rawT.includes('bonus') || rawT.includes('freeplay');
+                          const isBonus = rawT.includes('bonus') || rawT.includes('freeplay') || rawT.includes('promo');
                           const hasProof = Boolean(rec.proofImage || rec.hasProof);
 
-                          // Label to display
                           let label = 'Transaction';
-                          if (isDeposit) label = 'Deposit';
-                          else if (isWithdrawal) label = 'Withdrawal';
-                          else if (isCredit) label = 'Balance Added';
-                          else if (isDebit) label = 'Balance Deducted';
-                          else if (isBonus) label = 'Bonus';
-                          else label = rec.displayType || 'Adjustment';
+                          let TypeIcon = FileSpreadsheet;
 
-                          // Status display
+                          if (isDeposit) {
+                            label = 'Deposit';
+                            TypeIcon = ArrowDownLeft;
+                          } else if (isWithdrawal) {
+                            label = 'Withdrawal';
+                            TypeIcon = ArrowUpRight;
+                          } else if (isTransfer) {
+                            label = 'Coin Allotment';
+                            TypeIcon = Coins;
+                          } else if (isBonus) {
+                            label = 'Bonus Reward';
+                            TypeIcon = Gift;
+                          } else if (isCredit) {
+                            label = 'Balance Added';
+                            TypeIcon = Plus;
+                          } else if (isDebit) {
+                            label = 'Balance Deducted';
+                            TypeIcon = SlidersHorizontal;
+                          } else {
+                            label = rec.displayType || 'Adjustment';
+                            TypeIcon = SlidersHorizontal;
+                          }
+
                           const rawStatus = (rec.status || 'approved').toLowerCase();
                           const isPending = rawStatus === 'pending' || rawStatus.includes('pending');
                           const isRejected = rawStatus.includes('reject');
@@ -6125,37 +8183,48 @@ export default function AdminPortal({ initialTab }) {
                             <tr
                               key={rec.id || i}
                               onClick={() => setSelectedTxDetail(rec)}
-                              className="hover:bg-white/[0.04] transition-colors cursor-pointer group"
+                              className="hover:bg-cyan-500/[0.04] transition-colors cursor-pointer group"
+                              style={{
+                                borderBottom: '1px solid rgba(0, 240, 255, 0.08)',
+                              }}
                             >
                               {/* Date & Time */}
-                              <td className="p-3.5 text-gray-300 font-mono text-[11px] whitespace-nowrap">
-                                <div className="font-bold text-white">
-                                  {rec.createdAt ? new Date(rec.createdAt).toLocaleDateString() : 'Recent'}
+                              <td className="py-3.5 px-4 text-slate-300 font-mono text-[11px] whitespace-nowrap">
+                                <div className="font-extrabold text-white text-xs">
+                                  {rec.createdAt ? new Date(rec.createdAt).toLocaleDateString([], { month: '2-digit', day: '2-digit', year: 'numeric' }) : 'Recent'}
                                 </div>
-                                <div className="text-[10px] text-gray-400">
+                                <div className="text-[10px] text-slate-400 mt-0.5">
                                   {rec.createdAt ? new Date(rec.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                                 </div>
                               </td>
 
                               {/* Player */}
-                              <td className="p-3.5 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                              <td className="py-3.5 px-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                                 <button
                                   type="button"
                                   onClick={() => rec.userId && setSelectedPlayerId(rec.userId)}
-                                  className="flex items-center gap-2 group/btn text-left"
+                                  className="flex items-center gap-2.5 group/btn text-left"
                                   title="Open Player Profile"
                                 >
-                                  <div className="w-7 h-7 rounded-lg bg-[#00F0FF]/15 border border-[#00F0FF]/35 flex items-center justify-center text-[#00F0FF] font-black text-xs uppercase">
+                                  <div
+                                    className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black uppercase shrink-0"
+                                    style={{
+                                      backgroundColor: '#F59E0B',
+                                      color: '#070514',
+                                      border: '1px solid rgba(245, 158, 11, 0.4)',
+                                      boxShadow: '0 0 10px rgba(245, 158, 11, 0.2)',
+                                    }}
+                                  >
                                     {rec.username?.substring(0, 2) || 'U'}
                                   </div>
                                   <div>
-                                    <div className="font-extrabold text-white group-hover/btn:text-[#00F0FF] transition flex items-center gap-1">
+                                    <div className="font-black text-white text-xs group-hover/btn:text-cyan-400 transition flex items-center gap-1">
                                       <span>{rec.username}</span>
-                                      <ExternalLink size={10} className="opacity-0 group-hover/btn:opacity-100 transition" />
+                                      <ExternalLink size={10} className="text-cyan-400" />
                                     </div>
                                     {rec.balanceAfter !== null && rec.balanceAfter !== undefined && (
-                                      <div className="text-[10px] text-gray-400 font-mono">
-                                        Bal: ${Number(rec.balanceAfter).toFixed(2)} SC
+                                      <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                                        Bal: <span className="text-slate-200 font-bold">${Number(rec.balanceAfter).toFixed(2)} SC</span>
                                       </div>
                                     )}
                                   </div>
@@ -6163,119 +8232,129 @@ export default function AdminPortal({ initialTab }) {
                               </td>
 
                               {/* Transaction Type */}
-                              <td className="p-3.5 whitespace-nowrap">
-                                <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1.5 ${isDeposit
-                                  ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/35'
-                                  : isWithdrawal
-                                    ? 'bg-amber-500/15 text-amber-400 border-amber-500/35'
-                                    : isCredit
-                                      ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/35'
-                                      : isDebit
-                                        ? 'bg-rose-500/15 text-rose-400 border-rose-500/35'
-                                        : 'bg-purple-500/15 text-purple-300 border-purple-500/35'
-                                  }`}>
-                                  <span className={`w-1.5 h-1.5 rounded-full ${isDeposit
-                                    ? 'bg-emerald-400'
-                                    : isWithdrawal
-                                      ? 'bg-amber-400'
-                                      : isCredit
-                                        ? 'bg-cyan-300'
-                                        : isDebit
-                                          ? 'bg-rose-400'
-                                          : 'bg-purple-300'
-                                    }`} />
+                              <td className="py-3.5 px-4 whitespace-nowrap">
+                                <span
+                                  className="text-[10.5px] font-black px-2.5 py-1 rounded-lg border inline-flex items-center gap-1.5"
+                                  style={{
+                                    backgroundColor: isDeposit ? 'rgba(16, 185, 129, 0.12)' : isWithdrawal ? 'rgba(245, 158, 11, 0.12)' : isTransfer ? 'rgba(0, 240, 255, 0.12)' : isBonus ? 'rgba(168, 85, 247, 0.12)' : 'rgba(14, 165, 233, 0.12)',
+                                    borderColor: isDeposit ? 'rgba(16, 185, 129, 0.4)' : isWithdrawal ? 'rgba(245, 158, 11, 0.4)' : isTransfer ? 'rgba(0, 240, 255, 0.4)' : isBonus ? 'rgba(168, 85, 247, 0.4)' : 'rgba(14, 165, 233, 0.4)',
+                                    color: isDeposit ? '#10B981' : isWithdrawal ? '#F59E0B' : isTransfer ? '#00F0FF' : isBonus ? '#C084FC' : '#38BDF8',
+                                  }}
+                                >
+                                  <TypeIcon size={12} />
                                   <span>{label}</span>
                                 </span>
                               </td>
 
                               {/* Amount */}
-                              <td className="p-3.5 whitespace-nowrap">
-                                <div className={`font-mono font-black text-sm ${isPositive ? 'text-emerald-400' : 'text-amber-400'
-                                  }`}>
-                                  {isPositive ? '+' : '-'}${Math.abs(Number(rec.amount || 0)).toFixed(2)} SC
+                              <td className="py-3.5 px-4 whitespace-nowrap">
+                                <div
+                                  className="font-mono font-black text-sm tracking-tight"
+                                  style={{
+                                    color: isPositive ? '#10B981' : '#F43F5E',
+                                    textShadow: isPositive ? '0 0 10px rgba(16, 185, 129, 0.3)' : '0 0 10px rgba(244, 63, 94, 0.3)',
+                                  }}
+                                >
+                                  {isPositive ? '+' : '-'}${Math.abs(Number(rec.amount || 0)).toFixed(2)} <span className="text-[10px] font-bold">SC</span>
                                 </div>
-                                <div className="text-[10px] text-gray-400 font-mono">
+                                <div className="text-[10px] text-slate-500 font-mono mt-0.5">
                                   {rec.balanceBefore !== null && rec.balanceBefore !== undefined ? (
-                                    <>Was: ${Number(rec.balanceBefore).toFixed(2)}</>
+                                    <>Prev: ${Number(rec.balanceBefore).toFixed(2)}</>
                                   ) : null}
                                 </div>
                               </td>
 
-                              {/* Payment Method */}
-                              <td className="p-3.5 whitespace-nowrap">
-                                <div className="font-extrabold text-white text-xs">
-                                  {rec.methodName || (isDeposit ? 'Direct Cashier' : isWithdrawal ? 'Cashier Dispatch' : 'System')}
-                                </div>
+                              {/* Payment Method / Destination */}
+                              <td className="py-3.5 px-4 whitespace-nowrap">
+                                <span
+                                  className="px-2.5 py-1 rounded-lg text-slate-300 font-bold text-[11px] inline-flex items-center gap-1.5"
+                                  style={{
+                                    backgroundColor: '#070514',
+                                    border: '1px solid rgba(0, 240, 255, 0.18)',
+                                  }}
+                                >
+                                  <span className="truncate max-w-[150px]">{rec.methodName || 'Direct Cashier'}</span>
+                                </span>
                                 {rec.txHash && (
-                                  <div className="text-[10px] text-[#00F0FF] font-mono truncate max-w-[120px]" title={rec.txHash}>
+                                  <div className="text-[9.5px] text-cyan-400 font-mono truncate max-w-[140px] mt-0.5" title={rec.txHash}>
                                     TX: {rec.txHash}
                                   </div>
                                 )}
                               </td>
 
                               {/* Screenshot Proof */}
-                              <td className="p-3.5 text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                              <td className="py-3.5 px-4 text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                                 {hasProof ? (
                                   <button
                                     type="button"
                                     onClick={() => handleOpenProofPreview(rec, label)}
-                                    className="group/proof inline-flex flex-col items-center gap-1 p-1 rounded-xl hover:bg-white/10 transition cursor-pointer"
-                                    title="Click to view screenshot proof"
+                                    className="px-2.5 py-1 rounded-lg font-bold text-[10.5px] inline-flex items-center gap-1.5 transition cursor-pointer"
+                                    style={{
+                                      backgroundColor: 'rgba(0, 240, 255, 0.12)',
+                                      border: '1px solid rgba(0, 240, 255, 0.4)',
+                                      color: '#00F0FF',
+                                      boxShadow: '0 0 10px rgba(0, 240, 255, 0.15)',
+                                    }}
+                                    title="Click to view full screenshot proof"
                                   >
-                                    <div className="w-11 h-11 rounded-xl overflow-hidden border-2 border-[#00F0FF]/50 group-hover/proof:border-[#00F0FF] shadow-md group-hover/proof:scale-105 transition relative bg-[#070514] flex items-center justify-center">
-                                      {rec.proofImage ? (
-                                        /* eslint-disable-next-line @next/next/no-img-element */
-                                        <img
-                                          src={rec.proofImage}
-                                          alt="Proof thumbnail"
-                                          className="w-full h-full object-cover"
-                                        />
-                                      ) : (
-                                        <Eye size={16} className="text-[#00F0FF]" />
-                                      )}
-                                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/proof:opacity-100 flex items-center justify-center transition">
-                                        <Eye size={13} className="text-[#00F0FF]" />
-                                      </div>
-                                    </div>
-                                    <span className="text-[10px] font-black text-[#00F0FF] group-hover/proof:underline">
-                                      View Proof
-                                    </span>
+                                    <Eye size={12} />
+                                    <span>View Proof</span>
                                   </button>
                                 ) : (
-                                  <span className="text-[11px] text-gray-500 italic">
-                                    No proof attached
-                                  </span>
+                                  <span className="text-slate-600 font-mono text-xs">—</span>
                                 )}
                               </td>
 
                               {/* Status */}
-                              <td className="p-3.5 whitespace-nowrap">
-                                <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${isPending
-                                  ? 'bg-amber-500/15 text-amber-300 border-amber-500/40'
-                                  : isRejected
-                                    ? 'bg-red-500/15 text-red-300 border-red-500/40'
-                                    : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40'
-                                  }`}>
-                                  {isPending ? 'Pending' : isRejected ? 'Rejected' : 'Completed'}
+                              <td className="py-3.5 px-4 whitespace-nowrap">
+                                <span
+                                  className="text-[10px] font-black px-2.5 py-0.5 rounded-full border inline-flex items-center gap-1.5"
+                                  style={{
+                                    backgroundColor: isPending ? 'rgba(245, 158, 11, 0.12)' : isRejected ? 'rgba(244, 63, 94, 0.12)' : 'rgba(16, 185, 129, 0.12)',
+                                    borderColor: isPending ? 'rgba(245, 158, 11, 0.4)' : isRejected ? 'rgba(244, 63, 94, 0.4)' : 'rgba(16, 185, 129, 0.4)',
+                                    color: isPending ? '#F59E0B' : isRejected ? '#F43F5E' : '#10B981',
+                                  }}
+                                >
+                                  <span
+                                    className="w-1.5 h-1.5 rounded-full"
+                                    style={{
+                                      backgroundColor: isPending ? '#F59E0B' : isRejected ? '#F43F5E' : '#10B981',
+                                      boxShadow: `0 0 6px ${isPending ? '#F59E0B' : isRejected ? '#F43F5E' : '#10B981'}`,
+                                    }}
+                                  />
+                                  <span>{isPending ? 'PENDING' : isRejected ? 'REJECTED' : 'COMPLETED'}</span>
                                 </span>
                               </td>
 
-                              {/* Processed By */}
-                              <td className="p-3.5 whitespace-nowrap text-gray-300 text-xs">
-                                <div className="font-bold text-white">
+                              {/* Processed By / Audit Notes */}
+                              <td className="py-3.5 px-4 whitespace-nowrap text-xs">
+                                <span
+                                  className="px-2 py-0.5 rounded-md font-bold text-[10px] inline-block font-mono"
+                                  style={{
+                                    backgroundColor: 'rgba(0, 240, 255, 0.08)',
+                                    border: '1px solid rgba(0, 240, 255, 0.22)',
+                                    color: '#00F0FF',
+                                  }}
+                                >
                                   {rec.performedBy || 'System'}
-                                </div>
-                                <div className="text-[10px] text-gray-400 truncate max-w-[120px]" title={rec.notes}>
-                                  {rec.notes || 'Settled'}
+                                </span>
+                                <div className="text-[10px] text-slate-400 truncate max-w-[200px] mt-0.5 font-medium" title={rec.notes}>
+                                  {rec.notes || 'Settled & Verified'}
                                 </div>
                               </td>
 
                               {/* Receipt Button */}
-                              <td className="p-3.5 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                              <td className="py-3.5 px-4 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                                 <button
                                   type="button"
                                   onClick={() => setSelectedTxDetail(rec)}
-                                  className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-[#00F0FF]/15 border border-white/10 hover:border-[#00F0FF]/40 text-gray-300 hover:text-[#00F0FF] font-bold text-[11px] transition inline-flex items-center gap-1"
+                                  className="px-3 py-1 rounded-lg font-bold text-[11px] transition inline-flex items-center gap-1.5 cursor-pointer"
+                                  style={{
+                                    backgroundColor: 'rgba(0, 240, 255, 0.12)',
+                                    border: '1px solid rgba(0, 240, 255, 0.4)',
+                                    color: '#00F0FF',
+                                    boxShadow: '0 0 10px rgba(0, 240, 255, 0.12)',
+                                  }}
                                 >
                                   <Eye size={12} />
                                   <span>Details</span>
@@ -6321,70 +8400,86 @@ export default function AdminPortal({ initialTab }) {
                 position: 'fixed',
                 inset: 0,
                 zIndex: 99999,
-                backgroundColor: 'rgba(3, 2, 10, 0.92)',
+                backgroundColor: 'rgba(5, 3, 15, 0.92)',
                 backdropFilter: 'blur(16px)',
                 WebkitBackdropFilter: 'blur(16px)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 padding: '16px',
+                fontFamily: 'Lexend, -apple-system, sans-serif',
               }}
               onClick={() => setAdjustModal({ open: false, user: null, amount: '', reason: '' })}
             >
               <div
+                className="vegas-modal-card relative overflow-hidden space-y-4"
                 style={{
                   width: '100%',
-                  maxWidth: '460px',
-                  backgroundColor: '#0E0A24',
-                  border: '1px solid rgba(0, 240, 255, 0.4)',
+                  maxWidth: '480px',
+                  backgroundColor: '#0C0A1E',
+                  border: '1px solid rgba(0, 240, 255, 0.35)',
                   borderRadius: '24px',
                   padding: '24px',
-                  boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 40px rgba(0, 240, 255, 0.2)',
+                  boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 35px rgba(0, 240, 255, 0.2)',
                   color: '#FFFFFF',
-                  fontFamily: 'Lexend, sans-serif',
                   boxSizing: 'border-box',
                 }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                  <div className="flex items-center gap-2">
-                    <DollarSign size={18} className="text-emerald-400" />
-                    <h3 className="text-base font-black text-white">Adjust Player SC Balance</h3>
+                <div className="absolute -top-16 -right-16 w-48 h-48 bg-[#00F0FF]/15 rounded-full blur-3xl pointer-events-none" />
+
+                <div className="flex items-center justify-between border-b border-cyan-500/20 pb-3.5 relative z-10">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center text-emerald-400 shrink-0"
+                      style={{
+                        background: 'rgba(16, 185, 129, 0.15)',
+                        border: '1.5px solid rgba(16, 185, 129, 0.4)',
+                        boxShadow: '0 0 15px rgba(16, 185, 129, 0.25)',
+                      }}
+                    >
+                      <DollarSign size={20} />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-black text-white m-0 tracking-wide">Adjust Player SC Balance</h3>
+                      <p className="text-xs text-[#9A91A8] m-0">Manual auditor credit / debit transaction</p>
+                    </div>
                   </div>
                   <button
+                    type="button"
                     onClick={() => setAdjustModal({ open: false, user: null, amount: '', reason: '' })}
-                    className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/10"
+                    className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white flex items-center justify-center transition border border-white/10 cursor-pointer"
                   >
-                    <X size={18} />
+                    <X size={16} />
                   </button>
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-[#070514] border border-white/10 flex items-center justify-between">
+                <div className="p-3.5 rounded-2xl bg-[#070514] border border-cyan-500/20 flex items-center justify-between relative z-10">
                   <div>
-                    <div className="text-[10px] uppercase font-black text-gray-400">Player</div>
-                    <div className="text-sm font-bold text-white">{adjustModal.user?.username}</div>
-                    <div className="text-[11px] text-gray-400 font-mono">{adjustModal.user?.email}</div>
+                    <div className="text-[10px] uppercase font-black text-[#9A91A8] tracking-wider">Target Player</div>
+                    <div className="text-sm font-bold text-white mt-0.5">{adjustModal.user?.username}</div>
+                    <div className="text-[11px] text-cyan-400/80 font-mono">{adjustModal.user?.email}</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-[10px] uppercase font-black text-gray-400">Current Balance</div>
-                    <div className="text-lg font-black text-emerald-400 font-mono">
+                    <div className="text-[10px] uppercase font-black text-[#9A91A8] tracking-wider">Current Balance</div>
+                    <div className="text-lg font-black text-emerald-400 font-mono mt-0.5">
                       ${Number(adjustModal.user?.balanceSC || 0).toFixed(2)} SC
                     </div>
                   </div>
                 </div>
 
                 {/* Quick Adjustment Presets */}
-                <div>
-                  <label className="text-[11px] font-bold text-gray-300 block mb-1.5 uppercase">
-                    Quick Amount Selection
+                <div className="relative z-10 space-y-1.5">
+                  <label className="text-[11px] font-bold text-gray-300 block uppercase tracking-wider">
+                    Quick Preset Selection
                   </label>
-                  <div className="grid grid-cols-4 gap-1.5 mb-2">
+                  <div className="grid grid-cols-4 gap-1.5">
                     {[10, 25, 50, 100].map(amt => (
                       <button
                         key={`add-${amt}`}
                         type="button"
                         onClick={() => setAdjustModal({ ...adjustModal, amount: String(amt) })}
-                        className="py-1.5 px-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 font-mono font-bold text-xs transition"
+                        className="py-1.5 px-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 font-mono font-bold text-xs transition cursor-pointer"
                       >
                         +${amt}
                       </button>
@@ -6396,7 +8491,7 @@ export default function AdminPortal({ initialTab }) {
                         key={`sub-${amt}`}
                         type="button"
                         onClick={() => setAdjustModal({ ...adjustModal, amount: `-${amt}` })}
-                        className="py-1.5 px-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 font-mono font-bold text-xs transition"
+                        className="py-1.5 px-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 font-mono font-bold text-xs transition cursor-pointer"
                       >
                         -${amt}
                       </button>
@@ -6428,10 +8523,10 @@ export default function AdminPortal({ initialTab }) {
                       alert(d.error);
                     }
                   }}
-                  className="space-y-3"
+                  className="space-y-3 relative z-10"
                 >
                   <div>
-                    <label className="text-[11px] font-bold text-gray-300 block mb-1 uppercase">
+                    <label className="text-[11px] font-bold text-gray-300 block mb-1 uppercase tracking-wider">
                       Custom Amount (+ to add, - to deduct) *
                     </label>
                     <input
@@ -6440,29 +8535,37 @@ export default function AdminPortal({ initialTab }) {
                       placeholder="e.g. 50.00 or -20.00"
                       value={adjustModal.amount}
                       onChange={(e) => setAdjustModal({ ...adjustModal, amount: e.target.value })}
-                      className="w-full bg-[#070514] border border-white/15 rounded-xl p-2.5 text-xs text-white font-mono outline-none focus:border-[#00F0FF] transition"
+                      className="w-full bg-[#070514] border border-cyan-500/25 rounded-xl px-3.5 py-2.5 text-xs text-white font-mono outline-none focus:border-[#00F0FF] transition"
                       required
                     />
                   </div>
                   <div>
-                    <label className="text-[11px] font-bold text-gray-300 block mb-1 uppercase">Audit Reason / Note</label>
+                    <label className="text-[11px] font-bold text-gray-300 block mb-1 uppercase tracking-wider">Audit Reason / Note</label>
                     <input
                       type="text"
                       placeholder="e.g. VIP Bonus allotment / Resolution"
                       value={adjustModal.reason}
                       onChange={(e) => setAdjustModal({ ...adjustModal, reason: e.target.value })}
-                      className="w-full bg-[#070514] border border-white/15 rounded-xl p-2.5 text-xs text-white outline-none focus:border-[#00F0FF] transition"
+                      className="w-full bg-[#070514] border border-cyan-500/25 rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-[#00F0FF] transition"
                     />
                   </div>
-                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/10">
+                  <div className="flex items-center justify-end gap-3 pt-3 border-t border-cyan-500/20">
                     <button
                       type="button"
                       onClick={() => setAdjustModal({ open: false, user: null, amount: '', reason: '' })}
-                      className="px-4 py-2 rounded-xl text-xs font-bold text-gray-400 hover:text-white transition"
+                      className="px-4 py-2.5 rounded-xl text-xs font-bold text-gray-400 hover:text-white transition cursor-pointer"
                     >
                       Cancel
                     </button>
-                    <button type="submit" className="btn-gold text-xs py-2 px-5 font-black uppercase tracking-wider shadow-lg">
+                    <button
+                      type="submit"
+                      style={{
+                        backgroundColor: '#00F0FF',
+                        color: '#070514',
+                        boxShadow: '0 0 20px rgba(0, 240, 255, 0.35)',
+                      }}
+                      className="text-xs py-2.5 px-6 font-black uppercase tracking-wider rounded-xl cursor-pointer transition hover:bg-[#38bdf8]"
+                    >
                       Confirm Balance Update
                     </button>
                   </div>
@@ -6478,40 +8581,66 @@ export default function AdminPortal({ initialTab }) {
                 position: 'fixed',
                 inset: 0,
                 zIndex: 99999,
-                backgroundColor: 'rgba(3, 2, 10, 0.92)',
+                backgroundColor: 'rgba(5, 3, 15, 0.92)',
                 backdropFilter: 'blur(16px)',
                 WebkitBackdropFilter: 'blur(16px)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 padding: '16px',
+                fontFamily: 'Lexend, -apple-system, sans-serif',
               }}
               onClick={() => setResetPassModal({ open: false, user: null, newPass: '' })}
             >
               <div
+                className="vegas-modal-card relative overflow-hidden space-y-4"
                 style={{
                   width: '100%',
                   maxWidth: '440px',
-                  backgroundColor: '#0E0A24',
-                  border: '1px solid rgba(168, 85, 247, 0.45)',
+                  backgroundColor: '#0C0A1E',
+                  border: '1px solid rgba(0, 240, 255, 0.35)',
                   borderRadius: '24px',
                   padding: '24px',
-                  boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 40px rgba(168, 85, 247, 0.2)',
+                  boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 35px rgba(0, 240, 255, 0.2)',
                   color: '#FFFFFF',
-                  fontFamily: 'Lexend, sans-serif',
                   boxSizing: 'border-box',
                 }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="flex items-center justify-between">
-                  <h3 className="text-base font-black text-white">Reset Player Password</h3>
-                  <button onClick={() => setResetPassModal({ open: false, user: null, newPass: '' })} className="text-gray-400 hover:text-white">
-                    <X size={18} />
+                <div className="absolute -top-16 -right-16 w-48 h-48 bg-[#00F0FF]/15 rounded-full blur-3xl pointer-events-none" />
+
+                <div className="flex items-center justify-between border-b border-cyan-500/20 pb-3.5 relative z-10">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center text-[#00F0FF] shrink-0"
+                      style={{
+                        background: 'rgba(0, 240, 255, 0.15)',
+                        border: '1.5px solid rgba(0, 240, 255, 0.4)',
+                        boxShadow: '0 0 15px rgba(0, 240, 255, 0.25)',
+                      }}
+                    >
+                      <Key size={18} />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-black text-white m-0 tracking-wide">Reset Player Password</h3>
+                      <p className="text-xs text-[#9A91A8] m-0">Set new encrypted credentials</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setResetPassModal({ open: false, user: null, newPass: '' })}
+                    className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white flex items-center justify-center transition border border-white/10 cursor-pointer"
+                  >
+                    <X size={16} />
                   </button>
                 </div>
-                <p className="text-xs text-gray-300">
-                  Target: <span className="text-white font-bold">{resetPassModal.user?.username}</span> ({resetPassModal.user?.email})
-                </p>
+
+                <div className="p-3.5 rounded-2xl bg-[#070514] border border-cyan-500/20 relative z-10">
+                  <span className="text-[10px] uppercase font-black text-[#9A91A8] tracking-wider block">Target Player</span>
+                  <div className="text-sm font-bold text-white mt-0.5">{resetPassModal.user?.username}</div>
+                  <div className="text-xs text-cyan-400/80 font-mono">{resetPassModal.user?.email}</div>
+                </div>
+
                 <form
                   onSubmit={async (e) => {
                     e.preventDefault();
@@ -6532,22 +8661,39 @@ export default function AdminPortal({ initialTab }) {
                       alert(d.error);
                     }
                   }}
-                  className="space-y-3"
+                  className="space-y-3 relative z-10"
                 >
                   <div>
-                    <label className="text-xs font-bold text-gray-300 block mb-1">New Secure Password</label>
+                    <label className="text-[11px] font-bold text-gray-300 block mb-1 uppercase tracking-wider">New Secure Password *</label>
                     <input
                       type="password"
                       placeholder="Minimum 6 characters"
                       value={resetPassModal.newPass}
                       onChange={(e) => setResetPassModal({ ...resetPassModal, newPass: e.target.value })}
-                      className="w-full bg-[#0E0816] border border-white/10 rounded-xl p-2.5 text-xs text-white outline-none"
+                      className="w-full bg-[#070514] border border-cyan-500/25 rounded-xl px-3.5 py-2.5 text-xs text-white outline-none focus:border-[#00F0FF] transition"
                       required
                     />
                   </div>
-                  <button type="submit" className="w-full btn-sovereign-teal text-xs py-2.5">
-                    <span>Save New Password</span>
-                  </button>
+                  <div className="flex items-center justify-end gap-3 pt-3 border-t border-cyan-500/20">
+                    <button
+                      type="button"
+                      onClick={() => setResetPassModal({ open: false, user: null, newPass: '' })}
+                      className="px-4 py-2.5 rounded-xl text-xs font-bold text-gray-400 hover:text-white transition cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      style={{
+                        backgroundColor: '#00F0FF',
+                        color: '#070514',
+                        boxShadow: '0 0 20px rgba(0, 240, 255, 0.35)',
+                      }}
+                      className="text-xs py-2.5 px-6 font-black uppercase tracking-wider rounded-xl cursor-pointer transition hover:bg-[#38bdf8]"
+                    >
+                      Save New Password
+                    </button>
+                  </div>
                 </form>
               </div>
             </div>
@@ -6575,8 +8721,8 @@ export default function AdminPortal({ initialTab }) {
                 style={{
                   width: '100%',
                   maxWidth: '560px',
-                  backgroundColor: '#0E0A24',
-                  border: '1px solid rgba(0, 240, 255, 0.45)',
+                  backgroundColor: '#0C0A1E',
+                  border: '1px solid rgba(0, 240, 255, 0.3)',
                   borderRadius: '24px',
                   padding: '24px',
                   boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 40px rgba(0, 240, 255, 0.2)',
@@ -6987,57 +9133,62 @@ export default function AdminPortal({ initialTab }) {
                 position: 'fixed',
                 inset: 0,
                 zIndex: 99999,
-                backgroundColor: 'rgba(3, 2, 10, 0.94)',
+                backgroundColor: 'rgba(5, 3, 15, 0.92)',
                 backdropFilter: 'blur(16px)',
                 WebkitBackdropFilter: 'blur(16px)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 padding: '16px',
+                fontFamily: 'Lexend, -apple-system, sans-serif',
               }}
               onClick={() => setPreviewQrModal(null)}
             >
               <div
+                className="vegas-modal-card relative overflow-hidden"
                 style={{
                   width: '100%',
-                  maxWidth: '400px',
-                  backgroundColor: '#0E0A24',
-                  border: '1px solid rgba(0, 240, 255, 0.45)',
+                  maxWidth: '420px',
+                  backgroundColor: '#0C0A1E',
+                  border: '1px solid rgba(0, 240, 255, 0.35)',
                   borderRadius: '24px',
                   padding: '24px',
-                  boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 40px rgba(0, 240, 255, 0.25)',
+                  boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 35px rgba(0, 240, 255, 0.2)',
                   textAlign: 'center',
                   color: '#FFFFFF',
-                  fontFamily: 'Lexend, sans-serif',
                   boxSizing: 'border-box',
                 }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', paddingBottom: '10px', marginBottom: '16px' }}>
-                  <h4 style={{ fontSize: '15px', fontWeight: 900, color: '#FFFFFF', margin: 0 }}>{previewQrModal.name} QR Code</h4>
+                <div className="absolute -top-16 -right-16 w-48 h-48 bg-[#00F0FF]/15 rounded-full blur-3xl pointer-events-none" />
+
+                <div className="flex items-center justify-between border-b border-cyan-500/20 pb-3 mb-4 relative z-10">
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className="w-9 h-9 rounded-xl flex items-center justify-center text-[#00F0FF]"
+                      style={{
+                        background: 'rgba(0, 240, 255, 0.15)',
+                        border: '1px solid rgba(0, 240, 255, 0.35)',
+                        boxShadow: '0 0 12px rgba(0, 240, 255, 0.2)',
+                      }}
+                    >
+                      <QrCode size={18} />
+                    </div>
+                    <h4 style={{ fontSize: '15px', fontWeight: 900, color: '#FFFFFF', margin: 0 }}>{previewQrModal.name} QR Code</h4>
+                  </div>
                   <button
+                    type="button"
                     onClick={() => setPreviewQrModal(null)}
-                    style={{
-                      background: 'rgba(255, 255, 255, 0.08)',
-                      border: 'none',
-                      borderRadius: '50%',
-                      width: '28px',
-                      height: '28px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#C8C1D4',
-                      cursor: 'pointer',
-                    }}
+                    className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white flex items-center justify-center transition border border-white/10 cursor-pointer"
                   >
                     <X size={16} />
                   </button>
                 </div>
-                <div style={{ padding: '12px', backgroundColor: '#FFFFFF', borderRadius: '16px', margin: '0 auto', width: 'max-content', boxShadow: '0 8px 30px rgba(0,0,0,0.6)' }}>
+                <div style={{ padding: '14px', backgroundColor: '#FFFFFF', borderRadius: '18px', margin: '0 auto', width: 'max-content', boxShadow: '0 10px 35px rgba(0,0,0,0.7)' }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={previewQrModal.qrCode} alt="Full QR Code" style={{ width: '220px', height: '220px', objectFit: 'contain', display: 'block' }} />
                 </div>
-                <p style={{ fontSize: '13px', fontFamily: 'monospace', color: '#00F0FF', fontWeight: 800, marginTop: '14px', wordBreak: 'break-all' }}>
+                <p style={{ fontSize: '13px', fontFamily: 'monospace', color: '#00F0FF', fontWeight: 800, marginTop: '16px', wordBreak: 'break-all' }}>
                   {previewQrModal.accountDetails || previewQrModal.cashtag}
                 </p>
               </div>
@@ -7051,27 +9202,29 @@ export default function AdminPortal({ initialTab }) {
                 position: 'fixed',
                 inset: 0,
                 zIndex: 99999,
-                backgroundColor: 'rgba(3, 2, 10, 0.94)',
+                backgroundColor: 'rgba(5, 3, 15, 0.94)',
                 backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 padding: '16px',
+                fontFamily: 'Lexend, -apple-system, sans-serif',
               }}
               onClick={() => setPreviewProofImage(null)}
             >
               <div
+                className="vegas-modal-card relative overflow-hidden"
                 style={{
                   width: '100%',
-                  maxWidth: '620px',
+                  maxWidth: '640px',
                   maxHeight: '92vh',
-                  backgroundColor: '#0E0A24',
-                  border: '1px solid rgba(0, 240, 255, 0.45)',
+                  backgroundColor: '#0C0A1E',
+                  border: '1px solid rgba(0, 240, 255, 0.35)',
                   borderRadius: '24px',
                   padding: '22px',
-                  boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 50px rgba(0, 240, 255, 0.25)',
+                  boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 40px rgba(0, 240, 255, 0.25)',
                   color: '#FFFFFF',
-                  fontFamily: 'Lexend, sans-serif',
                   boxSizing: 'border-box',
                   display: 'flex',
                   flexDirection: 'column',
@@ -7080,11 +9233,13 @@ export default function AdminPortal({ initialTab }) {
                 }}
                 onClick={(e) => e.stopPropagation()}
               >
+                <div className="absolute -top-16 -right-16 w-48 h-48 bg-[#00F0FF]/15 rounded-full blur-3xl pointer-events-none" />
+
                 {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', paddingBottom: '12px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '10px', backgroundColor: 'rgba(0, 240, 255, 0.15)', border: '1px solid rgba(0, 240, 255, 0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#00F0FF' }}>
-                      <ImageIcon size={16} />
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(0, 240, 255, 0.2)', paddingBottom: '12px', position: 'relative', zIndex: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '12px', backgroundColor: 'rgba(0, 240, 255, 0.15)', border: '1.5px solid rgba(0, 240, 255, 0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#00F0FF', boxShadow: '0 0 12px rgba(0, 240, 255, 0.25)' }}>
+                      <ImageIcon size={18} />
                     </div>
                     <div>
                       <h4 style={{ fontSize: '15px', fontWeight: 900, color: '#FFFFFF', margin: 0 }}>
@@ -7102,38 +9257,28 @@ export default function AdminPortal({ initialTab }) {
                         href={previewProofImage.image}
                         download={`proof_${previewProofImage.user || 'tx'}_${Date.now()}.png`}
                         style={{
-                          padding: '6px 12px',
-                          borderRadius: '10px',
-                          backgroundColor: 'rgba(0, 240, 255, 0.15)',
-                          color: '#00F0FF',
-                          border: '1px solid rgba(0, 240, 255, 0.35)',
+                          padding: '7px 14px',
+                          borderRadius: '12px',
+                          backgroundColor: '#00F0FF',
+                          color: '#070514',
+                          boxShadow: '0 0 15px rgba(0, 240, 255, 0.35)',
                           fontSize: '11px',
-                          fontWeight: 800,
+                          fontWeight: 900,
+                          textTransform: 'uppercase',
                           textDecoration: 'none',
                           display: 'flex',
                           alignItems: 'center',
                           gap: '5px',
                         }}
                       >
-                        <Download size={13} />
+                        <Download size={13} className="stroke-[2.5]" />
                         <span>Download</span>
                       </a>
                     )}
                     <button
                       type="button"
                       onClick={() => setPreviewProofImage(null)}
-                      style={{
-                        background: 'rgba(255, 255, 255, 0.08)',
-                        border: 'none',
-                        borderRadius: '50%',
-                        width: '32px',
-                        height: '32px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: '#C8C1D4',
-                        cursor: 'pointer',
-                      }}
+                      className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white flex items-center justify-center transition border border-white/10 cursor-pointer"
                     >
                       <X size={16} />
                     </button>
@@ -7144,14 +9289,16 @@ export default function AdminPortal({ initialTab }) {
                 <div
                   style={{
                     backgroundColor: '#070514',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    borderRadius: '16px',
-                    padding: '12px',
+                    border: '1px solid rgba(0, 240, 255, 0.25)',
+                    borderRadius: '18px',
+                    padding: '14px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     maxHeight: '58vh',
                     overflow: 'auto',
+                    position: 'relative',
+                    zIndex: 10,
                   }}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -7206,27 +9353,29 @@ export default function AdminPortal({ initialTab }) {
                 position: 'fixed',
                 inset: 0,
                 zIndex: 99998,
-                backgroundColor: 'rgba(3, 2, 10, 0.92)',
+                backgroundColor: 'rgba(5, 3, 15, 0.92)',
                 backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 padding: '16px',
+                fontFamily: 'Lexend, -apple-system, sans-serif',
               }}
               onClick={() => setSelectedTxDetail(null)}
             >
               <div
+                className="vegas-modal-card relative overflow-hidden"
                 style={{
                   width: '100%',
                   maxWidth: '560px',
                   maxHeight: '92vh',
-                  backgroundColor: '#0E0A24',
-                  border: '1px solid rgba(0, 240, 255, 0.45)',
+                  backgroundColor: '#0C0A1E',
+                  border: '1px solid rgba(0, 240, 255, 0.35)',
                   borderRadius: '24px',
                   padding: '24px',
-                  boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 50px rgba(0, 240, 255, 0.25)',
+                  boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 40px rgba(0, 240, 255, 0.25)',
                   color: '#FFFFFF',
-                  fontFamily: 'Lexend, -apple-system, sans-serif',
                   boxSizing: 'border-box',
                   display: 'flex',
                   flexDirection: 'column',
@@ -7235,14 +9384,16 @@ export default function AdminPortal({ initialTab }) {
                 }}
                 onClick={(e) => e.stopPropagation()}
               >
+                <div className="absolute -top-16 -right-16 w-48 h-48 bg-[#00F0FF]/15 rounded-full blur-3xl pointer-events-none" />
+
                 {/* Header */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', paddingBottom: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(0, 240, 255, 0.2)', paddingBottom: '14px', position: 'relative', zIndex: 10 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '38px', height: '38px', borderRadius: '12px', backgroundColor: 'rgba(0, 240, 255, 0.15)', border: '1px solid rgba(0, 240, 255, 0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#00F0FF' }}>
-                      <FileSpreadsheet size={18} />
+                    <div style={{ width: '40px', height: '40px', borderRadius: '12px', backgroundColor: 'rgba(0, 240, 255, 0.15)', border: '1.5px solid rgba(0, 240, 255, 0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#00F0FF', boxShadow: '0 0 15px rgba(0, 240, 255, 0.25)' }}>
+                      <FileSpreadsheet size={20} />
                     </div>
                     <div>
-                      <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#FFFFFF', margin: 0 }}>
+                      <h3 style={{ fontSize: '16px', fontWeight: 900, color: '#FFFFFF', margin: 0, letterSpacing: '-0.01em' }}>
                         Transaction Receipt Details
                       </h3>
                       <span style={{ fontSize: '11px', color: '#9A91A8', fontFamily: 'monospace' }}>
@@ -7254,18 +9405,7 @@ export default function AdminPortal({ initialTab }) {
                   <button
                     type="button"
                     onClick={() => setSelectedTxDetail(null)}
-                    style={{
-                      background: 'rgba(255, 255, 255, 0.08)',
-                      border: 'none',
-                      borderRadius: '50%',
-                      width: '32px',
-                      height: '32px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#C8C1D4',
-                      cursor: 'pointer',
-                    }}
+                    className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white flex items-center justify-center transition border border-white/10 cursor-pointer"
                   >
                     <X size={16} />
                   </button>
@@ -7290,7 +9430,7 @@ export default function AdminPortal({ initialTab }) {
                   const isRejected = rawStatus.includes('reject');
 
                   return (
-                    <div style={{ backgroundColor: '#070514', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '18px', padding: '16px', textAlign: 'center' }}>
+                    <div style={{ backgroundColor: '#070514', border: '1px solid rgba(0, 240, 255, 0.25)', borderRadius: '18px', padding: '16px', textAlign: 'center', position: 'relative', zIndex: 10 }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
                         <span style={{
                           fontSize: '11px',
@@ -7331,9 +9471,9 @@ export default function AdminPortal({ initialTab }) {
                 })()}
 
                 {/* Player Info Box */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'rgba(255, 255, 255, 0.03)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '16px', padding: '12px 16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#070514', border: '1px solid rgba(0, 240, 255, 0.2)', borderRadius: '16px', padding: '12px 16px', position: 'relative', zIndex: 10 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: 'rgba(0, 240, 255, 0.15)', border: '1px solid rgba(0, 240, 255, 0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#00F0FF', fontWeight: 900 }}>
+                    <div style={{ width: '38px', height: '38px', borderRadius: '12px', backgroundColor: 'rgba(0, 240, 255, 0.15)', border: '1px solid rgba(0, 240, 255, 0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#00F0FF', fontWeight: 900 }}>
                       {selectedTxDetail.username?.substring(0, 2).toUpperCase() || 'P'}
                     </div>
                     <div>
@@ -7354,7 +9494,7 @@ export default function AdminPortal({ initialTab }) {
                         setSelectedTxDetail(null);
                       }}
                       style={{
-                        padding: '6px 14px',
+                        padding: '7px 14px',
                         borderRadius: '10px',
                         backgroundColor: 'rgba(0, 240, 255, 0.15)',
                         color: '#00F0FF',
@@ -7374,32 +9514,50 @@ export default function AdminPortal({ initialTab }) {
                 </div>
 
                 {/* Metadata Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', fontSize: '12px' }}>
-                  <div style={{ backgroundColor: '#070514', padding: '10px 14px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', fontSize: '12px', position: 'relative', zIndex: 10 }}>
+                  <div style={{ backgroundColor: '#070514', padding: '10px 14px', borderRadius: '12px', border: '1px solid rgba(0, 240, 255, 0.18)' }}>
                     <span style={{ fontSize: '10px', color: '#9A91A8', textTransform: 'uppercase', display: 'block', fontWeight: 800 }}>Payment Method</span>
                     <strong style={{ color: '#FFFFFF' }}>{selectedTxDetail.methodName || 'Direct Cashier'}</strong>
                   </div>
-                  <div style={{ backgroundColor: '#070514', padding: '10px 14px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
+                  <div style={{ backgroundColor: '#070514', padding: '10px 14px', borderRadius: '12px', border: '1px solid rgba(0, 240, 255, 0.18)' }}>
                     <span style={{ fontSize: '10px', color: '#9A91A8', textTransform: 'uppercase', display: 'block', fontWeight: 800 }}>Date &amp; Time</span>
                     <strong style={{ color: '#FFFFFF' }}>{selectedTxDetail.createdAt ? new Date(selectedTxDetail.createdAt).toLocaleString() : 'Recent'}</strong>
                   </div>
-                  <div style={{ backgroundColor: '#070514', padding: '10px 14px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
+                  <div style={{ backgroundColor: '#070514', padding: '10px 14px', borderRadius: '12px', border: '1px solid rgba(0, 240, 255, 0.18)' }}>
                     <span style={{ fontSize: '10px', color: '#9A91A8', textTransform: 'uppercase', display: 'block', fontWeight: 800 }}>Balance Before</span>
                     <strong style={{ color: '#C8C1D4', fontFamily: 'monospace' }}>
                       {selectedTxDetail.balanceBefore !== null && selectedTxDetail.balanceBefore !== undefined ? `$${Number(selectedTxDetail.balanceBefore).toFixed(2)} SC` : '—'}
                     </strong>
                   </div>
-                  <div style={{ backgroundColor: '#070514', padding: '10px 14px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
+                  <div style={{ backgroundColor: '#070514', padding: '10px 14px', borderRadius: '12px', border: '1px solid rgba(0, 240, 255, 0.18)' }}>
                     <span style={{ fontSize: '10px', color: '#9A91A8', textTransform: 'uppercase', display: 'block', fontWeight: 800 }}>Balance After</span>
                     <strong style={{ color: '#00F0FF', fontFamily: 'monospace' }}>
                       {selectedTxDetail.balanceAfter !== null && selectedTxDetail.balanceAfter !== undefined ? `$${Number(selectedTxDetail.balanceAfter).toFixed(2)} SC` : '—'}
                     </strong>
                   </div>
-                  <div style={{ backgroundColor: '#070514', padding: '10px 14px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.06)', gridColumn: 'span 2' }}>
+                  {(selectedTxDetail.bonusName || selectedTxDetail.bonusSC || selectedTxDetail.bonusPercent) && (
+                    <div style={{ backgroundColor: 'rgba(245, 158, 11, 0.08)', padding: '10px 14px', borderRadius: '12px', border: '1px solid rgba(245, 158, 11, 0.3)', gridColumn: 'span 2', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div>
+                        <span style={{ fontSize: '10px', color: '#FBBF24', textTransform: 'uppercase', display: 'block', fontWeight: 800 }}>Bonus Claimed</span>
+                        <strong style={{ color: '#FDE68A', fontSize: '13px' }}>
+                          {selectedTxDetail.bonusName || (selectedTxDetail.bonusType === 'method' ? `${selectedTxDetail.methodName} Bonus` : 'Promotional Bonus')}
+                        </strong>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 900, color: '#34D399', fontFamily: 'monospace', display: 'block' }}>
+                          +{selectedTxDetail.bonusPercent}% ({Number(selectedTxDetail.bonusSC || 0).toFixed(2)} SC)
+                        </span>
+                        {selectedTxDetail.totalSC && (
+                          <span style={{ fontSize: '10px', color: '#94A3B8' }}>Total: ${Number(selectedTxDetail.totalSC).toFixed(2)} SC</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  <div style={{ backgroundColor: '#070514', padding: '10px 14px', borderRadius: '12px', border: '1px solid rgba(0, 240, 255, 0.18)', gridColumn: 'span 2' }}>
                     <span style={{ fontSize: '10px', color: '#9A91A8', textTransform: 'uppercase', display: 'block', fontWeight: 800 }}>Auditor / Staff</span>
                     <strong style={{ color: '#FFFFFF' }}>{selectedTxDetail.performedBy || 'System Process'}</strong>
                   </div>
-                  <div style={{ backgroundColor: '#070514', padding: '10px 14px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.06)', gridColumn: 'span 2' }}>
+                  <div style={{ backgroundColor: '#070514', padding: '10px 14px', borderRadius: '12px', border: '1px solid rgba(0, 240, 255, 0.18)', gridColumn: 'span 2' }}>
                     <span style={{ fontSize: '10px', color: '#9A91A8', textTransform: 'uppercase', display: 'block', fontWeight: 800 }}>Notes &amp; Reference</span>
                     <strong style={{ color: '#C8C1D4', wordBreak: 'break-all' }}>{selectedTxDetail.notes || 'No extra notes recorded'}</strong>
                   </div>
@@ -7407,7 +9565,7 @@ export default function AdminPortal({ initialTab }) {
 
                 {/* Screenshot Proof Attached Section */}
                 {selectedTxDetail.proofImage && (
-                  <div style={{ backgroundColor: '#070514', border: '1px solid rgba(0, 240, 255, 0.3)', borderRadius: '16px', padding: '14px', textAlign: 'center' }}>
+                  <div style={{ backgroundColor: '#070514', border: '1px solid rgba(0, 240, 255, 0.25)', borderRadius: '16px', padding: '14px', textAlign: 'center', position: 'relative', zIndex: 10 }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
                       <span style={{ fontSize: '11px', fontWeight: 900, color: '#00F0FF', textTransform: 'uppercase' }}>
                         Attached Payment Slip / Proof
@@ -7440,7 +9598,7 @@ export default function AdminPortal({ initialTab }) {
                         notes: selectedTxDetail.notes,
                         status: selectedTxDetail.status,
                       })}
-                      style={{ cursor: 'pointer', borderRadius: '12px', overflow: 'hidden', maxHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0E0A24' }}
+                      style={{ cursor: 'pointer', borderRadius: '12px', overflow: 'hidden', maxHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0C0A1E', border: '1px solid rgba(0, 240, 255, 0.2)' }}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
@@ -7456,22 +9614,25 @@ export default function AdminPortal({ initialTab }) {
                 )}
 
                 {/* Footer Close Button */}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '8px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '10px', borderTop: '1px solid rgba(0, 240, 255, 0.2)', position: 'relative', zIndex: 10 }}>
                   <button
                     type="button"
                     onClick={() => setSelectedTxDetail(null)}
                     style={{
                       padding: '10px 24px',
                       borderRadius: '12px',
-                      backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                      color: '#FFFFFF',
-                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      backgroundColor: '#00F0FF',
+                      color: '#070514',
+                      border: 'none',
                       fontSize: '12px',
-                      fontWeight: 800,
+                      fontWeight: 900,
+                      textTransform: 'uppercase',
                       cursor: 'pointer',
+                      boxShadow: '0 0 20px rgba(0, 240, 255, 0.35)',
                     }}
+                    className="hover:bg-[#38bdf8] transition"
                   >
-                    Close
+                    Close Receipt
                   </button>
                 </div>
               </div>

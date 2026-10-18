@@ -104,7 +104,7 @@ export async function PUT(req) {
       return NextResponse.json({ success: false, error: 'Unauthorized. Super Admin only.' }, { status: 403 });
     }
 
-    const { staffId, isBanned, role, newPassword } = await req.json();
+    const { staffId, isBanned, role, newPassword, username, email } = await req.json();
 
     if (!staffId) {
       return NextResponse.json({ success: false, error: 'Staff ID is required.' }, { status: 400 });
@@ -116,13 +116,54 @@ export async function PUT(req) {
     const updateFields = {};
     if (isBanned !== undefined) updateFields.isBanned = Boolean(isBanned);
     if (role !== undefined) updateFields.role = role;
-    if (newPassword) {
+    if (username) updateFields.username = username.trim().toLowerCase();
+    if (email) updateFields.email = email.trim().toLowerCase();
+    if (newPassword && newPassword.trim().length > 0) {
       updateFields.passwordHash = await bcrypt.hash(newPassword, 10);
     }
 
     await usersCol.updateOne({ _id: new ObjectId(staffId) }, { $set: updateFields });
 
-    return NextResponse.json({ success: true, message: 'Staff profile updated.' });
+    return NextResponse.json({ success: true, message: 'Staff profile updated successfully.' });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
+
+// DELETE: Delete staff member
+export async function DELETE(req) {
+  try {
+    const session = await getSessionUser();
+    if (!session || session.role !== ROLES.SUPER_ADMIN) {
+      return NextResponse.json({ success: false, error: 'Unauthorized. Super Admin only.' }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const staffId = searchParams.get('id');
+
+    if (!staffId) {
+      return NextResponse.json({ success: false, error: 'Staff ID is required.' }, { status: 400 });
+    }
+
+    if (session.id === staffId || session.userId === staffId) {
+      return NextResponse.json({ success: false, error: 'Cannot delete your own super admin account.' }, { status: 400 });
+    }
+
+    const db = await getDb();
+    const usersCol = db.collection('users');
+
+    const targetUser = await usersCol.findOne({ _id: new ObjectId(staffId) });
+    if (!targetUser) {
+      return NextResponse.json({ success: false, error: 'Staff member not found.' }, { status: 404 });
+    }
+
+    if (targetUser.username === session.username) {
+      return NextResponse.json({ success: false, error: 'Cannot delete currently logged-in admin.' }, { status: 400 });
+    }
+
+    await usersCol.deleteOne({ _id: new ObjectId(staffId) });
+
+    return NextResponse.json({ success: true, message: `Staff member ${targetUser.username} removed permanently.` });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }

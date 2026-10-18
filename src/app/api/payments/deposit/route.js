@@ -57,6 +57,8 @@ export async function GET(req) {
           hasProofImage: !!single.proofImage,
           txHash: single.txHash || '',
           bonusType,
+          bonusName: single.bonusName || null,
+          bonusChoice: single.bonusChoice || null,
           bonusPercent,
           bonusSC,
           totalSC,
@@ -113,6 +115,8 @@ export async function GET(req) {
           hasProofImage: !!d.proofImage,
           txHash: d.txHash || '',
           bonusType,
+          bonusName: d.bonusName || null,
+          bonusChoice: d.bonusChoice || null,
           bonusPercent,
           bonusSC,
           totalSC,
@@ -138,6 +142,7 @@ export async function POST(req) {
       return NextResponse.json({ success: false, error: 'Unauthorized. Please login.' }, { status: 401 });
     }
 
+    const body = await req.json();
     const {
       amount,
       methodId,
@@ -148,7 +153,13 @@ export async function POST(req) {
       senderTagEmail,
       proofImage,
       txHash,
-    } = await req.json();
+      bonusChoice,
+      bonusType: reqBonusType,
+      bonusName: reqBonusName,
+      bonusPercent: reqBonusPercent,
+      bonusSC: reqBonusSC,
+      totalSC: reqTotalSC,
+    } = body;
 
     const depositAmount = Number(amount);
     if (!depositAmount || depositAmount < 5) {
@@ -183,18 +194,48 @@ export async function POST(req) {
       settingsCol.findOne({ key: 'general' }),
     ]);
 
-    // Check whether player is claiming Welcome Bonus or Regular Bonus
+    // Check whether player has claimed Welcome Bonus
     const hasClaimedWelcome = Boolean(user?.welcomeBonusClaimed || (user?.totalDeposited && user.totalDeposited > 0));
-    const bonusType = hasClaimedWelcome ? 'regular' : 'welcome';
-    const bonusPercent = hasClaimedWelcome
-      ? Number(settings?.regularBonusPercent ?? 50)
-      : Number(settings?.welcomeBonusPercent ?? 300);
-    const bonusMax = hasClaimedWelcome
-      ? Number(settings?.regularBonusMax ?? 2500)
-      : Number(settings?.welcomeBonusMax ?? 7500);
+    
+    let finalBonusType = 'regular';
+    let finalBonusName = 'Regular Reload Bonus';
+    let finalBonusPercent = 50;
+    let finalBonusSC = 0;
+    let finalTotalSC = depositAmount;
+    let finalBonusChoice = bonusChoice || 'platform';
 
-    const bonusSC = Number(Math.min((depositAmount * bonusPercent) / 100, bonusMax).toFixed(2));
-    const totalSC = Number((depositAmount + bonusSC).toFixed(2));
+    if (bonusChoice === 'method' || reqBonusType === 'method') {
+      finalBonusChoice = 'method';
+      finalBonusType = 'method';
+      finalBonusPercent = reqBonusPercent !== undefined ? Number(reqBonusPercent) : 35;
+      finalBonusName = reqBonusName || `${methodName} Special Bonus (${finalBonusPercent}%)`;
+      finalBonusSC = reqBonusSC !== undefined 
+        ? Number(Number(reqBonusSC).toFixed(2)) 
+        : Number(((depositAmount * finalBonusPercent) / 100).toFixed(2));
+      finalTotalSC = reqTotalSC !== undefined 
+        ? Number(Number(reqTotalSC).toFixed(2)) 
+        : Number((depositAmount + finalBonusSC).toFixed(2));
+    } else {
+      finalBonusChoice = 'platform';
+      finalBonusType = hasClaimedWelcome ? 'regular' : 'welcome';
+      const defaultPlatformPercent = hasClaimedWelcome
+        ? Number(settings?.regularBonusPercent ?? 50)
+        : Number(settings?.welcomeBonusPercent ?? 300);
+      finalBonusPercent = reqBonusPercent !== undefined ? Number(reqBonusPercent) : defaultPlatformPercent;
+      
+      const bonusMax = hasClaimedWelcome
+        ? Number(settings?.regularBonusMax ?? 2500)
+        : Number(settings?.welcomeBonusMax ?? 7500);
+
+      finalBonusName = reqBonusName || (hasClaimedWelcome ? `Regular Reload Bonus (${finalBonusPercent}%)` : `Welcome Match Bonus (${finalBonusPercent}%)`);
+      finalBonusSC = reqBonusSC !== undefined 
+        ? Number(Number(reqBonusSC).toFixed(2)) 
+        : Number(Math.min((depositAmount * finalBonusPercent) / 100, bonusMax).toFixed(2));
+      finalTotalSC = reqTotalSC !== undefined 
+        ? Number(Number(reqTotalSC).toFixed(2)) 
+        : Number((depositAmount + finalBonusSC).toFixed(2));
+    }
+
     const totalGC = depositAmount * 10000;
 
     const newDeposit = {
@@ -209,10 +250,12 @@ export async function POST(req) {
       senderTagEmail: cleanTagEmail,
       proofImage: proofImage || null,
       txHash: txHash || '',
-      bonusType,
-      bonusPercent,
-      bonusSC,
-      totalSC,
+      bonusChoice: finalBonusChoice,
+      bonusType: finalBonusType,
+      bonusName: finalBonusName,
+      bonusPercent: finalBonusPercent,
+      bonusSC: finalBonusSC,
+      totalSC: finalTotalSC,
       totalGC,
       status: 'pending',
       processedBy: null,
@@ -226,9 +269,10 @@ export async function POST(req) {
       success: true,
       depositId: res.insertedId.toString(),
       calculatedCoins: {
-        totalSC,
-        bonusSC,
-        bonusType,
+        totalSC: finalTotalSC,
+        bonusSC: finalBonusSC,
+        bonusType: finalBonusType,
+        bonusName: finalBonusName,
         totalGC,
       },
       message: 'Deposit submitted successfully! Our financial desk is verifying your transaction.',
@@ -333,32 +377,117 @@ export async function PUT(req) {
         createdAt: new Date(),
       });
 
-      // 4. Check Affiliate Commission (50% commission if first deposit!)
-      if (user.referredBy && (!user.totalDeposited || user.totalDeposited === 0)) {
-        const referrer = await usersCol.findOne({ username: user.referredBy });
-        if (referrer) {
-          const commissionSC = Number((deposit.amount * 0.50).toFixed(2)); // 50% referral bonus based on cash amount
-          await usersCol.updateOne(
-            { _id: referrer._id },
-            {
-              $inc: {
-                affiliateCommissionsUnpaid: commissionSC,
-                affiliateCommissionsEarned: commissionSC,
-              },
-            }
-          );
-          await ledgerCol.insertOne({
-            userId: referrer._id.toString(),
-            username: referrer.username,
-            type: 'referral_bonus',
-            currency: 'SC',
-            amount: commissionSC,
-            balanceBefore: referrer.balanceSC || 0,
-            balanceAfter: (referrer.balanceSC || 0) + commissionSC,
-            performedBy: 'system',
-            notes: `50% referral commission from player ${user.username}'s first deposit ($${deposit.amount})`,
-            createdAt: new Date(),
+      // 4. Check Affiliate / Referral Bonus Commission (Credited on first deposit!)
+      if (user.referredBy && (!user.totalDeposited || user.totalDeposited === 0) && !deposit.referralCommissionProcessed) {
+        try {
+          // Fetch dynamic referral bonus percentage from system settings
+          const sysSettingsDoc = await db.collection('system_settings').findOne({ key: 'general' });
+          const referralBonusPercent = sysSettingsDoc?.referralBonusPercent !== undefined
+            ? Number(sysSettingsDoc.referralBonusPercent)
+            : 50;
+
+          const refQuery = user.referredBy.toString().trim();
+          const referrer = await usersCol.findOne({
+            $or: [
+              { username: { $regex: `^${refQuery}$`, $options: 'i' } },
+              { referralCode: { $regex: `^${refQuery}$`, $options: 'i' } },
+            ],
           });
+
+          if (referrer && referralBonusPercent > 0) {
+            const depositAmount = Number(deposit.amount) || 0;
+            const commissionSC = Number(((depositAmount * referralBonusPercent) / 100).toFixed(2));
+
+            if (commissionSC > 0) {
+              const oldReferrerSC = Number(referrer.balanceSC || 0);
+              const newReferrerSC = Number((oldReferrerSC + commissionSC).toFixed(2));
+
+              // 1. Immediately credit referrer's wallet balanceSC & track earned commission
+              await usersCol.updateOne(
+                { _id: referrer._id },
+                {
+                  $inc: {
+                    balanceSC: commissionSC,
+                    affiliateCommissionsEarned: commissionSC,
+                  },
+                }
+              );
+
+              // 2. Mark this deposit to prevent any duplicate commission execution
+              await depositsCol.updateOne(
+                { _id: deposit._id },
+                {
+                  $set: {
+                    referralCommissionProcessed: true,
+                    referralCommissionAmount: commissionSC,
+                    referralPercent: referralBonusPercent,
+                    referredTo: referrer.username,
+                  },
+                }
+              );
+
+              // 3. Insert immutable ledger transaction for referrer
+              await ledgerCol.insertOne({
+                userId: referrer._id.toString(),
+                username: referrer.username,
+                type: 'referral_bonus',
+                currency: 'SC',
+                amount: commissionSC,
+                balanceBefore: oldReferrerSC,
+                balanceAfter: newReferrerSC,
+                performedBy: session.username,
+                staffRole: session.role,
+                referenceId: depositId,
+                notes: `🎁 Referral bonus: ${referralBonusPercent}% commission on friend @${user.username}'s first deposit of $${depositAmount} (+$${commissionSC.toFixed(2)} SC credited directly to wallet)`,
+                createdAt: new Date(),
+              });
+
+              // 4. Send In-App Notification to Referrer
+              const notifsCol = db.collection('notifications');
+              await notifsCol.insertOne({
+                userId: referrer._id.toString(),
+                target: 'user',
+                title: '🎁 Referral Bonus Received!',
+                message: `Awesome! Your referred friend @${user.username} made their first deposit of $${depositAmount}. You received a ${referralBonusPercent}% referral bonus of +$${commissionSC.toFixed(2)} SC added directly to your wallet!`,
+                type: 'referral_bonus',
+                url: '/wallet',
+                channel: 'in_app',
+                sentBy: 'System',
+                createdAt: new Date(),
+              });
+
+              // 5. Send Email Alert to Referrer
+              if (referrer.email) {
+                sendEmail({
+                  to: referrer.email,
+                  subject: `🎁 +$${commissionSC.toFixed(2)} SC Referral Bonus Credited! (Friend First Deposit)`,
+                  html: `
+                    <div style="background-color: #070514; color: #FFFFFF; padding: 40px 24px; font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 540px; margin: auto; border-radius: 16px; border: 1px solid rgba(0, 240, 255, 0.35); text-align: center;">
+                      <h1 style="color: #00F0FF; margin: 0; font-size: 24px; font-weight: 900; letter-spacing: 1px;">VEGAS ONE</h1>
+                      <p style="color: #10B981; font-size: 13px; margin: 6px 0 20px 0; text-transform: uppercase; letter-spacing: 2px; font-weight: 800;">Referral Commission Credited</p>
+                      <div style="background: #0E0A24; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 22px; text-align: left; margin: 20px 0;">
+                        <p style="font-size: 16px; color: #FFFFFF; font-weight: bold; margin-bottom: 8px;">Hi ${referrer.username},</p>
+                        <p style="font-size: 14px; color: #CBD5E1; line-height: 1.6; margin: 0;">
+                          Great news! Your friend <strong>@${user.username}</strong> just completed their first verified deposit of <strong>$${depositAmount}</strong>!
+                        </p>
+                        <div style="margin: 20px 0; padding: 16px; background: rgba(16, 185, 129, 0.1); border-radius: 10px; border: 1px dashed #10B981; text-align: center;">
+                          <span style="font-size: 12px; color: #94A3B8; text-transform: uppercase; letter-spacing: 1px; display: block;">Added to Your Wallet Balance</span>
+                          <span style="font-size: 28px; font-weight: 900; color: #10B981;">+$${commissionSC.toFixed(2)} SC</span>
+                          <span style="font-size: 12px; color: #6EE7B7; display: block; margin-top: 4px;">(${referralBonusPercent}% Referral Reward)</span>
+                        </div>
+                        <p style="font-size: 12px; color: #94A3B8; margin: 0; text-align: center;">New Wallet Balance: <strong>$${newReferrerSC.toFixed(2)} SC</strong></p>
+                      </div>
+                      <a href="https://vegasone.games/wallet" style="display: inline-block; background: linear-gradient(135deg, #00F0FF 0%, #10B981 100%); color: #070514; font-weight: 900; padding: 12px 28px; border-radius: 9999px; text-decoration: none; font-size: 14px; letter-spacing: 0.5px;">
+                        GO TO YOUR WALLET
+                      </a>
+                    </div>
+                  `,
+                }).catch(() => {});
+              }
+            }
+          }
+        } catch (refErr) {
+          console.error('Referral bonus processing note:', refErr.message);
         }
       }
 

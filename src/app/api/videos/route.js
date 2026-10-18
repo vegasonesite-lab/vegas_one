@@ -98,10 +98,26 @@ export async function POST(req) {
     if (contentType.includes('multipart/form-data')) {
       const formData = await req.formData();
       const file = formData.get('file');
+      const posterFile = formData.get('posterFile');
       title = (formData.get('title') || '').toString().trim();
       badge = (formData.get('badge') || 'BIG WIN').toString().trim();
       posterUrl = (formData.get('posterUrl') || '').toString().trim();
       const directUrl = (formData.get('videoUrl') || '').toString().trim();
+
+      // Handle thumbnail image file upload
+      if (posterFile && typeof posterFile === 'object' && posterFile.name) {
+        const thumbDir = path.join(process.cwd(), 'public', 'uploads', 'thumbnails');
+        await fs.promises.mkdir(thumbDir, { recursive: true });
+
+        const ext = path.extname(posterFile.name) || '.webp';
+        const sanitizedBase = path.basename(posterFile.name, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
+        const filename = `thumb_${Date.now()}_${sanitizedBase}${ext}`;
+        const filePath = path.join(thumbDir, filename);
+
+        const bytes = await posterFile.arrayBuffer();
+        await fs.promises.writeFile(filePath, Buffer.from(bytes));
+        posterUrl = `/uploads/thumbnails/${filename}`;
+      }
 
       if (file && typeof file === 'object' && file.name) {
         const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'videos');

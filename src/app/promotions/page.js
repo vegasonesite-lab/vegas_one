@@ -11,17 +11,23 @@ import {
   Sparkles,
   ExternalLink,
   Flame,
-  CheckCircle2
+  CheckCircle2,
+  Info,
+  RefreshCw
 } from 'lucide-react';
 import VegasNavbar from '@/components/player/VegasNavbar';
 import VegasFooter from '@/components/player/VegasFooter';
 import MobileBottomNav from '@/components/player/MobileBottomNav';
 import LiveChatWidget from '@/components/LiveChatWidget';
 import AuthModal from '@/components/AuthModal';
+import PromoModal from '@/components/PromoModal';
 
 export default function PromotionsPage() {
   const [authModal, setAuthModal] = useState({ open: false, tab: 'login' });
   const [timeLeft, setTimeLeft] = useState({ hours: 5, minutes: 42, seconds: 18 });
+  const [promotions, setPromotions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedPromo, setSelectedPromo] = useState(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -33,6 +39,18 @@ export default function PromotionsPage() {
       });
     }, 1000);
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/promos')
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.promotions)) {
+          setPromotions(data.promotions.filter(p => p.isActive !== false));
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
   const format2 = (n) => String(n).padStart(2, '0');
@@ -265,65 +283,160 @@ export default function PromotionsPage() {
 
           {/* Active Promotions Grid */}
           <div style={{ marginBottom: '24px' }}>
-            <h2 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '24px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 16px 0' }}>
-              Active Vault Promotions &amp; Broadcasts
-            </h2>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
-              {/* Promo 1: Welcome Pack */}
-              <div style={{ backgroundColor: '#0E0A24', border: '1px solid rgba(0, 240, 255, 0.3)', borderRadius: '20px', padding: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#00F0FF', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px' }}>
-                  <Gift size={15} />
-                  <span>NEW SIGNUP PRIVILEGE</span>
-                </div>
-                <h3 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '18px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 8px 0' }}>
-                  $3.00 Instant Freeplay Bonus
-                </h3>
-                <p style={{ fontSize: '13px', color: '#B3A9C0', lineHeight: 1.5, margin: '0 0 16px 0' }}>
-                  Create your free account today and claim 3 Freeplay Sweeps Coins with zero deposit required.
-                </p>
-                <Link href="/register" className="btn-sovereign-coral" style={{ textDecoration: 'none', fontSize: '11px', padding: '10px 20px' }}>
-                  CLAIM NOW
-                </Link>
-              </div>
-
-              {/* Promo 2: 300% Welcome Match */}
-              <div style={{ backgroundColor: '#0E0A24', border: '1px solid rgba(224, 38, 216, 0.4)', borderRadius: '20px', padding: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#E026D8', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px' }}>
-                  <Flame size={15} />
-                  <span>FIRST PURCHASE BOOST</span>
-                </div>
-                <h3 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '18px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 8px 0' }}>
-                  300% Bonus Up to $7,500
-                </h3>
-                <p style={{ fontSize: '13px', color: '#B3A9C0', lineHeight: 1.5, margin: '0 0 16px 0' }}>
-                  Deposit using Cash App, Zelle, or Venmo and get 300% extra Sweeps Coins plus 150 Free Spins automatically credited upon deposit.
-                </p>
-                <Link href="/wallet" className="btn-sovereign-coral" style={{ textDecoration: 'none', fontSize: '11px', padding: '10px 20px' }}>
-                  LOAD COINS
-                </Link>
-              </div>
-
-              {/* Promo 3: 50% Referral Commission */}
-              <div style={{ backgroundColor: '#0E0A24', border: '1px solid rgba(0, 240, 255, 0.3)', borderRadius: '20px', padding: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#00F0FF', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, textTransform: 'uppercase', marginBottom: '8px' }}>
-                  <Sparkles size={15} />
-                  <span>AFFILIATE CASH LOUNGE</span>
-                </div>
-                <h3 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '18px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 8px 0' }}>
-                  50% Lifetime Commission
-                </h3>
-                <p style={{ fontSize: '13px', color: '#B3A9C0', lineHeight: 1.5, margin: '0 0 16px 0' }}>
-                  Invite friends to Vegas One and receive 50% cash commissions on every coin deposit they make for life!
-                </p>
-                <Link href="/referrals" className="btn-sovereign-teal" style={{ textDecoration: 'none', fontSize: '11px', padding: '10px 20px' }}>
-                  VIEW REFERRAL STATS
-                </Link>
-              </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+              <h2 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '24px', fontWeight: 900, color: '#FFFFFF', margin: 0 }}>
+                Active Vault Promotions &amp; Bonuses
+              </h2>
+              <span style={{ fontSize: '12px', color: '#00F0FF', fontWeight: 800 }}>
+                {promotions.length} Live Campaigns
+              </span>
             </div>
+
+            {loading ? (
+              <div style={{ textAlign: 'center', padding: '60px 0', color: '#94A3B8' }}>
+                <RefreshCw size={24} className="animate-spin text-cyan-400" style={{ margin: '0 auto 10px' }} />
+                <span>Loading active promotions...</span>
+              </div>
+            ) : promotions.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '50px 20px', backgroundColor: '#0E0A24', borderRadius: '20px', border: '1px dashed rgba(255, 255, 255, 0.15)' }}>
+                <p style={{ color: '#CBD5E1', fontSize: '14px', margin: 0 }}>Check back soon for new bonus promotions and freeplay coin drops!</p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
+                {promotions.map((promo) => {
+                  const id = promo._id || promo.id;
+                  const color = promo.badgeColor || '#00F0FF';
+
+                  return (
+                    <div
+                      key={id}
+                      style={{
+                        backgroundColor: '#0E0A24',
+                        border: `1px solid ${color}40`,
+                        borderRadius: '22px',
+                        padding: '24px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        boxShadow: `0 10px 30px rgba(0, 0, 0, 0.6), 0 0 20px ${color}15`,
+                        position: 'relative',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {/* Top Gradient accent */}
+                      <div
+                        className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${
+                          promo.gradient || 'from-cyan-500 via-blue-600 to-purple-600'
+                        }`}
+                      />
+
+                      <div>
+                        {/* Ribbon Badge */}
+                        <div
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            color: color,
+                            backgroundColor: `${color}15`,
+                            border: `1px solid ${color}35`,
+                            fontSize: '10.5px',
+                            fontFamily: 'Lexend, sans-serif',
+                            fontWeight: 800,
+                            textTransform: 'uppercase',
+                            padding: '3px 10px',
+                            borderRadius: '8px',
+                            marginBottom: '12px',
+                          }}
+                        >
+                          <Sparkles size={12} />
+                          <span>{promo.tag || 'PROMOTION'}</span>
+                        </div>
+
+                        {/* Title */}
+                        <h3 style={{ fontFamily: 'Lexend, sans-serif', fontSize: '19px', fontWeight: 900, color: '#FFFFFF', margin: '0 0 6px 0', lineHeight: 1.3 }}>
+                          {promo.title}
+                        </h3>
+
+                        {/* Reward Highlight */}
+                        {promo.rewardHighlight && (
+                          <div
+                            style={{
+                              display: 'inline-block',
+                              fontSize: '11.5px',
+                              fontWeight: 900,
+                              color: '#FBBF24',
+                              backgroundColor: 'rgba(245, 158, 11, 0.12)',
+                              border: '1px solid rgba(245, 158, 11, 0.3)',
+                              borderRadius: '6px',
+                              padding: '2px 8px',
+                              marginBottom: '10px',
+                            }}
+                          >
+                            ⚡ {promo.rewardHighlight}
+                          </div>
+                        )}
+
+                        {/* Description */}
+                        <p style={{ fontSize: '13px', color: '#B3A9C0', lineHeight: 1.55, margin: '0 0 18px 0' }}>
+                          {promo.description}
+                        </p>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: 'auto', flexWrap: 'wrap' }}>
+                        <Link
+                          href={promo.actionUrl || '/wallet'}
+                          className="btn-sovereign-coral"
+                          style={{
+                            textDecoration: 'none',
+                            fontSize: '11px',
+                            padding: '11px 22px',
+                            fontWeight: 900,
+                            borderRadius: '12px',
+                            flex: 1,
+                            textAlign: 'center',
+                          }}
+                        >
+                          {promo.actionText || 'CLAIM NOW'}
+                        </Link>
+
+                        <button
+                          type="button"
+                          onClick={() => setSelectedPromo(promo)}
+                          style={{
+                            padding: '11px 16px',
+                            backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                            border: '1px solid rgba(255, 255, 255, 0.12)',
+                            borderRadius: '12px',
+                            color: '#CBD5E1',
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          <Info size={13} />
+                          <span>Details</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </main>
       </div>
+
+      {/* Reusable Promo Detail Modal */}
+      <PromoModal
+        isOpen={!!selectedPromo}
+        promotion={selectedPromo}
+        onClose={() => setSelectedPromo(null)}
+      />
 
       <VegasFooter onSelectTab={() => {}} />
       <MobileBottomNav activeTab="main" onSelectTab={() => {}} />
@@ -331,3 +444,4 @@ export default function PromotionsPage() {
     </div>
   );
 }
+

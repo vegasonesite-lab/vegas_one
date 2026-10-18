@@ -17,6 +17,9 @@ export async function GET() {
       regularBonusMax: 2500,
       regularBonusTitle: 'REGULAR BONUS',
       regularBonusSubtitle: 'Get a 50% reload bonus on every deposit you make! Boost your wallet balance anytime.',
+      referralBonusPercent: 50,
+      referralBonusTitle: 'REFERRAL BONUS',
+      referralBonusSubtitle: 'Earn referral commission directly credited into your wallet when your invited friend makes their first deposit.',
       signupBonusSC: 5.0,
       signupBonusGC: 50000,
       minRedemptionSC: 50.0,
@@ -94,6 +97,11 @@ export async function PUT(req) {
     if (body.regularBonusMax !== undefined) updateFields.regularBonusMax = Number(body.regularBonusMax);
     if (body.regularBonusTitle !== undefined) updateFields.regularBonusTitle = String(body.regularBonusTitle);
     if (body.regularBonusSubtitle !== undefined) updateFields.regularBonusSubtitle = String(body.regularBonusSubtitle);
+
+    // Referral Bonus Settings
+    if (body.referralBonusPercent !== undefined) updateFields.referralBonusPercent = Number(body.referralBonusPercent);
+    if (body.referralBonusTitle !== undefined) updateFields.referralBonusTitle = String(body.referralBonusTitle);
+    if (body.referralBonusSubtitle !== undefined) updateFields.referralBonusSubtitle = String(body.referralBonusSubtitle);
 
     await settingsCol.updateOne(
       { key: 'general' },

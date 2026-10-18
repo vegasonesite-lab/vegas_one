@@ -23,6 +23,11 @@ export async function GET(req) {
         return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
       }
 
+      const sysSettingsDoc = await db.collection('system_settings').findOne({ key: 'general' });
+      const defaultCommissionRate = sysSettingsDoc?.referralBonusPercent !== undefined
+        ? Number(sysSettingsDoc.referralBonusPercent)
+        : 50;
+
       // Fetch all users who have referral activity or commissions
       const candidates = await usersCol
         .find({
@@ -58,7 +63,7 @@ export async function GET(req) {
           username: u.username,
           email: u.email || 'N/A',
           referralCode: u.referralCode || u.username.toUpperCase(),
-          commissionRate: u.affiliateRate || 50,
+          commissionRate: u.affiliateRate || defaultCommissionRate,
           commissionsEarned: Number(u.affiliateCommissionsEarned || 0),
           commissionsUnpaid: Number(u.affiliateCommissionsUnpaid || 0),
           totalReferrals: refs.length,
@@ -97,6 +102,11 @@ export async function GET(req) {
     }
 
     // Player stats
+    const sysSettingsDoc = await db.collection('system_settings').findOne({ key: 'general' });
+    const defaultCommissionRate = sysSettingsDoc?.referralBonusPercent !== undefined
+      ? Number(sysSettingsDoc.referralBonusPercent)
+      : 50;
+
     const user = await usersCol.findOne({ _id: new ObjectId(session.userId) });
     if (!user) {
       return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
@@ -113,7 +123,7 @@ export async function GET(req) {
       stats: {
         referralCode: user.referralCode || '',
         referralLink: `https://vegasone.games/ref/${user.referralCode || ''}`,
-        commissionRate: user.affiliateRate || 50,
+        commissionRate: user.affiliateRate || defaultCommissionRate,
         totalReferrals: referredUsers.length,
         activeDepositors: referredUsers.filter(u => (u.totalDeposited || 0) > 0).length,
         commissionsEarned: user.affiliateCommissionsEarned || 0,

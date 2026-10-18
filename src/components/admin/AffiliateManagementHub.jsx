@@ -122,24 +122,72 @@ export default function AffiliateManagementHub({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', fontFamily: 'Lexend, sans-serif' }}>
       {/* 1. Header with Live Actions */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#00F0FF', boxShadow: '0 0 12px #00F0FF' }} />
-            <h2 style={{ margin: 0, fontSize: '22px', fontWeight: 900, color: '#FFFFFF', letterSpacing: '-0.02em' }}>
-              {activeTab === 'affiliate_commissions'
-                ? 'Affiliate Commission Settlement Desk'
-                : 'Affiliate Partner Program & 50% Revenue Share'}
-            </h2>
+      <div
+        className="relative overflow-hidden"
+        style={{
+          backgroundColor: '#0C0A1E',
+          border: '1px solid rgba(0, 240, 255, 0.22)',
+          borderRadius: '20px',
+          padding: '24px 28px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '20px',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+        }}
+      >
+        <div className="absolute -top-24 -right-24 w-72 h-72 bg-[#00F0FF]/10 rounded-full blur-3xl pointer-events-none" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', position: 'relative', zIndex: 10 }}>
+          <div
+            className="rounded-2xl flex items-center justify-center shrink-0"
+            style={{
+              width: '56px',
+              height: '56px',
+              minWidth: '56px',
+              padding: '14px',
+              background: 'rgba(0, 240, 255, 0.1)',
+              border: '1.5px solid rgba(0, 240, 255, 0.35)',
+              color: '#00F0FF',
+              boxShadow: '0 0 20px rgba(0, 240, 255, 0.15)',
+            }}
+          >
+            <TrendingUp className="w-full h-full text-[#00F0FF]" />
           </div>
-          <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#9A91A8' }}>
-            {activeTab === 'affiliate_commissions'
-              ? 'Review pending agent rewards and execute audited settlements directly to player wallets'
-              : 'Recruited player networks, referral link tracking, deposit volume & real-time revenue share'}
-          </p>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <h2 className="text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-cyan-300" style={{ margin: 0, fontSize: '20px', fontWeight: 900, letterSpacing: '-0.01em', fontFamily: 'Lexend, sans-serif' }}>
+                {activeTab === 'affiliate_commissions'
+                  ? 'Affiliate Commission Settlement Desk'
+                  : 'Affiliate Partner Program & 50% Revenue Share'}
+              </h2>
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 800,
+                  padding: '3px 9px',
+                  borderRadius: '9999px',
+                  backgroundColor: 'rgba(0, 240, 255, 0.1)',
+                  border: '1px solid rgba(0, 240, 255, 0.25)',
+                  color: '#00F0FF',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                }}
+              >
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#00F0FF' }} />
+                50% Tier
+              </span>
+            </div>
+            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
+              {activeTab === 'affiliate_commissions'
+                ? 'Review pending agent rewards and execute audited settlements directly to player wallets'
+                : 'Recruited player networks, referral link tracking, deposit volume & real-time revenue share'}
+            </p>
+          </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', position: 'relative', zIndex: 10 }}>
           {totalUnpaid > 0 && (
             <button
               type="button"
@@ -693,19 +741,22 @@ export default function AffiliateManagementHub({
           style={{
             position: 'fixed',
             inset: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.85)',
-            backdropFilter: 'blur(8px)',
+            backgroundColor: 'rgba(5, 3, 15, 0.92)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 1000,
+            zIndex: 99999,
             padding: '20px',
+            fontFamily: 'Lexend, -apple-system, sans-serif',
           }}
           onClick={() => setSelectedNetworkPartner(null)}
         >
           <div
+            className="relative overflow-hidden"
             style={{
-              backgroundColor: '#0E0A24',
+              backgroundColor: '#0C0A1E',
               border: '1px solid rgba(0, 240, 255, 0.35)',
               borderRadius: '24px',
               padding: '24px',
@@ -713,30 +764,78 @@ export default function AffiliateManagementHub({
               maxWidth: '680px',
               maxHeight: '85vh',
               overflowY: 'auto',
-              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.8)',
+              boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 35px rgba(0, 240, 255, 0.2)',
+              color: '#FFFFFF',
             }}
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Top Ambient Glow */}
+            <div
+              style={{
+                position: 'absolute',
+                top: '-40px',
+                right: '-40px',
+                width: '160px',
+                height: '160px',
+                backgroundColor: 'rgba(0, 240, 255, 0.15)',
+                borderRadius: '50%',
+                filter: 'blur(50px)',
+                pointerEvents: 'none',
+              }}
+            />
+
             {/* Modal Header */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', pb: '16px', marginBottom: '18px' }}>
-              <div>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 900, color: '#FFFFFF' }}>
-                  Recruited Player Network ({selectedNetworkPartner.totalReferrals})
-                </h3>
-                <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#9A91A8' }}>
-                  Direct referrals invited by <strong style={{ color: '#00F0FF' }}>{selectedNetworkPartner.username}</strong> ({selectedNetworkPartner.referralCode})
-                </p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(0, 240, 255, 0.15)', paddingBottom: '16px', marginBottom: '20px', position: 'relative' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div
+                  style={{
+                    width: '46px',
+                    height: '46px',
+                    borderRadius: '14px',
+                    backgroundColor: 'rgba(0, 240, 255, 0.12)',
+                    border: '1px solid rgba(0, 240, 255, 0.35)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 0 20px rgba(0, 240, 255, 0.2)',
+                  }}
+                >
+                  <Users size={22} color="#00F0FF" />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 900, color: '#FFFFFF', letterSpacing: '-0.01em' }}>
+                    Recruited Player Network ({selectedNetworkPartner.totalReferrals})
+                  </h3>
+                  <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#9A91A8' }}>
+                    Direct referrals invited by <strong style={{ color: '#00F0FF' }}>{selectedNetworkPartner.username}</strong> ({selectedNetworkPartner.referralCode})
+                  </p>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedNetworkPartner(null)}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.08)',
-                  border: 'none',
-                  borderRadius: '10px',
-                  padding: '6px',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '12px',
+                  width: '36px',
+                  height: '36px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   color: '#9A91A8',
                   cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = '#FFFFFF';
+                  e.currentTarget.style.borderColor = 'rgba(0, 240, 255, 0.4)';
+                  e.currentTarget.style.background = 'rgba(0, 240, 255, 0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = '#9A91A8';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
                 }}
               >
                 <X size={18} />
@@ -745,13 +844,13 @@ export default function AffiliateManagementHub({
 
             {/* Network Table */}
             {(!selectedNetworkPartner.referees || selectedNetworkPartner.referees.length === 0) ? (
-              <div style={{ padding: '30px', textAlign: 'center', color: '#9A91A8' }}>
+              <div style={{ padding: '36px', textAlign: 'center', color: '#9A91A8', backgroundColor: '#070514', borderRadius: '16px', border: '1px solid rgba(0, 240, 255, 0.15)' }}>
                 No active players recorded in this network.
               </div>
             ) : (
-              <div style={{ backgroundColor: '#070514', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
+              <div style={{ backgroundColor: '#070514', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(0, 240, 255, 0.2)' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '12px' }}>
-                  <thead style={{ backgroundColor: '#0A071E', color: '#9A91A8', textTransform: 'uppercase', fontSize: '10.5px', fontWeight: 800 }}>
+                  <thead style={{ backgroundColor: 'rgba(0, 240, 255, 0.06)', color: '#00F0FF', textTransform: 'uppercase', fontSize: '10.5px', fontWeight: 800, letterSpacing: '0.05em' }}>
                     <tr>
                       <th style={{ padding: '12px 16px' }}>Referred Player</th>
                       <th style={{ padding: '12px 16px' }}>Joined Date</th>
@@ -766,7 +865,7 @@ export default function AffiliateManagementHub({
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <span>{ref.username}</span>
                             {ref.totalDeposited > 0 && (
-                              <span style={{ fontSize: '9px', fontWeight: 900, padding: '2px 6px', borderRadius: '4px', backgroundColor: 'rgba(16, 185, 129, 0.2)', color: '#34D399' }}>
+                              <span style={{ fontSize: '9px', fontWeight: 900, padding: '2px 6px', borderRadius: '4px', backgroundColor: 'rgba(16, 185, 129, 0.2)', color: '#34D399', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
                                 DEPOSITOR
                               </span>
                             )}
@@ -788,19 +887,31 @@ export default function AffiliateManagementHub({
               </div>
             )}
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '18px' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
               <button
                 type="button"
                 onClick={() => setSelectedNetworkPartner(null)}
                 style={{
-                  padding: '9px 20px',
+                  padding: '10px 24px',
                   borderRadius: '12px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                  color: '#FFFFFF',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  backgroundColor: '#00F0FF',
+                  color: '#070514',
+                  border: 'none',
                   fontSize: '12px',
-                  fontWeight: 800,
+                  fontWeight: 900,
                   cursor: 'pointer',
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  boxShadow: '0 0 20px rgba(0, 240, 255, 0.35)',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 0 25px rgba(0, 240, 255, 0.55)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 0 20px rgba(0, 240, 255, 0.35)';
                 }}
               >
                 Close Window
