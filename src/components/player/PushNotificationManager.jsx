@@ -86,15 +86,34 @@ export default function PushNotificationManager() {
     playNotificationChime();
     setActiveToast({ title, message, url });
 
-    // Show native browser notification if permitted
+    // Show native system status bar / lock screen notification if permitted
     if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-      try {
-        new Notification(title, {
-          body: message,
-          icon: '/icons/icon-192.png',
-          badge: '/icons/icon-192.png',
-        });
-      } catch {}
+      const options = {
+        body: message,
+        icon: '/icons/icon-192.png',
+        badge: '/icons/icon-192.png',
+        vibrate: [200, 100, 200],
+        tag: 'vegas_alert_' + Date.now(),
+        renotify: true,
+        data: { url },
+      };
+
+      // ServiceWorker showNotification is MANDATORY on Android Chrome
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready
+          .then((reg) => {
+            reg.showNotification(title, options);
+          })
+          .catch(() => {
+            try {
+              new Notification(title, options);
+            } catch {}
+          });
+      } else {
+        try {
+          new Notification(title, options);
+        } catch {}
+      }
     }
   };
 

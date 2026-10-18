@@ -174,27 +174,29 @@ export async function PUT(req) {
   try {
     const session = await getSessionUser();
     const body = await req.json();
-    const email = (session?.email || body.email || '').toLowerCase().trim();
     const fcmToken = body.token || body.fcmToken || null;
     const device = body.device || 'web_chrome';
+    const email = (session?.email || body.email || '').toLowerCase().trim();
 
-    if (!email) {
-      return NextResponse.json({ success: false, error: 'Email is required' }, { status: 400 });
+    if (!email && !fcmToken) {
+      return NextResponse.json({ success: false, error: 'Email or device token is required' }, { status: 400 });
     }
 
     const db = await getDb();
     const subsCol = db.collection('subscriptions');
     const usersCol = db.collection('users');
 
+    const filter = email ? { email } : { fcmToken };
+
     await subsCol.updateOne(
-      { email },
+      filter,
       {
         $set: {
-          email,
-          fcmToken,
+          ...(email ? { email } : {}),
+          ...(fcmToken ? { fcmToken } : {}),
           device,
           userId: session?.userId || null,
-          username: session?.username || email.split('@')[0],
+          username: session?.username || (email ? email.split('@')[0] : 'device_player'),
           isSubscribed: true,
           updatedAt: new Date(),
         },
@@ -211,9 +213,19 @@ export async function PUT(req) {
       );
     }
 
+    // Subscribe FCM Token to broadcast topic so lock screen pushes are delivered!
+    if (fcmToken) {
+      try {
+        const { subscribeDeviceToTopic } = await import('@/lib/fcm');
+        await subscribeDeviceToTopic(fcmToken, 'vegas_all_players');
+      } catch (e) {
+        console.warn('Topic subscription note:', e.message);
+      }
+    }
+
     return NextResponse.json({
       success: true,
-      message: 'Successfully subscribed to VIP Broadcasts & Chrome Push Notifications!',
+      message: 'Successfully subscribed to VIP Broadcasts & Mobile Push Notifications!',
     });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

@@ -1,16 +1,18 @@
 import fs from 'fs';
 import path from 'path';
 
-let firebaseAdmin = null;
+let messagingInstance = null;
 
-async function initFirebaseAdmin() {
-  if (firebaseAdmin) return firebaseAdmin;
+export async function getMessagingService() {
+  if (messagingInstance) return messagingInstance;
 
   try {
-    const admin = await import('firebase-admin');
+    const { getApps, initializeApp, cert } = await import('firebase-admin/app');
+    const { getMessaging } = await import('firebase-admin/messaging');
+
     const possiblePaths = [
-      path.join(process.cwd(), 'google-services.json'),
       path.join(process.cwd(), 'firebase-service-account.json'),
+      path.join(process.cwd(), 'google-services.json'),
       path.join(process.cwd(), 'firebase-admin.json'),
     ];
 
@@ -23,48 +25,85 @@ async function initFirebaseAdmin() {
 
     if (!serviceAccount) {
       for (const p of possiblePaths) {
-        if (fs.existsSync(/*turbopackIgnore: true*/ p)) {
+        if (fs.existsSync(p)) {
           try {
-            serviceAccount = JSON.parse(fs.readFileSync(/*turbopackIgnore: true*/ p, 'utf8'));
+            serviceAccount = JSON.parse(fs.readFileSync(p, 'utf8'));
             break;
           } catch {}
         }
       }
     }
 
-    if (serviceAccount && !admin.default.apps.length) {
-      admin.default.initializeApp({
-        credential: admin.default.credential.cert(serviceAccount),
-      });
-      firebaseAdmin = admin.default;
-      return firebaseAdmin;
+    if (serviceAccount) {
+      const apps = getApps();
+      const app = apps.length ? apps[0] : initializeApp({ credential: cert(serviceAccount) });
+      messagingInstance = getMessaging(app);
+      return messagingInstance;
     }
   } catch (err) {
-    console.warn('Firebase Admin not initialized:', err.message);
+    console.warn('Firebase Messaging init error:', err.message);
   }
   return null;
 }
 
 export async function sendPushNotification({ token, topic, title, body, data = {} }) {
-  const admin = await initFirebaseAdmin();
-  if (!admin) {
+  const messaging = await getMessagingService();
+  if (!messaging) {
     console.log(`[FCM SIMULATED PUSH] Title: "${title}" | Body: "${body}" | Target: ${token || topic}`);
     return { success: true, simulated: true };
   }
 
   try {
     const message = {
-      notification: { title, body },
-      data: { ...data, click_action: 'FLUTTER_NOTIFICATION_CLICK' },
+      notification: {
+        title: String(title),
+        body: String(body),
+      },
+      data: {
+        ...Object.keys(data).reduce((acc, k) => {
+          acc[k] = String(data[k]);
+          return acc;
+        }, {}),
+        click_action: 'FLUTTER_NOTIFICATION_CLICK',
+        url: data.url ? String(data.url) : 'https://vegasone.games/wallet',
+      },
+      android: {
+        priority: 'high',
+        notification: {
+          channelId: 'vegas_alerts',
+          sound: 'default',
+          priority: 'max',
+          visibility: 'public', // Forces notification display on Android Lock Screen
+          clickAction: 'FLUTTER_NOTIFICATION_CLICK',
+          icon: 'ic_launcher',
+          color: '#EAB308',
+        },
+      },
+      webpush: {
+        headers: {
+          Urgency: 'high',
+        },
+        notification: {
+          title: String(title),
+          body: String(body),
+          icon: 'https://vegasone.games/icons/icon-192.png',
+          badge: 'https://vegasone.games/icons/icon-192.png',
+          requireInteraction: true,
+          vibrate: [200, 100, 200],
+        },
+        fcmOptions: {
+          link: data.url ? `https://vegasone.games${data.url}` : 'https://vegasone.games/wallet',
+        },
+      },
     };
 
     if (token) {
       message.token = token;
-      const res = await admin.messaging().send(message);
+      const res = await messaging.send(message);
       return { success: true, messageId: res };
     } else if (topic) {
       message.topic = topic;
-      const res = await admin.messaging().send(message);
+      const res = await messaging.send(message);
       return { success: true, messageId: res };
     }
 
@@ -72,5 +111,20 @@ export async function sendPushNotification({ token, topic, title, body, data = {
   } catch (error) {
     console.error('FCM Send error:', error);
     return { success: false, error: error.message };
+  }
+}
+
+export async function subscribeDeviceToTopic(fcmTokens, topic = 'vegas_all_players') {
+  try {
+    const messaging = await getMessagingService();
+    if (!messaging) return false;
+    const tokens = Array.isArray(fcmTokens) ? fcmTokens : [fcmTokens];
+    const validTokens = tokens.filter(t => typeof t === 'string' && t.trim().length > 10);
+    if (!validTokens.length) return false;
+    await messaging.subscribeToTopic(validTokens, topic);
+    return true;
+  } catch (err) {
+    console.warn('FCM subscribeToTopic note:', err.message);
+    return false;
   }
 }

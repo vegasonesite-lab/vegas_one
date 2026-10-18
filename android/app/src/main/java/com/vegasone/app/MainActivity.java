@@ -1,5 +1,8 @@
 package com.vegasone.app;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
@@ -21,7 +24,27 @@ public class MainActivity extends BridgeActivity {
             getWindow().setNavigationBarColor(Color.parseColor("#070514"));
         }
 
+        createNotificationChannel();
         handleAuthIntent(getIntent());
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                "vegas_alerts",
+                "Vegas One VIP Alerts",
+                NotificationManager.IMPORTANCE_HIGH
+            );
+            channel.setDescription("VIP bonuses, coin drops and instant cashout notifications");
+            channel.enableLights(true);
+            channel.enableVibration(true);
+            channel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+            
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            if (manager != null) {
+                manager.createNotificationChannel(channel);
+            }
+        }
     }
 
     @Override
