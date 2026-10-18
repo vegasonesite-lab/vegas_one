@@ -41,9 +41,15 @@ export async function GET(req) {
       });
     }
 
-    // Player view: notifications broadcast to all or specific user
+    // Player view: notifications broadcast to all or specific user (by userId or userEmail)
     const query = session
-      ? { $or: [{ target: 'all' }, { userId: session.userId }] }
+      ? {
+          $or: [
+            { target: 'all' },
+            { userId: session.userId },
+            ...(session.email ? [{ userEmail: session.email.toLowerCase().trim() }] : []),
+          ],
+        }
       : { target: 'all' };
 
     const items = await notifsCol

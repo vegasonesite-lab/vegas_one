@@ -50,11 +50,12 @@ export default function FinanceRedemptionsView({
   const approvedCount = redemptions.filter((r) => r.status === 'approved').length;
   const rejectedCount = redemptions.filter((r) => r.status === 'rejected').length;
 
-  const handleConfirmReject = async () => {
+  const handleConfirmReject = () => {
     if (!rejectModal.item) return;
+    const targetId = rejectModal.item.id || rejectModal.item._id;
     const reason = rejectModal.reason.trim() || 'Redemption rejected. Coins refunded to balance.';
-    await onReject(rejectModal.item.id, reason);
     setRejectModal({ open: false, item: null, reason: '' });
+    onReject(targetId, reason);
   };
 
   const handleExecuteApprove = async (item) => {
