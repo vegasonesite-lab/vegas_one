@@ -5,13 +5,30 @@ import { getDb } from '@/lib/mongodb';
 
 const DEFAULT_PROMOTIONS = [
   {
+    title: '50% weekend boost',
+    tag: 'WEEKEND',
+    promoCode: 'WEEKEND50',
+    rewardHighlight: '+50% Extra Sweeps Coins All Weekend',
+    description: 'Every deposit Friday to Sunday gets half as much again on top.',
+    minDeposit: 20.0,
+    rewardSC: 10.0,
+    actionUrl: '/deposit',
+    actionText: 'CLAIM WEEKEND BOOST',
+    gradient: 'from-amber-500 via-orange-500 to-rose-600',
+    badgeColor: '#F97316',
+    isActive: true,
+    timesClaimed: 840,
+    createdAt: new Date(),
+  },
+  {
     title: '300% Welcome Purchase Boost',
     tag: '🔥 FIRST PURCHASE BOOST',
+    promoCode: 'WELCOME300',
     rewardHighlight: '+300% Extra SC + 150 Free Spins',
     description: 'Deposit using Cash App, Zelle, Venmo, or Crypto and get 300% extra Sweeps Coins automatically credited to your player balance.',
     minDeposit: 20.0,
     rewardSC: 60.0,
-    actionUrl: '/wallet',
+    actionUrl: '/deposit',
     actionText: 'LOAD COINS NOW',
     gradient: 'from-amber-500 via-rose-500 to-purple-600',
     badgeColor: '#E026D8',
@@ -22,6 +39,7 @@ const DEFAULT_PROMOTIONS = [
   {
     title: '$3.00 Instant Freeplay Bonus',
     tag: '🎁 NEW SIGNUP PRIVILEGE',
+    promoCode: 'FREE3SC',
     rewardHighlight: 'Free $3.00 SC + 50,000 GC Instant',
     description: 'Create your free Vegas One account today and receive 3 Freeplay Sweeps Coins with zero deposit required.',
     minDeposit: 0.0,
@@ -37,6 +55,7 @@ const DEFAULT_PROMOTIONS = [
   {
     title: '50% Lifetime Affiliate Cash Lounge',
     tag: '👑 AFFILIATE CASH LOUNGE',
+    promoCode: 'AFFILIATE50',
     rewardHighlight: '50% Lifetime Revenue Commission',
     description: 'Invite friends to Vegas One using your referral link and receive 50% cash commission on every deposit they make for life.',
     minDeposit: 0.0,
@@ -52,6 +71,7 @@ const DEFAULT_PROMOTIONS = [
   {
     title: 'Flash Reload Drop +40%',
     tag: '⚡ LIMITED TIME FLASH DROP',
+    promoCode: 'FLASH40',
     rewardHighlight: 'Extra +40% SC Reload Bonus',
     description: 'Get an extra 40% Sweeps Coins bonus on any instant reload load today before the countdown timer expires!',
     minDeposit: 25.0,
@@ -75,17 +95,34 @@ export async function GET() {
     let count = await promosCol.countDocuments();
     if (count === 0) {
       await promosCol.insertMany(DEFAULT_PROMOTIONS);
+    } else {
+      // Ensure Weekend Boost promo exists
+      const hasWeekend = await promosCol.findOne({ promoCode: 'WEEKEND50' });
+      if (!hasWeekend) {
+        await promosCol.insertOne(DEFAULT_PROMOTIONS[0]);
+      }
     }
 
     const promotions = await promosCol.find({}).sort({ createdAt: -1 }).toArray();
 
     return NextResponse.json({
       success: true,
-      promotions: promotions.map(p => ({
-        ...p,
-        id: p._id.toString(),
-        _id: p._id.toString(),
-      })),
+      promotions: promotions.map(p => {
+        let code = p.promoCode;
+        if (!code) {
+          if (p.title?.toLowerCase().includes('weekend')) code = 'WEEKEND50';
+          else if (p.title?.toLowerCase().includes('300%') || p.title?.toLowerCase().includes('welcome')) code = 'WELCOME300';
+          else if (p.title?.toLowerCase().includes('freeplay') || p.title?.toLowerCase().includes('3.00')) code = 'FREE3SC';
+          else if (p.title?.toLowerCase().includes('flash') || p.title?.toLowerCase().includes('40%')) code = 'FLASH40';
+          else code = 'VEGASVIP';
+        }
+        return {
+          ...p,
+          promoCode: code,
+          id: p._id.toString(),
+          _id: p._id.toString(),
+        };
+      }),
     });
   } catch (error) {
     return NextResponse.json({
@@ -147,6 +184,7 @@ export async function POST(req) {
         actionText: actionText?.trim() || 'CLAIM NOW',
         gradient: gradient || 'from-amber-500 via-rose-500 to-purple-600',
         badgeColor: badgeColor || '#00F0FF',
+        promoCode: body.promoCode?.trim().toUpperCase() || 'VIPBOOST',
         expiresAt: expiresAt ? new Date(expiresAt) : null,
         isActive: true,
         timesClaimed: 0,
@@ -164,6 +202,65 @@ export async function POST(req) {
           id: result.insertedId.toString(),
           _id: result.insertedId.toString(),
         },
+      });
+    }
+
+    // 1b. Admin Edit / Update Existing Promotion
+    if (action === 'update_promo') {
+      const allowedRoles = ['super_admin', 'operation_admin', 'admin'];
+      if (!session.role || !allowedRoles.some(r => session.role.toLowerCase().includes(r))) {
+        return NextResponse.json({ success: false, error: 'Access denied: Admin privileges required.' }, { status: 403 });
+      }
+
+      const {
+        id,
+        title,
+        tag,
+        rewardHighlight,
+        description,
+        minDeposit = 0,
+        rewardSC = 0,
+        actionUrl = '/deposit',
+        actionText = 'CLAIM NOW',
+        gradient,
+        badgeColor,
+      } = body;
+
+      if (!id) {
+        return NextResponse.json({ success: false, error: 'Promotion ID is required.' }, { status: 400 });
+      }
+
+      let filter = {};
+      if (ObjectId.isValid(id)) {
+        filter = { _id: new ObjectId(id) };
+      } else {
+        filter = { promoId: id };
+      }
+
+      const updateFields = {
+        updatedAt: new Date(),
+        updatedBy: session.username || 'admin',
+      };
+
+      if (title) updateFields.title = title.trim();
+      if (tag) updateFields.tag = tag.trim();
+      if (rewardHighlight !== undefined) updateFields.rewardHighlight = rewardHighlight.trim();
+      if (description !== undefined) updateFields.description = description.trim();
+      if (minDeposit !== undefined) updateFields.minDeposit = Number(minDeposit) || 0;
+      if (rewardSC !== undefined) updateFields.rewardSC = Number(rewardSC) || 0;
+      if (actionUrl) updateFields.actionUrl = actionUrl.trim();
+      if (actionText) updateFields.actionText = actionText.trim();
+      if (gradient) updateFields.gradient = gradient;
+      if (badgeColor) updateFields.badgeColor = badgeColor;
+
+      await promosCol.updateOne(filter, { $set: updateFields });
+
+      const updatedDoc = await promosCol.findOne(filter);
+
+      return NextResponse.json({
+        success: true,
+        message: 'Promotion updated successfully!',
+        promotion: updatedDoc ? { ...updatedDoc, id: updatedDoc._id.toString(), _id: updatedDoc._id.toString() } : null,
       });
     }
 
@@ -319,7 +416,20 @@ export async function PATCH(req) {
       filter = { promoId: id };
     }
 
-    await promosCol.updateOne(filter, { $set: { isActive: !!isActive, updatedAt: new Date() } });
+    const updateDoc = { updatedAt: new Date() };
+    if (isActive !== undefined) updateDoc.isActive = !!isActive;
+    if (body.title) updateDoc.title = body.title.trim();
+    if (body.tag) updateDoc.tag = body.tag.trim();
+    if (body.rewardHighlight !== undefined) updateDoc.rewardHighlight = body.rewardHighlight.trim();
+    if (body.description !== undefined) updateDoc.description = body.description.trim();
+    if (body.minDeposit !== undefined) updateDoc.minDeposit = Number(body.minDeposit) || 0;
+    if (body.rewardSC !== undefined) updateDoc.rewardSC = Number(body.rewardSC) || 0;
+    if (body.actionUrl) updateDoc.actionUrl = body.actionUrl.trim();
+    if (body.actionText) updateDoc.actionText = body.actionText.trim();
+    if (body.gradient) updateDoc.gradient = body.gradient;
+    if (body.badgeColor) updateDoc.badgeColor = body.badgeColor;
+
+    await promosCol.updateOne(filter, { $set: updateDoc });
 
     return NextResponse.json({ success: true, message: 'Promotion updated successfully!' });
   } catch (error) {

@@ -249,13 +249,16 @@ export default function AccountRequestsView({
                       }`}
                     >
                       <td className="p-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center font-black text-white text-xs uppercase shadow">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div
+                            className="w-8 h-8 rounded-full bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center font-black text-white text-xs uppercase shadow"
+                            style={{ marginRight: '10px', flexShrink: 0 }}
+                          >
                             {req.userName ? req.userName.charAt(0) : 'P'}
                           </div>
                           <div>
-                            <p className="font-black text-white text-sm">{req.userName}</p>
-                            <p className="text-[11px] text-gray-400 font-mono">{req.userEmail}</p>
+                            <p className="font-black text-white text-sm m-0">{req.userName}</p>
+                            <p className="text-[11px] text-gray-400 font-mono m-0 mt-0.5">{req.userEmail}</p>
                           </div>
                         </div>
                       </td>
@@ -369,13 +372,16 @@ export default function AccountRequestsView({
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#00F0FF] to-[#E026D8] flex items-center justify-center font-black text-black text-sm shadow">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div
+                        className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#00F0FF] to-[#E026D8] flex items-center justify-center font-black text-black text-sm shadow"
+                        style={{ marginRight: '10px', flexShrink: 0 }}
+                      >
                         {req.userName ? req.userName.charAt(0) : 'P'}
                       </div>
                       <div>
-                        <h4 className="font-black text-white text-sm leading-tight">{req.userName}</h4>
-                        <p className="text-[11px] text-gray-400 font-mono mt-0.5">{req.userEmail}</p>
+                        <h4 className="font-black text-white text-sm leading-tight m-0">{req.userName}</h4>
+                        <p className="text-[11px] text-gray-400 font-mono m-0 mt-0.5">{req.userEmail}</p>
                       </div>
                     </div>
 

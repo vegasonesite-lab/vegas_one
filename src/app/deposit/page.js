@@ -34,6 +34,7 @@ import MobileBottomNav from '@/components/player/MobileBottomNav';
 import VegasFooter from '@/components/player/VegasFooter';
 import LiveChatWidget from '@/components/LiveChatWidget';
 import AuthModal from '@/components/AuthModal';
+import VegasRunningPromos from '@/components/player/VegasRunningPromos';
 import { compressImage } from '@/lib/imageCompressor';
 import { useAuthSession } from '@/lib/clientAuth';
 
@@ -1549,6 +1550,9 @@ export default function DepositPage() {
               </form>
             </div>
           )}
+
+          {/* Running Right Now Active Bonus Campaigns */}
+          <VegasRunningPromos user={user} onOpenAuth={(t) => setAuthModal({ open: true, tab: t })} />
 
           {/* QR Code Lightbox Modal */}
           {qrModalOpen && selectedMethod?.qrCode && (

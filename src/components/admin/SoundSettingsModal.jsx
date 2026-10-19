@@ -25,13 +25,6 @@ export default function SoundSettingsModal({
   const handleTestFullAlert = () => {
     unlockAudioContext();
     playTune(selectedTune, volume);
-    if (onTestToast) {
-      onTestToast({
-        title: '🔔 New Deposit Alert (Preview)',
-        message: '$50.00 USD from VIP player via Cash App',
-        time: 'Just now',
-      });
-    }
   };
 
   return (

@@ -71,7 +71,6 @@ import FinanceUnifiedDesk from '@/components/admin/FinanceUnifiedDesk';
 import AccountRequestsView from '@/components/admin/AccountRequestsView';
 import CoinOperationsDesk from '@/components/admin/CoinOperationsDesk';
 import SoundSettingsModal from '@/components/admin/SoundSettingsModal';
-import IncomingRequestToast from '@/components/admin/IncomingRequestToast';
 import Player360ProfileModal from '@/components/admin/Player360ProfileModal';
 import AffiliateManagementHub from '@/components/admin/AffiliateManagementHub';
 import HomepageVideosManager from '@/components/admin/HomepageVideosManager';
@@ -102,7 +101,6 @@ export default function AdminPortal({ initialTab }) {
   const [alertTune, setAlertTune] = useState('chaching');
   const [alertVolume, setAlertVolume] = useState(0.7);
   const [soundModalOpen, setSoundModalOpen] = useState(false);
-  const [activeAlertToast, setActiveAlertToast] = useState(null);
   const [refreshingFinance, setRefreshingFinance] = useState(false);
 
   // Load sound settings from localStorage on mount
@@ -771,14 +769,6 @@ export default function AdminPortal({ initialTab }) {
       if (pendingDeps.length > (prevCountsRef.current.deposits || 0)) {
         const newest = pendingDeps[0];
         playAdminChime();
-        setActiveAlertToast({
-          type: 'deposit',
-          title: 'New Deposit Request!',
-          message: `$${Number(newest?.amount || 0).toFixed(2)} USD from ${newest?.username || 'Player'}`,
-          subtext: `Via ${newest?.methodName || 'Payment'}${newest?.senderNote ? ` • ${newest.senderNote}` : ''}`,
-          targetTab: 'finance',
-          targetSubTab: 'deposits',
-        });
         showDesktopNotification('New Deposit Request! 💰', {
           body: `$${Number(newest?.amount || 0).toFixed(2)} USD from ${newest?.username || 'Player'} via ${newest?.methodName || 'Payment'}`,
           targetTab: 'finance',
@@ -788,14 +778,6 @@ export default function AdminPortal({ initialTab }) {
       else if (pendingWith.length > (prevCountsRef.current.redemptions || 0)) {
         const newest = pendingWith[0];
         playAdminChime();
-        setActiveAlertToast({
-          type: 'redemption',
-          title: 'New Cashout Request!',
-          message: `$${Number(newest?.amount || 0).toFixed(2)} SC for ${newest?.username || 'Player'}`,
-          subtext: `Payout via ${newest?.payoutMethod || 'Direct'}: ${newest?.destinationAddress || ''}`,
-          targetTab: 'finance',
-          targetSubTab: 'redemptions',
-        });
         showDesktopNotification('New Cashout Request! 💸', {
           body: `$${Number(newest?.amount || 0).toFixed(2)} SC for ${newest?.username || 'Player'} via ${newest?.payoutMethod || 'Direct'}`,
           targetTab: 'finance',
@@ -805,14 +787,6 @@ export default function AdminPortal({ initialTab }) {
       else if (pendingCoinLoads.length > (prevCountsRef.current.coinLoads || 0)) {
         const newest = pendingCoinLoads[0];
         playAdminChime();
-        setActiveAlertToast({
-          type: 'coin_load',
-          title: 'New Coin Load Request!',
-          message: `$${Number(newest?.transferAmount || 0).toFixed(2)} SC load for ${newest?.gameTitle || 'Game'}`,
-          subtext: `From ${newest?.userName || 'Player'} • Escrow Frozen in Wallet`,
-          targetTab: 'coins_allotment',
-          targetSubTab: 'loads',
-        });
         showDesktopNotification('New Coin Load Request! ⚡', {
           body: `$${Number(newest?.transferAmount || 0).toFixed(2)} SC for ${newest?.gameTitle || 'Game'} from ${newest?.userName || 'Player'}`,
           targetTab: 'coins_allotment',
@@ -822,14 +796,6 @@ export default function AdminPortal({ initialTab }) {
       else if (pendingCoinCashouts.length > (prevCountsRef.current.coinCashouts || 0)) {
         const newest = pendingCoinCashouts[0];
         playAdminChime();
-        setActiveAlertToast({
-          type: 'coin_verification',
-          title: 'New Cashout Verification (Coins Desk)!',
-          message: `$${Number(newest?.amount || 0).toFixed(2)} SC for ${newest?.username || 'Player'}`,
-          subtext: `${newest?.gameTitle || 'Game'} winning proof uploaded • Stage 1 Inspection`,
-          targetTab: 'coins_allotment',
-          targetSubTab: 'cashouts',
-        });
         showDesktopNotification('Cashout Winning Proof Uploaded! 🏆', {
           body: `$${Number(newest?.amount || 0).toFixed(2)} SC for ${newest?.username || 'Player'} (${newest?.gameTitle || 'Game'})`,
           targetTab: 'coins_allotment',
@@ -839,13 +805,6 @@ export default function AdminPortal({ initialTab }) {
       else if (pendingReqs.length > (prevCountsRef.current.requests || 0)) {
         const newest = pendingReqs[0];
         playAdminChime();
-        setActiveAlertToast({
-          type: 'account',
-          title: 'New Account Creation Request!',
-          message: `${newest?.gameTitle || 'Game'} request from ${newest?.userName || 'Player'}`,
-          subtext: 'Ready to issue credentials',
-          targetTab: 'account_requests',
-        });
         showDesktopNotification('New Game Account Request! 🎮', {
           body: `${newest?.gameTitle || 'Game'} request from ${newest?.userName || 'Player'}`,
           targetTab: 'account_requests',
@@ -1157,7 +1116,7 @@ export default function AdminPortal({ initialTab }) {
     { id: 'games', label: 'Games Library', icon: Gamepad2, category: 'Catalog & Players' },
     { id: 'users', label: 'Player Accounts', icon: Users, category: 'Catalog & Players' },
     { id: 'tx_search', label: 'Transaction Logs', icon: FileSpreadsheet, category: 'Catalog & Players' },
-    { id: 'promos', label: 'Promotions & Broadcasts', icon: Gift, category: 'Growth & Promos' },
+    { id: 'promos', label: 'Promotions & Bonus Cards', icon: Gift, category: 'Growth & Promos' },
     { id: 'videos', label: 'Player Reviews (Reels)', icon: Video, category: 'Growth & Promos' },
     { id: 'affiliates', label: `Referrals & Affiliates (${sysSettings?.referralBonusPercent ?? 50}%)`, icon: Users, category: 'Growth & Promos' },
     { id: 'affiliate_commissions', label: 'Affiliate Commissions', icon: DollarSign, category: 'Growth & Promos' },
@@ -2279,10 +2238,18 @@ export default function AdminPortal({ initialTab }) {
                         borderColor: 'rgba(0, 240, 255, 0.18)',
                       }}
                     >
-                      <div className="flex items-center gap-3.5">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                         <div
-                          className="w-12 h-12 rounded-2xl flex items-center justify-center text-[#00F0FF] shrink-0"
                           style={{
+                            width: '46px',
+                            height: '46px',
+                            borderRadius: '16px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#00F0FF',
+                            flexShrink: 0,
+                            marginRight: '12px',
                             background: 'rgba(0, 240, 255, 0.12)',
                             border: '1.5px solid rgba(0, 240, 255, 0.4)',
                             boxShadow: '0 0 20px rgba(0, 240, 255, 0.25)',
@@ -2291,7 +2258,7 @@ export default function AdminPortal({ initialTab }) {
                           <Key size={22} className="stroke-[2.5]" />
                         </div>
                         <div>
-                          <div className="flex items-center gap-2 flex-wrap">
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                             <h3
                               className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-cyan-300 m-0 tracking-tight"
                               style={{ fontFamily: 'Lexend, sans-serif' }}
@@ -2299,8 +2266,14 @@ export default function AdminPortal({ initialTab }) {
                               Fulfill Game Account
                             </h3>
                             <span
-                              className="text-[10.5px] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider font-mono"
                               style={{
+                                fontSize: '10.5px',
+                                padding: '3px 10px',
+                                borderRadius: '999px',
+                                fontWeight: 900,
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.06em',
+                                fontFamily: 'monospace',
                                 backgroundColor: 'rgba(245, 158, 11, 0.15)',
                                 color: '#F59E0B',
                                 border: '1px solid rgba(245, 158, 11, 0.4)',
@@ -2309,7 +2282,7 @@ export default function AdminPortal({ initialTab }) {
                               {approvalModal.request.gameTitle || 'Game Vault'}
                             </span>
                           </div>
-                          <p className="text-xs text-slate-400 mt-1 m-0">
+                          <p style={{ fontSize: '12px', color: '#94A3B8', margin: '4px 0 0 0' }}>
                             Issue instant login credentials to the player
                           </p>
                         </div>
@@ -2340,18 +2313,31 @@ export default function AdminPortal({ initialTab }) {
                     >
                       {/* Player Profile Strip */}
                       <div
-                        className="flex items-center justify-between gap-3"
                         style={{
                           backgroundColor: '#070514',
                           border: '1px solid rgba(0, 240, 255, 0.18)',
                           borderRadius: '16px',
                           padding: '14px 18px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '16px',
                         }}
                       >
-                        <div className="flex items-center gap-3.5 min-w-0">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', minWidth: 0 }}>
                           <div
-                            className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-white text-xs uppercase shrink-0"
                             style={{
+                              width: '44px',
+                              height: '44px',
+                              borderRadius: '12px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontWeight: 900,
+                              fontSize: '16px',
+                              textTransform: 'uppercase',
+                              flexShrink: 0,
+                              marginRight: '14px',
                               background: 'linear-gradient(135deg, #00F0FF 0%, #A855F7 100%)',
                               boxShadow: '0 0 15px rgba(0, 240, 255, 0.3)',
                               color: '#070514',
@@ -2359,11 +2345,11 @@ export default function AdminPortal({ initialTab }) {
                           >
                             {approvalModal.request.userName?.charAt(0) || 'P'}
                           </div>
-                          <div className="truncate">
-                            <span className="text-xs font-black text-white block truncate">
+                          <div style={{ minWidth: 0, overflow: 'hidden' }}>
+                            <span style={{ fontSize: '14px', fontWeight: 900, color: '#FFFFFF', display: 'block', lineHeight: 1.3 }}>
                               {approvalModal.request.userName}
                             </span>
-                            <span className="text-[11px] text-slate-400 font-mono block truncate mt-0.5">
+                            <span style={{ fontSize: '12px', color: '#94A3B8', fontFamily: 'monospace', display: 'block', marginTop: '3px' }}>
                               {approvalModal.request.userEmail}
                             </span>
                           </div>
@@ -2371,8 +2357,13 @@ export default function AdminPortal({ initialTab }) {
 
                         {Boolean(approvalModal.request.transferAmount && Number(approvalModal.request.transferAmount) > 0) && (
                           <span
-                            className="px-3 py-1 rounded-xl text-xs font-black font-mono shrink-0"
                             style={{
+                              padding: '4px 12px',
+                              borderRadius: '10px',
+                              fontSize: '12px',
+                              fontWeight: 900,
+                              fontFamily: 'monospace',
+                              flexShrink: 0,
                               backgroundColor: 'rgba(16, 185, 129, 0.12)',
                               color: '#10B981',
                               border: '1px solid rgba(16, 185, 129, 0.35)',
@@ -2394,13 +2385,17 @@ export default function AdminPortal({ initialTab }) {
                         {/* Username */}
                         <div>
                           <div
-                            className="flex items-center justify-between"
-                            style={{ marginBottom: '10px' }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              marginBottom: '10px',
+                            }}
                           >
-                            <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5 uppercase tracking-wider">
-                              <User size={13} className="text-cyan-400" />
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: 800, color: '#CBD5E1', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                              <User size={14} style={{ color: '#00F0FF', marginRight: '6px' }} />
                               <span>Game Platform Username</span>
-                              <span className="text-rose-400">*</span>
+                              <span style={{ color: '#F43F5E' }}>*</span>
                             </label>
                             {approvalModal.username && (
                               <button
@@ -2410,16 +2405,28 @@ export default function AdminPortal({ initialTab }) {
                                   setCopiedModalText('user');
                                   setTimeout(() => setCopiedModalText(null), 2000);
                                 }}
-                                className="text-[11px] text-cyan-400 hover:text-cyan-300 font-mono flex items-center gap-1 cursor-pointer transition px-1.5 py-0.5 rounded hover:bg-cyan-400/10"
+                                style={{
+                                  fontSize: '11px',
+                                  color: '#00F0FF',
+                                  fontFamily: 'monospace',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '6px',
+                                  background: 'none',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                  padding: '2px 8px',
+                                  borderRadius: '6px',
+                                }}
                               >
                                 {copiedModalText === 'user' ? (
                                   <>
-                                    <CheckCheck size={12} className="text-emerald-400" />
-                                    <span className="text-emerald-400 font-bold">Copied!</span>
+                                    <CheckCheck size={12} style={{ color: '#10B981', marginRight: '4px' }} />
+                                    <span style={{ color: '#10B981', fontWeight: 800 }}>Copied!</span>
                                   </>
                                 ) : (
                                   <>
-                                    <Copy size={12} />
+                                    <Copy size={12} style={{ marginRight: '4px' }} />
                                     <span>Copy</span>
                                   </>
                                 )}
@@ -2456,22 +2463,38 @@ export default function AdminPortal({ initialTab }) {
                         {/* Password */}
                         <div>
                           <div
-                            className="flex items-center justify-between"
-                            style={{ marginBottom: '10px' }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              marginBottom: '10px',
+                            }}
                           >
-                            <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5 uppercase tracking-wider">
-                              <Key size={13} className="text-amber-400" />
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: 800, color: '#CBD5E1', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                              <Key size={14} style={{ color: '#F59E0B', marginRight: '6px' }} />
                               <span>Game Platform Password</span>
-                              <span className="text-rose-400">*</span>
+                              <span style={{ color: '#F43F5E' }}>*</span>
                             </label>
-                            <div className="flex items-center gap-2.5">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                               <button
                                 type="button"
                                 onClick={handleRandomizePassword}
-                                className="text-[11px] text-amber-400 hover:text-amber-300 font-mono flex items-center gap-1 cursor-pointer transition px-1.5 py-0.5 rounded hover:bg-amber-400/10"
+                                style={{
+                                  fontSize: '11px',
+                                  color: '#F59E0B',
+                                  fontFamily: 'monospace',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '6px',
+                                  background: 'none',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                  padding: '2px 8px',
+                                  borderRadius: '6px',
+                                }}
                                 title="Generate new random password"
                               >
-                                <RefreshCw size={11} />
+                                <RefreshCw size={11} style={{ marginRight: '4px' }} />
                                 <span>Randomize</span>
                               </button>
                               {approvalModal.password && (
@@ -2482,16 +2505,28 @@ export default function AdminPortal({ initialTab }) {
                                     setCopiedModalText('pass');
                                     setTimeout(() => setCopiedModalText(null), 2000);
                                   }}
-                                  className="text-[11px] text-cyan-400 hover:text-cyan-300 font-mono flex items-center gap-1 cursor-pointer transition px-1.5 py-0.5 rounded hover:bg-cyan-400/10"
+                                  style={{
+                                    fontSize: '11px',
+                                    color: '#00F0FF',
+                                    fontFamily: 'monospace',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    background: 'none',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    padding: '2px 8px',
+                                    borderRadius: '6px',
+                                  }}
                                 >
                                   {copiedModalText === 'pass' ? (
                                     <>
-                                      <CheckCheck size={12} className="text-emerald-400" />
-                                      <span className="text-emerald-400 font-bold">Copied!</span>
+                                      <CheckCheck size={12} style={{ color: '#10B981', marginRight: '4px' }} />
+                                      <span style={{ color: '#10B981', fontWeight: 800 }}>Copied!</span>
                                     </>
                                   ) : (
                                     <>
-                                      <Copy size={12} />
+                                      <Copy size={12} style={{ marginRight: '4px' }} />
                                       <span>Copy</span>
                                     </>
                                   )}
@@ -2546,18 +2581,22 @@ export default function AdminPortal({ initialTab }) {
 
                       {/* Automation Notice Box */}
                       <div
-                        className="flex items-start gap-3.5"
                         style={{
                           backgroundColor: 'rgba(0, 240, 255, 0.05)',
                           border: '1px solid rgba(0, 240, 255, 0.2)',
                           borderRadius: '16px',
                           padding: '16px 18px',
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '14px',
                         }}
                       >
-                        <Sparkles size={17} className="text-cyan-400 shrink-0 mt-0.5" />
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                          <p className="text-cyan-200 font-bold text-xs m-0">Instant Dispatch Protocol</p>
-                          <p className="text-slate-400 text-xs m-0 leading-relaxed">
+                        <div style={{ flexShrink: 0, marginRight: '12px', marginTop: '2px' }}>
+                          <Sparkles size={18} style={{ color: '#00F0FF' }} />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <p style={{ color: '#A5F3FC', fontWeight: 800, fontSize: '12px', margin: 0 }}>Instant Dispatch Protocol</p>
+                          <p style={{ color: '#94A3B8', fontSize: '12px', margin: 0, lineHeight: 1.55 }}>
                             Issuing these credentials will automatically fulfill the request and deliver the Game ID &amp; PIN directly to the player’s Game Accounts vault with 0ms delay.
                           </p>
                         </div>
@@ -2566,10 +2605,16 @@ export default function AdminPortal({ initialTab }) {
 
                     {/* Footer Actions */}
                     <div
-                      className="p-6 pt-4 flex items-center justify-between gap-3 border-t relative z-10"
                       style={{
+                        padding: '18px 24px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '16px',
+                        borderTop: '1px solid rgba(0, 240, 255, 0.18)',
                         backgroundColor: '#070514',
-                        borderColor: 'rgba(0, 240, 255, 0.18)',
+                        position: 'relative',
+                        zIndex: 10,
                       }}
                     >
                       <button
@@ -2580,26 +2625,45 @@ export default function AdminPortal({ initialTab }) {
                           setCopiedModalText('all');
                           setTimeout(() => setCopiedModalText(null), 2000);
                         }}
-                        className="text-xs font-bold text-slate-400 hover:text-cyan-300 flex items-center gap-1.5 transition cursor-pointer"
+                        style={{
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          color: '#94A3B8',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                        }}
                       >
                         {copiedModalText === 'all' ? (
                           <>
-                            <CheckCheck size={14} className="text-emerald-400" />
-                            <span className="text-emerald-400 font-bold">Copied Both!</span>
+                            <CheckCheck size={14} style={{ color: '#10B981', marginRight: '6px' }} />
+                            <span style={{ color: '#10B981', fontWeight: 800 }}>Copied Both!</span>
                           </>
                         ) : (
                           <>
-                            <Copy size={14} />
+                            <Copy size={14} style={{ marginRight: '6px' }} />
                             <span>Copy Both</span>
                           </>
                         )}
                       </button>
 
-                      <div className="flex items-center gap-3">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <button
                           type="button"
                           onClick={() => setApprovalModal({ open: false, request: null, username: '', password: '' })}
-                          className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer"
+                          style={{
+                            padding: '10px 18px',
+                            borderRadius: '12px',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            color: '#94A3B8',
+                            background: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                          }}
                         >
                           Cancel
                         </button>
@@ -2611,12 +2675,22 @@ export default function AdminPortal({ initialTab }) {
                             backgroundColor: '#00F0FF',
                             color: '#070514',
                             boxShadow: '0 0 25px rgba(0, 240, 255, 0.4)',
+                            padding: '10px 22px',
+                            borderRadius: '12px',
+                            fontSize: '12px',
+                            fontWeight: 900,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em',
+                            cursor: 'pointer',
+                            border: 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
                           }}
-                          className="px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer hover:brightness-110 flex items-center gap-2"
                         >
                           {submittingApproval ? (
                             <>
-                              <RefreshCw size={14} className="animate-spin" />
+                              <RefreshCw size={14} className="animate-spin" style={{ marginRight: '6px' }} />
                               <span>Issuing...</span>
                             </>
                           ) : (
@@ -10266,23 +10340,9 @@ export default function AdminPortal({ initialTab }) {
             onChangeVolume={handleChangeVolume}
             soundEnabled={audioAlertsEnabled}
             onToggleSound={handleToggleSound}
-            onTestToast={(testAlert) => setActiveAlertToast(testAlert)}
           />
 
-          {/* Real-time Incoming Request Toast Notification */}
-          <IncomingRequestToast
-            alert={activeAlertToast}
-            onDismiss={() => setActiveAlertToast(null)}
-            onViewRequest={(alert) => {
-              if (alert.targetTab) setActiveTab(alert.targetTab);
-              if (alert.targetTab === 'finance' && alert.targetSubTab) {
-                setFinanceSubTab(alert.targetSubTab);
-              }
-              if (alert.targetTab === 'coins_allotment') {
-                setCoinDeskSection(alert.targetSubTab || 'loads');
-              }
-            }}
-          />
+
 
           {/* Reset Platform Records & CST Calibration Modal */}
           <ResetRecordsModal

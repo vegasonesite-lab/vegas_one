@@ -221,7 +221,8 @@ export default function PushNotificationManager() {
     }
   }, [activeToast]);
 
-  if (!activeToast) return null;
+  // Floating popup toast banners permanently disabled per user request
+  return null;
 
   return (
     <div

@@ -22,7 +22,8 @@ import {
   Percent,
   Calendar,
   Layers,
-  ArrowRight
+  ArrowRight,
+  Pencil
 } from 'lucide-react';
 
 const QUICK_TAGS = [
@@ -54,16 +55,30 @@ export default function PromotionsManager() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMsg, setStatusMsg] = useState(null);
 
-  // Form State
+  // Form State (Create)
   const [title, setTitle] = useState('');
   const [tag, setTag] = useState(QUICK_TAGS[0]);
   const [rewardHighlight, setRewardHighlight] = useState('');
   const [description, setDescription] = useState('');
   const [minDeposit, setMinDeposit] = useState('20');
   const [rewardSC, setRewardSC] = useState('10');
-  const [actionUrl, setActionUrl] = useState('/wallet');
-  const [actionText, setActionText] = useState('LOAD COINS NOW');
+  const [actionUrl, setActionUrl] = useState('/deposit');
+  const [actionText, setActionText] = useState('CLAIM BOOST');
   const [selectedGradient, setSelectedGradient] = useState(GRADIENT_PRESETS[0]);
+
+  // Edit Promotion Modal State
+  const [editingPromo, setEditingPromo] = useState(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editTag, setEditTag] = useState('');
+  const [editRewardHighlight, setEditRewardHighlight] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editMinDeposit, setEditMinDeposit] = useState('20');
+  const [editRewardSC, setEditRewardSC] = useState('10');
+  const [editActionUrl, setEditActionUrl] = useState('/deposit');
+  const [editActionText, setEditActionText] = useState('CLAIM BOOST');
+  const [editSelectedGradient, setEditSelectedGradient] = useState(GRADIENT_PRESETS[0]);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [editStatusMsg, setEditStatusMsg] = useState(null);
 
   // Broadcasts State (Omnichannel)
   const [pushTitle, setPushTitle] = useState('');
@@ -138,8 +153,8 @@ export default function PromotionsManager() {
           description: description.trim(),
           minDeposit: Number(minDeposit) || 0,
           rewardSC: Number(rewardSC) || 0,
-          actionUrl: actionUrl.trim() || '/wallet',
-          actionText: actionText.trim() || 'CLAIM NOW',
+          actionUrl: actionUrl.trim() || '/deposit',
+          actionText: actionText.trim() || 'CLAIM BOOST',
           gradient: selectedGradient.value,
           badgeColor: selectedGradient.color,
         }),
@@ -165,6 +180,72 @@ export default function PromotionsManager() {
       setStatusMsg({ type: 'error', text: err.message || 'Error creating promotion.' });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Open Edit Modal with Pre-filled card values
+  const handleOpenEditModal = (promo) => {
+    setEditingPromo(promo);
+    setEditTitle(promo.title || '');
+    setEditTag(promo.tag || QUICK_TAGS[0]);
+    setEditRewardHighlight(promo.rewardHighlight || '');
+    setEditDescription(promo.description || '');
+    setEditMinDeposit(String(promo.minDeposit ?? 20));
+    setEditRewardSC(String(promo.rewardSC ?? 10));
+    setEditActionUrl(promo.actionUrl || '/deposit');
+    setEditActionText(promo.actionText || 'CLAIM BOOST');
+    const matched = GRADIENT_PRESETS.find(g => g.value === promo.gradient) || GRADIENT_PRESETS[0];
+    setEditSelectedGradient(matched);
+    setEditStatusMsg(null);
+  };
+
+  // Update existing promotion
+  const handleUpdatePromotion = async (e) => {
+    e.preventDefault();
+    if (!editTitle.trim()) {
+      setEditStatusMsg({ type: 'error', text: 'Title is required.' });
+      return;
+    }
+
+    setIsUpdating(true);
+    setEditStatusMsg(null);
+
+    try {
+      const res = await fetch('/api/promos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'update_promo',
+          id: editingPromo._id || editingPromo.id,
+          title: editTitle.trim(),
+          tag: editTag.trim(),
+          rewardHighlight: editRewardHighlight.trim(),
+          description: editDescription.trim(),
+          minDeposit: Number(editMinDeposit) || 0,
+          rewardSC: Number(editRewardSC) || 0,
+          actionUrl: editActionUrl.trim() || '/deposit',
+          actionText: editActionText.trim() || 'CLAIM BOOST',
+          gradient: editSelectedGradient.value,
+          badgeColor: editSelectedGradient.color,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setEditStatusMsg({ type: 'success', text: '✅ Promotion card updated successfully!' });
+        fetchPromotions();
+        setTimeout(() => {
+          setEditingPromo(null);
+          setEditStatusMsg(null);
+        }, 1000);
+      } else {
+        setEditStatusMsg({ type: 'error', text: data.error || 'Failed to update promotion.' });
+      }
+    } catch (err) {
+      setEditStatusMsg({ type: 'error', text: err.message || 'Error updating promotion.' });
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -632,6 +713,21 @@ export default function PromotionsManager() {
                               <span>{isPromoActive ? 'Active Live' : 'Paused'}</span>
                             </button>
 
+                            {/* Edit Promo Button */}
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEditModal(promo)}
+                              className="w-8 h-8 rounded-xl flex items-center justify-center transition cursor-pointer"
+                              style={{
+                                backgroundColor: 'rgba(0, 240, 255, 0.1)',
+                                border: '1px solid rgba(0, 240, 255, 0.3)',
+                                color: '#00F0FF',
+                              }}
+                              title="Edit this promotion card"
+                            >
+                              <Pencil size={13} />
+                            </button>
+
                             {/* Delete Promo Button */}
                             <button
                               type="button"
@@ -650,9 +746,11 @@ export default function PromotionsManager() {
                         </div>
 
                         {/* Title & Reward Highlight */}
-                        <h3 className="text-lg font-black text-white leading-snug m-0" style={{ fontFamily: 'Lexend, sans-serif' }}>
-                          {promo.title}
-                        </h3>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="text-lg font-black text-white leading-snug m-0" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                            {promo.title}
+                          </h3>
+                        </div>
 
                         {promo.rewardHighlight && (
                           <div
@@ -1247,6 +1345,294 @@ export default function PromotionsManager() {
                     <Sparkles size={14} />
                   )}
                   <span>Publish Promotion</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* MODAL 2: EDIT EXISTING PROMOTION CARD */}
+      {/* ======================================================== */}
+      {editingPromo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in">
+          <div
+            className="relative w-full max-w-xl max-h-[92vh] overflow-y-auto rounded-3xl p-6 sm:p-7 text-white space-y-5"
+            style={{
+              backgroundColor: '#0C0A1E',
+              border: '1px solid rgba(0, 240, 255, 0.45)',
+              boxShadow: '0 30px 80px rgba(0, 0, 0, 0.95), 0 0 40px rgba(0, 240, 255, 0.25)',
+            }}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-4" style={{ borderBottom: '1px solid rgba(0, 240, 255, 0.15)' }}>
+              <div className="flex items-center gap-3.5">
+                <div
+                  className="w-11 h-11 rounded-2xl flex items-center justify-center text-cyan-300 shrink-0"
+                  style={{
+                    backgroundColor: 'rgba(0, 240, 255, 0.12)',
+                    border: '1.5px solid rgba(0, 240, 255, 0.35)',
+                    boxShadow: '0 0 15px rgba(0, 240, 255, 0.15)',
+                  }}
+                >
+                  <Pencil size={20} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-white m-0" style={{ fontFamily: 'Lexend, sans-serif' }}>Edit Promotion Card</h3>
+                  <p className="text-xs text-slate-400 m-0 mt-0.5">Modify title, description, reward highlight, or CTA button.</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingPromo(null)}
+                className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Status Alert */}
+            {editStatusMsg && (
+              <div
+                className={`p-3 rounded-xl text-xs font-bold flex items-center gap-2 ${
+                  editStatusMsg.type === 'success'
+                    ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300'
+                    : 'bg-rose-500/20 border border-rose-500/40 text-rose-300'
+                }`}
+              >
+                {editStatusMsg.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+                <span>{editStatusMsg.text}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleUpdatePromotion} className="space-y-4">
+              {/* Promotion Title */}
+              <div>
+                <label className="text-xs font-bold text-slate-300 block mb-1.5" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                  Promotion Title <span className="text-rose-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. 50% weekend boost"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none transition"
+                  style={{
+                    backgroundColor: '#070514',
+                    border: '1px solid rgba(0, 240, 255, 0.22)',
+                    fontFamily: 'Lexend, sans-serif',
+                  }}
+                />
+              </div>
+
+              {/* Tag / Badge */}
+              <div>
+                <label className="text-xs font-bold text-slate-300 block mb-1.5" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                  Tag / Ribbon Badge (e.g. WEEKEND)
+                </label>
+                <div className="flex items-center gap-1.5 mb-2 overflow-x-auto pb-1 no-scrollbar">
+                  {['WEEKEND', ...QUICK_TAGS].map((t, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setEditTag(t)}
+                      className="shrink-0 px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer"
+                      style={{
+                        backgroundColor: editTag === t ? 'rgba(0, 240, 255, 0.18)' : '#070514',
+                        border: editTag === t ? '1px solid rgba(0, 240, 255, 0.45)' : '1px solid rgba(255, 255, 255, 0.08)',
+                        color: editTag === t ? '#00F0FF' : '#94A3B8',
+                      }}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="text"
+                  value={editTag}
+                  onChange={(e) => setEditTag(e.target.value)}
+                  placeholder="e.g. WEEKEND"
+                  className="w-full rounded-xl p-2.5 text-xs text-white placeholder-slate-500 focus:outline-none transition"
+                  style={{
+                    backgroundColor: '#070514',
+                    border: '1px solid rgba(0, 240, 255, 0.22)',
+                  }}
+                />
+              </div>
+
+              {/* Reward Highlight */}
+              <div>
+                <label className="text-xs font-bold text-slate-300 block mb-1.5" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                  Reward Highlight (Golden Pill)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. +50% Extra Sweeps Coins All Weekend"
+                  value={editRewardHighlight}
+                  onChange={(e) => setEditRewardHighlight(e.target.value)}
+                  className="w-full rounded-xl p-2.5 text-xs text-white placeholder-slate-500 focus:outline-none transition"
+                  style={{
+                    backgroundColor: '#070514',
+                    border: '1px solid rgba(0, 240, 255, 0.22)',
+                  }}
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="text-xs font-bold text-slate-300 block mb-1.5" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                  Full Description
+                </label>
+                <textarea
+                  rows="3"
+                  placeholder="e.g. Every deposit Friday to Sunday gets half as much again on top."
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  className="w-full rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none transition leading-relaxed"
+                  style={{
+                    backgroundColor: '#070514',
+                    border: '1px solid rgba(0, 240, 255, 0.22)',
+                  }}
+                />
+              </div>
+
+              {/* Numbers: Min Deposit & Bonus SC */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1.5" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                    Min Deposit ($ SC)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="20"
+                    value={editMinDeposit}
+                    onChange={(e) => setEditMinDeposit(e.target.value)}
+                    className="w-full rounded-xl p-2.5 text-xs text-white placeholder-slate-500 focus:outline-none transition font-mono"
+                    style={{
+                      backgroundColor: '#070514',
+                      border: '1px solid rgba(0, 240, 255, 0.22)',
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1.5" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                    Direct Reward ($ SC)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="10"
+                    value={editRewardSC}
+                    onChange={(e) => setEditRewardSC(e.target.value)}
+                    className="w-full rounded-xl p-2.5 text-xs text-white placeholder-slate-500 focus:outline-none transition font-mono"
+                    style={{
+                      backgroundColor: '#070514',
+                      border: '1px solid rgba(0, 240, 255, 0.22)',
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Action URL & CTA Button */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1.5" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                    Action Target URL
+                  </label>
+                  <input
+                    type="text"
+                    value={editActionUrl}
+                    onChange={(e) => setEditActionUrl(e.target.value)}
+                    placeholder="e.g. /deposit, /games, /wallet"
+                    className="w-full rounded-xl p-2.5 text-xs text-white font-mono placeholder-slate-500 focus:outline-none transition"
+                    style={{
+                      backgroundColor: '#070514',
+                      border: '1px solid rgba(0, 240, 255, 0.22)',
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1.5" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                    CTA Button Text
+                  </label>
+                  <input
+                    type="text"
+                    value={editActionText}
+                    onChange={(e) => setEditActionText(e.target.value)}
+                    placeholder="e.g. CLAIM BOOST"
+                    className="w-full rounded-xl p-2.5 text-xs text-white placeholder-slate-500 focus:outline-none transition"
+                    style={{
+                      backgroundColor: '#070514',
+                      border: '1px solid rgba(0, 240, 255, 0.22)',
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Gradient Theme Picker */}
+              <div>
+                <label className="text-xs font-bold text-slate-300 block mb-1.5" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                  Card Gradient Theme
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {GRADIENT_PRESETS.map((preset, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setEditSelectedGradient(preset)}
+                      className="p-2 rounded-xl text-left flex items-center gap-2 transition cursor-pointer"
+                      style={{
+                        backgroundColor: editSelectedGradient.label === preset.label ? 'rgba(0, 240, 255, 0.15)' : '#070514',
+                        border: editSelectedGradient.label === preset.label ? '1px solid rgba(0, 240, 255, 0.45)' : '1px solid rgba(255, 255, 255, 0.08)',
+                      }}
+                    >
+                      <span className={`w-4 h-4 rounded-full bg-gradient-to-r ${preset.value} shrink-0`} />
+                      <span className="text-[11px] font-bold text-slate-300 truncate">
+                        {preset.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Submit Buttons */}
+              <div className="pt-3 flex items-center justify-end gap-3" style={{ borderTop: '1px solid rgba(0, 240, 255, 0.15)' }}>
+                <button
+                  type="button"
+                  onClick={() => setEditingPromo(null)}
+                  style={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                  }}
+                  className="px-4 py-2.5 rounded-xl text-slate-300 hover:text-white text-xs font-bold transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={isUpdating || !editTitle.trim()}
+                  style={{
+                    background: '#00F0FF',
+                    color: '#070514',
+                    border: '1px solid #00F0FF',
+                    boxShadow: '0 0 20px rgba(0, 240, 255, 0.35)',
+                  }}
+                  className="px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-wider flex items-center gap-2 transition hover:brightness-110 disabled:opacity-50 cursor-pointer"
+                >
+                  {isUpdating ? (
+                    <RefreshCw size={14} className="animate-spin" />
+                  ) : (
+                    <Check size={14} strokeWidth={3} />
+                  )}
+                  <span>Save Changes</span>
                 </button>
               </div>
             </form>

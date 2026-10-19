@@ -17,7 +17,6 @@ import ReferralCenterTab from '@/components/player/ReferralCenterTab';
 import PlayerProfileTab from '@/components/player/PlayerProfileTab';
 import VegasFooter from '@/components/player/VegasFooter';
 import LiveChatWidget from '@/components/LiveChatWidget';
-import BonusAlertToast from '@/components/BonusAlertToast';
 import VegasFreeplayBanner from '@/components/player/VegasFreeplayBanner';
 import VegasGameHubStation from '@/components/player/VegasGameHubStation';
 import VegasSidebar from '@/components/player/VegasSidebar';
@@ -392,8 +391,7 @@ export default function Home() {
             />
           </div>
 
-      {/* 5. Bonus Alerts Toast Notification */}
-      <BonusAlertToast onAllowed={() => {}} />
+
 
       {/* 6. Floating 24/7 Live Support Desk ("No Chat Delete") */}
       <LiveChatWidget user={user} soundEnabled={soundEnabled} />

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   ArrowLeft,
@@ -16,14 +17,22 @@ import {
   RefreshCw
 } from 'lucide-react';
 import VegasNavbar from '@/components/player/VegasNavbar';
+import VegasSidebar from '@/components/player/VegasSidebar';
 import VegasFooter from '@/components/player/VegasFooter';
 import MobileBottomNav from '@/components/player/MobileBottomNav';
 import LiveChatWidget from '@/components/LiveChatWidget';
 import AuthModal from '@/components/AuthModal';
 import PromoModal from '@/components/PromoModal';
+import VegasRunningPromos from '@/components/player/VegasRunningPromos';
+import { useAuthSession } from '@/lib/clientAuth';
 
 export default function PromotionsPage() {
+  const router = useRouter();
+  const { user, refreshUser } = useAuthSession();
   const [authModal, setAuthModal] = useState({ open: false, tab: 'login' });
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [activeCurrency, setActiveCurrency] = useState('SC');
+  const [soundEnabled, setSoundEnabled] = useState(true);
   const [timeLeft, setTimeLeft] = useState({ hours: 5, minutes: 42, seconds: 18 });
   const [promotions, setPromotions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -56,9 +65,43 @@ export default function PromotionsPage() {
   const format2 = (n) => String(n).padStart(2, '0');
 
   return (
-    <div className="min-h-screen bg-[#070514] text-[#F8FAFC] selection:bg-[#00F0FF] selection:text-[#070514] flex flex-col justify-between font-body antialiased">
-      <div>
-        <VegasNavbar activeTab="promotions" onSelectTab={() => {}} />
+    <div className="min-h-screen bg-[#070514] text-[#F8FAFC] selection:bg-[#00F0FF] selection:text-[#070514] font-body antialiased">
+      {/* 1. Permanent Fixed 100vh Left Sidebar */}
+      <VegasSidebar
+        user={user}
+        activeTab="promotions"
+        onSelectTab={(t) => {
+          if (t === 'main') router.push('/');
+          else if (t === 'accounts') router.push('/accounts');
+          else if (t.startsWith('/')) router.push(t);
+          else router.push(`/${t}`);
+        }}
+        onOpenAuth={(t) => setAuthModal({ open: true, tab: t })}
+        mobileOpen={mobileSidebarOpen}
+        onCloseMobile={() => setMobileSidebarOpen(false)}
+      />
+
+      {/* 2. Right-Hand Scrollable Content Area */}
+      <div className="vegas-page-right-content">
+        <VegasNavbar
+          user={user}
+          activeTab="promotions"
+          onSelectTab={(tab) => {
+            if (tab === 'main') router.push('/');
+            else if (tab.startsWith('/')) router.push(tab);
+            else router.push(`/${tab}`);
+          }}
+          onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
+          onOpenWallet={() => {
+            if (!user) setAuthModal({ open: true, tab: 'login' });
+            else router.push('/deposit');
+          }}
+          onToggleMobileSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+          activeCurrency={activeCurrency}
+          setActiveCurrency={setActiveCurrency}
+          soundEnabled={soundEnabled}
+          setSoundEnabled={setSoundEnabled}
+        />
 
         <main className="sovereign-container" style={{ paddingTop: '24px', paddingBottom: '70px' }}>
           <Link
@@ -281,6 +324,11 @@ export default function PromotionsPage() {
             </a>
           </div>
 
+          {/* Running right now - Active Client Promotional Bonuses */}
+          <div style={{ marginBottom: '32px' }}>
+            <VegasRunningPromos onOpenAuth={(tab) => setAuthModal({ open: true, tab })} />
+          </div>
+
           {/* Active Promotions Grid */}
           <div style={{ marginBottom: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
@@ -378,7 +426,7 @@ export default function PromotionsPage() {
                         )}
 
                         {/* Description */}
-                        <p style={{ fontSize: '13px', color: '#B3A9C0', lineHeight: 1.55, margin: '0 0 18px 0' }}>
+                        <p style={{ fontSize: '13px', color: '#B3A9C0', lineHeight: 1.55, margin: '0 0 16px 0' }}>
                           {promo.description}
                         </p>
                       </div>
@@ -429,6 +477,8 @@ export default function PromotionsPage() {
             )}
           </div>
         </main>
+
+        <VegasFooter onSelectTab={(t) => router.push(t.startsWith('/') ? t : `/${t}`)} />
       </div>
 
       {/* Reusable Promo Detail Modal */}
@@ -438,8 +488,15 @@ export default function PromotionsPage() {
         onClose={() => setSelectedPromo(null)}
       />
 
-      <VegasFooter onSelectTab={() => {}} />
-      <MobileBottomNav activeTab="main" onSelectTab={() => {}} />
+      {/* Auth Modal (Login / Register) */}
+      <AuthModal
+        isOpen={authModal.open}
+        onClose={() => setAuthModal({ open: false, tab: 'login' })}
+        initialTab={authModal.tab}
+        onLoginSuccess={refreshUser}
+      />
+
+      <MobileBottomNav activeTab="main" onSelectTab={(t) => router.push(t.startsWith('/') ? t : `/${t}`)} />
       <LiveChatWidget />
     </div>
   );

@@ -15,6 +15,7 @@ import {
   Headphones,
   ShieldCheck,
   Flame,
+  Gift,
   X
 } from 'lucide-react';
 
@@ -89,6 +90,14 @@ export default function VegasSidebar({
           requiresAuth: true,
           badge: 'HOT',
           badgeColor: '#E026D8',
+        },
+        {
+          id: 'promotions',
+          label: 'Promotions & Bonuses',
+          icon: Gift,
+          path: '/promotions',
+          badge: 'BONUS',
+          badgeColor: '#F97316',
         },
       ],
     },
