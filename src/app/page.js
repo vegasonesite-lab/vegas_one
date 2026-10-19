@@ -35,11 +35,12 @@ import RouletteModal from '@/components/games/RouletteModal';
 import BlackjackModal from '@/components/games/BlackjackModal';
 import ExternalGameModal from '@/components/games/ExternalGameModal';
 import SubscriptionPromoModal from '@/components/SubscriptionPromoModal';
+import { getClientUser, fetchCurrentUser } from '@/lib/clientAuth';
 
 export default function Home() {
   const router = useRouter();
-  const [user, setUser] = useState(null);
-  const [loadingUser, setLoadingUser] = useState(true);
+  const [user, setUser] = useState(() => getClientUser());
+  const [loadingUser, setLoadingUser] = useState(() => !getClientUser());
   const [activeTab, setActiveTab] = useState('main'); // 'main' | 'ledger' | 'referrals' | 'profile' | 'rules' | 'accounts'
   const [activeFilter, setActiveFilter] = useState('all'); // 'all' | 'favorites'
   const [favorites, setFavorites] = useState([]);
@@ -122,9 +123,8 @@ export default function Home() {
   // 1. Fetch authenticated session & Dynamic Real-Time Live Polling
   const refreshUser = async () => {
     try {
-      const res = await fetch('/api/auth/me');
-      const data = await res.json();
-      if (data.authenticated && data.user) {
+      const data = await fetchCurrentUser();
+      if (data && data.authenticated && data.user) {
         setUser(data.user);
       } else {
         setUser(null);
@@ -230,7 +230,7 @@ export default function Home() {
           setSoundEnabled={setSoundEnabled}
         />
 
-        <main className="sovereign-container" style={{ paddingTop: '18px', paddingBottom: '60px', width: '100%' }}>
+        <main className="sovereign-container sovereign-main-cashier">
               {/* TAB 1: CASINO LOBBY */}
               {activeTab === 'main' && (
                 <div>

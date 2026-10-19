@@ -18,9 +18,11 @@ import {
   ShieldCheck,
   Zap,
   TrendingUp,
-  Coins
+  Coins,
+  Phone,
 } from 'lucide-react';
 import { getOrCreateDeviceId } from '@/lib/deviceClient';
+import { setClientUser } from '@/lib/clientAuth';
 
 export default function AuthModal({
   isOpen,
@@ -33,6 +35,7 @@ export default function AuthModal({
   const [identifier, setIdentifier] = useState('');
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -101,6 +104,7 @@ export default function AuthModal({
       setLoading(false);
 
       if (data.success) {
+        setClientUser(data.user);
         if (onAuthSuccess) onAuthSuccess(data.user);
         if (onSuccess) onSuccess(data.user);
         onClose();
@@ -246,6 +250,7 @@ export default function AuthModal({
             setLoading(false);
 
             if (data.success) {
+              setClientUser(data.user);
               if (onAuthSuccess) onAuthSuccess(data.user);
               if (onSuccess) onSuccess(data.user);
               onClose();
@@ -317,6 +322,7 @@ export default function AuthModal({
         body: JSON.stringify({
           username,
           email,
+          phoneNumber: phoneNumber.trim(),
           password,
           dob,
           referralCode: referralCode.trim(),
@@ -330,6 +336,7 @@ export default function AuthModal({
       setLoading(false);
 
       if (data.success) {
+        setClientUser(data.user);
         if (onAuthSuccess) onAuthSuccess(data.user);
         if (onSuccess) onSuccess(data.user);
         onClose();
@@ -1098,6 +1105,50 @@ export default function AuthModal({
                         }}
                       />
                     </div>
+                  </div>
+                </div>
+
+                {/* Mobile Phone Number (Lead Generation & VIP Rewards) */}
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                    <label
+                      style={{
+                        display: 'block',
+                        fontSize: '10px',
+                        fontFamily: 'Lexend, sans-serif',
+                        fontWeight: 800,
+                        color: '#C8C1D4',
+                        letterSpacing: '0.04em',
+                      }}
+                    >
+                      MOBILE PHONE NUMBER (VIP REWARDS &amp; ALERTS)
+                    </label>
+                    <span style={{ fontSize: '9px', color: '#10B981', fontWeight: 800 }}>✓ EXCLUSIVE DROPS</span>
+                  </div>
+                  <div style={{ position: 'relative' }}>
+                    <Phone
+                      size={14}
+                      color="#00F0FF"
+                      style={{ position: 'absolute', top: '12px', left: '12px', opacity: 0.85 }}
+                    />
+                    <input
+                      type="tel"
+                      placeholder="e.g. +1 (555) 234-5678"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      style={{
+                        width: '100%',
+                        backgroundColor: '#070514',
+                        border: '1px solid rgba(0, 240, 255, 0.28)',
+                        borderRadius: '11px',
+                        padding: '10px 12px 10px 36px',
+                        color: '#FFFFFF',
+                        fontSize: '12.5px',
+                        fontFamily: 'Lexend, sans-serif',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                      }}
+                    />
                   </div>
                 </div>
 

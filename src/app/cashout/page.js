@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   ArrowLeft,
+  ArrowDownCircle,
   ArrowUpCircle,
   ShieldCheck,
   AlertCircle,
@@ -31,10 +32,11 @@ import VegasFooter from '@/components/player/VegasFooter';
 import LiveChatWidget from '@/components/LiveChatWidget';
 import AuthModal from '@/components/AuthModal';
 import { compressImage } from '@/lib/imageCompressor';
+import { useAuthSession } from '@/lib/clientAuth';
 
 export default function CashoutPage() {
   const router = useRouter();
-  const [user, setUser] = useState(null);
+  const { user, setUser, authChecking, refreshUser } = useAuthSession();
   const [authModal, setAuthModal] = useState({ open: false, tab: 'login' });
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
@@ -95,19 +97,7 @@ export default function CashoutPage() {
 
   const presetAmounts = [25, 50, 100, 250];
 
-  const refreshUser = async () => {
-    try {
-      const res = await fetch('/api/auth/me');
-      const data = await res.json();
-      if (data.authenticated && data.user) {
-        setUser(data.user);
-      } else {
-        setUser(null);
-      }
-    } catch {
-      setUser(null);
-    }
-  };
+
 
   const fetchGames = async () => {
     try {
@@ -147,7 +137,6 @@ export default function CashoutPage() {
   };
 
   useEffect(() => {
-    refreshUser();
     fetchGames();
   }, []);
 
@@ -395,7 +384,7 @@ export default function CashoutPage() {
           setSoundEnabled={() => {}}
         />
 
-        <main className="sovereign-container" style={{ paddingTop: '24px', paddingBottom: '70px', width: '100%' }}>
+        <main className="sovereign-container sovereign-main-cashier">
           {/* Back Button */}
           <Link
             href="/"
@@ -428,7 +417,118 @@ export default function CashoutPage() {
             </p>
           </div>
 
-          {!user ? (
+          {/* Cashier Sub-Navigation Tabs: Deposit / Redeem / History */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              marginBottom: '24px',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+              paddingBottom: '16px',
+              flexWrap: 'wrap',
+            }}
+          >
+            <Link
+              href="/deposit"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 18px',
+                borderRadius: '12px',
+                backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                color: '#94A3B8',
+                fontFamily: 'Lexend, sans-serif',
+                fontSize: '12.5px',
+                fontWeight: 700,
+                textDecoration: 'none',
+                transition: 'all 0.15s ease',
+              }}
+              className="hover:text-white hover:border-white/20"
+            >
+              <ArrowDownCircle size={15} color="#34D399" />
+              <span>DEPOSIT FUNDS</span>
+            </Link>
+
+            <Link
+              href="/cashout"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 18px',
+                borderRadius: '12px',
+                backgroundColor: 'rgba(224, 38, 216, 0.22)',
+                border: '1px solid #E026D8',
+                color: '#F472B6',
+                fontFamily: 'Lexend, sans-serif',
+                fontSize: '12.5px',
+                fontWeight: 900,
+                textDecoration: 'none',
+                boxShadow: '0 0 15px rgba(224, 38, 216, 0.25)',
+              }}
+            >
+              <ArrowUpCircle size={15} color="#F472B6" />
+              <span>REDEEM / CASHOUT</span>
+            </Link>
+
+            <Link
+              href="/history"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 18px',
+                borderRadius: '12px',
+                backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                color: '#94A3B8',
+                fontFamily: 'Lexend, sans-serif',
+                fontSize: '12.5px',
+                fontWeight: 700,
+                textDecoration: 'none',
+                transition: 'all 0.15s ease',
+              }}
+              className="hover:text-white hover:border-white/20"
+            >
+              <Clock size={15} color="#94A3B8" />
+              <span>TRANSACTION HISTORY</span>
+            </Link>
+          </div>
+
+          {authChecking ? (
+            <div
+              style={{
+                backgroundColor: '#0E0A24',
+                borderRadius: '24px',
+                border: '1px solid rgba(0, 240, 255, 0.25)',
+                padding: '60px 24px',
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '14px',
+                boxShadow: '0 16px 40px rgba(0, 0, 0, 0.5)',
+              }}
+            >
+              <div
+                style={{
+                  width: '38px',
+                  height: '38px',
+                  border: '3px solid rgba(0, 240, 255, 0.2)',
+                  borderTopColor: '#00F0FF',
+                  borderRadius: '50%',
+                  animation: 'spin 0.8s linear infinite',
+                }}
+              />
+              <span style={{ fontSize: '13px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
+                Verifying cashier access...
+              </span>
+            </div>
+          ) : !user ? (
             <div
               style={{
                 backgroundColor: '#0E0A24',

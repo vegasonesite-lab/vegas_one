@@ -10,7 +10,7 @@ export async function POST(req) {
   try {
     await ensureDbInitialized();
 
-    const { username, email, password, referralCode: inputRef, state = 'US', ageVerified, dob, deviceId: rawDeviceId } = await req.json();
+    const { username, email, phoneNumber, phone, password, referralCode: inputRef, state = 'US', ageVerified, dob, deviceId: rawDeviceId } = await req.json();
 
     if (!username || !email || !password) {
       return NextResponse.json({ success: false, error: 'All fields are required.' }, { status: 400 });
@@ -43,6 +43,7 @@ export async function POST(req) {
 
     const cleanUsername = username.trim().toLowerCase();
     const cleanEmail = email.trim().toLowerCase();
+    const cleanPhone = (phoneNumber || phone || '').trim();
     const deviceId = getDeviceIdFromRequest(req, rawDeviceId);
 
     const db = await getDb();
@@ -94,6 +95,7 @@ export async function POST(req) {
     const newUser = {
       username: cleanUsername,
       email: cleanEmail,
+      phoneNumber: cleanPhone || null,
       passwordHash,
       role: ROLES.PLAYER,
       balanceSC: initialBonusSC,
@@ -159,6 +161,7 @@ export async function POST(req) {
         userId,
         username: cleanUsername,
         email: cleanEmail,
+        phoneNumber: cleanPhone || null,
         role: ROLES.PLAYER,
         balanceSC: initialBonusSC,
         balance: initialBonusSC,

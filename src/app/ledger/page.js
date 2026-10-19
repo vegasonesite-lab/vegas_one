@@ -11,18 +11,18 @@ import PlayerLedgerTab from '@/components/player/PlayerLedgerTab';
 import LiveChatWidget from '@/components/LiveChatWidget';
 import AuthModal from '@/components/AuthModal';
 import VegasSidebar from '@/components/player/VegasSidebar';
+import { getClientUser, fetchCurrentUser } from '@/lib/clientAuth';
 
 export default function LedgerPage() {
   const router = useRouter();
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => getClientUser());
   const [authModal, setAuthModal] = useState({ open: false, tab: 'login' });
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   const refreshUser = async () => {
     try {
-      const res = await fetch('/api/auth/me');
-      const data = await res.json();
-      if (data.authenticated && data.user) {
+      const data = await fetchCurrentUser();
+      if (data && data.authenticated && data.user) {
         setUser(data.user);
       } else {
         setUser(null);
@@ -63,12 +63,12 @@ export default function LedgerPage() {
           onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
           onOpenWallet={() => {
             if (!user) setAuthModal({ open: true, tab: 'login' });
-            else router.push('/wallet');
+            else router.push('/deposit');
           }}
           onToggleMobileSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
         />
 
-        <main className="sovereign-container" style={{ paddingTop: '24px', paddingBottom: '70px', width: '100%' }}>
+        <main className="sovereign-container sovereign-main-cashier">
           <Link
             href="/"
             style={{
@@ -103,7 +103,7 @@ export default function LedgerPage() {
             if (tab === 'main') router.push('/');
             else router.push(`/${tab}`);
           }}
-          onOpenWallet={() => router.push('/wallet')}
+          onOpenWallet={() => router.push('/deposit')}
           onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
           user={user}
         />

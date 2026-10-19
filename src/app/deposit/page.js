@@ -35,10 +35,11 @@ import VegasFooter from '@/components/player/VegasFooter';
 import LiveChatWidget from '@/components/LiveChatWidget';
 import AuthModal from '@/components/AuthModal';
 import { compressImage } from '@/lib/imageCompressor';
+import { useAuthSession } from '@/lib/clientAuth';
 
 export default function DepositPage() {
   const router = useRouter();
-  const [user, setUser] = useState(null);
+  const { user, setUser, authChecking, refreshUser } = useAuthSession();
   const [authModal, setAuthModal] = useState({ open: false, tab: 'login' });
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
@@ -108,23 +109,7 @@ export default function DepositPage() {
 
   const presetAmounts = [20, 50, 100, 250, 500, 1000];
 
-  const refreshUser = async () => {
-    try {
-      const res = await fetch('/api/auth/me');
-      const data = await res.json();
-      if (data.authenticated && data.user) {
-        setUser(data.user);
-      } else {
-        setUser(null);
-      }
-    } catch {
-      setUser(null);
-    }
-  };
 
-  useEffect(() => {
-    refreshUser();
-  }, []);
 
   // Fetch payment methods with dynamic cache-busting and auto-refresh
   const fetchPaymentMethods = async () => {
@@ -332,7 +317,7 @@ export default function DepositPage() {
           setSoundEnabled={() => {}}
         />
 
-        <main className="sovereign-container" style={{ paddingTop: '24px', paddingBottom: '70px', width: '100%' }}>
+        <main className="sovereign-container sovereign-main-cashier">
           {/* Back Button */}
           <Link
             href="/"
@@ -365,7 +350,118 @@ export default function DepositPage() {
             </p>
           </div>
 
-          {!user ? (
+          {/* Cashier Sub-Navigation Tabs: Deposit / Redeem / History */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              marginBottom: '24px',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+              paddingBottom: '16px',
+              flexWrap: 'wrap',
+            }}
+          >
+            <Link
+              href="/deposit"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 18px',
+                borderRadius: '12px',
+                backgroundColor: 'rgba(16, 185, 129, 0.22)',
+                border: '1px solid #10B981',
+                color: '#6EE7B7',
+                fontFamily: 'Lexend, sans-serif',
+                fontSize: '12.5px',
+                fontWeight: 900,
+                textDecoration: 'none',
+                boxShadow: '0 0 15px rgba(16, 185, 129, 0.2)',
+              }}
+            >
+              <ArrowDownCircle size={15} color="#34D399" />
+              <span>DEPOSIT FUNDS</span>
+            </Link>
+
+            <Link
+              href="/cashout"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 18px',
+                borderRadius: '12px',
+                backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                color: '#94A3B8',
+                fontFamily: 'Lexend, sans-serif',
+                fontSize: '12.5px',
+                fontWeight: 700,
+                textDecoration: 'none',
+                transition: 'all 0.15s ease',
+              }}
+              className="hover:text-white hover:border-white/20"
+            >
+              <ArrowUpCircle size={15} color="#F472B6" />
+              <span>REDEEM / CASHOUT</span>
+            </Link>
+
+            <Link
+              href="/history"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 18px',
+                borderRadius: '12px',
+                backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                color: '#94A3B8',
+                fontFamily: 'Lexend, sans-serif',
+                fontSize: '12.5px',
+                fontWeight: 700,
+                textDecoration: 'none',
+                transition: 'all 0.15s ease',
+              }}
+              className="hover:text-white hover:border-white/20"
+            >
+              <Clock size={15} color="#94A3B8" />
+              <span>TRANSACTION HISTORY</span>
+            </Link>
+          </div>
+
+          {authChecking ? (
+            <div
+              style={{
+                backgroundColor: '#0E0A24',
+                borderRadius: '24px',
+                border: '1px solid rgba(0, 240, 255, 0.25)',
+                padding: '60px 24px',
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '14px',
+                boxShadow: '0 16px 40px rgba(0, 0, 0, 0.5)',
+              }}
+            >
+              <div
+                style={{
+                  width: '38px',
+                  height: '38px',
+                  border: '3px solid rgba(0, 240, 255, 0.2)',
+                  borderTopColor: '#00F0FF',
+                  borderRadius: '50%',
+                  animation: 'spin 0.8s linear infinite',
+                }}
+              />
+              <span style={{ fontSize: '13px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
+                Verifying cashier access...
+              </span>
+            </div>
+          ) : !user ? (
             <div
               style={{
                 backgroundColor: '#0E0A24',
@@ -391,15 +487,7 @@ export default function DepositPage() {
               </button>
             </div>
           ) : (
-            <div
-              style={{
-                backgroundColor: '#0E0A24',
-                borderRadius: '24px',
-                border: '1px solid rgba(0, 240, 255, 0.25)',
-                padding: '28px 24px',
-                boxShadow: '0 16px 40px rgba(0, 0, 0, 0.5)',
-              }}
-            >
+            <div className="deposit-card-shell">
               {/* Feedback Alerts */}
               {message && (
                 <div
@@ -476,21 +564,9 @@ export default function DepositPage() {
                   const totalGC = (depositAmount * 10000).toLocaleString();
 
                   return (
-                    <div
-                      style={{
-                        margin: '36px 0',
-                        padding: '30px 28px',
-                        borderRadius: '24px',
-                        backgroundColor: 'rgba(10, 8, 26, 0.96)',
-                        border: '1px solid rgba(255, 255, 255, 0.12)',
-                        boxShadow: '0 24px 60px rgba(0, 0, 0, 0.7)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '28px',
-                      }}
-                    >
+                    <div className="deposit-bonus-hub">
                       {/* Selection Header */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', borderBottom: '1px solid rgba(255, 255, 255, 0.09)', paddingBottom: '18px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', borderBottom: '1px solid rgba(255, 255, 255, 0.09)', paddingBottom: '16px' }}>
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#00F0FF', boxShadow: '0 0 12px #00F0FF' }} />
@@ -507,32 +583,25 @@ export default function DepositPage() {
                         </span>
                       </div>
 
-                      {/* 2 Selectable Bonus Cards with Generous Spacing */}
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '22px' }}>
+                      {/* 2 Selectable Bonus Cards with Responsive Spacing */}
+                      <div className="deposit-bonus-grid">
                         {/* Option 1: Payment Method Bonus */}
                         <div
                           type="button"
                           onClick={() => setSelectedBonusChoice('method')}
+                          className="deposit-bonus-option-card"
                           style={{
-                            padding: '24px 26px',
-                            borderRadius: '20px',
                             border: isMethod ? '2px solid #00F0FF' : '1px solid rgba(255, 255, 255, 0.12)',
                             backgroundColor: isMethod ? 'rgba(0, 240, 255, 0.09)' : 'rgba(14, 11, 35, 0.75)',
                             boxShadow: isMethod ? '0 12px 35px rgba(0, 240, 255, 0.22), inset 0 0 24px rgba(0, 240, 255, 0.08)' : '0 8px 24px rgba(0, 0, 0, 0.35)',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            justifyContent: 'space-between',
-                            minHeight: '145px',
-                            transition: 'all 0.2s ease',
                           }}
                         >
-                          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
                               <div
                                 style={{
-                                  width: '38px',
-                                  height: '38px',
+                                  width: '36px',
+                                  height: '36px',
                                   borderRadius: '12px',
                                   backgroundColor: 'rgba(245, 158, 11, 0.18)',
                                   border: '1px solid rgba(245, 158, 11, 0.45)',
@@ -545,11 +614,11 @@ export default function DepositPage() {
                               >
                                 <CreditCard size={18} />
                               </div>
-                              <div>
+                              <div style={{ minWidth: 0 }}>
                                 <span style={{ fontSize: '10px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#FBBF24', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block' }}>
                                   METHOD BONUS
                                 </span>
-                                <h4 style={{ margin: '2px 0 0 0', fontSize: '14px', fontWeight: 900, color: '#FFFFFF', fontFamily: 'Lexend, sans-serif' }}>
+                                <h4 style={{ margin: '2px 0 0 0', fontSize: '14px', fontWeight: 900, color: '#FFFFFF', fontFamily: 'Lexend, sans-serif', wordBreak: 'break-word' }}>
                                   {selectedMethod?.name || 'Gateway'} Special
                                 </h4>
                               </div>
@@ -566,25 +635,27 @@ export default function DepositPage() {
                                 color: isMethod ? '#070514' : '#FBBF24',
                                 border: isMethod ? 'none' : '1px solid rgba(245, 158, 11, 0.35)',
                                 boxShadow: isMethod ? '0 2px 10px rgba(0, 240, 255, 0.4)' : 'none',
+                                flexShrink: 0,
                               }}
                             >
                               +{methodBonusPercent}%
                             </span>
                           </div>
 
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', fontSize: '12.5px' }}>
-                            <span style={{ color: '#94A3B8' }}>Reward: <strong style={{ color: '#10B981', fontFamily: 'monospace', fontSize: '13.5px' }}>+${methodBonusSC} SC</strong></span>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', fontSize: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                            <span style={{ color: '#94A3B8' }}>Reward: <strong style={{ color: '#10B981', fontFamily: 'monospace', fontSize: '13px' }}>+${methodBonusSC} SC</strong></span>
                             <span
                               style={{
-                                padding: '4px 12px',
+                                padding: '4px 10px',
                                 borderRadius: '8px',
                                 backgroundColor: isMethod ? 'rgba(0, 240, 255, 0.15)' : 'rgba(255, 255, 255, 0.05)',
                                 border: isMethod ? '1px solid rgba(0, 240, 255, 0.35)' : '1px solid transparent',
                                 color: isMethod ? '#00F0FF' : '#64748B',
                                 fontWeight: 900,
-                                fontSize: '11px',
+                                fontSize: '10.5px',
                                 letterSpacing: '0.05em',
                                 textTransform: 'uppercase',
+                                flexShrink: 0,
                               }}
                             >
                               {isMethod ? '✓ SELECTED' : 'Click to select'}
@@ -596,26 +667,19 @@ export default function DepositPage() {
                         <div
                           type="button"
                           onClick={() => setSelectedBonusChoice('platform')}
+                          className="deposit-bonus-option-card"
                           style={{
-                            padding: '24px 26px',
-                            borderRadius: '20px',
                             border: !isMethod ? '2px solid #C084FC' : '1px solid rgba(255, 255, 255, 0.12)',
                             backgroundColor: !isMethod ? 'rgba(168, 85, 247, 0.12)' : 'rgba(14, 11, 35, 0.75)',
                             boxShadow: !isMethod ? '0 12px 35px rgba(168, 85, 247, 0.22), inset 0 0 24px rgba(168, 85, 247, 0.08)' : '0 8px 24px rgba(0, 0, 0, 0.35)',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            justifyContent: 'space-between',
-                            minHeight: '145px',
-                            transition: 'all 0.2s ease',
                           }}
                         >
-                          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '14px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
                               <div
                                 style={{
-                                  width: '42px',
-                                  height: '42px',
+                                  width: '36px',
+                                  height: '36px',
                                   borderRadius: '12px',
                                   backgroundColor: hasClaimedWelcome ? 'rgba(168, 85, 247, 0.18)' : 'rgba(0, 240, 255, 0.18)',
                                   border: hasClaimedWelcome ? '1px solid rgba(168, 85, 247, 0.45)' : '1px solid rgba(0, 240, 255, 0.45)',
@@ -626,13 +690,13 @@ export default function DepositPage() {
                                   flexShrink: 0,
                                 }}
                               >
-                                <Sparkles size={20} />
+                                <Sparkles size={18} />
                               </div>
-                              <div>
-                                <span style={{ fontSize: '10.5px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: hasClaimedWelcome ? '#C084FC' : '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block' }}>
+                              <div style={{ minWidth: 0 }}>
+                                <span style={{ fontSize: '10px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: hasClaimedWelcome ? '#C084FC' : '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block' }}>
                                   {hasClaimedWelcome ? 'RELOAD PROMO' : 'WELCOME OFFER'}
                                 </span>
-                                <h4 style={{ margin: '4px 0 0 0', fontSize: '15px', fontWeight: 900, color: '#FFFFFF', fontFamily: 'Lexend, sans-serif' }}>
+                                <h4 style={{ margin: '2px 0 0 0', fontSize: '14px', fontWeight: 900, color: '#FFFFFF', fontFamily: 'Lexend, sans-serif', wordBreak: 'break-word' }}>
                                   {hasClaimedWelcome ? 'Regular Reload Bonus' : 'Welcome Match Bonus'}
                                 </h4>
                               </div>
@@ -640,34 +704,36 @@ export default function DepositPage() {
 
                             <span
                               style={{
-                                padding: '6px 14px',
+                                padding: '4px 10px',
                                 borderRadius: '9999px',
-                                fontSize: '13px',
+                                fontSize: '12px',
                                 fontWeight: 900,
                                 fontFamily: 'monospace',
                                 backgroundColor: !isMethod ? '#C084FC' : 'rgba(168, 85, 247, 0.16)',
                                 color: !isMethod ? '#070514' : '#C084FC',
                                 border: !isMethod ? 'none' : '1px solid rgba(168, 85, 247, 0.4)',
                                 boxShadow: !isMethod ? '0 4px 15px rgba(192, 132, 252, 0.4)' : 'none',
+                                flexShrink: 0,
                               }}
                             >
                               +{platformBonusPercent}%
                             </span>
                           </div>
 
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', fontSize: '12.5px' }}>
-                            <span style={{ color: '#94A3B8' }}>Reward: <strong style={{ color: '#10B981', fontFamily: 'monospace', fontSize: '13.5px' }}>+${platformBonusSC} SC</strong></span>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', fontSize: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                            <span style={{ color: '#94A3B8' }}>Reward: <strong style={{ color: '#10B981', fontFamily: 'monospace', fontSize: '13px' }}>+${platformBonusSC} SC</strong></span>
                             <span
                               style={{
-                                padding: '4px 12px',
+                                padding: '4px 10px',
                                 borderRadius: '8px',
                                 backgroundColor: !isMethod ? 'rgba(168, 85, 247, 0.15)' : 'rgba(255, 255, 255, 0.05)',
                                 border: !isMethod ? '1px solid rgba(168, 85, 247, 0.35)' : '1px solid transparent',
                                 color: !isMethod ? '#C084FC' : '#64748B',
                                 fontWeight: 900,
-                                fontSize: '11px',
+                                fontSize: '10.5px',
                                 letterSpacing: '0.05em',
                                 textTransform: 'uppercase',
+                                flexShrink: 0,
                               }}
                             >
                               {!isMethod ? '✓ SELECTED' : 'Click to select'}
@@ -678,8 +744,9 @@ export default function DepositPage() {
 
                       {/* Live Calculated Summary Box with Clear Generous Margins & Spacing */}
                       <div
+                        className="deposit-calculation-strip"
                         style={{
-                          marginTop: '10px',
+                          marginTop: '8px',
                           background: isMethod
                             ? 'linear-gradient(135deg, rgba(0, 240, 255, 0.12) 0%, rgba(10, 8, 26, 0.98) 100%)'
                             : (hasClaimedWelcome
@@ -688,21 +755,16 @@ export default function DepositPage() {
                           border: isMethod
                             ? '1.5px solid rgba(0, 240, 255, 0.5)'
                             : (hasClaimedWelcome ? '1.5px solid rgba(168, 85, 247, 0.45)' : '1.5px solid rgba(0, 240, 255, 0.5)'),
-                          borderRadius: '22px',
-                          padding: '26px 30px',
                           boxShadow: '0 16px 40px rgba(0, 0, 0, 0.55)',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '20px',
                         }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
                             <div
                               style={{
-                                width: '48px',
-                                height: '48px',
-                                borderRadius: '14px',
+                                width: '42px',
+                                height: '42px',
+                                borderRadius: '12px',
                                 backgroundColor: isMethod ? 'rgba(0, 240, 255, 0.2)' : (hasClaimedWelcome ? 'rgba(168, 85, 247, 0.2)' : 'rgba(224, 38, 216, 0.2)'),
                                 border: isMethod ? '1px solid rgba(0, 240, 255, 0.5)' : (hasClaimedWelcome ? '1px solid rgba(168, 85, 247, 0.5)' : '1px solid rgba(224, 38, 216, 0.5)'),
                                 display: 'flex',
@@ -712,12 +774,12 @@ export default function DepositPage() {
                                 flexShrink: 0,
                               }}
                             >
-                              <Sparkles size={24} />
+                              <Sparkles size={20} />
                             </div>
-                            <div>
+                            <div style={{ minWidth: 0 }}>
                               <span
                                 style={{
-                                  fontSize: '11px',
+                                  fontSize: '10.5px',
                                   fontFamily: 'Lexend, sans-serif',
                                   fontWeight: 900,
                                   textTransform: 'uppercase',
@@ -728,17 +790,17 @@ export default function DepositPage() {
                               >
                                 {isMethod ? '💳 METHOD BONUS APPLIED' : (hasClaimedWelcome ? '⚡ REGULAR RELOAD APPLIED' : '🔥 WELCOME PACK APPLIED')}
                               </span>
-                              <h3 style={{ margin: '4px 0 0 0', fontSize: '18px', fontWeight: 900, color: '#FFFFFF', fontFamily: 'Lexend, sans-serif' }}>
+                              <h3 style={{ margin: '3px 0 0 0', fontSize: 'clamp(14px, 4vw, 17px)', fontWeight: 900, color: '#FFFFFF', fontFamily: 'Lexend, sans-serif', wordBreak: 'break-word' }}>
                                 +{appliedBonusPercent}% {appliedBonusTitle}
                               </h3>
                             </div>
                           </div>
 
-                          <div style={{ textAlign: 'right' }}>
-                            <span style={{ fontSize: '11.5px', color: '#94A3B8', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em', display: 'block', marginBottom: '4px' }}>
+                          <div>
+                            <span style={{ fontSize: '11px', color: '#94A3B8', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em', display: 'block', marginBottom: '2px' }}>
                               Total SC You Receive:
                             </span>
-                            <span style={{ fontSize: '28px', fontWeight: 900, color: '#00F0FF', fontFamily: 'monospace', textShadow: '0 0 24px rgba(0, 240, 255, 0.45)' }}>
+                            <span style={{ fontSize: 'clamp(22px, 5vw, 26px)', fontWeight: 900, color: '#00F0FF', fontFamily: 'monospace', textShadow: '0 0 20px rgba(0, 240, 255, 0.45)' }}>
                               ${appliedTotalSC} SC
                             </span>
                           </div>

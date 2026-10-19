@@ -20,7 +20,9 @@ import {
   History,
   Sparkles,
   Eye,
+  Phone,
 } from 'lucide-react';
+import { formatCSTDateTime } from '@/lib/dateUtils';
 
 export default function Player360ProfileModal({
   userId,
@@ -303,10 +305,33 @@ export default function Player360ProfileModal({
                   </span>
                 )}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px', fontSize: '12px', color: '#9A91A8', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '6px', fontSize: '11.5px', color: '#9A91A8', flexWrap: 'wrap' }}>
                 <span style={{ fontFamily: 'monospace', color: '#E2DCEB' }}>{data?.user?.email}</span>
                 <span>•</span>
-                <span>Joined: {data?.user?.createdAt ? new Date(data.user.createdAt).toLocaleDateString() : 'N/A'}</span>
+                {data?.user?.phoneNumber ? (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#38BDF8', fontWeight: 700, fontFamily: 'monospace' }}>
+                    <Phone size={11} className="text-cyan-400" />
+                    <span>{data.user.phoneNumber}</span>
+                    <button
+                      type="button"
+                      onClick={() => copyText(data.user.phoneNumber, 'phone')}
+                      style={{ background: 'none', border: 'none', color: '#00F0FF', cursor: 'pointer', padding: 0 }}
+                      title="Copy Phone Lead"
+                    >
+                      {copiedField === 'phone' ? <Check size={11} className="text-emerald-400" /> : <Copy size={11} />}
+                    </button>
+                  </span>
+                ) : (
+                  <span style={{ color: '#64748B', fontStyle: 'italic', fontSize: '11px' }}>No Phone</span>
+                )}
+                <span>•</span>
+                <span style={{ color: '#CBD5E1' }}>
+                  Registered CST: <strong style={{ color: '#00F0FF' }}>{formatCSTDateTime(data?.user?.createdAt)}</strong>
+                </span>
+                <span>•</span>
+                <span style={{ color: '#CBD5E1' }}>
+                  Last Login CST: <strong style={{ color: '#FCD34D' }}>{data?.user?.lastLoginAt ? formatCSTDateTime(data.user.lastLoginAt) : 'Never'}</strong>
+                </span>
                 {data?.user?.referralCode && (
                   <>
                     <span>•</span>
@@ -734,6 +759,29 @@ export default function Player360ProfileModal({
                           <span style={{ color: '#9A91A8' }}>Hardware Device Binding:</span>
                           <span style={{ fontFamily: 'monospace', color: data.user.deviceId ? '#34D399' : '#94A3B8', fontWeight: 700 }}>
                             {data.user.deviceId ? `${data.user.deviceId.substring(0, 16)}...` : 'Unbound'}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', paddingBottom: '8px' }}>
+                          <span style={{ color: '#9A91A8' }}>Phone / SMS Lead:</span>
+                          <span style={{ fontFamily: 'monospace', color: data.user.phoneNumber ? '#38BDF8' : '#64748B', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            {data.user.phoneNumber || 'None'}
+                            {data.user.phoneNumber && (
+                              <button type="button" onClick={() => copyText(data.user.phoneNumber, 'sec_phone')} style={{ background: 'none', border: 'none', color: '#00F0FF', cursor: 'pointer', padding: 0 }} title="Copy Phone Lead">
+                                <Copy size={11} />
+                              </button>
+                            )}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', paddingBottom: '8px' }}>
+                          <span style={{ color: '#9A91A8' }}>Registered CST:</span>
+                          <span style={{ fontFamily: 'monospace', color: '#00F0FF', fontWeight: 700 }}>
+                            {formatCSTDateTime(data.user.createdAt, true)}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', paddingBottom: '8px' }}>
+                          <span style={{ color: '#9A91A8' }}>Last Login CST:</span>
+                          <span style={{ fontFamily: 'monospace', color: '#FCD34D', fontWeight: 700 }}>
+                            {data.user.lastLoginAt ? formatCSTDateTime(data.user.lastLoginAt, true) : 'Never'}
                           </span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', paddingBottom: '8px' }}>

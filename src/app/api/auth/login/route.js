@@ -91,6 +91,7 @@ export async function POST(req) {
         userId,
         username: user.username,
         email: user.email,
+        phoneNumber: user.phoneNumber || user.phone || '',
         role: user.role,
         balanceSC: user.balanceSC || 0,
         balance: user.balanceSC || 0,

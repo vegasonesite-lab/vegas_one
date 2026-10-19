@@ -2613,7 +2613,7 @@ textarea:focus {
     margin-left: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
-    padding-bottom: calc(75px + env(safe-area-inset-bottom, 0px)) !important;
+    padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)) !important;
   }
 }
 
@@ -2902,5 +2902,110 @@ textarea:focus {
     max-width: none !important;
     bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important;
     z-index: 999999 !important;
+  }
+}
+
+/* ==========================================================================
+   CASHIER & DEPOSIT RESPONSIVE REFINEMENT (MOBILE & ANDROID OPTIMIZED)
+   ========================================================================== */
+.sovereign-main-cashier {
+  padding-top: 24px;
+  padding-bottom: 70px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.deposit-card-shell {
+  background-color: #0E0A24;
+  border-radius: 24px;
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  padding: 28px 24px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+}
+
+.deposit-bonus-hub {
+  margin: 32px 0;
+  padding: 26px 24px;
+  border-radius: 22px;
+  background-color: rgba(10, 8, 26, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+}
+
+.deposit-bonus-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.deposit-bonus-option-card {
+  padding: 22px 24px;
+  border-radius: 18px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 145px;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+}
+
+.deposit-calculation-strip {
+  padding: 22px 24px;
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (max-width: 768px) {
+  .sovereign-main-cashier {
+    padding-top: 14px !important;
+    padding-bottom: calc(150px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .deposit-card-shell {
+    padding: 16px 12px !important;
+    border-radius: 18px !important;
+  }
+
+  .deposit-bonus-hub {
+    margin: 18px 0 !important;
+    padding: 16px 12px !important;
+    border-radius: 16px !important;
+    gap: 16px !important;
+  }
+
+  .deposit-bonus-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .deposit-bonus-option-card {
+    padding: 16px 14px !important;
+    min-height: auto !important;
+    border-radius: 14px !important;
+  }
+
+  .deposit-calculation-strip {
+    padding: 16px 14px !important;
+    border-radius: 14px !important;
+    gap: 14px !important;
   }
 }

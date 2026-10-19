@@ -124,6 +124,7 @@ export async function GET(req) {
           id: u._id.toString(),
           username: u.username,
           email: u.email,
+          phoneNumber: u.phoneNumber || u.phone || '',
           balanceSC: u.balanceSC ?? 0,
           balanceGC: u.balanceGC ?? 0,
           kycStatus: u.kycStatus || 'unverified',
@@ -222,6 +223,8 @@ export async function GET(req) {
         { username: { $regex: search, $options: 'i' } },
         { email: { $regex: search, $options: 'i' } },
         { referralCode: { $regex: search, $options: 'i' } },
+        { phoneNumber: { $regex: search, $options: 'i' } },
+        { phone: { $regex: search, $options: 'i' } },
       ];
     }
 
@@ -274,6 +277,7 @@ export async function GET(req) {
           id: u._id.toString(),
           username: u.username,
           email: u.email,
+          phoneNumber: u.phoneNumber || u.phone || '',
           balanceSC: u.balanceSC ?? 0,
           balanceGC: u.balanceGC ?? 0,
           totalDeposits: depSum[0]?.total || 0,
@@ -287,6 +291,7 @@ export async function GET(req) {
           deviceId: u.deviceId || u.boundDevices?.[0] || null,
           isSubscribed: Boolean(u.isSubscribed),
           createdAt: u.createdAt,
+          lastLoginAt: u.lastLoginAt || null,
         };
       })
     );
@@ -393,6 +398,24 @@ export async function PUT(req) {
       return NextResponse.json({
         success: true,
         message: `Device binding cleared for player "${targetUser.username}". They can now bind a new device.`,
+      });
+    }
+
+    if (action === 'updatePhone') {
+      const { phoneNumber } = body;
+      const cleanPhone = (phoneNumber || '').trim();
+      const targetUser = await usersCol.findOne({ _id: uObjectId });
+      if (!targetUser) return NextResponse.json({ success: false, error: 'User not found.' }, { status: 404 });
+
+      await usersCol.updateOne(
+        { _id: uObjectId },
+        { $set: { phoneNumber: cleanPhone || null } }
+      );
+
+      return NextResponse.json({
+        success: true,
+        message: cleanPhone ? `Phone number saved for player "${targetUser.username}": ${cleanPhone}` : 'Phone number cleared.',
+        phoneNumber: cleanPhone || null,
       });
     }
 

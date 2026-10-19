@@ -12,10 +12,11 @@ import LiveChatWidget from '@/components/LiveChatWidget';
 import AuthModal from '@/components/AuthModal';
 import WalletModal from '@/components/WalletModal';
 import VegasSidebar from '@/components/player/VegasSidebar';
+import { getClientUser, fetchCurrentUser } from '@/lib/clientAuth';
 
 export default function GamesPage() {
   const router = useRouter();
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => getClientUser());
   const [games, setGames] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
@@ -29,9 +30,8 @@ export default function GamesPage() {
   // 1. Fetch user session
   const refreshUser = async () => {
     try {
-      const res = await fetch('/api/auth/me');
-      const data = await res.json();
-      if (data.authenticated && data.user) {
+      const data = await fetchCurrentUser();
+      if (data && data.authenticated && data.user) {
         setUser(data.user);
       } else {
         setUser(null);
@@ -124,7 +124,7 @@ export default function GamesPage() {
           setSoundEnabled={setSoundEnabled}
         />
 
-        <main className="sovereign-container" style={{ paddingTop: '24px', paddingBottom: '70px', width: '100%' }}>
+        <main className="sovereign-container sovereign-main-cashier">
           {/* Breadcrumb & Header */}
               <div style={{ marginBottom: '24px' }}>
             <Link

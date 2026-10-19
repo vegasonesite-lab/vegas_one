@@ -111,7 +111,7 @@ export default function FinanceDepositsView({
       {/* Search, Filter & Live Sync Bar */}
       <div className="bg-[#0E0A24] border border-[#00F0FF]/25 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 backdrop-blur-md shadow-xl">
         {/* Status Filter Tabs */}
-        <div className="flex items-center gap-1.5 p-1 bg-[#140E33] rounded-xl border border-white/10 w-full md:w-auto overflow-x-auto">
+        <div className="flex items-center gap-1.5 p-1 bg-[#070514] rounded-xl border border-cyan-500/20 w-full md:w-auto overflow-x-auto">
           <button
             onClick={() => setStatusFilter('all')}
             className={`px-3 py-1.5 rounded-lg text-xs font-black transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
@@ -191,7 +191,7 @@ export default function FinanceDepositsView({
       {/* Main Container */}
       {filteredDeposits.length === 0 ? (
         <div className="p-12 text-center bg-[#0E0A24] border border-[#00F0FF]/25 rounded-2xl shadow-xl">
-          <div className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-3 text-gray-400">
+          <div className="w-14 h-14 rounded-full bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center mx-auto mb-3 text-cyan-400">
             <Coins size={26} />
           </div>
           <h4 className="text-sm font-bold text-white">No deposit requests found</h4>
@@ -206,7 +206,7 @@ export default function FinanceDepositsView({
           {/* DESKTOP TABLE VIEW (Screens >= 1024px) */}
           <div className="hidden lg:block bg-[#0E0A24] border border-[#00F0FF]/20 rounded-2xl overflow-hidden shadow-2xl">
             <table className="w-full text-left text-xs border-collapse" style={{ fontFamily: 'Lexend, sans-serif' }}>
-              <thead className="bg-[#070514] text-[#9A91A8] uppercase font-black text-[11px] tracking-wider border-b border-white/10">
+              <thead className="bg-[#070514] text-[#00F0FF] uppercase font-black text-[11px] tracking-wider border-b border-cyan-500/20">
                 <tr>
                   <th className="p-4">Time &amp; Date</th>
                   <th className="p-4">Player</th>
@@ -218,7 +218,7 @@ export default function FinanceDepositsView({
                   <th className="p-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-cyan-500/10">
                 {filteredDeposits.map((d) => {
                   const calculatedSC = Number(
                     d.totalSC !== undefined ? d.totalSC : d.amount + (d.bonusSC || 0)

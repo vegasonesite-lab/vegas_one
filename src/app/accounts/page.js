@@ -11,34 +11,18 @@ import LiveChatWidget from '@/components/LiveChatWidget';
 import AuthModal from '@/components/AuthModal';
 import VegasSidebar from '@/components/player/VegasSidebar';
 import PlayerGameAccountsHub from '@/components/player/PlayerGameAccountsHub';
+import { useAuthSession } from '@/lib/clientAuth';
 
 export default function AccountsPage() {
   const router = useRouter();
-  const [user, setUser] = useState(null);
+  const { user, setUser, authChecking, refreshUser } = useAuthSession();
   const [games, setGames] = useState([]);
   const [authModal, setAuthModal] = useState({ open: false, tab: 'login' });
   const [activeCurrency, setActiveCurrency] = useState('SC');
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  // 1. Fetch user session
-  const refreshUser = async () => {
-    try {
-      const res = await fetch('/api/auth/me');
-      const data = await res.json();
-      if (data.authenticated && data.user) {
-        setUser(data.user);
-      } else {
-        setUser(null);
-      }
-    } catch {
-      setUser(null);
-    }
-  };
 
-  useEffect(() => {
-    refreshUser();
-  }, []);
 
   // 2. Fetch games library
   useEffect(() => {
@@ -96,7 +80,7 @@ export default function AccountsPage() {
           setSoundEnabled={setSoundEnabled}
         />
 
-        <main className="sovereign-container" style={{ paddingTop: '24px', paddingBottom: '70px', width: '100%' }}>
+        <main className="sovereign-container sovereign-main-cashier">
           {/* Breadcrumb */}
           <div style={{ marginBottom: '16px' }}>
             <Link
@@ -119,6 +103,7 @@ export default function AccountsPage() {
           {/* Player Game Accounts Hub Component */}
           <PlayerGameAccountsHub
             user={user}
+            authChecking={authChecking}
             games={games}
             onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
             onPlayGame={handlePlayGame}

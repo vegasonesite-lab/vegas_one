@@ -101,9 +101,10 @@ export default function AccountRequestsView({
                 style={
                   isActive
                     ? {
-                        backgroundColor: 'rgba(255, 255, 255, 0.12)',
-                        border: '1px solid rgba(255, 255, 255, 0.15)',
-                        color: '#FFFFFF',
+                        backgroundColor: 'rgba(0, 240, 255, 0.15)',
+                        border: '1px solid rgba(0, 240, 255, 0.45)',
+                        color: '#00F0FF',
+                        boxShadow: '0 0 15px rgba(0, 240, 255, 0.2)',
                       }
                     : {
                         backgroundColor: 'transparent',
@@ -117,6 +118,7 @@ export default function AccountRequestsView({
                     className="w-2 h-2 rounded-full"
                     style={{
                       backgroundColor: '#F59E0B',
+                      boxShadow: '0 0 8px #F59E0B',
                     }}
                   />
                 )}
@@ -124,8 +126,8 @@ export default function AccountRequestsView({
                 <span
                   className="px-2 py-0.5 rounded-full text-[10.5px] font-mono font-bold"
                   style={{
-                    backgroundColor: isActive ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)',
-                    color: isActive ? '#FFFFFF' : '#94A3B8',
+                    backgroundColor: isActive ? 'rgba(0, 240, 255, 0.25)' : 'rgba(0, 240, 255, 0.08)',
+                    color: isActive ? '#00F0FF' : '#94A3B8',
                   }}
                 >
                   {count}
@@ -140,10 +142,10 @@ export default function AccountRequestsView({
             className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl w-full md:w-72 transition-all"
             style={{
               backgroundColor: '#070514',
-              border: '1px solid rgba(0, 240, 255, 0.2)',
+              border: '1px solid rgba(0, 240, 255, 0.22)',
             }}
           >
-            <Search size={14} className="text-slate-400 shrink-0" />
+            <Search size={14} className="text-cyan-400 shrink-0" />
             <input
               type="text"
               placeholder="Search player, game, ID..."
@@ -167,7 +169,7 @@ export default function AccountRequestsView({
             type="button"
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="px-3.5 py-2 rounded-xl font-bold text-xs flex items-center gap-2 transition-all shrink-0 cursor-pointer bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white"
+            className="px-3.5 py-2 rounded-xl font-bold text-xs flex items-center gap-2 transition-all shrink-0 cursor-pointer bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 hover:text-white shadow-[0_0_15px_rgba(0,240,255,0.1)]"
           >
             <RefreshCw size={13} strokeWidth={2.5} className={isRefreshing ? 'animate-spin' : ''} />
             <span className="hidden sm:inline">Refresh</span>
@@ -214,7 +216,7 @@ export default function AccountRequestsView({
             className="hidden lg:block rounded-2xl overflow-hidden shadow-xl"
             style={{
               backgroundColor: '#0C0A1E',
-              border: '1px solid rgba(0, 240, 255, 0.18)',
+              border: '1px solid rgba(0, 240, 255, 0.22)',
             }}
           >
             <table className="w-full text-left text-xs border-collapse" style={{ fontFamily: 'Lexend, sans-serif' }}>
@@ -226,24 +228,24 @@ export default function AccountRequestsView({
                 <col style={{ width: '12%' }} />
                 <col style={{ width: '12%' }} />
               </colgroup>
-              <thead style={{ backgroundColor: '#070514', borderBottom: '1px solid rgba(0, 240, 255, 0.15)' }}>
+              <thead style={{ backgroundColor: '#070514', borderBottom: '1px solid rgba(0, 240, 255, 0.2)' }}>
                 <tr>
-                  <th style={{ padding: '14px 18px', color: '#9A91A8', fontWeight: 900, fontSize: '11px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Player</th>
-                  <th style={{ padding: '14px 18px', color: '#9A91A8', fontWeight: 900, fontSize: '11px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Requested Game</th>
-                  <th style={{ padding: '14px 18px', color: '#9A91A8', fontWeight: 900, fontSize: '11px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Status</th>
-                  <th style={{ padding: '14px 18px', color: '#9A91A8', fontWeight: 900, fontSize: '11px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Issued Credentials</th>
-                  <th style={{ padding: '14px 18px', color: '#9A91A8', fontWeight: 900, fontSize: '11px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Time</th>
-                  <th style={{ padding: '14px 18px', color: '#9A91A8', fontWeight: 900, fontSize: '11px', letterSpacing: '0.05em', textTransform: 'uppercase', textAlign: 'right' }}>Actions</th>
+                  <th style={{ padding: '14px 18px', color: '#00F0FF', fontWeight: 900, fontSize: '11px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Player</th>
+                  <th style={{ padding: '14px 18px', color: '#00F0FF', fontWeight: 900, fontSize: '11px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Requested Game</th>
+                  <th style={{ padding: '14px 18px', color: '#00F0FF', fontWeight: 900, fontSize: '11px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Status</th>
+                  <th style={{ padding: '14px 18px', color: '#00F0FF', fontWeight: 900, fontSize: '11px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Issued Credentials</th>
+                  <th style={{ padding: '14px 18px', color: '#00F0FF', fontWeight: 900, fontSize: '11px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Time</th>
+                  <th style={{ padding: '14px 18px', color: '#00F0FF', fontWeight: 900, fontSize: '11px', letterSpacing: '0.05em', textTransform: 'uppercase', textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5">
+              <tbody className="divide-y divide-cyan-500/10">
                 {filtered.map((req) => {
                   const isPending = (req.status || '').toUpperCase() === 'PENDING';
                   return (
                     <tr
                       key={req.id}
                       className={`transition-colors ${
-                        isPending ? 'bg-amber-500/[0.03] hover:bg-amber-500/[0.07]' : 'hover:bg-white/[0.02]'
+                        isPending ? 'bg-amber-500/[0.04] hover:bg-amber-500/[0.08]' : 'hover:bg-cyan-500/[0.04]'
                       }`}
                     >
                       <td className="p-4 whitespace-nowrap">
@@ -289,12 +291,12 @@ export default function AccountRequestsView({
 
                       <td className="p-4 font-mono">
                         {req.gameAccountUsername ? (
-                          <div className="p-2 rounded-xl bg-black/40 border border-white/5 space-y-0.5">
+                          <div className="p-2 rounded-xl bg-[#070514] border border-cyan-500/25 space-y-0.5">
                             <div className="flex items-center justify-between gap-2">
                               <span className="text-cyan-300 font-black text-xs">U: {req.gameAccountUsername}</span>
                               <button
                                 onClick={() => handleCopy(`${req.gameAccountUsername} / ${req.gameAccountPassword}`, req.id)}
-                                className="p-1 rounded bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white"
+                                className="p-1 rounded bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 hover:text-white border border-cyan-500/30 cursor-pointer transition"
                                 title="Copy credentials"
                               >
                                 {copiedId === req.id ? <CheckCheck size={12} className="text-emerald-400" /> : <Copy size={12} />}
@@ -310,7 +312,7 @@ export default function AccountRequestsView({
                       <td className="p-4 whitespace-nowrap text-gray-400 text-xs">
                         <div className="flex flex-col">
                           <span className="font-bold text-white flex items-center gap-1">
-                            <Clock size={11} />
+                            <Clock size={11} className="text-cyan-400" />
                             {formatRelativeTime(req.createdAt)}
                           </span>
                           <span className="text-[10px] text-gray-500 mt-0.5">
@@ -324,14 +326,14 @@ export default function AccountRequestsView({
                           <div className="flex items-center justify-end gap-2">
                             <button
                               onClick={() => onOpenApproveModal(req)}
-                              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-black text-xs flex items-center gap-1.5 shadow-lg shadow-amber-500/20 active:scale-95"
+                              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-black font-black text-xs flex items-center gap-1.5 shadow-lg shadow-amber-500/20 active:scale-95 cursor-pointer"
                             >
                               <Key size={13} />
                               <span>Issue Credentials</span>
                             </button>
                             <button
                               onClick={() => onCancelRequest(req.id)}
-                              className="p-2 rounded-xl bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-red-300 font-bold transition active:scale-95"
+                              className="p-2 rounded-xl bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-red-300 font-bold transition active:scale-95 cursor-pointer"
                               title="Cancel Request"
                             >
                               <X size={14} />
@@ -340,7 +342,7 @@ export default function AccountRequestsView({
                         ) : (
                           <button
                             onClick={() => onOpenApproveModal(req)}
-                            className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-gray-300 text-xs font-bold transition"
+                            className="px-3 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/25 text-cyan-300 text-xs font-bold transition cursor-pointer"
                           >
                             Edit Credentials
                           </button>
@@ -363,7 +365,7 @@ export default function AccountRequestsView({
                   className={`p-4 rounded-2xl border flex flex-col gap-3.5 transition shadow-xl ${
                     isPending
                       ? 'bg-[#0E0A24] border-amber-500/40 shadow-amber-500/10'
-                      : 'bg-[#0E0A24] border-[#00F0FF]/25'
+                      : 'bg-[#0E0A24] border-cyan-500/25'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -389,7 +391,7 @@ export default function AccountRequestsView({
                     )}
                   </div>
 
-                  <div className="p-3 bg-[#140E33] rounded-xl border border-white/5 space-y-2">
+                  <div className="p-3 bg-[#070514] rounded-xl border border-cyan-500/20 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-gray-400 font-bold">Game Requested:</span>
                       <span className="font-heading font-black text-amber-400 text-sm">{req.gameTitle}</span>
@@ -404,7 +406,7 @@ export default function AccountRequestsView({
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between text-[11px] text-gray-400 pt-1 border-t border-white/5">
+                    <div className="flex items-center justify-between text-[11px] text-gray-400 pt-1 border-t border-cyan-500/15">
                       <span>Time:</span>
                       <span>{formatRelativeTime(req.createdAt)}</span>
                     </div>
@@ -418,7 +420,7 @@ export default function AccountRequestsView({
                       </div>
                       <button
                         onClick={() => handleCopy(`${req.gameAccountUsername} / ${req.gameAccountPassword}`, req.id)}
-                        className="p-2 rounded-lg bg-white/10 text-gray-300 hover:text-white"
+                        className="p-2 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 hover:text-white transition cursor-pointer"
                       >
                         {copiedId === req.id ? <CheckCheck size={14} className="text-emerald-400" /> : <Copy size={14} />}
                       </button>

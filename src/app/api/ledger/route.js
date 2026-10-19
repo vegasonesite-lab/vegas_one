@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
 import { getSessionUser, ROLES } from '@/lib/auth';
 import { getDb } from '@/lib/mongodb';
+import { buildDateFilterQuery, getCSTMonthRange } from '@/lib/dateUtils';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -16,8 +17,9 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const username = searchParams.get('username');
     const type = searchParams.get('type');
+    const month = searchParams.get('month');
     const format = searchParams.get('format');
-    const limit = parseInt(searchParams.get('limit') || '150');
+    const limit = parseInt(searchParams.get('limit') || '200');
     const includeProof = searchParams.get('includeProof') === 'true';
 
     const db = await getDb();
@@ -37,6 +39,12 @@ export async function GET(req) {
       query.userId = session.userId;
     } else if (username && username.trim()) {
       query.username = { $regex: new RegExp(username.trim(), 'i') };
+    }
+
+    // Apply CST month filter if specified
+    const monthRange = getCSTMonthRange(month);
+    if (month && month !== 'all') {
+      Object.assign(query, buildDateFilterQuery(month, 'createdAt'));
     }
 
     if (type && type !== 'all') {
@@ -324,10 +332,32 @@ export async function GET(req) {
       records.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
 
+    // Calculate summary metrics for the filtered records
+    let totalDeposits = 0;
+    let totalWithdrawals = 0;
+    for (const r of records) {
+      const amt = Number(r.amount || 0);
+      const t = (r.type || '').toLowerCase();
+      if (t.includes('deposit')) {
+        totalDeposits += Math.abs(amt);
+      } else if (t.includes('withdraw') || t.includes('redemption')) {
+        totalWithdrawals += Math.abs(amt);
+      }
+    }
+
     return NextResponse.json(
       {
         success: true,
         records,
+        summary: {
+          totalDeposits: Number(totalDeposits.toFixed(2)),
+          totalWithdrawals: Number(totalWithdrawals.toFixed(2)),
+          netGGR: Number((totalDeposits - totalWithdrawals).toFixed(2)),
+          count: records.length,
+          activeMonth: monthRange ? monthRange.label : 'All Time',
+          monthKey: month || 'all',
+          timezone: 'CST (US Central)',
+        },
       },
       {
         headers: {

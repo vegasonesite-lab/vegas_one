@@ -28,6 +28,7 @@ import {
   Download,
   Send,
   Eye,
+  EyeOff,
   AlertCircle,
   RefreshCw,
   Key,
@@ -61,6 +62,8 @@ import {
   Tag,
   Video,
   Save,
+  Calendar,
+  Phone,
 } from 'lucide-react';
 import FinanceDepositsView from '@/components/admin/FinanceDepositsView';
 import FinanceRedemptionsView from '@/components/admin/FinanceRedemptionsView';
@@ -73,6 +76,9 @@ import Player360ProfileModal from '@/components/admin/Player360ProfileModal';
 import AffiliateManagementHub from '@/components/admin/AffiliateManagementHub';
 import HomepageVideosManager from '@/components/admin/HomepageVideosManager';
 import PromotionsManager from '@/components/admin/PromotionsManager';
+import AdminMonthFilter from '@/components/admin/AdminMonthFilter';
+import ResetRecordsModal from '@/components/admin/ResetRecordsModal';
+import { formatCSTDateTime, formatCSTDate } from '@/lib/dateUtils';
 import { playTune, unlockAudioContext, AVAILABLE_TUNES } from '@/lib/soundAlerts';
 
 export default function AdminPortal({ initialTab }) {
@@ -179,8 +185,10 @@ export default function AdminPortal({ initialTab }) {
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
 
-  // Overview Stats
+  // Overview Stats & CST Monthly Telemetry Filter
   const [stats, setStats] = useState(null);
+  const [statsMonth, setStatsMonth] = useState('all');
+  const [resetModalOpen, setResetModalOpen] = useState(false);
 
   // Games Tab state
   const [games, setGames] = useState([]);
@@ -254,10 +262,12 @@ export default function AdminPortal({ initialTab }) {
   const [editGatewayModal, setEditGatewayModal] = useState({ open: false, data: null });
   const [previewQrModal, setPreviewQrModal] = useState(null);
 
-  // Players Ledger state
+  // Players Ledger state & CST Month Filter
   const [ledgerRecords, setLedgerRecords] = useState([]);
   const [ledgerFilterUser, setLedgerFilterUser] = useState('');
   const [ledgerFilterType, setLedgerFilterType] = useState('all');
+  const [ledgerFilterMonth, setLedgerFilterMonth] = useState('all');
+  const [ledgerSummary, setLedgerSummary] = useState(null);
   const [previewProofImage, setPreviewProofImage] = useState(null);
   const [selectedTxDetail, setSelectedTxDetail] = useState(null);
 
@@ -470,6 +480,16 @@ export default function AdminPortal({ initialTab }) {
       username: `${cleanUser}${randSuf}`,
       password: randPass,
     });
+    setShowApprovalPassword(false);
+    setCopiedModalText(null);
+  };
+
+  const [showApprovalPassword, setShowApprovalPassword] = useState(false);
+  const [copiedModalText, setCopiedModalText] = useState(null);
+
+  const handleRandomizePassword = () => {
+    const randPass = 'Vegas' + Math.floor(1000 + Math.random() * 9000);
+    setApprovalModal(prev => ({ ...prev, password: randPass }));
   };
 
   const handleConfirmApproval = async () => {
@@ -870,7 +890,7 @@ export default function AdminPortal({ initialTab }) {
     const loadData = () => {
       if (typeof document !== 'undefined' && document.hidden) return;
       if (activeTab === 'overview') {
-        fetch('/api/admin/stats').then(r => r.json()).then(d => { if (d.success) setStats(d.stats); });
+        fetch(`/api/admin/stats?month=${statsMonth}`).then(r => r.json()).then(d => { if (d.success) setStats(d.stats); });
       } else if (activeTab === 'games') {
         fetch('/api/games?all=true').then(r => r.json()).then(d => { if (d.success) setGames(d.games); });
       } else if (activeTab === 'finance') {
@@ -878,9 +898,14 @@ export default function AdminPortal({ initialTab }) {
         fetch('/api/payments/deposit?status=all').then(r => r.json()).then(d => { if (d.success) setDeposits(d.deposits || []); });
         fetch('/api/payments/withdraw?status=all').then(r => r.json()).then(d => { if (d.success) setRedemptions(d.redemptions || []); });
       } else if (activeTab === 'ledger') {
-        fetch(`/api/ledger?username=${encodeURIComponent(ledgerFilterUser)}&type=${ledgerFilterType}`)
+        fetch(`/api/ledger?username=${encodeURIComponent(ledgerFilterUser)}&type=${ledgerFilterType}&month=${ledgerFilterMonth}`)
           .then(r => r.json())
-          .then(d => { if (d.success) setLedgerRecords(d.records); });
+          .then(d => {
+            if (d.success) {
+              setLedgerRecords(d.records || []);
+              if (d.summary) setLedgerSummary(d.summary);
+            }
+          });
       } else if (activeTab === 'chat') {
         fetch('/api/chat?inbox=true').then(r => r.json()).then(d => { if (d.success) setChatConversations(d.conversations); });
       } else if (activeTab === 'promos') {
@@ -903,7 +928,14 @@ export default function AdminPortal({ initialTab }) {
       } else if (activeTab === 'gateways') {
         fetch('/api/payments/methods?all=true').then(r => r.json()).then(d => { if (d.success) setPaymentMethods(d.methods || []); });
       } else if (activeTab === 'tx_search') {
-        fetch(`/api/ledger?username=${encodeURIComponent(ledgerFilterUser)}&type=${ledgerFilterType}`).then(r => r.json()).then(d => { if (d.success) setLedgerRecords(d.records || []); });
+        fetch(`/api/ledger?username=${encodeURIComponent(ledgerFilterUser)}&type=${ledgerFilterType}&month=${ledgerFilterMonth}`)
+          .then(r => r.json())
+          .then(d => {
+            if (d.success) {
+              setLedgerRecords(d.records || []);
+              if (d.summary) setLedgerSummary(d.summary);
+            }
+          });
       } else if (activeTab === 'settings') {
         fetch('/api/admin/settings').then(r => r.json()).then(d => { if (d.success) setSysSettings(d.settings); });
       }
@@ -912,7 +944,7 @@ export default function AdminPortal({ initialTab }) {
     loadData();
     const interval = setInterval(loadData, 6500);
     return () => clearInterval(interval);
-  }, [user, activeTab, ledgerFilterUser, ledgerFilterType, accountReqFilter, userSearchQuery, allotmentSearch]);
+  }, [user, activeTab, ledgerFilterUser, ledgerFilterType, ledgerFilterMonth, statsMonth, accountReqFilter, userSearchQuery, allotmentSearch]);
 
   // Load chat messages when active conversation selected
   useEffect(() => {
@@ -1126,7 +1158,7 @@ export default function AdminPortal({ initialTab }) {
     { id: 'users', label: 'Player Accounts', icon: Users, category: 'Catalog & Players' },
     { id: 'tx_search', label: 'Transaction Logs', icon: FileSpreadsheet, category: 'Catalog & Players' },
     { id: 'promos', label: 'Promotions & Broadcasts', icon: Gift, category: 'Growth & Promos' },
-    { id: 'videos', label: 'Homepage Videos', icon: Video, category: 'Growth & Promos' },
+    { id: 'videos', label: 'Player Reviews (Reels)', icon: Video, category: 'Growth & Promos' },
     { id: 'affiliates', label: `Referrals & Affiliates (${sysSettings?.referralBonusPercent ?? 50}%)`, icon: Users, category: 'Growth & Promos' },
     { id: 'affiliate_commissions', label: 'Affiliate Commissions', icon: DollarSign, category: 'Growth & Promos' },
     { id: 'gateways', label: 'Payment Gateways', icon: SlidersHorizontal, category: 'System & Security' },
@@ -1706,30 +1738,31 @@ export default function AdminPortal({ initialTab }) {
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '10px',
+                    gap: '12px',
                     position: 'relative',
                     zIndex: 10,
-                    flexShrink: 0,
+                    flexWrap: 'wrap',
                   }}
                 >
-                  <div
-                    style={{
-                      padding: '8px 16px',
-                      borderRadius: '12px',
-                      fontSize: '12px',
-                      fontWeight: 800,
-                      fontFamily: 'monospace',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      backgroundColor: 'rgba(16, 185, 129, 0.08)',
-                      border: '1px solid rgba(16, 185, 129, 0.3)',
-                      color: '#34D399',
-                    }}
-                  >
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#34D399]" />
-                    <span>SYSTEM ONLINE • SYNC ACTIVE</span>
-                  </div>
+                  {/* CST Month Filter */}
+                  <AdminMonthFilter
+                    selectedMonth={statsMonth}
+                    onChange={(m) => setStatsMonth(m)}
+                    showTimezoneBadge={true}
+                  />
+
+                  {/* Reset Records Button (Super Admin Only) */}
+                  {user?.role === 'super_admin' && (
+                    <button
+                      type="button"
+                      onClick={() => setResetModalOpen(true)}
+                      className="px-3.5 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-[0_0_15px_rgba(244,63,94,0.15)]"
+                      title="Reset backend test records to calibrate fresh in CST"
+                    >
+                      <Trash2 size={13} />
+                      <span>Reset Records</span>
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -1744,10 +1777,11 @@ export default function AdminPortal({ initialTab }) {
               >
                 {/* 1. Players Card */}
                 <div
-                  className="p-5 sm:p-6 rounded-2xl relative overflow-hidden transition-all duration-200 hover:border-cyan-500/40 cursor-pointer group"
+                  className="p-5 sm:p-6 rounded-2xl relative overflow-hidden transition-all duration-200 hover:border-cyan-400 cursor-pointer group"
                   style={{
                     backgroundColor: '#0C0A1E',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    border: '1px solid rgba(0, 240, 255, 0.22)',
+                    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.35)',
                   }}
                   onClick={() => setActiveTab('users')}
                 >
@@ -1763,16 +1797,19 @@ export default function AdminPortal({ initialTab }) {
                     {stats?.totalPlayers || 0}
                   </p>
                   <div className="flex items-center gap-1.5 text-xs font-semibold text-cyan-400">
-                    <span>Manage player directory →</span>
+                    <span>
+                      {statsMonth !== 'all' ? `+${stats?.monthNewPlayers || 0} in ${stats?.activeMonth}` : 'Manage player directory →'}
+                    </span>
                   </div>
                 </div>
 
                 {/* 2. Deposits Card */}
                 <div
-                  className="p-5 sm:p-6 rounded-2xl relative overflow-hidden transition-all duration-200 hover:border-emerald-500/40 cursor-pointer group"
+                  className="p-5 sm:p-6 rounded-2xl relative overflow-hidden transition-all duration-200 hover:border-emerald-400 cursor-pointer group"
                   style={{
                     backgroundColor: '#0C0A1E',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    border: '1px solid rgba(16, 185, 129, 0.28)',
+                    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.35)',
                   }}
                   onClick={() => { setActiveTab('finance'); setFinanceSubTab('deposits'); }}
                 >
@@ -1788,16 +1825,17 @@ export default function AdminPortal({ initialTab }) {
                     ${Number(stats?.totalDeposited || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                   <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-400">
-                    <span>Total approved inflow →</span>
+                    <span>{stats?.depositCount || 0} approved ({stats?.activeMonth || 'All Time'}) →</span>
                   </div>
                 </div>
 
                 {/* 3. Redemptions Card */}
                 <div
-                  className="p-5 sm:p-6 rounded-2xl relative overflow-hidden transition-all duration-200 hover:border-purple-500/40 cursor-pointer group"
+                  className="p-5 sm:p-6 rounded-2xl relative overflow-hidden transition-all duration-200 hover:border-purple-400 cursor-pointer group"
                   style={{
                     backgroundColor: '#0C0A1E',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    border: '1px solid rgba(168, 85, 247, 0.28)',
+                    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.35)',
                   }}
                   onClick={() => { setActiveTab('finance'); setFinanceSubTab('redemptions'); }}
                 >
@@ -1813,16 +1851,17 @@ export default function AdminPortal({ initialTab }) {
                     ${Number(stats?.totalRedeemed || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                   <div className="flex items-center gap-1.5 text-xs font-semibold text-purple-400">
-                    <span>Settled redemptions →</span>
+                    <span>{stats?.redemptionCount || 0} settled ({stats?.activeMonth || 'All Time'}) →</span>
                   </div>
                 </div>
 
                 {/* 4. Net Hold Card */}
                 <div
-                  className="p-5 sm:p-6 rounded-2xl relative overflow-hidden transition-all duration-200 hover:border-amber-500/40 cursor-pointer group"
+                  className="p-5 sm:p-6 rounded-2xl relative overflow-hidden transition-all duration-200 hover:border-amber-400 cursor-pointer group"
                   style={{
                     backgroundColor: '#0C0A1E',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    border: '1px solid rgba(245, 158, 11, 0.28)',
+                    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.35)',
                   }}
                   onClick={() => setActiveTab('tx_search')}
                 >
@@ -1838,7 +1877,55 @@ export default function AdminPortal({ initialTab }) {
                     ${Number(stats?.netGGR || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                   <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-400">
-                    <span>Platform net margin →</span>
+                    <span>Net margin ({stats?.activeMonth || 'All Time'}) →</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Monthly Game Telemetry & Wagers Row */}
+              <div
+                className="p-5 rounded-2xl"
+                style={{
+                  backgroundColor: '#0C0A1E',
+                  border: '1px solid rgba(0, 240, 255, 0.22)',
+                  boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
+                }}
+              >
+                <div className="flex flex-wrap items-center justify-between gap-3 pb-3 mb-3 border-b border-cyan-500/15">
+                  <div className="flex items-center gap-2">
+                    <Gamepad2 size={16} className="text-cyan-400" />
+                    <span className="text-xs font-black text-white uppercase tracking-wider">
+                      Game Activity &amp; Velocity Stats ({stats?.activeMonth || 'All Time'})
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-mono text-cyan-300 bg-cyan-500/10 border border-cyan-500/25 px-2.5 py-0.5 rounded-full">
+                    Zone: CST (America/Chicago)
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                  <div className="p-3 rounded-xl bg-[#070514] border border-cyan-500/20">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Wagers</span>
+                    <span className="text-lg font-black text-white font-mono mt-1 block">
+                      ${Number(stats?.totalWagers || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} SC
+                    </span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-[#070514] border border-cyan-500/20">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Payouts</span>
+                    <span className="text-lg font-black text-emerald-400 font-mono mt-1 block">
+                      ${Number(stats?.totalPayouts || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} SC
+                    </span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-[#070514] border border-cyan-500/20">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Game Rounds</span>
+                    <span className="text-lg font-black text-purple-300 font-mono mt-1 block">
+                      {stats?.totalRounds || 0}
+                    </span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-[#070514] border border-cyan-500/20">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Transactions Logged</span>
+                    <span className="text-lg font-black text-amber-300 font-mono mt-1 block">
+                      {stats?.totalTransactions || 0}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1848,10 +1935,11 @@ export default function AdminPortal({ initialTab }) {
                 className="p-6 sm:p-7 rounded-2xl shadow-xl"
                 style={{
                   backgroundColor: '#0C0A1E',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  border: '1px solid rgba(0, 240, 255, 0.22)',
+                  boxShadow: '0 15px 35px rgba(0, 0, 0, 0.4)',
                 }}
               >
-                <div className="flex items-center justify-between mb-5 pb-3 border-b border-white/8">
+                <div className="flex items-center justify-between mb-5 pb-3 border-b border-cyan-500/18">
                   <div className="flex items-center gap-2">
                     <Activity size={17} className="text-cyan-400" />
                     <h3 className="text-sm font-black uppercase tracking-wider text-white m-0">
@@ -1865,7 +1953,7 @@ export default function AdminPortal({ initialTab }) {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   {/* Queue 1: Deposits */}
-                  <div className="bg-black/30 border border-white/8 hover:border-amber-500/40 p-4 sm:p-5 rounded-2xl flex items-center justify-between transition-all group">
+                  <div className="bg-[#070514] border border-amber-500/30 hover:border-amber-400 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)] p-4 sm:p-5 rounded-2xl flex items-center justify-between transition-all group">
                     <div>
                       <p className="text-[11px] text-[#94A3B8] font-bold uppercase tracking-wider m-0">Pending Deposits</p>
                       <p className="text-2xl font-black text-amber-400 mt-1 mb-0 font-mono">{stats?.pendingDeposits || 0}</p>
@@ -1880,7 +1968,7 @@ export default function AdminPortal({ initialTab }) {
                   </div>
 
                   {/* Queue 2: Redemptions */}
-                  <div className="bg-black/30 border border-white/8 hover:border-purple-500/40 p-4 sm:p-5 rounded-2xl flex items-center justify-between transition-all group">
+                  <div className="bg-[#070514] border border-purple-500/30 hover:border-purple-400 hover:shadow-[0_0_20px_rgba(168,85,247,0.15)] p-4 sm:p-5 rounded-2xl flex items-center justify-between transition-all group">
                     <div>
                       <p className="text-[11px] text-[#94A3B8] font-bold uppercase tracking-wider m-0">Pending Cashouts</p>
                       <p className="text-2xl font-black text-purple-400 mt-1 mb-0 font-mono">{stats?.pendingRedemptions || 0}</p>
@@ -1895,7 +1983,7 @@ export default function AdminPortal({ initialTab }) {
                   </div>
 
                   {/* Queue 3: Account Requests */}
-                  <div className="bg-black/30 border border-white/8 hover:border-cyan-500/40 p-4 sm:p-5 rounded-2xl flex items-center justify-between transition-all group">
+                  <div className="bg-[#070514] border border-cyan-500/30 hover:border-cyan-400 hover:shadow-[0_0_20px_rgba(0,240,255,0.15)] p-4 sm:p-5 rounded-2xl flex items-center justify-between transition-all group">
                     <div>
                       <p className="text-[11px] text-[#94A3B8] font-bold uppercase tracking-wider m-0">Account Requests</p>
                       <p className="text-2xl font-black text-cyan-400 mt-1 mb-0 font-mono">
@@ -1912,7 +2000,7 @@ export default function AdminPortal({ initialTab }) {
                   </div>
 
                   {/* Queue 4: Support */}
-                  <div className="bg-black/30 border border-white/8 hover:border-rose-500/40 p-4 sm:p-5 rounded-2xl flex items-center justify-between transition-all group">
+                  <div className="bg-[#070514] border border-rose-500/30 hover:border-rose-400 hover:shadow-[0_0_20px_rgba(244,63,94,0.15)] p-4 sm:p-5 rounded-2xl flex items-center justify-between transition-all group">
                     <div>
                       <p className="text-[11px] text-[#94A3B8] font-bold uppercase tracking-wider m-0">Unread Live Chat</p>
                       <p className="text-2xl font-black text-rose-400 mt-1 mb-0 font-mono">
@@ -1935,10 +2023,11 @@ export default function AdminPortal({ initialTab }) {
                 className="p-6 sm:p-7 rounded-2xl shadow-xl"
                 style={{
                   backgroundColor: '#0C0A1E',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  border: '1px solid rgba(0, 240, 255, 0.22)',
+                  boxShadow: '0 15px 35px rgba(0, 0, 0, 0.4)',
                 }}
               >
-                <div className="flex items-center justify-between mb-5 pb-3 border-b border-white/8">
+                <div className="flex items-center justify-between mb-5 pb-3 border-b border-cyan-500/18">
                   <div className="flex items-center gap-2">
                     <SlidersHorizontal size={17} className="text-cyan-400" />
                     <h3 className="text-sm font-black uppercase tracking-wider text-white m-0">
@@ -1952,7 +2041,7 @@ export default function AdminPortal({ initialTab }) {
                   <button
                     type="button"
                     onClick={() => setActiveTab('account_requests')}
-                    className="p-4 rounded-xl bg-black/25 hover:bg-white/[0.04] border border-white/8 hover:border-cyan-500/30 text-left transition flex flex-col gap-2 cursor-pointer group"
+                    className="p-4 rounded-xl bg-[#070514] hover:bg-cyan-500/10 border border-cyan-500/22 hover:border-[#00F0FF]/60 text-left transition flex flex-col gap-2 cursor-pointer group shadow-[0_4px_15px_rgba(0,0,0,0.25)] hover:shadow-[0_0_20px_rgba(0,240,255,0.15)]"
                   >
                     <Key size={18} className="text-cyan-400" />
                     <span className="text-xs font-bold text-white">Issue Game ID</span>
@@ -1962,7 +2051,7 @@ export default function AdminPortal({ initialTab }) {
                   <button
                     type="button"
                     onClick={() => setActiveTab('coins_allotment')}
-                    className="p-4 rounded-xl bg-black/25 hover:bg-white/[0.04] border border-white/8 hover:border-cyan-500/30 text-left transition flex flex-col gap-2 cursor-pointer group"
+                    className="p-4 rounded-xl bg-[#070514] hover:bg-cyan-500/10 border border-cyan-500/22 hover:border-[#00F0FF]/60 text-left transition flex flex-col gap-2 cursor-pointer group shadow-[0_4px_15px_rgba(0,0,0,0.25)] hover:shadow-[0_0_20px_rgba(0,240,255,0.15)]"
                   >
                     <Coins size={18} className="text-cyan-400" />
                     <span className="text-xs font-bold text-white">Allot Coins</span>
@@ -1972,7 +2061,7 @@ export default function AdminPortal({ initialTab }) {
                   <button
                     type="button"
                     onClick={() => { setActiveTab('finance'); setFinanceSubTab('deposits'); }}
-                    className="p-4 rounded-xl bg-black/25 hover:bg-white/[0.04] border border-white/8 hover:border-cyan-500/30 text-left transition flex flex-col gap-2 cursor-pointer group"
+                    className="p-4 rounded-xl bg-[#070514] hover:bg-amber-500/10 border border-amber-500/22 hover:border-amber-400/60 text-left transition flex flex-col gap-2 cursor-pointer group shadow-[0_4px_15px_rgba(0,0,0,0.25)] hover:shadow-[0_0_20px_rgba(245,158,11,0.15)]"
                   >
                     <ArrowDownLeft size={18} className="text-amber-400" />
                     <span className="text-xs font-bold text-white">Deposit Inflows</span>
@@ -1982,7 +2071,7 @@ export default function AdminPortal({ initialTab }) {
                   <button
                     type="button"
                     onClick={() => setActiveTab('games')}
-                    className="p-4 rounded-xl bg-black/25 hover:bg-white/[0.04] border border-white/8 hover:border-cyan-500/30 text-left transition flex flex-col gap-2 cursor-pointer group"
+                    className="p-4 rounded-xl bg-[#070514] hover:bg-emerald-500/10 border border-emerald-500/22 hover:border-emerald-400/60 text-left transition flex flex-col gap-2 cursor-pointer group shadow-[0_4px_15px_rgba(0,0,0,0.25)] hover:shadow-[0_0_20px_rgba(16,185,129,0.15)]"
                   >
                     <Gamepad2 size={18} className="text-emerald-400" />
                     <span className="text-xs font-bold text-white">Games Catalog</span>
@@ -1992,7 +2081,7 @@ export default function AdminPortal({ initialTab }) {
                   <button
                     type="button"
                     onClick={() => setActiveTab('users')}
-                    className="p-4 rounded-xl bg-black/25 hover:bg-white/[0.04] border border-white/8 hover:border-cyan-500/30 text-left transition flex flex-col gap-2 cursor-pointer group"
+                    className="p-4 rounded-xl bg-[#070514] hover:bg-purple-500/10 border border-purple-500/22 hover:border-purple-400/60 text-left transition flex flex-col gap-2 cursor-pointer group shadow-[0_4px_15px_rgba(0,0,0,0.25)] hover:shadow-[0_0_20px_rgba(168,85,247,0.15)]"
                   >
                     <Users size={18} className="text-purple-400" />
                     <span className="text-xs font-bold text-white">Player Directory</span>
@@ -2002,7 +2091,7 @@ export default function AdminPortal({ initialTab }) {
                   <button
                     type="button"
                     onClick={() => setActiveTab('gateways')}
-                    className="p-4 rounded-xl bg-black/25 hover:bg-white/[0.04] border border-white/8 hover:border-cyan-500/30 text-left transition flex flex-col gap-2 cursor-pointer group"
+                    className="p-4 rounded-xl bg-[#070514] hover:bg-pink-500/10 border border-pink-500/22 hover:border-pink-400/60 text-left transition flex flex-col gap-2 cursor-pointer group shadow-[0_4px_15px_rgba(0,0,0,0.25)] hover:shadow-[0_0_20px_rgba(236,72,153,0.15)]"
                   >
                     <SlidersHorizontal size={18} className="text-pink-400" />
                     <span className="text-xs font-bold text-white">Gateways &amp; Bonuses</span>
@@ -2157,125 +2246,387 @@ export default function AdminPortal({ initialTab }) {
                     inset: 0,
                     width: '100vw',
                     height: '100vh',
-                    backgroundColor: 'rgba(5, 3, 15, 0.92)',
-                    backdropFilter: 'blur(16px)',
-                    WebkitBackdropFilter: 'blur(16px)',
+                    backgroundColor: 'rgba(5, 3, 15, 0.90)',
+                    backdropFilter: 'blur(20px)',
+                    WebkitBackdropFilter: 'blur(20px)',
                     zIndex: 999999,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    padding: '16px',
+                    padding: '20px',
                     fontFamily: 'Lexend, -apple-system, sans-serif',
                   }}
                   onClick={() => setApprovalModal({ open: false, request: null, username: '', password: '' })}
                 >
                   <div
-                    className="vegas-modal-card rounded-2xl max-w-md w-full p-6 space-y-4 relative overflow-hidden"
+                    className="vegas-modal-card rounded-3xl max-w-lg w-full relative overflow-hidden"
                     onClick={(e) => e.stopPropagation()}
                     style={{
                       backgroundColor: '#0C0A1E',
-                      border: '1px solid rgba(0, 240, 255, 0.35)',
-                      borderRadius: '24px',
-                      boxShadow: '0 30px 80px rgba(0, 0, 0, 0.98), 0 0 35px rgba(0, 240, 255, 0.2)',
+                      border: '1.5px solid rgba(0, 240, 255, 0.35)',
+                      boxShadow: '0 30px 90px rgba(0, 0, 0, 0.95), 0 0 40px rgba(0, 240, 255, 0.25)',
                     }}
                   >
-                    <div className="absolute -top-16 -right-16 w-48 h-48 bg-[#00F0FF]/15 rounded-full blur-3xl pointer-events-none" />
+                    {/* Ambient Neon Glows */}
+                    <div className="absolute -top-24 -right-24 w-64 h-64 bg-[#00F0FF]/15 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
 
-                    <div className="flex items-center justify-between pb-3.5 border-b border-cyan-500/20 relative z-10">
-                      <div className="flex items-center gap-3">
+                    {/* Modal Header */}
+                    <div
+                      className="p-6 pb-5 flex items-center justify-between border-b relative z-10"
+                      style={{
+                        backgroundColor: '#070514',
+                        borderColor: 'rgba(0, 240, 255, 0.18)',
+                      }}
+                    >
+                      <div className="flex items-center gap-3.5">
                         <div
-                          className="w-10 h-10 rounded-xl flex items-center justify-center text-[#00F0FF] shrink-0"
+                          className="w-12 h-12 rounded-2xl flex items-center justify-center text-[#00F0FF] shrink-0"
                           style={{
-                            background: 'rgba(0, 240, 255, 0.15)',
+                            background: 'rgba(0, 240, 255, 0.12)',
                             border: '1.5px solid rgba(0, 240, 255, 0.4)',
-                            boxShadow: '0 0 15px rgba(0, 240, 255, 0.25)',
+                            boxShadow: '0 0 20px rgba(0, 240, 255, 0.25)',
                           }}
                         >
-                          <Key size={18} />
+                          <Key size={22} className="stroke-[2.5]" />
                         </div>
                         <div>
-                          <h3 className="text-base font-black text-white m-0 tracking-wide">
-                            Fulfill {approvalModal.request.gameTitle}
-                          </h3>
-                          <p className="text-xs text-[#9A91A8] mt-0.5 m-0">
-                            Player: <strong className="text-white">{approvalModal.request.userName}</strong> ({approvalModal.request.userEmail})
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3
+                              className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-cyan-300 m-0 tracking-tight"
+                              style={{ fontFamily: 'Lexend, sans-serif' }}
+                            >
+                              Fulfill Game Account
+                            </h3>
+                            <span
+                              className="text-[10.5px] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider font-mono"
+                              style={{
+                                backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                                color: '#F59E0B',
+                                border: '1px solid rgba(245, 158, 11, 0.4)',
+                              }}
+                            >
+                              {approvalModal.request.gameTitle || 'Game Vault'}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-400 mt-1 m-0">
+                            Issue instant login credentials to the player
                           </p>
                         </div>
                       </div>
+
                       <button
                         type="button"
                         onClick={() => setApprovalModal({ open: false, request: null, username: '', password: '' })}
-                        className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 hover:text-white flex items-center justify-center transition border border-white/10 cursor-pointer"
+                        className="w-9 h-9 rounded-xl flex items-center justify-center transition cursor-pointer hover:bg-white/10"
+                        style={{
+                          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                          border: '1px solid rgba(0, 240, 255, 0.2)',
+                          color: '#94A3B8',
+                        }}
                       >
                         <X size={16} />
                       </button>
                     </div>
 
-                    <div className="space-y-3.5 relative z-10">
-                      <div>
-                        <label className="text-[11px] font-bold text-gray-300 block mb-1 uppercase tracking-wider">
-                          Game Platform Username *
-                        </label>
-                        <input
-                          type="text"
-                          value={approvalModal.username}
-                          onChange={(e) => setApprovalModal({ ...approvalModal, username: e.target.value })}
-                          className="w-full bg-[#070514] border border-cyan-500/25 focus:border-[#00F0FF] rounded-xl px-3.5 py-2.5 text-sm font-mono font-bold text-[#00F0FF] outline-none transition"
-                          placeholder="Username"
-                          required
-                        />
+                    <div
+                      className="relative z-10"
+                      style={{
+                        padding: '26px 28px 22px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '24px',
+                      }}
+                    >
+                      {/* Player Profile Strip */}
+                      <div
+                        className="flex items-center justify-between gap-3"
+                        style={{
+                          backgroundColor: '#070514',
+                          border: '1px solid rgba(0, 240, 255, 0.18)',
+                          borderRadius: '16px',
+                          padding: '14px 18px',
+                        }}
+                      >
+                        <div className="flex items-center gap-3.5 min-w-0">
+                          <div
+                            className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-white text-xs uppercase shrink-0"
+                            style={{
+                              background: 'linear-gradient(135deg, #00F0FF 0%, #A855F7 100%)',
+                              boxShadow: '0 0 15px rgba(0, 240, 255, 0.3)',
+                              color: '#070514',
+                            }}
+                          >
+                            {approvalModal.request.userName?.charAt(0) || 'P'}
+                          </div>
+                          <div className="truncate">
+                            <span className="text-xs font-black text-white block truncate">
+                              {approvalModal.request.userName}
+                            </span>
+                            <span className="text-[11px] text-slate-400 font-mono block truncate mt-0.5">
+                              {approvalModal.request.userEmail}
+                            </span>
+                          </div>
+                        </div>
+
+                        {Boolean(approvalModal.request.transferAmount && Number(approvalModal.request.transferAmount) > 0) && (
+                          <span
+                            className="px-3 py-1 rounded-xl text-xs font-black font-mono shrink-0"
+                            style={{
+                              backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                              color: '#10B981',
+                              border: '1px solid rgba(16, 185, 129, 0.35)',
+                            }}
+                          >
+                            Load: ${Number(approvalModal.request.transferAmount).toFixed(2)} SC
+                          </span>
+                        )}
                       </div>
 
-                      <div>
-                        <label className="text-[11px] font-bold text-gray-300 block mb-1 uppercase tracking-wider">
-                          Game Platform Password *
-                        </label>
-                        <input
-                          type="text"
-                          value={approvalModal.password}
-                          onChange={(e) => setApprovalModal({ ...approvalModal, password: e.target.value })}
-                          className="w-full bg-[#070514] border border-amber-500/30 focus:border-amber-400 rounded-xl px-3.5 py-2.5 text-sm font-mono font-bold text-amber-300 outline-none transition"
-                          placeholder="Password"
-                          required
-                        />
+                      {/* Inputs */}
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '22px',
+                        }}
+                      >
+                        {/* Username */}
+                        <div>
+                          <div
+                            className="flex items-center justify-between"
+                            style={{ marginBottom: '10px' }}
+                          >
+                            <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5 uppercase tracking-wider">
+                              <User size={13} className="text-cyan-400" />
+                              <span>Game Platform Username</span>
+                              <span className="text-rose-400">*</span>
+                            </label>
+                            {approvalModal.username && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(approvalModal.username);
+                                  setCopiedModalText('user');
+                                  setTimeout(() => setCopiedModalText(null), 2000);
+                                }}
+                                className="text-[11px] text-cyan-400 hover:text-cyan-300 font-mono flex items-center gap-1 cursor-pointer transition px-1.5 py-0.5 rounded hover:bg-cyan-400/10"
+                              >
+                                {copiedModalText === 'user' ? (
+                                  <>
+                                    <CheckCheck size={12} className="text-emerald-400" />
+                                    <span className="text-emerald-400 font-bold">Copied!</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy size={12} />
+                                    <span>Copy</span>
+                                  </>
+                                )}
+                              </button>
+                            )}
+                          </div>
+                          <div
+                            className="w-full rounded-2xl transition focus-within:border-[#00F0FF]"
+                            style={{
+                              backgroundColor: '#070514',
+                              border: '1.5px solid rgba(0, 240, 255, 0.28)',
+                              boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.5)',
+                            }}
+                          >
+                            <input
+                              type="text"
+                              value={approvalModal.username}
+                              onChange={(e) => setApprovalModal({ ...approvalModal, username: e.target.value })}
+                              className="w-full text-sm font-mono font-black text-cyan-300 outline-none transition"
+                              style={{
+                                background: 'transparent',
+                                border: 'none',
+                                boxShadow: 'none',
+                                padding: '13px 18px',
+                                width: '100%',
+                                boxSizing: 'border-box',
+                              }}
+                              placeholder="Enter or confirm username"
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        {/* Password */}
+                        <div>
+                          <div
+                            className="flex items-center justify-between"
+                            style={{ marginBottom: '10px' }}
+                          >
+                            <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5 uppercase tracking-wider">
+                              <Key size={13} className="text-amber-400" />
+                              <span>Game Platform Password</span>
+                              <span className="text-rose-400">*</span>
+                            </label>
+                            <div className="flex items-center gap-2.5">
+                              <button
+                                type="button"
+                                onClick={handleRandomizePassword}
+                                className="text-[11px] text-amber-400 hover:text-amber-300 font-mono flex items-center gap-1 cursor-pointer transition px-1.5 py-0.5 rounded hover:bg-amber-400/10"
+                                title="Generate new random password"
+                              >
+                                <RefreshCw size={11} />
+                                <span>Randomize</span>
+                              </button>
+                              {approvalModal.password && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(approvalModal.password);
+                                    setCopiedModalText('pass');
+                                    setTimeout(() => setCopiedModalText(null), 2000);
+                                  }}
+                                  className="text-[11px] text-cyan-400 hover:text-cyan-300 font-mono flex items-center gap-1 cursor-pointer transition px-1.5 py-0.5 rounded hover:bg-cyan-400/10"
+                                >
+                                  {copiedModalText === 'pass' ? (
+                                    <>
+                                      <CheckCheck size={12} className="text-emerald-400" />
+                                      <span className="text-emerald-400 font-bold">Copied!</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Copy size={12} />
+                                      <span>Copy</span>
+                                    </>
+                                  )}
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                          <div
+                            className="relative w-full rounded-2xl transition focus-within:border-amber-400"
+                            style={{
+                              backgroundColor: '#070514',
+                              border: '1.5px solid rgba(245, 158, 11, 0.35)',
+                              boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.5)',
+                            }}
+                          >
+                            <input
+                              type={showApprovalPassword ? 'text' : 'password'}
+                              value={approvalModal.password}
+                              onChange={(e) => setApprovalModal({ ...approvalModal, password: e.target.value })}
+                              className="w-full text-sm font-mono font-black text-amber-300 outline-none transition"
+                              style={{
+                                background: 'transparent',
+                                border: 'none',
+                                boxShadow: 'none',
+                                padding: '13px 48px 13px 18px',
+                                width: '100%',
+                                boxSizing: 'border-box',
+                              }}
+                              placeholder="Enter or confirm password"
+                              required
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowApprovalPassword(!showApprovalPassword)}
+                              className="text-slate-400 hover:text-amber-300 transition p-1.5 cursor-pointer flex items-center justify-center rounded-lg hover:bg-amber-400/10"
+                              style={{
+                                position: 'absolute',
+                                right: '12px',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                zIndex: 10,
+                                background: 'transparent',
+                                border: 'none',
+                              }}
+                              title={showApprovalPassword ? 'Hide password' : 'Show password'}
+                            >
+                              {showApprovalPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                            </button>
+                          </div>
+                        </div>
                       </div>
 
-                      <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-[11px] text-amber-300 leading-relaxed">
-                        ⚡ Random credentials generated automatically. You can confirm them or type custom ones before issuing to the player.
+                      {/* Automation Notice Box */}
+                      <div
+                        className="flex items-start gap-3.5"
+                        style={{
+                          backgroundColor: 'rgba(0, 240, 255, 0.05)',
+                          border: '1px solid rgba(0, 240, 255, 0.2)',
+                          borderRadius: '16px',
+                          padding: '16px 18px',
+                        }}
+                      >
+                        <Sparkles size={17} className="text-cyan-400 shrink-0 mt-0.5" />
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                          <p className="text-cyan-200 font-bold text-xs m-0">Instant Dispatch Protocol</p>
+                          <p className="text-slate-400 text-xs m-0 leading-relaxed">
+                            Issuing these credentials will automatically fulfill the request and deliver the Game ID &amp; PIN directly to the player’s Game Accounts vault with 0ms delay.
+                          </p>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="pt-3 flex items-center justify-end gap-3 border-t border-cyan-500/20 relative z-10">
+                    {/* Footer Actions */}
+                    <div
+                      className="p-6 pt-4 flex items-center justify-between gap-3 border-t relative z-10"
+                      style={{
+                        backgroundColor: '#070514',
+                        borderColor: 'rgba(0, 240, 255, 0.18)',
+                      }}
+                    >
                       <button
                         type="button"
-                        onClick={() => setApprovalModal({ open: false, request: null, username: '', password: '' })}
-                        className="px-4 py-2.5 rounded-xl text-xs font-bold text-gray-400 hover:text-white transition cursor-pointer"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleConfirmApproval}
-                        disabled={submittingApproval}
-                        style={{
-                          backgroundColor: '#00F0FF',
-                          color: '#070514',
-                          boxShadow: '0 0 20px rgba(0, 240, 255, 0.35)',
+                        onClick={() => {
+                          const fullCreds = `Platform: ${approvalModal.request.gameTitle}\nUsername: ${approvalModal.username}\nPassword: ${approvalModal.password}`;
+                          navigator.clipboard.writeText(fullCreds);
+                          setCopiedModalText('all');
+                          setTimeout(() => setCopiedModalText(null), 2000);
                         }}
-                        className="px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer hover:bg-[#38bdf8] flex items-center gap-2"
+                        className="text-xs font-bold text-slate-400 hover:text-cyan-300 flex items-center gap-1.5 transition cursor-pointer"
                       >
-                        {submittingApproval ? (
+                        {copiedModalText === 'all' ? (
                           <>
-                            <RefreshCw size={13} className="animate-spin" />
-                            <span>Issuing...</span>
+                            <CheckCheck size={14} className="text-emerald-400" />
+                            <span className="text-emerald-400 font-bold">Copied Both!</span>
                           </>
                         ) : (
                           <>
-                            <Check size={14} className="stroke-[3]" />
-                            <span>Issue Credentials</span>
+                            <Copy size={14} />
+                            <span>Copy Both</span>
                           </>
                         )}
                       </button>
+
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setApprovalModal({ open: false, request: null, username: '', password: '' })}
+                          className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleConfirmApproval}
+                          disabled={submittingApproval}
+                          style={{
+                            backgroundColor: '#00F0FF',
+                            color: '#070514',
+                            boxShadow: '0 0 25px rgba(0, 240, 255, 0.4)',
+                          }}
+                          className="px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer hover:brightness-110 flex items-center gap-2"
+                        >
+                          {submittingApproval ? (
+                            <>
+                              <RefreshCw size={14} className="animate-spin" />
+                              <span>Issuing...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Check size={15} className="stroke-[3]" />
+                              <span>Issue Credentials</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -3611,6 +3962,11 @@ export default function AdminPortal({ initialTab }) {
                 </div>
 
                 <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap relative z-10 shrink-0">
+                  <AdminMonthFilter
+                    selectedMonth={ledgerFilterMonth}
+                    onChange={(m) => setLedgerFilterMonth(m)}
+                    showTimezoneBadge={false}
+                  />
                   <input
                     type="text"
                     placeholder="Filter username..."
@@ -3634,7 +3990,7 @@ export default function AdminPortal({ initialTab }) {
                     <option value="daily_bonus">Daily Bonuses</option>
                   </select>
                   <a
-                    href={`/api/ledger?format=csv&username=${encodeURIComponent(ledgerFilterUser)}&type=${ledgerFilterType}`}
+                    href={`/api/ledger?format=csv&username=${encodeURIComponent(ledgerFilterUser)}&type=${ledgerFilterType}&month=${ledgerFilterMonth}`}
                     className="px-4 py-2.5 rounded-xl bg-[#00F0FF] hover:bg-[#38bdf8] text-[#070514] font-black text-xs uppercase tracking-wider shadow-[0_0_20px_rgba(0,240,255,0.35)] flex items-center gap-1.5 transition cursor-pointer"
                   >
                     <Download size={14} className="stroke-[2.5]" />
@@ -3643,34 +3999,66 @@ export default function AdminPortal({ initialTab }) {
                 </div>
               </div>
 
-              <div className="bg-[#0E0A24] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+              {/* Monthly Ledger Summary Strip */}
+              {ledgerSummary && (
+                <div
+                  className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl border text-xs shadow-lg"
+                  style={{
+                    backgroundColor: '#0C0A1E',
+                    border: '1px solid rgba(0, 240, 255, 0.22)',
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <Clock size={14} className="text-[#00F0FF]" />
+                    <span className="font-bold text-white">Period:</span>
+                    <span className="text-[#00F0FF] font-black">{ledgerSummary.activeMonth}</span>
+                    <span className="text-[10px] text-slate-400 font-mono">({ledgerSummary.timezone})</span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
+                    <span className="px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 font-bold border border-emerald-500/30">
+                      Deposits: +${Number(ledgerSummary.totalDeposits || 0).toFixed(2)} SC
+                    </span>
+                    <span className="px-2.5 py-1 rounded-lg bg-purple-500/15 text-purple-400 font-bold border border-purple-500/30">
+                      Withdrawals: -${Number(ledgerSummary.totalWithdrawals || 0).toFixed(2)} SC
+                    </span>
+                    <span className="px-2.5 py-1 rounded-lg bg-cyan-500/15 text-cyan-300 font-bold border border-cyan-500/30">
+                      Net: ${Number(ledgerSummary.netGGR || 0).toFixed(2)} SC
+                    </span>
+                    <span className="px-2.5 py-1 rounded-lg bg-white/5 text-slate-300">
+                      {ledgerSummary.count} Entries
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-[#0C0A1E] border border-cyan-500/22 rounded-2xl overflow-hidden shadow-2xl">
                 <div className="overflow-x-auto w-full">
                   <table className="w-full min-w-[760px] text-left text-xs">
-                    <thead className="bg-[#070514] text-gray-400 uppercase border-b border-white/5">
+                    <thead className="bg-[#070514] text-[#00F0FF] font-black uppercase text-[11px] tracking-wider border-b border-cyan-500/20">
                       <tr>
-                        <th className="p-3">Timestamp</th>
-                        <th className="p-3">Player</th>
-                        <th className="p-3">Type</th>
-                        <th className="p-3">Amount</th>
-                        <th className="p-3">Before</th>
-                        <th className="p-3">After</th>
-                        <th className="p-3">Auditor / System</th>
-                        <th className="p-3">Notes</th>
+                        <th className="p-3.5">Timestamp</th>
+                        <th className="p-3.5">Player</th>
+                        <th className="p-3.5">Type</th>
+                        <th className="p-3.5">Amount</th>
+                        <th className="p-3.5">Before</th>
+                        <th className="p-3.5">After</th>
+                        <th className="p-3.5">Auditor / System</th>
+                        <th className="p-3.5">Notes</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/5">
+                    <tbody className="divide-y divide-cyan-500/10">
                       {ledgerRecords.map(r => (
-                        <tr key={r.id} className="hover:bg-white/5">
-                          <td className="p-3 text-gray-400">{new Date(r.createdAt).toLocaleString()}</td>
-                          <td className="p-3 font-bold text-white">{r.username}</td>
-                          <td className="p-3 uppercase text-[10px] font-black text-purple-300">{r.type.replace('_', ' ')}</td>
-                          <td className={`p-3 font-bold ${r.amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        <tr key={r.id} className="hover:bg-cyan-500/[0.04] transition-colors">
+                          <td className="p-3.5 text-gray-400 font-mono text-[11px]">{new Date(r.createdAt).toLocaleString()}</td>
+                          <td className="p-3.5 font-bold text-white">{r.username}</td>
+                          <td className="p-3.5 uppercase text-[10px] font-black text-purple-300 font-mono">{r.type.replace('_', ' ')}</td>
+                          <td className={`p-3.5 font-bold font-mono ${r.amount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                             {r.amount >= 0 ? `+${r.amount}` : r.amount} {r.currency}
                           </td>
-                          <td className="p-3 text-gray-400">{r.balanceBefore?.toFixed(2) ?? '—'}</td>
-                          <td className="p-3 text-white font-semibold">{r.balanceAfter?.toFixed(2) ?? '—'}</td>
-                          <td className="p-3 text-amber-400 font-semibold">{r.performedBy}</td>
-                          <td className="p-3 text-gray-400 max-w-xs truncate">{r.notes}</td>
+                          <td className="p-3.5 text-gray-400 font-mono">{r.balanceBefore?.toFixed(2) ?? '—'}</td>
+                          <td className="p-3.5 text-white font-semibold font-mono">{r.balanceAfter?.toFixed(2) ?? '—'}</td>
+                          <td className="p-3.5 text-amber-400 font-semibold">{r.performedBy}</td>
+                          <td className="p-3.5 text-gray-400 max-w-xs truncate">{r.notes}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -6100,6 +6488,68 @@ export default function AdminPortal({ initialTab }) {
                     </button>
                   </div>
                 </form>
+
+                {/* DANGER ZONE / DATA CALIBRATION CARD */}
+                <div
+                  className="rounded-2xl p-6 relative overflow-hidden"
+                  style={{
+                    backgroundColor: '#070514',
+                    border: '1px solid rgba(239, 68, 68, 0.35)',
+                    boxShadow: '0 15px 35px rgba(0, 0, 0, 0.45)',
+                  }}
+                >
+                  <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
+                    <div className="space-y-2 max-w-2xl">
+                      <div className="flex items-center gap-2.5 flex-wrap">
+                        <span
+                          className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider font-mono flex items-center gap-1.5"
+                          style={{
+                            backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                            color: '#EF4444',
+                            border: '1px solid rgba(239, 68, 68, 0.35)',
+                          }}
+                        >
+                          <AlertCircle size={12} />
+                          <span>Platform Maintenance &amp; CST Calibration</span>
+                        </span>
+                        <span
+                          className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider font-mono"
+                          style={{
+                            backgroundColor: 'rgba(0, 240, 255, 0.1)',
+                            color: '#00F0FF',
+                            border: '1px solid rgba(0, 240, 255, 0.25)',
+                          }}
+                        >
+                          CST (US Central) Timezone
+                        </span>
+                      </div>
+                      <h3
+                        className="text-lg font-black text-white m-0 tracking-tight"
+                        style={{ fontFamily: 'Lexend, sans-serif' }}
+                      >
+                        Reset Backend Records &amp; Stats Accuracy
+                      </h3>
+                      <p className="text-xs text-slate-400 m-0 leading-relaxed">
+                        Agar aap chahte hain k aap k records aur stats bilkul fresh aur 100% accurate CST (Central Standard Time) calculation k mutabiq run hon, to aap backend k previous test records ko yahan se safely reset kar saktay hain. Confirmation k liye type <code className="text-red-400 font-mono font-bold">RESET</code> darkaar hoga.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setResetModalOpen(true)}
+                      style={{
+                        backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                        border: '1.5px solid rgba(239, 68, 68, 0.5)',
+                        color: '#EF4444',
+                        boxShadow: '0 0 25px rgba(239, 68, 68, 0.2)',
+                      }}
+                      className="px-6 py-3.5 rounded-xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2.5 hover:bg-red-500 hover:text-white transition duration-200 cursor-pointer shrink-0"
+                    >
+                      <Trash2 size={16} />
+                      <span>Open Reset Records Tool</span>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -6116,6 +6566,7 @@ export default function AdminPortal({ initialTab }) {
             const filteredUsers = usersList.filter(u => {
               if (playerFilter === 'active') return !u.isBanned;
               if (playerFilter === 'banned') return u.isBanned;
+              if (playerFilter === 'with_phone') return Boolean(u.phoneNumber);
               if (playerFilter === 'with_balance') return Number(u.balanceSC || 0) > 0;
               if (playerFilter === 'bound') return Boolean(u.deviceId);
               return true;
@@ -6352,16 +6803,10 @@ export default function AdminPortal({ initialTab }) {
                   </div>
                 </div>
 
-                {/* Filter Pills & Tip */}
+                {/* Filter Tabs & Lead Actions Toolbar */}
                 <div
-                  style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '16px',
-                    width: '100%',
-                  }}
+                  className="flex items-center justify-between gap-4 flex-wrap"
+                  style={{ width: '100%' }}
                 >
                   <div
                     className="flex items-center gap-1 p-1 rounded-xl overflow-x-auto no-scrollbar max-w-full"
@@ -6372,6 +6817,7 @@ export default function AdminPortal({ initialTab }) {
                   >
                     {[
                       { id: 'all', label: 'All Players', count: totalPlayers },
+                      { id: 'with_phone', label: '📞 Phone Leads', count: usersList.filter(u => Boolean(u.phoneNumber)).length },
                       { id: 'active', label: 'Active', count: usersList.filter(u => !u.isBanned).length },
                       { id: 'with_balance', label: 'Balance > $0', count: usersList.filter(u => Number(u.balanceSC || 0) > 0).length },
                       { id: 'bound', label: 'Device Bound', count: usersList.filter(u => Boolean(u.deviceId)).length },
@@ -6403,16 +6849,55 @@ export default function AdminPortal({ initialTab }) {
                     ))}
                   </div>
 
-                  <div
-                    className="flex items-center gap-2 text-xs px-3.5 py-2 rounded-xl shrink-0"
-                    style={{
-                      backgroundColor: 'rgba(0, 240, 255, 0.06)',
-                      border: '1px solid rgba(0, 240, 255, 0.2)',
-                      color: '#94A3B8',
-                    }}
-                  >
-                    <span className="text-cyan-400">💡</span>
-                    <span>Click on any player row or <strong className="text-[#00F0FF]">Profile</strong> to open full 360° audit desk.</span>
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    {/* CSV Export Button for Leads */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const headers = ['Username', 'Email', 'Phone Number', 'Registered (CST)', 'Last Login (CST)', 'Balance SC', 'Total Deposits', 'Total Cashouts', 'Status'];
+                        const rows = filteredUsers.map(u => [
+                          `"${u.username || ''}"`,
+                          `"${u.email || ''}"`,
+                          `"${u.phoneNumber || ''}"`,
+                          `"${formatCSTDateTime(u.createdAt)}"`,
+                          `"${u.lastLoginAt ? formatCSTDateTime(u.lastLoginAt) : 'Never'}"`,
+                          Number(u.balanceSC || 0).toFixed(2),
+                          Number(u.totalDeposits || 0).toFixed(2),
+                          Number(u.totalWithdrawals || 0).toFixed(2),
+                          u.isBanned ? 'BANNED' : 'ACTIVE',
+                        ]);
+                        const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+                        const encodedUri = encodeURI(csvContent);
+                        const link = document.createElement('a');
+                        link.setAttribute('href', encodedUri);
+                        link.setAttribute('download', `vegas_one_leads_${new Date().toISOString().split('T')[0]}_cst.csv`);
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      }}
+                      className="px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer transition hover:bg-cyan-500/20"
+                      style={{
+                        backgroundColor: 'rgba(0, 240, 255, 0.1)',
+                        border: '1px solid rgba(0, 240, 255, 0.35)',
+                        color: '#00F0FF',
+                      }}
+                      title="Download Leads Spreadsheet"
+                    >
+                      <Download size={13} />
+                      <span>Export Leads (CSV)</span>
+                    </button>
+
+                    <div
+                      className="hidden md:flex items-center gap-2 text-xs px-3.5 py-2 rounded-xl shrink-0"
+                      style={{
+                        backgroundColor: 'rgba(0, 240, 255, 0.06)',
+                        border: '1px solid rgba(0, 240, 255, 0.2)',
+                        color: '#94A3B8',
+                      }}
+                    >
+                      <span className="text-cyan-400">💡</span>
+                      <span>Click on any player row or <strong className="text-[#00F0FF]">Profile</strong> to open full 360° audit desk.</span>
+                    </div>
                   </div>
                 </div>
 
@@ -6465,6 +6950,26 @@ export default function AdminPortal({ initialTab }) {
                                   )}
                                 </div>
                                 <div className="text-[11px] text-slate-400 truncate mt-0.5">{u.email}</div>
+                                {u.phoneNumber ? (
+                                  <div className="flex items-center gap-1.5 text-xs text-cyan-300 font-mono font-bold mt-1">
+                                    <Phone size={11} className="text-cyan-400" />
+                                    <span>{u.phoneNumber}</span>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        navigator.clipboard.writeText(u.phoneNumber);
+                                        alert(`Copied phone: ${u.phoneNumber}`);
+                                      }}
+                                      className="p-1 rounded bg-cyan-500/10 text-cyan-400 hover:text-white"
+                                      title="Copy Phone"
+                                    >
+                                      <Copy size={10} />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <div className="text-[10px] text-slate-500 italic mt-0.5">No Phone Number</div>
+                                )}
                               </div>
                             </div>
 
@@ -6478,6 +6983,18 @@ export default function AdminPortal({ initialTab }) {
                             >
                               {u.isBanned ? 'BANNED' : 'ACTIVE'}
                             </span>
+                          </div>
+
+                          {/* CST Timestamps Strip in Mobile Card */}
+                          <div className="flex items-center justify-between text-[10.5px] text-slate-400 p-2.5 rounded-xl bg-[#070514] border border-cyan-500/15">
+                            <div>
+                              <span className="text-slate-500 block text-[9.5px] uppercase font-bold">Registered CST</span>
+                              <span className="text-cyan-300 font-mono font-bold">{formatCSTDate(u.createdAt)}</span>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-slate-500 block text-[9.5px] uppercase font-bold">Last Login CST</span>
+                              <span className="text-amber-300 font-mono font-bold">{u.lastLoginAt ? formatCSTDate(u.lastLoginAt) : 'Never'}</span>
+                            </div>
                           </div>
 
                           <div
@@ -6608,12 +7125,12 @@ export default function AdminPortal({ initialTab }) {
                         }}
                       >
                         <tr>
-                          <th className="p-4">Player / Identity</th>
+                          <th className="p-4">Player / Account</th>
+                          <th className="p-4">Phone / Lead</th>
+                          <th className="p-4">CST Timestamps (Reg / Login)</th>
                           <th className="p-4">Cash Balance</th>
                           <th className="p-4">Deposited</th>
                           <th className="p-4">Cashed Out</th>
-                          <th className="p-4">Referrals</th>
-                          <th className="p-4">Device Binding</th>
                           <th className="p-4">Status</th>
                           <th className="p-4 text-right">Actions</th>
                         </tr>
@@ -6663,31 +7180,43 @@ export default function AdminPortal({ initialTab }) {
                                       )}
                                     </div>
                                     <div className="text-[11px] text-slate-400 mt-0.5">{u.email}</div>
-                                    <div className="text-[10px] text-slate-500 mt-1 flex items-center gap-1.5 flex-wrap">
-                                      <span>Joined {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'Recent'}</span>
-                                      <span
-                                        className="text-[9px] px-1.5 py-0.2 rounded font-bold"
-                                        style={{
-                                          backgroundColor: 'rgba(0, 240, 255, 0.1)',
-                                          color: '#00F0FF',
-                                          border: '1px solid rgba(0, 240, 255, 0.25)',
-                                        }}
-                                      >
-                                        Age: {u.age || (u.dob ? Math.floor((Date.now() - new Date(u.dob).getTime()) / 31557600000) : '18+')}
-                                      </span>
-                                      {u.ageVerified && (
-                                        <span
-                                          className="text-[9px] font-bold px-1.5 py-0.2 rounded"
-                                          style={{
-                                            backgroundColor: 'rgba(16, 185, 129, 0.12)',
-                                            color: '#34D399',
-                                            border: '1px solid rgba(16, 185, 129, 0.3)',
-                                          }}
-                                        >
-                                          ✓ 18+ Verified
-                                        </span>
-                                      )}
-                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+
+                              {/* Phone / Contact Lead */}
+                              <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                                {u.phoneNumber ? (
+                                  <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-xl bg-cyan-500/10 border border-cyan-500/30">
+                                    <Phone size={12} className="text-cyan-400 shrink-0" />
+                                    <span className="font-mono font-bold text-cyan-300 text-xs">{u.phoneNumber}</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        navigator.clipboard.writeText(u.phoneNumber);
+                                        alert(`Copied phone lead: ${u.phoneNumber}`);
+                                      }}
+                                      className="text-slate-400 hover:text-cyan-300 p-0.5 cursor-pointer transition"
+                                      title="Copy Phone Lead"
+                                    >
+                                      <Copy size={11} />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <span className="text-slate-500 italic text-[11px]">No Phone</span>
+                                )}
+                              </td>
+
+                              {/* CST Timestamps (Registered & Last Login) */}
+                              <td className="p-4 font-mono text-xs">
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-1.5 text-slate-300">
+                                    <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-wider">Reg:</span>
+                                    <span className="text-[11px] text-cyan-200">{formatCSTDateTime(u.createdAt)}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1.5 text-slate-400">
+                                    <span className="text-[10px] text-amber-400 font-bold uppercase tracking-wider">Login:</span>
+                                    <span className="text-[11px] text-amber-200">{u.lastLoginAt ? formatCSTDateTime(u.lastLoginAt) : 'Never'}</span>
                                   </div>
                                 </div>
                               </td>
@@ -7674,9 +8203,14 @@ export default function AdminPortal({ initialTab }) {
                     <button
                       type="button"
                       onClick={() => {
-                        fetch(`/api/ledger?username=${encodeURIComponent(ledgerFilterUser)}&type=${ledgerFilterType}&t=${Date.now()}`)
+                        fetch(`/api/ledger?username=${encodeURIComponent(ledgerFilterUser)}&type=${ledgerFilterType}&month=${ledgerFilterMonth}&t=${Date.now()}`)
                           .then(r => r.json())
-                          .then(d => { if (d.success) setLedgerRecords(d.records || []); });
+                          .then(d => {
+                            if (d.success) {
+                              setLedgerRecords(d.records || []);
+                              if (d.summary) setLedgerSummary(d.summary);
+                            }
+                          });
                       }}
                       style={{
                         background: 'rgba(0, 240, 255, 0.08)',
@@ -7691,7 +8225,7 @@ export default function AdminPortal({ initialTab }) {
                       <span>Refresh</span>
                     </button>
                     <a
-                      href={`/api/ledger?format=csv&username=${encodeURIComponent(ledgerFilterUser)}&type=${ledgerFilterType}`}
+                      href={`/api/ledger?format=csv&username=${encodeURIComponent(ledgerFilterUser)}&type=${ledgerFilterType}&month=${ledgerFilterMonth}`}
                       download
                       style={{
                         background: '#00F0FF',
@@ -7813,6 +8347,15 @@ export default function AdminPortal({ initialTab }) {
                         <X size={13} />
                       </button>
                     )}
+                  </div>
+
+                  {/* CST Month Filter */}
+                  <div className="w-full sm:w-auto shrink-0">
+                    <AdminMonthFilter
+                      selectedMonth={ledgerFilterMonth}
+                      onChange={setLedgerFilterMonth}
+                      showTimezoneBadge={false}
+                    />
                   </div>
 
                   {/* Filter Type Dropdown */}
@@ -9738,6 +10281,23 @@ export default function AdminPortal({ initialTab }) {
               if (alert.targetTab === 'coins_allotment') {
                 setCoinDeskSection(alert.targetSubTab || 'loads');
               }
+            }}
+          />
+
+          {/* Reset Platform Records & CST Calibration Modal */}
+          <ResetRecordsModal
+            isOpen={resetModalOpen}
+            onClose={() => setResetModalOpen(false)}
+            onResetComplete={() => {
+              fetch(`/api/admin/stats?month=${statsMonth}&t=${Date.now()}`).then(r => r.json()).then(d => { if (d.success) setStats(d.stats); });
+              fetch(`/api/ledger?username=${encodeURIComponent(ledgerFilterUser)}&type=${ledgerFilterType}&month=${ledgerFilterMonth}&t=${Date.now()}`)
+                .then(r => r.json())
+                .then(d => {
+                  if (d.success) {
+                    setLedgerRecords(d.records || []);
+                    if (d.summary) setLedgerSummary(d.summary);
+                  }
+                });
             }}
           />
         </main>

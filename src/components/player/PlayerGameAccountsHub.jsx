@@ -25,6 +25,7 @@ import LoadCoinsModal from '@/components/player/LoadCoinsModal';
 
 export default function PlayerGameAccountsHub({
   user,
+  authChecking = false,
   games = [],
   onOpenAuth,
   onPlayGame,
@@ -286,7 +287,36 @@ export default function PlayerGameAccountsHub({
           </span>
         </div>
 
-        {!user ? (
+        {authChecking ? (
+          <div
+            style={{
+              background: 'linear-gradient(135deg, rgba(20, 14, 51, 0.7) 0%, rgba(10, 6, 26, 0.7) 100%)',
+              border: '1px solid rgba(0, 240, 255, 0.2)',
+              borderRadius: '18px',
+              padding: '40px 20px',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '12px',
+            }}
+          >
+            <div
+              style={{
+                width: '32px',
+                height: '32px',
+                border: '3px solid rgba(0, 240, 255, 0.2)',
+                borderTopColor: '#00F0FF',
+                borderRadius: '50%',
+                animation: 'spin 0.8s linear infinite',
+              }}
+            />
+            <span style={{ fontSize: '12.5px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
+              Loading player game accounts...
+            </span>
+          </div>
+        ) : !user ? (
           /* Guest Lock Card */
           <div
             style={{

@@ -16,6 +16,8 @@ import {
   Menu
 } from 'lucide-react';
 
+import { getClientUser, clearClientUser, fetchCurrentUser } from '@/lib/clientAuth';
+
 export default function VegasNavbar({
   user: propUser,
   activeTab = 'main',
@@ -30,7 +32,7 @@ export default function VegasNavbar({
   setActiveCurrency,
 }) {
   const router = useRouter();
-  const [internalUser, setInternalUser] = useState(null);
+  const [internalUser, setInternalUser] = useState(() => getClientUser());
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -55,27 +57,38 @@ export default function VegasNavbar({
   useEffect(() => {
     let isMounted = true;
     const fetchLatestUser = () => {
-      fetch('/api/auth/me')
-        .then((res) => res.json())
+      fetchCurrentUser()
         .then((data) => {
-          if (isMounted && data && data.authenticated && data.user) {
-            setInternalUser(data.user);
+          if (isMounted) {
+            if (data && data.authenticated && data.user) {
+              setInternalUser(data.user);
+            } else {
+              setInternalUser(null);
+            }
           }
         })
         .catch(() => {});
     };
 
     fetchLatestUser();
-    const interval = setInterval(fetchLatestUser, 3500);
+    const interval = setInterval(fetchLatestUser, 4000);
 
     const onBalanceUpdate = () => fetchLatestUser();
+    const onAuthUpdate = (e) => {
+      if (isMounted) {
+        setInternalUser(e?.detail !== undefined ? e.detail : getClientUser());
+      }
+    };
+
     window.addEventListener('balanceUpdated', onBalanceUpdate);
+    window.addEventListener('vegas_auth_updated', onAuthUpdate);
     window.addEventListener('focus', onBalanceUpdate);
 
     return () => {
       isMounted = false;
       clearInterval(interval);
       window.removeEventListener('balanceUpdated', onBalanceUpdate);
+      window.removeEventListener('vegas_auth_updated', onAuthUpdate);
       window.removeEventListener('focus', onBalanceUpdate);
     };
   }, []);
@@ -96,7 +109,7 @@ export default function VegasNavbar({
     if (typeof onOpenWallet === 'function') {
       onOpenWallet();
     } else {
-      router.push('/wallet');
+      router.push('/deposit');
     }
   };
 
@@ -131,6 +144,7 @@ export default function VegasNavbar({
   };
 
   const handleLogout = async () => {
+    clearClientUser();
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
       window.location.reload();

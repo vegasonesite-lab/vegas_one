@@ -110,7 +110,7 @@ export default function VegasFooter({ onSelectTab, onOpenSupport }) {
               <Link href="/games" style={linkStyle}>
                 Supported Game Platforms
               </Link>
-              <Link href="/wallet" style={linkStyle}>
+              <Link href="/deposit" style={linkStyle}>
                 Deposit &amp; Cashier
               </Link>
               <Link href="/referrals" style={linkStyle}>

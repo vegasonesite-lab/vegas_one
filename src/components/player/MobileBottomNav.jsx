@@ -58,7 +58,7 @@ export default function MobileBottomNav({
 
       {/* 3. Center Cashier / Vault */}
       <Link
-        href="/wallet"
+        href="/deposit"
         style={{
           display: 'flex',
           flexDirection: 'column',
