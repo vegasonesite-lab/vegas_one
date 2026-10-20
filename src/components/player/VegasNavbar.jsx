@@ -37,6 +37,7 @@ export default function VegasNavbar({
   const [mounted, setMounted] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [unreadNotifs, setUnreadNotifs] = useState(0);
+  const dropdownRef = useRef(null);
 
   // Track unread notifications (promotions, broadcasts)
   useEffect(() => {
