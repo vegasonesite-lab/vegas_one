@@ -11,18 +11,17 @@ import LiveChatWidget from '@/components/LiveChatWidget';
 import AuthModal from '@/components/AuthModal';
 import VegasSidebar from '@/components/player/VegasSidebar';
 import PlayerGameAccountsHub from '@/components/player/PlayerGameAccountsHub';
-import { useAuthSession } from '@/lib/clientAuth';
+import { useAuthSession, getClientUser } from '@/lib/clientAuth';
 
 export default function AccountsPage() {
   const router = useRouter();
   const { user, setUser, authChecking, refreshUser } = useAuthSession();
+  const activeUser = user || (typeof window !== 'undefined' ? getClientUser() : null);
   const [games, setGames] = useState([]);
   const [authModal, setAuthModal] = useState({ open: false, tab: 'login' });
   const [activeCurrency, setActiveCurrency] = useState('SC');
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-
-
 
   // 2. Fetch games library
   useEffect(() => {
@@ -45,7 +44,7 @@ export default function AccountsPage() {
     <div className="min-h-screen bg-[#070514] text-[#F8FAFC] selection:bg-[#00F0FF] selection:text-[#070514] font-body antialiased">
       {/* 1. Permanent Fixed 100vh Left Sidebar */}
       <VegasSidebar
-        user={user}
+        user={activeUser}
         activeTab="accounts"
         onSelectTab={(t) => {
           if (t === 'main') router.push('/');
@@ -61,7 +60,7 @@ export default function AccountsPage() {
       {/* 2. Right-Hand Scrollable Content Area */}
       <div className="vegas-page-right-content">
         <VegasNavbar
-          user={user}
+          user={activeUser}
           activeTab="accounts"
           onSelectTab={(tab) => {
             if (tab === 'main') router.push('/');
@@ -70,7 +69,7 @@ export default function AccountsPage() {
           }}
           onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
           onOpenWallet={() => {
-            if (!user) setAuthModal({ open: true, tab: 'login' });
+            if (!activeUser) setAuthModal({ open: true, tab: 'login' });
             else router.push('/deposit');
           }}
           onToggleMobileSidebar={() => setMobileSidebarOpen(!mobileSidebarOpen)}
@@ -102,13 +101,13 @@ export default function AccountsPage() {
 
           {/* Player Game Accounts Hub Component */}
           <PlayerGameAccountsHub
-            user={user}
-            authChecking={authChecking}
+            user={activeUser}
+            authChecking={authChecking && !activeUser}
             games={games}
             onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
             onPlayGame={handlePlayGame}
             onDeposit={() => {
-              if (!user) setAuthModal({ open: true, tab: 'login' });
+              if (!activeUser) setAuthModal({ open: true, tab: 'login' });
               else router.push('/deposit');
             }}
           />
@@ -120,11 +119,11 @@ export default function AccountsPage() {
           onSelectTab={(t) => router.push(t === 'main' ? '/' : `/${t}`)}
           onOpenWallet={() => router.push('/deposit')}
           onOpenAuth={(t) => setAuthModal({ open: true, tab: t })}
-          user={user}
+          user={activeUser}
         />
       </div>
 
-      <LiveChatWidget user={user} />
+      <LiveChatWidget user={activeUser} />
       <AuthModal
         isOpen={authModal.open}
         initialTab={authModal.tab}

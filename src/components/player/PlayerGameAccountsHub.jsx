@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import LoadCoinsModal from '@/components/player/LoadCoinsModal';
 import { broadcastAdminAlert } from '@/lib/broadcastAlert';
+import { getClientUser, fetchCurrentUser } from '@/lib/clientAuth';
 
 export default function PlayerGameAccountsHub({
   user,
@@ -32,6 +33,41 @@ export default function PlayerGameAccountsHub({
   onPlayGame,
   onDeposit,
 }) {
+  const [internalUser, setInternalUser] = useState(() => {
+    return user || (typeof window !== 'undefined' ? getClientUser() : null);
+  });
+
+  useEffect(() => {
+    if (user) {
+      setInternalUser(user);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    const handleAuth = (e) => {
+      const u = e?.detail !== undefined && e.detail !== null ? e.detail : getClientUser();
+      if (u) setInternalUser(u);
+    };
+    const handleBalance = () => {
+      const u = getClientUser();
+      if (u) setInternalUser(u);
+      fetchCurrentUser().then((res) => {
+        if (res && res.authenticated && res.user) {
+          setInternalUser(res.user);
+        }
+      }).catch(() => {});
+    };
+
+    window.addEventListener('vegas_auth_updated', handleAuth);
+    window.addEventListener('balanceUpdated', handleBalance);
+    return () => {
+      window.removeEventListener('vegas_auth_updated', handleAuth);
+      window.removeEventListener('balanceUpdated', handleBalance);
+    };
+  }, []);
+
+  const activeUser = user || internalUser || (typeof window !== 'undefined' ? getClientUser() : null);
+
   const [activeAccounts, setActiveAccounts] = useState([]);
   const [pendingRequests, setPendingRequests] = useState([]);
   const [rejectedRequests, setRejectedRequests] = useState([]);
@@ -44,13 +80,13 @@ export default function PlayerGameAccountsHub({
   const [errorMsg, setErrorMsg] = useState(null);
 
   const fetchAccountsAndRequests = async () => {
-    if (!user?.email) return;
+    if (!activeUser?.email) return;
 
     setLoading(true);
     try {
       const [credRes, reqRes] = await Promise.all([
-        fetch(`/api/game-accounts?email=${encodeURIComponent(user.email)}`),
-        fetch(`/api/account-requests?email=${encodeURIComponent(user.email)}`),
+        fetch(`/api/game-accounts?email=${encodeURIComponent(activeUser.email)}`),
+        fetch(`/api/account-requests?email=${encodeURIComponent(activeUser.email)}`),
       ]);
 
       const credData = await credRes.json();
@@ -104,7 +140,7 @@ export default function PlayerGameAccountsHub({
   };
 
   useEffect(() => {
-    if (user?.email) {
+    if (activeUser?.email) {
       fetchAccountsAndRequests();
       const interval = setInterval(fetchAccountsAndRequests, 3000);
 
@@ -121,7 +157,7 @@ export default function PlayerGameAccountsHub({
       setActiveAccounts([]);
       setPendingRequests([]);
     }
-  }, [user?.email]);
+  }, [activeUser?.email]);
 
   const handleCopy = (text, key) => {
     navigator.clipboard?.writeText(text);
@@ -137,7 +173,7 @@ export default function PlayerGameAccountsHub({
   };
 
   const handleRequestAccount = async (game) => {
-    if (!user) {
+    if (!activeUser) {
       if (onOpenAuth) onOpenAuth('login');
       return;
     }
@@ -171,8 +207,8 @@ export default function PlayerGameAccountsHub({
           gameTitle,
           gameId,
           transferAmount: 0,
-          userEmail: user.email,
-          userName: user.username,
+          userEmail: activeUser.email,
+          userName: activeUser.username,
         }),
       });
 
@@ -182,7 +218,7 @@ export default function PlayerGameAccountsHub({
       if (data.success) {
         broadcastAdminAlert('ACCOUNT_CREATION', {
           gameTitle,
-          userName: user.username,
+          userName: activeUser.username,
         });
         setRequestSuccessMsg(`🎉 Account request for "${gameTitle}" submitted! Our financial desk is generating your credentials.`);
         fetchAccountsAndRequests();
@@ -212,7 +248,7 @@ export default function PlayerGameAccountsHub({
           </h2>
         </div>
 
-        {user && (
+        {activeUser && (
           <button
             type="button"
             onClick={fetchAccountsAndRequests}
@@ -325,7 +361,7 @@ export default function PlayerGameAccountsHub({
               Loading player game accounts...
             </span>
           </div>
-        ) : !user ? (
+        ) : !activeUser ? (
           /* Guest Lock Card */
           <div
             style={{
@@ -808,7 +844,7 @@ export default function PlayerGameAccountsHub({
       <LoadCoinsModal
         isOpen={loadCoinsModal.open}
         game={loadCoinsModal.game}
-        user={user}
+        user={activeUser}
         onClose={() => setLoadCoinsModal({ open: false, game: null })}
         onSuccess={() => fetchAccountsAndRequests()}
       />

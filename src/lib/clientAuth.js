@@ -155,9 +155,23 @@ export function useAuthSession() {
     // 3. Listen to auth changes and balance sync events across components
     const handleAuthUpdate = (e) => {
       if (!isMounted) return;
-      const updatedUser = e?.detail !== undefined ? e.detail : getClientUser();
-      setUser(updatedUser);
-      setAuthChecking(false);
+      if (e?.type === 'vegas_auth_updated') {
+        const updatedUser = e?.detail !== undefined ? e.detail : getClientUser();
+        setUser(updatedUser);
+        setAuthChecking(false);
+      } else if (e?.type === 'balanceUpdated') {
+        // Balance update should never wipe out the user session
+        const cached = getClientUser();
+        if (cached) {
+          setUser(cached);
+        }
+        fetchCurrentUser().then((result) => {
+          if (!isMounted) return;
+          if (result && result.authenticated && result.user) {
+            setUser(result.user);
+          }
+        }).catch(() => {});
+      }
     };
 
     window.addEventListener('vegas_auth_updated', handleAuthUpdate);

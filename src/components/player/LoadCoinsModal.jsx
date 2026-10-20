@@ -13,6 +13,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { broadcastAdminAlert } from '@/lib/broadcastAlert';
+import { getClientUser, fetchCurrentUser } from '@/lib/clientAuth';
 
 export default function LoadCoinsModal({
   isOpen,
@@ -21,23 +22,45 @@ export default function LoadCoinsModal({
   user,
   onSuccess,
 }) {
+  const [internalUser, setInternalUser] = useState(() => {
+    return user || (typeof window !== 'undefined' ? getClientUser() : null);
+  });
   const [loadAmount, setLoadAmount] = useState(20);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
 
-  const availableBalance = user
-    ? Math.max(0, Number((user.balanceSC || 0) - (user.frozenBalance || 0)))
-    : 0;
-
-  const frozenBalance = user ? Math.max(0, Number(user.frozenBalance || 0)) : 0;
+  useEffect(() => {
+    if (user) setInternalUser(user);
+  }, [user]);
 
   useEffect(() => {
     if (isOpen) {
       setErrorMsg(null);
       setSuccessMsg(null);
+      const cached = getClientUser();
+      if (cached) setInternalUser(cached);
+
+      fetchCurrentUser().then((res) => {
+        if (res && res.authenticated && res.user) {
+          setInternalUser(res.user);
+        }
+      }).catch(() => {});
+    }
+  }, [isOpen]);
+
+  const activeUser = internalUser || user || (typeof window !== 'undefined' ? getClientUser() : null);
+
+  const availableBalance = activeUser
+    ? Math.max(0, Number((activeUser.balanceSC || 0) - (activeUser.frozenBalance || 0)))
+    : 0;
+
+  const frozenBalance = activeUser ? Math.max(0, Number(activeUser.frozenBalance || 0)) : 0;
+
+  useEffect(() => {
+    if (isOpen) {
       if (availableBalance > 0) {
-        setLoadAmount(Math.min(20, availableBalance));
+        setLoadAmount((prev) => (prev > 0 && prev <= availableBalance ? prev : Math.min(20, availableBalance)));
       } else {
         setLoadAmount(0);
       }
@@ -55,6 +78,11 @@ export default function LoadCoinsModal({
     e.preventDefault();
     setErrorMsg(null);
     setSuccessMsg(null);
+
+    if (!activeUser) {
+      setErrorMsg('Please sign in to load coins.');
+      return;
+    }
 
     const amt = Number(loadAmount);
     if (!amt || amt <= 0) {
@@ -77,8 +105,8 @@ export default function LoadCoinsModal({
           gameTitle,
           gameId,
           transferAmount: amt,
-          userEmail: user.email,
-          userName: user.username,
+          userEmail: activeUser.email,
+          userName: activeUser.username,
         }),
       });
 
@@ -88,7 +116,7 @@ export default function LoadCoinsModal({
       if (data.success) {
         broadcastAdminAlert('COIN_LOAD', {
           gameTitle,
-          userName: user.username,
+          userName: activeUser.username,
           amount: amt,
         });
         setSuccessMsg(`🎉 $${amt.toFixed(2)} SC frozen in escrow and submitted to coin desk for ${gameTitle}!`);

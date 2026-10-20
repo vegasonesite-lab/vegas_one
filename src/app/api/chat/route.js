@@ -36,7 +36,15 @@ export async function GET(req) {
               },
             },
             userId: { $first: '$userId' },
-            lastMessage: { $first: '$text' },
+            lastMessage: {
+              $first: {
+                $cond: [
+                  { $and: [{ $ifNull: ['$imageUrl', false] }, { $eq: [{ $ifNull: ['$text', ''] }, ''] }] },
+                  '📷 Photo',
+                  '$text',
+                ],
+              },
+            },
             lastSenderRole: { $first: '$senderRole' },
             updatedAt: { $first: '$createdAt' },
             unreadCount: {
@@ -72,15 +80,30 @@ export async function GET(req) {
       .toArray();
 
     // Mark messages read by staff or player
+    const markRead = searchParams.get('markRead') === 'true';
     if (isStaff) {
       await chatCol.updateMany(
         { conversationId: targetConvId, senderRole: 'player', read: false },
         { $set: { read: true } }
       );
+    } else if (markRead) {
+      await chatCol.updateMany(
+        { conversationId: targetConvId, senderRole: 'staff', read: false },
+        { $set: { read: true } }
+      );
     }
+
+    const playerUnreadCount = isStaff
+      ? 0
+      : await chatCol.countDocuments({
+          conversationId: targetConvId,
+          senderRole: 'staff',
+          read: false,
+        });
 
     return NextResponse.json({
       success: true,
+      unreadCount: playerUnreadCount,
       messages: messages.map(m => ({
         id: m._id.toString(),
         conversationId: m.conversationId,
@@ -88,7 +111,8 @@ export async function GET(req) {
         username: m.username,
         senderRole: m.senderRole,
         staffName: m.staffName || null,
-        text: m.text,
+        text: m.text || '',
+        imageUrl: m.imageUrl || null,
         read: m.read,
         createdAt: m.createdAt,
       })),
@@ -106,9 +130,22 @@ export async function POST(req) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { text, conversationId, targetUsername, targetUserId } = await req.json();
+    const { text, imageUrl, conversationId, targetUsername, targetUserId } = await req.json();
 
-    if (!text || !text.trim()) {
+    const cleanText = typeof text === 'string' ? text.trim() : '';
+    let cleanImage = null;
+    if (imageUrl) {
+      if (typeof imageUrl !== 'string' || !/^data:image\/(png|jpe?g|webp|gif);base64,/i.test(imageUrl)) {
+        return NextResponse.json({ success: false, error: 'Invalid image format.' }, { status: 400 });
+      }
+      // ~3MB base64 cap to protect the database
+      if (imageUrl.length > 3 * 1024 * 1024) {
+        return NextResponse.json({ success: false, error: 'Image is too large. Please send a smaller image.' }, { status: 413 });
+      }
+      cleanImage = imageUrl;
+    }
+
+    if (!cleanText && !cleanImage) {
       return NextResponse.json({ success: false, error: 'Message cannot be empty.' }, { status: 400 });
     }
 
@@ -128,7 +165,8 @@ export async function POST(req) {
       username: isStaff ? (targetUsername || 'Vegas One Support') : session.username,
       senderRole: isStaff ? 'staff' : 'player',
       staffName: isStaff ? session.username : null,
-      text: text.trim(),
+      text: cleanText,
+      imageUrl: cleanImage,
       read: false,
       createdAt: new Date(),
     };

@@ -100,16 +100,8 @@ export default function VegasRunningPromos({ onOpenAuth, user }) {
         </p>
       </div>
 
-      {/* Promos Grid / Carousel */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
-          gap: '20px',
-          width: '100%',
-          boxSizing: 'border-box',
-        }}
-      >
+      {/* Promos Grid - 2 Cards Per Row */}
+      <div className="vegas-running-promos-grid">
         {promos.map((promo) => {
           const promoId = promo.id || promo._id || promo.title;
           const isWeekend = promo.tag?.toLowerCase().includes('weekend') || promo.title?.toLowerCase().includes('weekend');

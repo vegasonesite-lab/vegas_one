@@ -80,6 +80,7 @@ import ResetRecordsModal from '@/components/admin/ResetRecordsModal';
 import { formatCSTDateTime, formatCSTDate } from '@/lib/dateUtils';
 import { playTune, unlockAudioContext, AVAILABLE_TUNES } from '@/lib/soundAlerts';
 import { broadcastAdminAlert } from '@/lib/broadcastAlert';
+import { compressImage } from '@/lib/imageCompressor';
 
 export default function AdminPortal({ initialTab }) {
   const [user, setUser] = useState(null);
@@ -352,6 +353,9 @@ export default function AdminPortal({ initialTab }) {
   const [isSendingChat, setIsSendingChat] = useState(false);
   const chatMessagesEndRef = useRef(null);
   const adminChatInputRef = useRef(null);
+  const adminChatFileInputRef = useRef(null);
+  const [adminChatImageUploading, setAdminChatImageUploading] = useState(false);
+  const [adminChatPreviewImage, setAdminChatPreviewImage] = useState(null);
 
   // Push Notifications & Omnichannel Broadcast state
   const [pushTitle, setPushTitle] = useState('');
@@ -1212,7 +1216,7 @@ export default function AdminPortal({ initialTab }) {
             }
             setChatMessages(prev => {
               const pendingTemps = prev.filter(
-                p => String(p.id).startsWith('temp_') && !d.messages.some(m => m.text === p.text)
+                p => String(p.id).startsWith('temp_') && !d.messages.some(m => m.text === p.text && (m.imageUrl || null) === (p.imageUrl || null))
               );
               return [...d.messages, ...pendingTemps];
             });
@@ -4589,6 +4593,10 @@ export default function AdminPortal({ initialTab }) {
                 });
                 const d = await res.json();
                 if (d.success && d.message) {
+                  broadcastAdminAlert('PLAYER_CHAT_MESSAGE', {
+                    targetUserId: activeChatConv.userId,
+                    text: text,
+                  });
                   setChatMessages(prev =>
                     prev.map(m => (m.id === tempId ? { ...d.message, senderRole: 'staff' } : m))
                   );
@@ -4600,6 +4608,89 @@ export default function AdminPortal({ initialTab }) {
               } catch (err) {
                 console.error('Failed to send chat message:', err);
               } finally {
+                setTimeout(() => {
+                  chatMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+                }, 50);
+              }
+            };
+
+            const handleAdminChatImagePick = async (e) => {
+              const file = e.target.files?.[0];
+              e.target.value = '';
+              if (!file || !activeChatConv) return;
+
+              if (!file.type.startsWith('image/')) {
+                alert('Only image files can be sent.');
+                return;
+              }
+              if (file.size > 15 * 1024 * 1024) {
+                alert('Image is too large (max 15MB).');
+                return;
+              }
+
+              setAdminChatImageUploading(true);
+              try {
+                const imageUrl = await compressImage(file, 1280, 1280, 0.78);
+                if (!imageUrl) {
+                  alert('Could not compress image.');
+                  return;
+                }
+
+                const caption = chatReplyText.trim();
+                setChatReplyText('');
+
+                const tempId = `temp_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+                const optimisticMsg = {
+                  id: tempId,
+                  conversationId: activeChatConv._id,
+                  userId: activeChatConv.userId,
+                  username: user?.username || 'Vegas One Support',
+                  senderRole: 'staff',
+                  staffName: user?.username || 'Support Staff',
+                  text: caption,
+                  imageUrl: imageUrl,
+                  read: true,
+                  createdAt: new Date().toISOString(),
+                };
+                setChatMessages(prev => [...prev, optimisticMsg]);
+
+                setTimeout(() => {
+                  chatMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+                }, 10);
+
+                const res = await fetch('/api/chat', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    conversationId: activeChatConv._id,
+                    targetUserId: activeChatConv.userId,
+                    targetUsername: activeChatConv.username,
+                    text: caption,
+                    imageUrl: imageUrl,
+                  }),
+                });
+                const d = await res.json();
+                if (d.success && d.message) {
+                  broadcastAdminAlert('PLAYER_CHAT_MESSAGE', {
+                    targetUserId: activeChatConv.userId,
+                    text: caption || '📷 Photo',
+                    imageUrl: imageUrl,
+                  });
+                  setChatMessages(prev =>
+                    prev.map(m => (m.id === tempId ? { ...d.message, senderRole: 'staff' } : m))
+                  );
+                } else {
+                  setChatMessages(prev => prev.filter(m => m.id !== tempId));
+                  alert(d.error || 'Failed to send image.');
+                }
+                fetch('/api/chat?inbox=true')
+                  .then(r => r.json())
+                  .then(cD => { if (cD.success) setChatConversations(cD.conversations); });
+              } catch (err) {
+                console.error('Failed to send image:', err);
+                alert('Network error. Failed to send image.');
+              } finally {
+                setAdminChatImageUploading(false);
                 setTimeout(() => {
                   chatMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
                 }, 50);
@@ -5138,7 +5229,7 @@ export default function AdminPortal({ initialTab }) {
                                       borderRadius: '16px',
                                       borderBottomRightRadius: isStaff ? '3px' : '16px',
                                       borderBottomLeftRadius: isStaff ? '16px' : '3px',
-                                      padding: '10px 16px',
+                                      padding: m.imageUrl ? '6px' : '10px 16px',
                                       fontSize: '13px',
                                       lineHeight: 1.45,
                                       color: isStaff ? '#070514' : '#FFFFFF',
@@ -5153,7 +5244,26 @@ export default function AdminPortal({ initialTab }) {
                                       wordBreak: 'break-word',
                                     }}
                                   >
-                                    {m.text}
+                                    {m.imageUrl && (
+                                      <img
+                                        src={m.imageUrl}
+                                        alt="Chat attachment"
+                                        onClick={() => setAdminChatPreviewImage(m.imageUrl)}
+                                        style={{
+                                          display: 'block',
+                                          maxWidth: '280px',
+                                          width: '100%',
+                                          maxHeight: '300px',
+                                          objectFit: 'cover',
+                                          borderRadius: '12px',
+                                          cursor: 'zoom-in',
+                                          opacity: String(m.id).startsWith('temp_') ? 0.6 : 1,
+                                        }}
+                                      />
+                                    )}
+                                    {m.text && (
+                                      <div style={{ padding: m.imageUrl ? '6px 8px 2px' : 0 }}>{m.text}</div>
+                                    )}
                                   </div>
 
                                   {/* Timestamp */}
@@ -5247,10 +5357,44 @@ export default function AdminPortal({ initialTab }) {
                             borderTop: '1px solid rgba(0, 240, 255, 0.22)',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '12px',
+                            gap: '10px',
                             flexShrink: 0,
                           }}
                         >
+                          <input
+                            ref={adminChatFileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleAdminChatImagePick}
+                            style={{ display: 'none' }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => adminChatFileInputRef.current?.click()}
+                            disabled={adminChatImageUploading}
+                            title="Send Image / Screenshot"
+                            style={{
+                              width: '42px',
+                              height: '42px',
+                              borderRadius: '12px',
+                              border: '1.5px solid rgba(0, 240, 255, 0.3)',
+                              backgroundColor: '#070514',
+                              color: '#00F0FF',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              cursor: adminChatImageUploading ? 'not-allowed' : 'pointer',
+                              flexShrink: 0,
+                              transition: 'all 0.2s',
+                            }}
+                            className="hover:border-[#00F0FF] hover:bg-[rgba(0,240,255,0.08)]"
+                          >
+                            {adminChatImageUploading ? (
+                              <RefreshCw size={18} className="animate-spin text-[#00F0FF]" />
+                            ) : (
+                              <ImageIcon size={18} />
+                            )}
+                          </button>
                           <input
                             ref={adminChatInputRef}
                             type="text"
@@ -5299,6 +5443,60 @@ export default function AdminPortal({ initialTab }) {
                             <span>Send</span>
                           </button>
                         </form>
+
+                        {/* Full-screen Image Lightbox for Admin */}
+                        {adminChatPreviewImage && (
+                          <div
+                            onClick={() => setAdminChatPreviewImage(null)}
+                            style={{
+                              position: 'fixed',
+                              inset: 0,
+                              zIndex: 9999999,
+                              backgroundColor: 'rgba(0, 0, 0, 0.92)',
+                              backdropFilter: 'blur(8px)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              padding: '24px',
+                              cursor: 'zoom-out',
+                            }}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => setAdminChatPreviewImage(null)}
+                              aria-label="Close image"
+                              style={{
+                                position: 'absolute',
+                                top: '20px',
+                                right: '20px',
+                                background: 'rgba(255,255,255,0.15)',
+                                border: 'none',
+                                borderRadius: '50%',
+                                width: '42px',
+                                height: '42px',
+                                color: '#FFFFFF',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              <X size={22} />
+                            </button>
+                            <img
+                              src={adminChatPreviewImage}
+                              alt="Full size attachment"
+                              onClick={(e) => e.stopPropagation()}
+                              style={{
+                                maxWidth: '100%',
+                                maxHeight: '100%',
+                                borderRadius: '14px',
+                                boxShadow: '0 25px 70px rgba(0,0,0,0.85)',
+                                cursor: 'default',
+                              }}
+                            />
+                          </div>
+                        )}
                       </>
                     ) : (
                       /* Concierge Command Welcome Hub (Coin Allotment Luxury Terminal) */
