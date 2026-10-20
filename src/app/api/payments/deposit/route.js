@@ -65,6 +65,9 @@ export async function GET(req) {
           totalSC,
           totalGC,
           creditedSC: single.creditedSC || null,
+          targetGame: single.targetGame || 'Juwa 777',
+          gameAccountUsername: single.gameAccountUsername || null,
+          hasGameAccount: Boolean(single.gameAccountUsername),
           status: single.status,
           processedBy: single.processedBy || null,
           rejectReason: single.rejectReason || null,
@@ -109,6 +112,9 @@ export async function GET(req) {
           username: d.username,
           amount: d.amount,
           methodName: d.methodName,
+          targetGame: d.targetGame || 'Juwa 777',
+          gameAccountUsername: d.gameAccountUsername || null,
+          hasGameAccount: Boolean(d.gameAccountUsername),
           senderNote: d.senderNote || '',
           senderTagName: d.senderTagName || d.senderNote || '',
           senderTagEmail: d.senderTagEmail || '',
@@ -239,13 +245,30 @@ export async function POST(req) {
 
     const totalGC = depositAmount * 10000;
 
+    // Look up if player already has an active account for targetGame
+    const cleanTargetGame = String(targetGame || '').trim();
+    let gameAccountUsername = body.gameAccountUsername || null;
+    if (!gameAccountUsername && cleanTargetGame) {
+      const cleanEmail = (user?.email || session?.email || '').toLowerCase().trim();
+      const gameAcc = await db.collection('gameAccounts').findOne({
+        userEmail: cleanEmail,
+        gameTitle: new RegExp(`^${cleanTargetGame.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'),
+        status: 'READY',
+      });
+      if (gameAcc) {
+        gameAccountUsername = gameAcc.username;
+      }
+    }
+
     const newDeposit = {
       userId: session.userId,
       username: session.username,
       amount: depositAmount,
       methodId: methodId || 'custom',
       methodName,
-      targetGame: targetGame || 'Vegas One Vault',
+      targetGame: cleanTargetGame || 'Juwa 777',
+      gameAccountUsername: gameAccountUsername || null,
+      hasGameAccount: Boolean(gameAccountUsername),
       senderNote: senderNote || cleanTagName,
       senderTagName: cleanTagName,
       senderTagEmail: cleanTagEmail,
@@ -387,6 +410,61 @@ export async function PUT(req) {
         notes: `Deposit $${deposit.amount} approved (${creditedSC} SC credited: $${deposit.amount} base + ${deposit.bonusSC || 0} SC ${deposit.bonusType || 'welcome'} bonus). Method: ${deposit.methodName}. TXID: ${deposit.txHash || 'N/A'}`,
         createdAt: new Date(),
       });
+
+      // 3.5. Auto-Create Game Account Request if user has no account for deposit's target game
+      const depositGame = String(deposit.targetGame || '').trim();
+      if (depositGame && depositGame.toLowerCase() !== 'vegas one vault') {
+        try {
+          const cleanEmail = (user.email || '').toLowerCase().trim();
+          const gameAccountsCol = db.collection('gameAccounts');
+          const accountRequestsCol = db.collection('accountRequests');
+          const safeRegex = new RegExp(`^${depositGame.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
+
+          // Check if player already has this game account ready
+          const existingGameAcc = await gameAccountsCol.findOne({
+            userEmail: cleanEmail,
+            gameTitle: safeRegex,
+            status: 'READY',
+          });
+
+          // Check if an account creation request is already pending
+          const pendingAccReq = await accountRequestsCol.findOne({
+            userEmail: cleanEmail,
+            gameTitle: safeRegex,
+            status: 'PENDING',
+            type: { $ne: 'COIN_LOAD' },
+          });
+
+          if (!existingGameAcc && !pendingAccReq) {
+            await accountRequestsCol.insertOne({
+              type: 'ACCOUNT_CREATION',
+              userEmail: cleanEmail,
+              userName: user.username,
+              gameTitle: depositGame,
+              status: 'PENDING',
+              transferAmount: 0,
+              originalRequestedAmount: 0,
+              source: 'auto_from_approved_deposit',
+              depositId: deposit._id.toString(),
+              depositAmount: deposit.amount,
+              notes: `Auto-generated from approved deposit of $${deposit.amount} for ${depositGame}`,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            });
+
+            notifyStaff({
+              title: 'New Game Account Request!',
+              message: `Auto-generated ${depositGame} account request for @${user.username} from approved $${deposit.amount} deposit`,
+              type: 'account_request',
+              url: '/admin',
+              targetTab: 'coins_allotment',
+              targetSubTab: 'account_requests',
+            });
+          }
+        } catch (err) {
+          console.warn('Failed to auto-generate game account request on deposit approve:', err);
+        }
+      }
 
       // 4. Check Affiliate / Referral Bonus Commission (Credited on first deposit!)
       if (user.referredBy && (!user.totalDeposited || user.totalDeposited === 0) && !deposit.referralCommissionProcessed) {

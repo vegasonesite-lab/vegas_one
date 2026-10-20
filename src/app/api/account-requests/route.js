@@ -61,6 +61,9 @@ export async function GET(req) {
           originalRequestedAmount: Number(r.originalRequestedAmount || r.transferAmount || 0),
           editedByStaff: Boolean(r.editedByStaff),
           rejectionReason: r.rejectionReason || r.rejectReason || '',
+          source: r.source || null,
+          depositAmount: r.depositAmount !== undefined ? r.depositAmount : null,
+          notes: r.notes || '',
           createdAt: r.createdAt || new Date(),
         };
       }),
@@ -153,12 +156,26 @@ export async function POST(req) {
         { $inc: { frozenBalance: transferAmount } }
       );
 
+      // Look up player's verified game account username if already issued
+      let gameAccountUsername = body.gameAccountUsername || '';
+      if (!gameAccountUsername) {
+        const gameAcc = await db.collection('gameAccounts').findOne({
+          userEmail,
+          gameTitle: new RegExp(`^${gameTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'),
+          status: 'READY',
+        });
+        if (gameAcc) {
+          gameAccountUsername = gameAcc.username;
+        }
+      }
+
       const newRequest = {
         type: 'COIN_LOAD',
         userEmail,
         userName,
         gameTitle,
         gameId,
+        gameAccountUsername: gameAccountUsername || userName,
         transferAmount,
         originalRequestedAmount: transferAmount,
         status: 'PENDING',

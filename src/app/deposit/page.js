@@ -101,6 +101,26 @@ export default function DepositPage() {
       .catch(() => {});
   }, []);
 
+  const [playerGameAccounts, setPlayerGameAccounts] = useState([]);
+
+  // Fetch player's active game accounts
+  const fetchPlayerGameAccounts = async () => {
+    if (!user) return;
+    try {
+      const res = await fetch(`/api/game-accounts?email=${encodeURIComponent(user.email || '')}`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.gameAccounts)) {
+        setPlayerGameAccounts(data.gameAccounts);
+      }
+    } catch {}
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchPlayerGameAccounts();
+    }
+  }, [user?.id, user?.username, user?.email]);
+
   // Status & Feedback
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -239,6 +259,12 @@ export default function DepositPage() {
       : Number(Math.min((depositAmount * appliedBonusPercent) / 100, platformBonusMax).toFixed(2));
     const appliedTotalSC = Number((depositAmount + appliedBonusSC).toFixed(2));
 
+    const matchedGameAccount = playerGameAccounts.find(
+      (acc) =>
+        acc.status === 'READY' &&
+        String(acc.gameTitle || '').trim().toLowerCase() === String(selectedGame || '').trim().toLowerCase()
+    );
+
     try {
       const res = await fetch('/api/payments/deposit', {
         method: 'POST',
@@ -248,6 +274,7 @@ export default function DepositPage() {
           methodId: selectedMethod?.methodId,
           methodName: selectedMethod?.name,
           targetGame: selectedGame,
+          gameAccountUsername: matchedGameAccount?.username || null,
           senderTagName: senderTagName.trim(),
           senderTagEmail: senderTagEmail.trim(),
           senderNote: senderNote.trim(),
@@ -846,6 +873,11 @@ export default function DepositPage() {
                 {(() => {
                   const currentSelectedGameObj = platformGames.find(g => String(g?.name || '').toLowerCase() === String(selectedGame || '').toLowerCase()) || platformGames[0] || { name: selectedGame || 'Juwa 777', logo: '/images/fire-kirin.webp' };
                   const filteredPlatformGames = platformGames.filter(g => String(g?.name || '').toLowerCase().includes(String(gameSearchQuery || '').toLowerCase()));
+                  const matchedGameAccount = playerGameAccounts.find(
+                    acc =>
+                      acc.status === 'READY' &&
+                      String(acc.gameTitle || '').trim().toLowerCase() === String(selectedGame || '').trim().toLowerCase()
+                  );
 
                   return (
                     <div>
@@ -1081,6 +1113,51 @@ export default function DepositPage() {
                           </div>
                         )}
                       </div>
+
+                      {/* Game Account Status Info Pill */}
+                      {matchedGameAccount ? (
+                        <div
+                          style={{
+                            marginTop: '10px',
+                            padding: '10px 14px',
+                            borderRadius: '12px',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            border: '1px solid rgba(16, 185, 129, 0.35)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '10px',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <CheckCircle2 size={16} color="#34D399" />
+                            <span style={{ fontSize: '12px', color: '#E2E8F0', fontFamily: 'Lexend, sans-serif' }}>
+                              Your Game Account: <strong style={{ color: '#34D399', fontFamily: 'monospace' }}>{matchedGameAccount.username}</strong>
+                            </span>
+                          </div>
+                          <span style={{ fontSize: '10px', fontWeight: 800, color: '#34D399', backgroundColor: 'rgba(16, 185, 129, 0.2)', padding: '2px 8px', borderRadius: '6px' }}>
+                            READY FOR COIN LOAD
+                          </span>
+                        </div>
+                      ) : (
+                        <div
+                          style={{
+                            marginTop: '10px',
+                            padding: '10px 14px',
+                            borderRadius: '12px',
+                            backgroundColor: 'rgba(0, 240, 255, 0.08)',
+                            border: '1px solid rgba(0, 240, 255, 0.25)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                          }}
+                        >
+                          <Sparkles size={16} color="#00F0FF" style={{ flexShrink: 0 }} />
+                          <span style={{ fontSize: '11.5px', color: '#CBD5E1', fontFamily: 'Lexend, sans-serif' }}>
+                            No account for <strong style={{ color: '#00F0FF' }}>{selectedGame}</strong> yet? Deposit now! We will <strong style={{ color: '#FBBF24' }}>auto-create your credentials</strong> as soon as finance approves.
+                          </span>
+                        </div>
+                      )}
                     </div>
                   );
                 })()}

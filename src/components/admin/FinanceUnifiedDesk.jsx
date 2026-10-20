@@ -512,9 +512,25 @@ export default function FinanceUnifiedDesk({
                               </div>
                               <div>
                                 <p style={{ margin: 0, fontSize: '13px', fontWeight: 800, color: '#FFFFFF' }}>{d.username}</p>
-                                <span style={{ fontSize: '10px', color: '#64748B', fontFamily: 'monospace' }}>
-                                  ID: {d.userId?.slice(-6) || depositId?.slice(-6)}
-                                </span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '3px', flexWrap: 'wrap' }}>
+                                  <span style={{ fontSize: '10px', color: '#64748B', fontFamily: 'monospace' }}>
+                                    ID: {d.userId?.slice(-6) || depositId?.slice(-6)}
+                                  </span>
+                                  {d.targetGame && (
+                                    <span style={{ fontSize: '10px', color: '#00F0FF', fontWeight: 800, backgroundColor: 'rgba(0, 240, 255, 0.12)', border: '1px solid rgba(0, 240, 255, 0.3)', padding: '1px 6px', borderRadius: '5px' }}>
+                                      🎮 {d.targetGame}
+                                    </span>
+                                  )}
+                                  {d.gameAccountUsername ? (
+                                    <span style={{ fontSize: '10px', color: '#34D399', fontWeight: 800, backgroundColor: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '1px 6px', borderRadius: '5px' }}>
+                                      ID: {d.gameAccountUsername}
+                                    </span>
+                                  ) : (
+                                    <span style={{ fontSize: '9.5px', color: '#FBBF24', fontWeight: 800, backgroundColor: 'rgba(251, 191, 36, 0.12)', border: '1px solid rgba(251, 191, 36, 0.35)', padding: '1px 6px', borderRadius: '5px' }}>
+                                      ⚡ Auto-creates account
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </td>
@@ -955,9 +971,19 @@ export default function FinanceUnifiedDesk({
                               </div>
                               <div>
                                 <p style={{ margin: 0, fontSize: '13px', fontWeight: 800, color: '#FFFFFF' }}>{r.username}</p>
-                                <span style={{ fontSize: '10px', color: '#64748B', fontFamily: 'monospace' }}>
-                                  ID: {r.userId?.slice(-6) || redeemId?.slice(-6)}
-                                </span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '3px', flexWrap: 'wrap' }}>
+                                  <span style={{ fontSize: '10px', color: '#64748B', fontFamily: 'monospace' }}>
+                                    ID: {r.userId?.slice(-6) || redeemId?.slice(-6)}
+                                  </span>
+                                  <span style={{ fontSize: '10px', color: '#FBBF24', fontWeight: 800, backgroundColor: 'rgba(251, 191, 36, 0.12)', border: '1px solid rgba(251, 191, 36, 0.3)', padding: '1px 6px', borderRadius: '5px' }}>
+                                    🎮 {r.gameTitle || 'Platform'}
+                                  </span>
+                                  {r.gameAccountUsername && (
+                                    <span style={{ fontSize: '10px', color: '#34D399', fontWeight: 800, backgroundColor: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '1px 6px', borderRadius: '5px' }}>
+                                      ID: {r.gameAccountUsername}
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </td>

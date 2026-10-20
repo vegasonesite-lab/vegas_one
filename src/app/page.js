@@ -38,8 +38,8 @@ import { getClientUser, fetchCurrentUser } from '@/lib/clientAuth';
 
 export default function Home() {
   const router = useRouter();
-  const [user, setUser] = useState(() => getClientUser());
-  const [loadingUser, setLoadingUser] = useState(() => !getClientUser());
+  const [user, setUser] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
   const [activeTab, setActiveTab] = useState('main'); // 'main' | 'ledger' | 'referrals' | 'profile' | 'rules' | 'accounts'
   const [activeFilter, setActiveFilter] = useState('all'); // 'all' | 'favorites'
   const [favorites, setFavorites] = useState([]);
@@ -136,6 +136,11 @@ export default function Home() {
   };
 
   useEffect(() => {
+    const cached = getClientUser();
+    if (cached) {
+      setUser(cached);
+      setLoadingUser(false);
+    }
     refreshUser();
     // Live real-time sync with MongoDB every 4 seconds
     const interval = setInterval(refreshUser, 4000);

@@ -87,6 +87,10 @@ export default function CashoutPage() {
   const [myRedemptions, setMyRedemptions] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
+  // Player's Active Game Accounts
+  const [playerGameAccounts, setPlayerGameAccounts] = useState([]);
+  const [loadingGameAccounts, setLoadingGameAccounts] = useState(false);
+
   // Status & Feedback
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
@@ -96,8 +100,6 @@ export default function CashoutPage() {
   const [lightbox, setLightbox] = useState({ open: false, src: null, title: '' });
 
   const presetAmounts = [25, 50, 100, 250];
-
-
 
   const fetchGames = async () => {
     try {
@@ -118,6 +120,20 @@ export default function CashoutPage() {
         });
       }
     } catch {}
+  };
+
+  const fetchPlayerGameAccounts = async () => {
+    if (!user) return;
+    setLoadingGameAccounts(true);
+    try {
+      const res = await fetch(`/api/game-accounts?email=${encodeURIComponent(user.email || '')}`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.gameAccounts)) {
+        setPlayerGameAccounts(data.gameAccounts);
+      }
+    } catch {} finally {
+      setLoadingGameAccounts(false);
+    }
   };
 
   const fetchRedemptions = async () => {
@@ -143,13 +159,16 @@ export default function CashoutPage() {
   useEffect(() => {
     if (user) {
       fetchRedemptions();
+      fetchPlayerGameAccounts();
       const interval = setInterval(() => {
         fetchRedemptions();
+        fetchPlayerGameAccounts();
         refreshUser();
       }, 3000);
 
       const onUpdate = () => {
         fetchRedemptions();
+        fetchPlayerGameAccounts();
         refreshUser();
       };
       window.addEventListener('balanceUpdated', onUpdate);
@@ -161,7 +180,7 @@ export default function CashoutPage() {
         window.removeEventListener('focus', onUpdate);
       };
     }
-  }, [user?.id, user?.username]);
+  }, [user?.id, user?.username, user?.email]);
 
   // Handle Image Uploads (Compress on client to < 150KB for fast submit)
   const handleImageFile = async (e, targetSetter) => {
@@ -197,6 +216,17 @@ export default function CashoutPage() {
       return;
     }
 
+    const currentSelectedGameAccount = playerGameAccounts.find(
+      (acc) =>
+        acc.status === 'READY' &&
+        String(acc.gameTitle || '').trim().toLowerCase() === String(gameTitle || '').trim().toLowerCase()
+    );
+
+    if (!currentSelectedGameAccount) {
+      setErrorMsg(`Aap ka is game (${gameTitle}) me koi registered account moojood nahi hai. Cashout sirf unhi games se request kar sakte hain jahan aapka verified account bana ho aur aap jeete hon. Pehle game account banayein.`);
+      return;
+    }
+
     if (!destinationAddress?.trim()) {
       setErrorMsg('Please enter your Tag Name / Cashtag / Receiving Address.');
       return;
@@ -223,6 +253,7 @@ export default function CashoutPage() {
         body: JSON.stringify({
           amount: Number(redeemAmount),
           gameTitle,
+          gameAccountUsername: currentSelectedGameAccount.username,
           gameScreenshot,
           qrCodeImage,
           payoutMethod,
@@ -646,6 +677,11 @@ export default function CashoutPage() {
                   {(() => {
                     const currentSelectedGameObj = gameList.find(g => String(g?.title || g?.name || '').toLowerCase() === String(gameTitle || '').toLowerCase()) || gameList[0] || { title: gameTitle || 'Fire Kirin', logo: '/images/fire-kirin.webp' };
                     const filteredGames = gameList.filter(g => String(g?.title || g?.name || '').toLowerCase().includes(String(gameSearchQuery || '').toLowerCase()));
+                    const matchedAccount = playerGameAccounts.find(
+                      acc =>
+                        acc.status === 'READY' &&
+                        String(acc.gameTitle || '').trim().toLowerCase() === String(gameTitle || '').trim().toLowerCase()
+                    );
 
                     return (
                       <div>
@@ -886,6 +922,56 @@ export default function CashoutPage() {
                             </div>
                           )}
                         </div>
+
+                        {/* Account Verification Status Box */}
+                        {matchedAccount ? (
+                          <div
+                            style={{
+                              marginTop: '10px',
+                              padding: '10px 14px',
+                              borderRadius: '12px',
+                              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                              border: '1px solid rgba(16, 185, 129, 0.35)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              gap: '10px',
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <CheckCircle2 size={16} color="#34D399" />
+                              <span style={{ fontSize: '12px', color: '#E2E8F0', fontFamily: 'Lexend, sans-serif' }}>
+                                Verified Game ID: <strong style={{ color: '#34D399', fontFamily: 'monospace' }}>{matchedAccount.username}</strong>
+                              </span>
+                            </div>
+                            <span style={{ fontSize: '10px', fontWeight: 800, color: '#34D399', backgroundColor: 'rgba(16, 185, 129, 0.2)', padding: '2px 8px', borderRadius: '6px' }}>
+                              READY FOR CASHOUT
+                            </span>
+                          </div>
+                        ) : !loadingGameAccounts ? (
+                          <div
+                            style={{
+                              marginTop: '10px',
+                              padding: '12px 14px',
+                              borderRadius: '12px',
+                              backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                              border: '1px solid rgba(239, 68, 68, 0.45)',
+                              display: 'flex',
+                              alignItems: 'flex-start',
+                              gap: '10px',
+                            }}
+                          >
+                            <AlertCircle size={18} color="#EF4444" style={{ flexShrink: 0, marginTop: '2px' }} />
+                            <div>
+                              <p style={{ margin: 0, fontSize: '12.5px', fontWeight: 800, color: '#FCA5A5', fontFamily: 'Lexend, sans-serif' }}>
+                                No Registered Account Found for {gameTitle}
+                              </p>
+                              <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#F87171', lineHeight: 1.4 }}>
+                                Aap ka is game ({gameTitle}) me koi registered account nahi hai. Cashout sirf unhi games se request kar sakte hain jahan aapka verified account ho aur aap jeete hon. Pehle game account banayein ya koi doosri game select karein.
+                              </p>
+                            </div>
+                          </div>
+                        ) : null}
                       </div>
                     );
                   })()}
@@ -1209,15 +1295,34 @@ export default function CashoutPage() {
                   </div>
 
                   {/* Submit Cashout Button */}
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="btn-sovereign-coral"
-                    style={{ width: '100%', padding: '14px', fontSize: '13.5px', marginTop: '6px' }}
-                  >
-                    <Zap size={18} />
-                    <span>{loading ? 'SUBMITTING CASHOUT REQUEST...' : `REQUEST $${redeemAmount} SC CASHOUT`}</span>
-                  </button>
+                  {(() => {
+                    const isReadyToCashout = Boolean(playerGameAccounts.some(acc => acc.status === 'READY' && String(acc.gameTitle || '').trim().toLowerCase() === String(gameTitle || '').trim().toLowerCase()));
+                    return (
+                      <button
+                        type="submit"
+                        disabled={loading || (!isReadyToCashout && !loadingGameAccounts)}
+                        className="btn-sovereign-coral"
+                        style={{
+                          width: '100%',
+                          padding: '14px',
+                          fontSize: '13.5px',
+                          marginTop: '6px',
+                          opacity: (!isReadyToCashout && !loadingGameAccounts) ? 0.45 : 1,
+                          cursor: (!isReadyToCashout && !loadingGameAccounts) ? 'not-allowed' : 'pointer',
+                          filter: (!isReadyToCashout && !loadingGameAccounts) ? 'grayscale(0.6)' : 'none',
+                        }}
+                      >
+                        <Zap size={18} />
+                        <span>
+                          {loading
+                            ? 'SUBMITTING CASHOUT REQUEST...'
+                            : !isReadyToCashout && !loadingGameAccounts
+                            ? `NO REGISTERED ACCOUNT FOR ${gameTitle.toUpperCase()} (ACCOUNT REQUIRED)`
+                            : `REQUEST $${redeemAmount} SC CASHOUT`}
+                        </span>
+                      </button>
+                    );
+                  })()}
                 </form>
               </div>
 

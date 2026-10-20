@@ -265,6 +265,13 @@ export default function AccountRequestsView({
 
                       <td className="p-4 whitespace-nowrap">
                         <span className="font-heading font-black text-amber-400 text-sm">{req.gameTitle}</span>
+                        {req.source === 'auto_from_approved_deposit' && (
+                          <div className="mt-1">
+                            <span className="inline-flex items-center gap-1 text-[10.5px] font-black text-cyan-400 bg-cyan-500/15 border border-cyan-500/30 px-2 py-0.5 rounded-lg">
+                              ⚡ Auto: Deposit ${Number(req.depositAmount || 0).toFixed(2)} Approved
+                            </span>
+                          </div>
+                        )}
                         {Boolean(req.transferAmount && req.transferAmount > 0) && (
                           <div className="mt-1">
                             <span className="inline-flex items-center gap-1 text-[10.5px] font-black text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-lg">
@@ -402,6 +409,15 @@ export default function AccountRequestsView({
                       <span className="text-xs text-gray-400 font-bold">Game Requested:</span>
                       <span className="font-heading font-black text-amber-400 text-sm">{req.gameTitle}</span>
                     </div>
+
+                    {req.source === 'auto_from_approved_deposit' && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-400 font-bold">Origin:</span>
+                        <span className="text-[10.5px] font-black text-cyan-400 bg-cyan-500/15 border border-cyan-500/30 px-2 py-0.5 rounded">
+                          ⚡ Deposit Approved (${Number(req.depositAmount || 0).toFixed(2)})
+                        </span>
+                      </div>
+                    )}
 
                     {Boolean(req.transferAmount && req.transferAmount > 0) && (
                       <div className="flex items-center justify-between">

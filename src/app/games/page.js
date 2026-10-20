@@ -16,7 +16,7 @@ import { getClientUser, fetchCurrentUser } from '@/lib/clientAuth';
 
 export default function GamesPage() {
   const router = useRouter();
-  const [user, setUser] = useState(() => getClientUser());
+  const [user, setUser] = useState(null);
   const [games, setGames] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
@@ -42,6 +42,8 @@ export default function GamesPage() {
   };
 
   useEffect(() => {
+    const cached = getClientUser();
+    if (cached) setUser(cached);
     refreshUser();
   }, []);
 

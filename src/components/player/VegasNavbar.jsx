@@ -32,7 +32,8 @@ export default function VegasNavbar({
   setActiveCurrency,
 }) {
   const router = useRouter();
-  const [internalUser, setInternalUser] = useState(() => getClientUser());
+  const [internalUser, setInternalUser] = useState(null);
+  const [mounted, setMounted] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -56,6 +57,14 @@ export default function VegasNavbar({
   // Real-time live balance and session sync without needing manual page refresh
   useEffect(() => {
     let isMounted = true;
+    setMounted(true);
+
+    // 1. Immediately hydrate cached user without SSR hydration mismatch
+    const cached = getClientUser();
+    if (cached) {
+      setInternalUser(cached);
+    }
+
     const fetchLatestUser = () => {
       fetchCurrentUser()
         .then((data) => {
@@ -302,7 +311,9 @@ export default function VegasNavbar({
 
         {/* Right Side: Balances + Coral Deposit Button + Avatar */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          {activeUser ? (
+          {!mounted ? (
+            <div style={{ height: '38px', minWidth: '120px' }} />
+          ) : activeUser ? (
             <>
               {/* Single Unified Cash Vault Balance Capsule */}
               <div

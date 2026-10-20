@@ -15,7 +15,7 @@ import { getClientUser, fetchCurrentUser } from '@/lib/clientAuth';
 
 export default function LedgerPage() {
   const router = useRouter();
-  const [user, setUser] = useState(() => getClientUser());
+  const [user, setUser] = useState(null);
   const [authModal, setAuthModal] = useState({ open: false, tab: 'login' });
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
@@ -33,6 +33,8 @@ export default function LedgerPage() {
   };
 
   useEffect(() => {
+    const cached = getClientUser();
+    if (cached) setUser(cached);
     refreshUser();
   }, []);
 

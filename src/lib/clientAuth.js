@@ -128,13 +128,13 @@ export async function fetchCurrentUser() {
  * React hook for instant, flicker-free authentication state across all player pages.
  */
 export function useAuthSession() {
-  const [user, setUser] = useState(() => getClientUser());
-  const [authChecking, setAuthChecking] = useState(() => !getClientUser());
+  const [user, setUser] = useState(null);
+  const [authChecking, setAuthChecking] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
 
-    // 1. If we already have a cached user, ensure state is hydrated
+    // 1. Immediately hydrate cached user on client mount without SSR mismatch
     const cached = getClientUser();
     if (cached) {
       setUser(cached);

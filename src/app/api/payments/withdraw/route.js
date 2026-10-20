@@ -47,6 +47,7 @@ export async function GET(req) {
           username: single.username,
           amount: single.amount,
           gameTitle: single.gameTitle || 'Standard Platform',
+          gameAccountUsername: single.gameAccountUsername || null,
           gameScreenshot: single.gameScreenshot || null,
           qrCodeImage: single.qrCodeImage || null,
           hasGameScreenshot: !!single.gameScreenshot,
@@ -106,6 +107,7 @@ export async function GET(req) {
         username: r.username,
         amount: r.amount,
         gameTitle: r.gameTitle || 'Standard Platform',
+        gameAccountUsername: r.gameAccountUsername || null,
         gameScreenshot: r.gameScreenshot || null,
         qrCodeImage: r.qrCodeImage || null,
         hasGameScreenshot: !!r.gameScreenshot,
@@ -168,26 +170,53 @@ export async function POST(req) {
       return NextResponse.json({ success: false, error: 'Your Payment QR Code image is required.' }, { status: 400 });
     }
 
+    const cleanGameTitle = String(gameTitle || '').trim();
+    if (!cleanGameTitle) {
+      return NextResponse.json({ success: false, error: 'Game platform title is required.' }, { status: 400 });
+    }
+
     const db = await getDb();
     const usersCol = db.collection('users');
     const redemptionsCol = db.collection('redemptions');
     const ledgerCol = db.collection('ledger');
+    const gameAccountsCol = db.collection('gameAccounts');
 
     const user = await usersCol.findOne({ _id: new ObjectId(session.userId) });
     if (!user) {
       return NextResponse.json({ success: false, error: 'User not found.' }, { status: 404 });
     }
 
+    // STRICT GAME ACCOUNT VERIFICATION: User CANNOT cashout from games where they do not have an active account!
+    const cleanEmail = (user.email || session.email || '').toLowerCase().trim();
+    const safeRegex = new RegExp(`^${cleanGameTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i');
+
+    const gameAccount = await gameAccountsCol.findOne({
+      userEmail: cleanEmail,
+      gameTitle: safeRegex,
+      status: 'READY',
+    });
+
+    if (!gameAccount) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Aap ka is game (${cleanGameTitle}) me koi registered account moojood nahi hai. Cashout sirf unhi games se ho sakta hai jahan aapka verified account bana ho aur aap jeete hon. Pehle game account banayein.`,
+        },
+        { status: 400 }
+      );
+    }
+
     // Initial stage: If resubmitted from finance rejection, go directly to finance, else start at coin verification
     const initialStatus = resubmitFrom === 'finance' ? 'pending' : 'pending_coin';
     const initialStage = resubmitFrom === 'finance' ? 'finance_payout' : 'coin_verification';
 
-    // Create Redemption Record (Note: No site wallet balance is frozen or deducted, as game platform winnings are external)
+    // Create Redemption Record with player's gameAccountUsername
     const insertRes = await redemptionsCol.insertOne({
       userId: user._id.toString(),
       username: user.username,
       amount: redeemAmount,
-      gameTitle: gameTitle || 'Standard Platform',
+      gameTitle: cleanGameTitle,
+      gameAccountUsername: gameAccount.username,
       gameScreenshot,
       qrCodeImage,
       payoutMethod,
