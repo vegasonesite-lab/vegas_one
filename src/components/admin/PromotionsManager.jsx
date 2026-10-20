@@ -65,6 +65,7 @@ export default function PromotionsManager() {
   const [actionUrl, setActionUrl] = useState('/deposit');
   const [actionText, setActionText] = useState('CLAIM BOOST');
   const [selectedGradient, setSelectedGradient] = useState(GRADIENT_PRESETS[0]);
+  const [sendNotification, setSendNotification] = useState(true);
 
   // Edit Promotion Modal State
   const [editingPromo, setEditingPromo] = useState(null);
@@ -157,13 +158,19 @@ export default function PromotionsManager() {
           actionText: actionText.trim() || 'CLAIM BOOST',
           gradient: selectedGradient.value,
           badgeColor: selectedGradient.color,
+          sendNotification: !!sendNotification,
         }),
       });
 
       const data = await res.json();
 
       if (data.success) {
-        setStatusMsg({ type: 'success', text: '🎉 Promotion created and published successfully!' });
+        setStatusMsg({
+          type: 'success',
+          text: sendNotification
+            ? '🎉 Promotion published & auto-dispatched to player notifications & push alerts!'
+            : '🎉 Promotion created and published successfully!',
+        });
         fetchPromotions();
         // Reset form
         setTimeout(() => {
@@ -1312,6 +1319,53 @@ export default function PromotionsManager() {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* Auto-Notification Toggle */}
+              <div
+                onClick={() => setSendNotification(!sendNotification)}
+                className="p-3 rounded-xl flex items-center justify-between cursor-pointer transition select-none"
+                style={{
+                  backgroundColor: sendNotification ? 'rgba(0, 240, 255, 0.08)' : 'rgba(255, 255, 255, 0.03)',
+                  border: sendNotification ? '1px solid rgba(0, 240, 255, 0.45)' : '1px solid rgba(255, 255, 255, 0.08)',
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    style={{
+                      width: '22px',
+                      height: '22px',
+                      borderRadius: '6px',
+                      backgroundColor: sendNotification ? '#00F0FF' : 'transparent',
+                      border: sendNotification ? 'none' : '1.5px solid #64748B',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#070514',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {sendNotification && <Check size={14} strokeWidth={3} />}
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-white block">
+                      📢 Auto-send In-App &amp; Push Notification to All Players
+                    </span>
+                    <span className="text-[11px] text-slate-400 block">
+                      Instantly adds to player Notification Bell &amp; delivers mobile push alert.
+                    </span>
+                  </div>
+                </div>
+                <span
+                  className="text-[10px] font-black uppercase px-2.5 py-1 rounded-full shrink-0"
+                  style={{
+                    backgroundColor: sendNotification ? 'rgba(0, 240, 255, 0.2)' : 'rgba(255, 255, 255, 0.06)',
+                    color: sendNotification ? '#00F0FF' : '#94A3B8',
+                    border: sendNotification ? '1px solid rgba(0, 240, 255, 0.35)' : '1px solid transparent',
+                  }}
+                >
+                  {sendNotification ? 'ENABLED' : 'OFF'}
+                </span>
               </div>
 
               {/* Submit Buttons */}

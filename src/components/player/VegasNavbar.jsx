@@ -13,7 +13,8 @@ import {
   Sparkles,
   Users,
   Flame,
-  Menu
+  Menu,
+  Bell
 } from 'lucide-react';
 
 import { getClientUser, clearClientUser, fetchCurrentUser } from '@/lib/clientAuth';
@@ -35,7 +36,41 @@ export default function VegasNavbar({
   const [internalUser, setInternalUser] = useState(null);
   const [mounted, setMounted] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
+  const [unreadNotifs, setUnreadNotifs] = useState(0);
+
+  // Track unread notifications (promotions, broadcasts)
+  useEffect(() => {
+    const fetchNotifsCount = async () => {
+      try {
+        const res = await fetch('/api/notifications');
+        const data = await res.json();
+        if (data.success && Array.isArray(data.notifications)) {
+          const lastRead = typeof window !== 'undefined' ? localStorage.getItem('vegas_last_notif_read') || '0' : '0';
+          const unread = data.notifications.filter(n => new Date(n.createdAt).getTime() > Number(lastRead));
+          setUnreadNotifs(unread.length);
+        }
+      } catch {}
+    };
+
+    fetchNotifsCount();
+    const interval = setInterval(fetchNotifsCount, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleOpenNotifs = () => {
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('vegas_last_notif_read', Date.now().toString());
+      }
+    } catch {}
+    setUnreadNotifs(0);
+    setUserDropdownOpen(false);
+    if (typeof onOpenNotifications === 'function') {
+      onOpenNotifications();
+    } else {
+      router.push('/promotions');
+    }
+  };
 
   // Auto-close dropdown on outside click
   useEffect(() => {
@@ -381,6 +416,57 @@ export default function VegasNavbar({
                 <Wallet size={16} />
               </button>
 
+              {/* Notification Bell Icon */}
+              <button
+                type="button"
+                onClick={handleOpenNotifs}
+                style={{
+                  position: 'relative',
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '50%',
+                  backgroundColor: '#0E0A24',
+                  border: unreadNotifs > 0 ? '1px solid #00F0FF' : '1px solid rgba(0, 240, 255, 0.3)',
+                  boxShadow: unreadNotifs > 0 ? '0 0 15px rgba(0, 240, 255, 0.45)' : 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: unreadNotifs > 0 ? '#00F0FF' : '#94A3B8',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                  transition: 'all 0.2s ease',
+                }}
+                title="Promotions & Notifications"
+                aria-label="Open Notifications"
+              >
+                <Bell size={16} />
+                {unreadNotifs > 0 && (
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: '-3px',
+                      right: '-3px',
+                      minWidth: '17px',
+                      height: '17px',
+                      padding: '0 4px',
+                      borderRadius: '9999px',
+                      backgroundColor: '#EF4444',
+                      color: '#FFFFFF',
+                      fontSize: '9.5px',
+                      fontWeight: 900,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: '1.5px solid #070514',
+                      boxShadow: '0 0 10px #EF4444',
+                      animation: 'pulse 1.5s infinite',
+                    }}
+                  >
+                    {unreadNotifs > 9 ? '9+' : unreadNotifs}
+                  </span>
+                )}
+              </button>
+
               {/* Profile Avatar & Dropdown */}
               <div style={{ position: 'relative' }} ref={dropdownRef}>
                 <button
@@ -431,6 +517,22 @@ export default function VegasNavbar({
                       >
                         <Clock size={15} color="#00F0FF" />
                         <span>Vault Ledger</span>
+                      </button>
+
+                      <button
+                        onClick={handleOpenNotifs}
+                        style={{ width: '100%', padding: '10px 16px', textAlign: 'left', background: 'transparent', border: 'none', color: '#D1CADB', fontSize: '12px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'background 0.15s' }}
+                        className="hover:bg-white/5 hover:text-white"
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Bell size={15} color="#00F0FF" />
+                          <span>Notifications &amp; Promos</span>
+                        </div>
+                        {unreadNotifs > 0 && (
+                          <span style={{ fontSize: '9px', fontWeight: 900, color: '#EF4444', backgroundColor: 'rgba(239, 68, 68, 0.15)', padding: '2px 6px', borderRadius: '8px' }}>
+                            {unreadNotifs} NEW
+                          </span>
+                        )}
                       </button>
                     </div>
 

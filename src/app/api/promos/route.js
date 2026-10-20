@@ -194,6 +194,61 @@ export async function POST(req) {
 
       const result = await promosCol.insertOne(newPromo);
 
+      // Auto-dispatch In-App Notification & FCM Push Alert
+      if (body.sendNotification !== false) {
+        try {
+          const notifsCol = db.collection('notifications');
+          const notifMsg = rewardHighlight?.trim()
+            ? `${rewardHighlight.trim()} — ${description?.trim() || 'Check out our latest VIP bonus promotion!'}`
+            : (description?.trim() || 'A new casino promotion has just been launched! Claim yours now.');
+
+          const notifUrl = actionUrl?.trim() || '/promotions';
+
+          const newNotif = {
+            title: `🎁 ${title.trim()}`,
+            message: notifMsg,
+            target: 'all',
+            channel: 'all',
+            segment: 'all',
+            url: notifUrl,
+            type: 'promo',
+            promoId: result.insertedId.toString(),
+            sentBy: session.username || 'Admin',
+            createdAt: new Date(),
+          };
+          await notifsCol.insertOne(newNotif);
+
+          // Trigger FCM Push Notifications
+          try {
+            const { sendPushNotification } = await import('@/lib/fcm');
+            // 1. Topic delivery
+            sendPushNotification({
+              topic: 'vegas_all_players',
+              title: `🎁 Vegas One: ${title.trim()}`,
+              body: notifMsg,
+              data: { url: notifUrl, type: 'promo' },
+            }).catch(err => console.warn('Topic promo push note:', err.message));
+
+            // 2. Direct device tokens
+            const subsCol = db.collection('subscriptions');
+            const subs = await subsCol.find({ fcmToken: { $ne: null } }).toArray();
+            const directTokens = [...new Set(subs.map(s => s.fcmToken).filter(t => typeof t === 'string' && t.trim().length > 10))];
+            for (const t of directTokens) {
+              sendPushNotification({
+                token: t,
+                title: `🎁 Vegas One: ${title.trim()}`,
+                body: notifMsg,
+                data: { url: notifUrl, type: 'promo' },
+              }).catch(() => {});
+            }
+          } catch (pushErr) {
+            console.warn('FCM delivery note:', pushErr.message);
+          }
+        } catch (notifErr) {
+          console.warn('Auto-dispatch promo notification note:', notifErr.message);
+        }
+      }
+
       return NextResponse.json({
         success: true,
         message: 'Promotion created successfully!',
