@@ -11,13 +11,24 @@ let pendingAuthPromise = null;
  * Synchronously retrieves cached user from memory or localStorage.
  */
 export function getClientUser() {
-  if (memoryUser) return memoryUser;
+  if (memoryUser) {
+    if (memoryUser.role && memoryUser.role !== 'player' && memoryUser.role !== 'user') {
+      memoryUser = null;
+      return null;
+    }
+    return memoryUser;
+  }
   if (typeof window !== 'undefined') {
     try {
       const saved = localStorage.getItem('vegas_cached_user');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed && (parsed._id || parsed.id || parsed.username || parsed.userId || parsed.email)) {
+          if (parsed.role && parsed.role !== 'player' && parsed.role !== 'user') {
+            localStorage.removeItem('vegas_cached_user');
+            memoryUser = null;
+            return null;
+          }
           memoryUser = parsed;
           return parsed;
         }
@@ -30,9 +41,14 @@ export function getClientUser() {
 }
 
 /**
- * Saves authenticated user to memory and localStorage, broadcasting update.
+ * Saves authenticated player to memory and localStorage, broadcasting update.
  */
 export function setClientUser(user) {
+  if (user && user.role && user.role !== 'player' && user.role !== 'user') {
+    clearClientUser();
+    return;
+  }
+
   memoryUser = user || null;
   hasCheckedInitialAuth = true;
 
@@ -86,6 +102,10 @@ export async function fetchCurrentUser() {
       const data = await res.json();
 
       if (data && data.authenticated && data.user) {
+        if (data.user.role && data.user.role !== 'player' && data.user.role !== 'user') {
+          clearClientUser();
+          return { authenticated: false, user: null };
+        }
         setClientUser(data.user);
         return { authenticated: true, user: data.user };
       } else {

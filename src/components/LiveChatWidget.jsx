@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Headphones, Send, X, Shield, Sparkles } from 'lucide-react';
+import { broadcastAdminAlert } from '@/lib/broadcastAlert';
 
 export default function LiveChatWidget({ user, soundEnabled }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -125,6 +126,10 @@ export default function LiveChatWidget({ user, soundEnabled }) {
       });
       const data = await res.json();
       if (data.success && data.message) {
+        broadcastAdminAlert('CHAT_MESSAGE', {
+          userName: user?.username || 'Player',
+          text,
+        });
         setMessages((prev) =>
           prev.map((m) => (m.id === tempId ? { ...data.message, isMe: true, senderRole: 'player' } : m))
         );

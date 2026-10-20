@@ -25,6 +25,7 @@ import {
   ChevronUp,
   Sparkles,
 } from 'lucide-react';
+import { broadcastAdminAlert } from '@/lib/broadcastAlert';
 
 export default function CoinOperationsDesk({
   sessionUser,
@@ -240,6 +241,11 @@ export default function CoinOperationsDesk({
 
       const data = await res.json();
       if (data.success) {
+        broadcastAdminAlert('COIN_LOAD_FULFILLED', {
+          gameTitle: targetItem.gameTitle,
+          userEmail: targetItem.userEmail,
+          amount: finalAmount,
+        });
         showAlert('success', data.message || `✓ $${finalAmount.toFixed(2)} SC allotted to ${targetItem.userName}!`);
         if (typeof onParentSync === 'function') onParentSync();
       } else {
@@ -293,6 +299,10 @@ export default function CoinOperationsDesk({
 
       const data = await res.json();
       if (data.success) {
+        broadcastAdminAlert('COIN_LOAD_REJECTED', {
+          gameTitle: targetItem.gameTitle,
+          userEmail: targetItem.userEmail,
+        });
         showAlert('success', 'Game load request rejected. Reason logged for user!');
         if (typeof onParentSync === 'function') onParentSync();
       } else {

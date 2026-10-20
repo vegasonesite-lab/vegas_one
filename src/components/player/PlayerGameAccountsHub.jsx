@@ -22,6 +22,7 @@ import {
   Lock
 } from 'lucide-react';
 import LoadCoinsModal from '@/components/player/LoadCoinsModal';
+import { broadcastAdminAlert } from '@/lib/broadcastAlert';
 
 export default function PlayerGameAccountsHub({
   user,
@@ -64,9 +65,13 @@ export default function PlayerGameAccountsHub({
         readyList.push(...credData.gameAccounts);
       }
 
-      // Check account requests
+      // Check account requests (strictly ACCOUNT_CREATION)
       if (reqData.success && reqData.accountRequests) {
         reqData.accountRequests.forEach((req) => {
+          // Strictly ignore coin loads from the game accounts hub
+          const isCoinLoad = req.type === 'COIN_LOAD' || Number(req.transferAmount || 0) > 0;
+          if (isCoinLoad) return;
+
           if (req.status === 'READY') {
             const alreadyExists = readyList.some(
               (a) => a.gameTitle?.toLowerCase() === req.gameTitle?.toLowerCase()
@@ -175,6 +180,10 @@ export default function PlayerGameAccountsHub({
       setRequestingGameId(null);
 
       if (data.success) {
+        broadcastAdminAlert('ACCOUNT_CREATION', {
+          gameTitle,
+          userName: user.username,
+        });
         setRequestSuccessMsg(`🎉 Account request for "${gameTitle}" submitted! Our financial desk is generating your credentials.`);
         fetchAccountsAndRequests();
         setTimeout(() => setRequestSuccessMsg(null), 6000);

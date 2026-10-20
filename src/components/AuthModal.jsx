@@ -104,6 +104,12 @@ export default function AuthModal({
       setLoading(false);
 
       if (data.success) {
+        if (data.isAdmin || (data.user && data.user.role && data.user.role !== 'player' && data.user.role !== 'user')) {
+          onClose();
+          window.location.href = data.redirectTo || '/admin';
+          return;
+        }
+
         setClientUser(data.user);
         if (onAuthSuccess) onAuthSuccess(data.user);
         if (onSuccess) onSuccess(data.user);

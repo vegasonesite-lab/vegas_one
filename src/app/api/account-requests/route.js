@@ -349,39 +349,55 @@ export async function PUT(req) {
         }
       }
 
-      // Update request status to READY / APPROVED
-      await requestsCol.updateOne(
-        { _id: targetRequest._id },
-        {
-          $set: {
-            status: 'READY',
-            transferAmount: approvedAmount,
-            originalRequestedAmount: origFrozen,
-            editedByStaff: approvedAmount !== origFrozen,
-            gameAccountUsername: username || targetRequest.userName,
-            gameAccountPassword: password || 'VegasWin777!',
-            approvedBy: session.username,
-            approvedAt: new Date(),
-          },
-        }
-      );
+      if (isCoinLoad) {
+        // Update coin load request status to READY / APPROVED
+        await requestsCol.updateOne(
+          { _id: targetRequest._id },
+          {
+            $set: {
+              status: 'READY',
+              transferAmount: approvedAmount,
+              originalRequestedAmount: origFrozen,
+              editedByStaff: approvedAmount !== origFrozen,
+              approvedBy: session.username,
+              approvedAt: new Date(),
+            },
+          }
+        );
+      } else {
+        // Update account creation request status with issued credentials
+        await requestsCol.updateOne(
+          { _id: targetRequest._id },
+          {
+            $set: {
+              status: 'READY',
+              transferAmount: 0,
+              originalRequestedAmount: 0,
+              gameAccountUsername: username || targetRequest.userName,
+              gameAccountPassword: password || 'VegasWin777!',
+              approvedBy: session.username,
+              approvedAt: new Date(),
+            },
+          }
+        );
 
-      // Upsert game credentials in gameAccounts
-      await gameAccountsCol.updateOne(
-        { userEmail: cleanEmail, gameTitle: cleanTitle },
-        {
-          $set: {
-            userEmail: cleanEmail,
-            gameTitle: cleanTitle,
-            username: username || cleanEmail.split('@')[0],
-            password: password || 'VegasWin777!',
-            status: 'READY',
-            updatedAt: new Date(),
+        // Upsert game credentials in gameAccounts only for account creation
+        await gameAccountsCol.updateOne(
+          { userEmail: cleanEmail, gameTitle: cleanTitle },
+          {
+            $set: {
+              userEmail: cleanEmail,
+              gameTitle: cleanTitle,
+              username: username || cleanEmail.split('@')[0],
+              password: password || 'VegasWin777!',
+              status: 'READY',
+              updatedAt: new Date(),
+            },
+            $setOnInsert: { createdAt: new Date() },
           },
-          $setOnInsert: { createdAt: new Date() },
-        },
-        { upsert: true }
-      );
+          { upsert: true }
+        );
+      }
 
       // Real-time In-App & Device Push Notification for Player
       notifyPlayer({

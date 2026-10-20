@@ -12,6 +12,7 @@ import {
   Gamepad2,
   Sparkles
 } from 'lucide-react';
+import { broadcastAdminAlert } from '@/lib/broadcastAlert';
 
 export default function LoadCoinsModal({
   isOpen,
@@ -85,6 +86,11 @@ export default function LoadCoinsModal({
       setLoading(false);
 
       if (data.success) {
+        broadcastAdminAlert('COIN_LOAD', {
+          gameTitle,
+          userName: user.username,
+          amount: amt,
+        });
         setSuccessMsg(`🎉 $${amt.toFixed(2)} SC frozen in escrow and submitted to coin desk for ${gameTitle}!`);
         window.dispatchEvent(new CustomEvent('balanceUpdated'));
         if (onSuccess) onSuccess(data);

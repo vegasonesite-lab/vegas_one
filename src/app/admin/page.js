@@ -79,6 +79,7 @@ import AdminMonthFilter from '@/components/admin/AdminMonthFilter';
 import ResetRecordsModal from '@/components/admin/ResetRecordsModal';
 import { formatCSTDateTime, formatCSTDate } from '@/lib/dateUtils';
 import { playTune, unlockAudioContext, AVAILABLE_TUNES } from '@/lib/soundAlerts';
+import { broadcastAdminAlert } from '@/lib/broadcastAlert';
 
 export default function AdminPortal({ initialTab }) {
   const [user, setUser] = useState(null);
@@ -102,8 +103,9 @@ export default function AdminPortal({ initialTab }) {
   const [alertVolume, setAlertVolume] = useState(0.7);
   const [soundModalOpen, setSoundModalOpen] = useState(false);
   const [refreshingFinance, setRefreshingFinance] = useState(false);
+  const [desktopNotifPermission, setDesktopNotifPermission] = useState('default');
 
-  // Load sound settings from localStorage on mount
+  // Load sound settings and desktop notification permission from localStorage/browser on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedTune = localStorage.getItem('vegas_admin_alert_tune');
@@ -112,6 +114,9 @@ export default function AdminPortal({ initialTab }) {
       if (savedVol) setAlertVolume(parseFloat(savedVol));
       const savedEnabled = localStorage.getItem('vegas_admin_alert_enabled');
       if (savedEnabled !== null) setAudioAlertsEnabled(savedEnabled !== 'false');
+      if ('Notification' in window) {
+        setDesktopNotifPermission(Notification.permission);
+      }
     }
   }, []);
 
@@ -143,6 +148,39 @@ export default function AdminPortal({ initialTab }) {
       playTune(overrideTune || alertTune, alertVolume);
     } catch (e) {
       console.warn('Audio play error:', e);
+    }
+  };
+
+  const handleToggleOrRequestDesktopNotifs = async () => {
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      alert('Browser desktop notifications are not supported in this browser.');
+      return;
+    }
+    unlockAudioContext();
+    if (Notification.permission === 'granted') {
+      playAdminChime();
+      showDesktopNotification('🔔 Chrome Notifications Active!', {
+        body: 'Real-time desktop alerts are active for live support and player requests.',
+        targetTab: 'chat',
+      });
+      return;
+    }
+    if (Notification.permission === 'denied') {
+      alert('Desktop notifications are currently blocked in your browser settings. Please click the site settings / lock icon in your Chrome address bar and set Notifications to "Allow".');
+      return;
+    }
+    try {
+      const perm = await Notification.requestPermission();
+      setDesktopNotifPermission(perm);
+      if (perm === 'granted') {
+        playAdminChime();
+        showDesktopNotification('🔔 Chrome Notifications Enabled!', {
+          body: 'You will now receive desktop alerts for live customer chats and incoming requests.',
+          targetTab: 'chat',
+        });
+      }
+    } catch (e) {
+      console.warn('Error requesting notifications:', e);
     }
   };
 
@@ -526,6 +564,11 @@ export default function AdminPortal({ initialTab }) {
         alert(data.message || 'Failed to issue credentials');
         fetchAccountRequests();
       } else {
+        broadcastAdminAlert('ACCOUNT_FULFILLED', {
+          gameTitle: targetReq.gameTitle,
+          userEmail: targetReq.userEmail,
+          username: u,
+        });
         fetchAccountRequests();
         syncRequestsAndAlerts();
       }
@@ -552,6 +595,7 @@ export default function AdminPortal({ initialTab }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, action: 'cancel', reason }),
       });
+      broadcastAdminAlert('ACCOUNT_REJECTED', { id });
       fetchAccountRequests();
       syncRequestsAndAlerts();
     } catch (e) {
@@ -652,10 +696,28 @@ export default function AdminPortal({ initialTab }) {
     }
   };
 
+  // Ensure all API calls from the Admin Console automatically send x-admin-request header
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const origFetch = window.fetch;
+    window.fetch = function (input, init = {}) {
+      const headers = new Headers(init.headers || {});
+      if (!headers.has('x-admin-request')) {
+        headers.set('x-admin-request', 'true');
+      }
+      return origFetch(input, { ...init, headers });
+    };
+    return () => {
+      window.fetch = origFetch;
+    };
+  }, []);
+
   // Check current session
   const fetchSession = async () => {
     try {
-      const res = await fetch('/api/auth/me');
+      const res = await fetch('/api/auth/me?admin=true', {
+        headers: { 'x-admin-request': 'true' },
+      });
       const data = await res.json();
       if (data.authenticated && data.user && data.user.role !== 'player') {
         setUser(data.user);
@@ -683,9 +745,26 @@ export default function AdminPortal({ initialTab }) {
     fetchSession();
   }, []);
 
-  // Persistent background sync: deposits, redemptions, and game account requests are ALWAYS monitored
-  // so admins get instant chime + toast notifications no matter which tab they are currently viewing!
-  const prevCountsRef = React.useRef({ requests: 0, deposits: 0, redemptions: 0, coinLoads: 0, coinCashouts: 0 });
+  // Persistent background sync: deposits, redemptions, coin allotment, game accounts, AND live support chat
+  // are ALWAYS monitored so admins get instant sound chime + Chrome desktop notifications across all tabs!
+  const prevCountsRef = React.useRef({
+    requests: 0,
+    deposits: 0,
+    redemptions: 0,
+    coinLoads: 0,
+    coinCashouts: 0,
+    unreadChat: 0,
+    unreadChatMsgs: 0,
+    lastChatTime: 0,
+    lastRequestId: null,
+    lastRequestTime: 0,
+    lastCoinLoadId: null,
+    lastCoinLoadTime: 0,
+    lastDepositId: null,
+    lastDepositTime: 0,
+    lastRedemptionId: null,
+    lastRedemptionTime: 0,
+  });
   const isInitialLoadRef = React.useRef(true);
 
   const showDesktopNotification = (title, options = {}) => {
@@ -695,7 +774,7 @@ export default function AdminPortal({ initialTab }) {
         const notif = new Notification(title, {
           icon: '/favicon.ico',
           badge: '/favicon.ico',
-          silent: false,
+          requireInteraction: true,
           ...options,
         });
         notif.onclick = () => {
@@ -703,27 +782,29 @@ export default function AdminPortal({ initialTab }) {
           if (options.targetTab) setActiveTab(options.targetTab);
           notif.close();
         };
-      } else if (Notification.permission === 'default') {
-        Notification.requestPermission().catch(() => {});
       }
-    } catch {}
+    } catch (e) {
+      console.warn('Desktop notification error:', e);
+    }
   };
 
   const syncRequestsAndAlerts = async () => {
     if (!user) return;
     try {
-      const [depRes, withRes, reqRes, loadRes] = await Promise.all([
+      const [depRes, withRes, reqRes, loadRes, chatRes] = await Promise.all([
         fetch('/api/payments/deposit?status=all'),
         fetch('/api/payments/withdraw?status=all'),
         fetch('/api/account-requests?type=ACCOUNT_CREATION&status=all'),
         fetch('/api/account-requests?type=COIN_LOAD&status=all'),
+        fetch('/api/chat?inbox=true'),
       ]);
 
-      const [depData, withData, reqData, loadData] = await Promise.all([
+      const [depData, withData, reqData, loadData, chatData] = await Promise.all([
         depRes.ok ? depRes.json().catch(() => ({})) : {},
         withRes.ok ? withRes.json().catch(() => ({})) : {},
         reqRes.ok ? reqRes.json().catch(() => ({})) : {},
         loadRes.ok ? loadRes.json().catch(() => ({})) : {},
+        chatRes.ok ? chatRes.json().catch(() => ({})) : {},
       ]);
 
       if (depData.success) {
@@ -738,15 +819,35 @@ export default function AdminPortal({ initialTab }) {
       if (loadData.success) {
         setCoinLoadRequests(loadData.accountRequests || []);
       }
+      if (chatData.success && Array.isArray(chatData.conversations)) {
+        setChatConversations(chatData.conversations);
+      }
 
       const pendingDeps = (depData.deposits || []).filter(d => d.status === 'pending');
       const pendingWith = (withData.redemptions || []).filter(r => r.status === 'pending');
       const pendingReqs = (reqData.accountRequests || []).filter(r => (r.status || '').toUpperCase() === 'PENDING');
       const pendingCoinLoads = (loadData.accountRequests || []).filter(r => (r.status || '').toUpperCase() === 'PENDING');
       const pendingCoinCashouts = (withData.redemptions || []).filter(r => r.status === 'pending_coin' || r.stage === 'coin_verification');
+      const chatConvs = chatData.success && Array.isArray(chatData.conversations) ? chatData.conversations : [];
+      const pendingChatConvs = chatConvs.filter(c => (c.unreadCount || 0) > 0 || c.unreadStaff);
+      const totalUnreadChatMsgs = chatConvs.reduce((acc, c) => acc + (c.unreadCount || (c.unreadStaff ? 1 : 0)), 0);
+      const latestChatConv = chatConvs[0] || null;
+      const latestChatTime = latestChatConv?.updatedAt ? new Date(latestChatConv.updatedAt).getTime() : 0;
+
+      const newestReq = pendingReqs[0] || null;
+      const newestReqTime = newestReq?.createdAt ? new Date(newestReq.createdAt).getTime() : 0;
+
+      const newestCoinLoad = pendingCoinLoads[0] || null;
+      const newestCoinLoadTime = newestCoinLoad?.createdAt ? new Date(newestCoinLoad.createdAt).getTime() : 0;
+
+      const newestDep = pendingDeps[0] || null;
+      const newestDepTime = newestDep?.createdAt ? new Date(newestDep.createdAt).getTime() : 0;
+
+      const newestWith = pendingWith[0] || null;
+      const newestWithTime = newestWith?.createdAt ? new Date(newestWith.createdAt).getTime() : 0;
 
       // Update Browser Tab Title Badge
-      const totalPending = pendingDeps.length + pendingWith.length + pendingReqs.length + pendingCoinLoads.length + pendingCoinCashouts.length;
+      const totalPending = pendingDeps.length + pendingWith.length + pendingReqs.length + pendingCoinLoads.length + pendingCoinCashouts.length + totalUnreadChatMsgs;
       if (typeof document !== 'undefined') {
         document.title = totalPending > 0
           ? `(${totalPending}) 🔔 Vegas One Admin - Operations Control`
@@ -760,55 +861,106 @@ export default function AdminPortal({ initialTab }) {
           requests: pendingReqs.length,
           coinLoads: pendingCoinLoads.length,
           coinCashouts: pendingCoinCashouts.length,
+          unreadChat: pendingChatConvs.length,
+          unreadChatMsgs: totalUnreadChatMsgs,
+          lastChatTime: latestChatTime,
+          lastRequestId: newestReq?.id || null,
+          lastRequestTime: newestReqTime,
+          lastCoinLoadId: newestCoinLoad?.id || null,
+          lastCoinLoadTime: newestCoinLoadTime,
+          lastDepositId: newestDep?.id || null,
+          lastDepositTime: newestDepTime,
+          lastRedemptionId: newestWith?.id || null,
+          lastRedemptionTime: newestWithTime,
         };
         isInitialLoadRef.current = false;
         return;
       }
 
+      let shouldChime = false;
+
       // 1. Check for incoming new deposits (Finance)
-      if (pendingDeps.length > (prevCountsRef.current.deposits || 0)) {
-        const newest = pendingDeps[0];
-        playAdminChime();
+      const isNewDep =
+        pendingDeps.length > (prevCountsRef.current.deposits || 0) ||
+        (newestDep && newestDep.id !== prevCountsRef.current.lastDepositId && newestDepTime > (prevCountsRef.current.lastDepositTime || 0));
+
+      if (isNewDep) {
+        shouldChime = true;
         showDesktopNotification('New Deposit Request! 💰', {
-          body: `$${Number(newest?.amount || 0).toFixed(2)} USD from ${newest?.username || 'Player'} via ${newest?.methodName || 'Payment'}`,
+          body: `$${Number(newestDep?.amount || 0).toFixed(2)} USD from ${newestDep?.username || 'Player'} via ${newestDep?.methodName || 'Payment'}`,
           targetTab: 'finance',
         });
       }
+
       // 2. Check for incoming new redemptions (Finance Stage 2)
-      else if (pendingWith.length > (prevCountsRef.current.redemptions || 0)) {
-        const newest = pendingWith[0];
-        playAdminChime();
+      const isNewWith =
+        pendingWith.length > (prevCountsRef.current.redemptions || 0) ||
+        (newestWith && newestWith.id !== prevCountsRef.current.lastRedemptionId && newestWithTime > (prevCountsRef.current.lastRedemptionTime || 0));
+
+      if (isNewWith) {
+        shouldChime = true;
         showDesktopNotification('New Cashout Request! 💸', {
-          body: `$${Number(newest?.amount || 0).toFixed(2)} SC for ${newest?.username || 'Player'} via ${newest?.payoutMethod || 'Direct'}`,
+          body: `$${Number(newestWith?.amount || 0).toFixed(2)} SC for ${newestWith?.username || 'Player'} via ${newestWith?.payoutMethod || 'Direct'}`,
           targetTab: 'finance',
         });
       }
+
       // 3. Check for incoming coin load requests (Coins Allotment Desk)
-      else if (pendingCoinLoads.length > (prevCountsRef.current.coinLoads || 0)) {
-        const newest = pendingCoinLoads[0];
-        playAdminChime();
+      const isNewCoinLoad =
+        pendingCoinLoads.length > (prevCountsRef.current.coinLoads || 0) ||
+        (newestCoinLoad && newestCoinLoad.id !== prevCountsRef.current.lastCoinLoadId && newestCoinLoadTime > (prevCountsRef.current.lastCoinLoadTime || 0));
+
+      if (isNewCoinLoad) {
+        shouldChime = true;
         showDesktopNotification('New Coin Load Request! ⚡', {
-          body: `$${Number(newest?.transferAmount || 0).toFixed(2)} SC for ${newest?.gameTitle || 'Game'} from ${newest?.userName || 'Player'}`,
+          body: `$${Number(newestCoinLoad?.transferAmount || 0).toFixed(2)} SC for ${newestCoinLoad?.gameTitle || 'Game'} from ${newestCoinLoad?.userName || 'Player'}`,
           targetTab: 'coins_allotment',
         });
       }
+
       // 4. Check for incoming coin cashout proof verifications (Stage 1 Coins Allotment Desk)
-      else if (pendingCoinCashouts.length > (prevCountsRef.current.coinCashouts || 0)) {
+      if (pendingCoinCashouts.length > (prevCountsRef.current.coinCashouts || 0)) {
         const newest = pendingCoinCashouts[0];
-        playAdminChime();
+        shouldChime = true;
         showDesktopNotification('Cashout Winning Proof Uploaded! 🏆', {
           body: `$${Number(newest?.amount || 0).toFixed(2)} SC for ${newest?.username || 'Player'} (${newest?.gameTitle || 'Game'})`,
           targetTab: 'coins_allotment',
         });
       }
+
       // 5. Check for incoming new game account creation requests (Account Requests Desk)
-      else if (pendingReqs.length > (prevCountsRef.current.requests || 0)) {
-        const newest = pendingReqs[0];
-        playAdminChime();
+      const isNewReq =
+        pendingReqs.length > (prevCountsRef.current.requests || 0) ||
+        (newestReq && newestReq.id !== prevCountsRef.current.lastRequestId && newestReqTime > (prevCountsRef.current.lastRequestTime || 0));
+
+      if (isNewReq) {
+        shouldChime = true;
         showDesktopNotification('New Game Account Request! 🎮', {
-          body: `${newest?.gameTitle || 'Game'} request from ${newest?.userName || 'Player'}`,
+          body: `${newestReq?.gameTitle || 'Game'} request from ${newestReq?.userName || 'Player'}`,
           targetTab: 'account_requests',
         });
+      }
+
+      // 6. Check for incoming live support chat message
+      const isNewChatMsg =
+        totalUnreadChatMsgs > (prevCountsRef.current.unreadChatMsgs || 0) ||
+        pendingChatConvs.length > (prevCountsRef.current.unreadChat || 0) ||
+        (latestChatConv?.lastSenderRole === 'player' && latestChatTime > (prevCountsRef.current.lastChatTime || 0));
+
+      if (isNewChatMsg) {
+        shouldChime = true;
+        const sender = latestChatConv?.username ? `@${latestChatConv.username}` : 'Player';
+        const msgPreview = latestChatConv?.lastMessage
+          ? (latestChatConv.lastMessage.length > 60 ? latestChatConv.lastMessage.slice(0, 57) + '...' : latestChatConv.lastMessage)
+          : 'New customer message';
+        showDesktopNotification(`New Live Support Message! 💬 (${sender})`, {
+          body: `"${msgPreview}" — Click to open Live Support Desk`,
+          targetTab: 'chat',
+        });
+      }
+
+      if (shouldChime) {
+        playAdminChime();
       }
 
       prevCountsRef.current = {
@@ -817,29 +969,154 @@ export default function AdminPortal({ initialTab }) {
         requests: pendingReqs.length,
         coinLoads: pendingCoinLoads.length,
         coinCashouts: pendingCoinCashouts.length,
+        unreadChat: pendingChatConvs.length,
+        unreadChatMsgs: totalUnreadChatMsgs,
+        lastChatTime: latestChatTime,
+        lastRequestId: newestReq?.id || null,
+        lastRequestTime: newestReqTime,
+        lastCoinLoadId: newestCoinLoad?.id || null,
+        lastCoinLoadTime: newestCoinLoadTime,
+        lastDepositId: newestDep?.id || null,
+        lastDepositTime: newestDepTime,
+        lastRedemptionId: newestWith?.id || null,
+        lastRedemptionTime: newestWithTime,
       };
     } catch (err) {
       console.warn('Background sync error:', err);
     }
   };
 
-  // Run persistent poller with fast 3-second responsiveness
+  // Instant 0ms Inter-Tab Realtime Alert Dispatch Listener (BroadcastChannel & Storage Event)
   useEffect(() => {
-    if (!user) return;
-    syncRequestsAndAlerts();
-    const interval = setInterval(syncRequestsAndAlerts, 3000);
-    return () => clearInterval(interval);
+    if (!user || typeof window === 'undefined') return;
+
+    const handleRealtimeEvent = (eventData) => {
+      if (!eventData || !eventData.type) return;
+
+      playAdminChime();
+
+      if (eventData.type === 'ACCOUNT_CREATION') {
+        showDesktopNotification('New Game Account Request! 🎮', {
+          body: `${eventData.gameTitle || 'Game'} request from ${eventData.userName || 'Player'}`,
+          targetTab: 'account_requests',
+        });
+      } else if (eventData.type === 'COIN_LOAD') {
+        showDesktopNotification('New Coin Load Request! ⚡', {
+          body: `$${Number(eventData.amount || 0).toFixed(2)} SC for ${eventData.gameTitle || 'Game'} from ${eventData.userName || 'Player'}`,
+          targetTab: 'coins_allotment',
+        });
+      } else if (eventData.type === 'DEPOSIT') {
+        showDesktopNotification('New Deposit Request! 💰', {
+          body: `$${Number(eventData.amount || 0).toFixed(2)} USD from ${eventData.userName || 'Player'}`,
+          targetTab: 'finance',
+        });
+      } else if (eventData.type === 'CASHOUT') {
+        showDesktopNotification('New Cashout Request! 💸', {
+          body: `$${Number(eventData.amount || 0).toFixed(2)} SC for ${eventData.userName || 'Player'}`,
+          targetTab: 'finance',
+        });
+      } else if (eventData.type === 'CHAT_MESSAGE') {
+        showDesktopNotification(`New Live Support Message! 💬 (${eventData.userName ? '@' + eventData.userName : 'Player'})`, {
+          body: `"${eventData.text || 'New message'}" — Click to open Live Support Desk`,
+          targetTab: 'chat',
+        });
+      }
+
+      // Immediately fetch latest data from server with 0ms delay
+      syncRequestsAndAlerts();
+    };
+
+    let bc = null;
+    if ('BroadcastChannel' in window) {
+      try {
+        bc = new BroadcastChannel('vegas_realtime_channel');
+        bc.onmessage = (msg) => {
+          handleRealtimeEvent(msg.data);
+        };
+      } catch {}
+    }
+
+    const onStorage = (e) => {
+      if (e.key === 'vegas_realtime_event' && e.newValue) {
+        try {
+          const data = JSON.parse(e.newValue);
+          handleRealtimeEvent(data);
+        } catch {}
+      }
+    };
+    window.addEventListener('storage', onStorage);
+
+    return () => {
+      if (bc) {
+        try { bc.close(); } catch {}
+      }
+      window.removeEventListener('storage', onStorage);
+    };
   }, [user]);
 
-  // Request Chrome notification permission on first interaction
+  // Persistent background sync ticker via Web Worker (Bypasses Chrome background tab throttling so alerts NEVER get delayed)
   useEffect(() => {
-    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
-      const askNotification = () => {
-        Notification.requestPermission().catch(() => {});
-        window.removeEventListener('click', askNotification);
+    if (!user || typeof window === 'undefined') return;
+
+    syncRequestsAndAlerts();
+
+    let worker = null;
+    let fallbackInterval = null;
+
+    try {
+      const workerCode = `
+        var timer = null;
+        self.onmessage = function(e) {
+          if (e.data === 'start') {
+            if (timer) clearInterval(timer);
+            timer = setInterval(function() {
+              self.postMessage('tick');
+            }, 1200);
+          } else if (e.data === 'stop') {
+            if (timer) clearInterval(timer);
+          }
+        };
+      `;
+      const blob = new Blob([workerCode], { type: 'application/javascript' });
+      const workerUrl = URL.createObjectURL(blob);
+      worker = new Worker(workerUrl);
+
+      worker.onmessage = () => {
+        syncRequestsAndAlerts();
       };
-      window.addEventListener('click', askNotification, { once: true });
+      worker.postMessage('start');
+
+      return () => {
+        if (worker) {
+          worker.postMessage('stop');
+          worker.terminate();
+        }
+        URL.revokeObjectURL(workerUrl);
+      };
+    } catch {
+      fallbackInterval = setInterval(syncRequestsAndAlerts, 1200);
+      return () => {
+        if (fallbackInterval) clearInterval(fallbackInterval);
+      };
     }
+  }, [user]);
+
+  // Request Chrome notification permission on first user interaction and unlock audio
+  useEffect(() => {
+    const handleFirstGesture = () => {
+      unlockAudioContext();
+      if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission().then((perm) => {
+          setDesktopNotifPermission(perm);
+        }).catch(() => {});
+      }
+    };
+    window.addEventListener('click', handleFirstGesture, { passive: true });
+    window.addEventListener('keydown', handleFirstGesture, { passive: true });
+    return () => {
+      window.removeEventListener('click', handleFirstGesture);
+      window.removeEventListener('keydown', handleFirstGesture);
+    };
   }, []);
 
   // Fetch data for specific active tabs
@@ -906,13 +1183,33 @@ export default function AdminPortal({ initialTab }) {
   }, [user, activeTab, ledgerFilterUser, ledgerFilterType, ledgerFilterMonth, statsMonth, accountReqFilter, userSearchQuery, allotmentSearch]);
 
   // Load chat messages when active conversation selected
+  const lastActiveChatMsgIdRef = useRef(null);
   useEffect(() => {
     if (!activeChatConv) return;
+    lastActiveChatMsgIdRef.current = null;
     const fetchChatMsgs = () => {
       fetch(`/api/chat?conversationId=${activeChatConv._id}`)
         .then(r => r.json())
         .then(d => {
           if (d.success && Array.isArray(d.messages)) {
+            const msgs = d.messages;
+            if (msgs.length > 0) {
+              const latestMsg = msgs[msgs.length - 1];
+              if (
+                lastActiveChatMsgIdRef.current &&
+                latestMsg.id !== lastActiveChatMsgIdRef.current &&
+                latestMsg.senderRole === 'player'
+              ) {
+                playAdminChime();
+                if (typeof document !== 'undefined' && document.hidden) {
+                  showDesktopNotification(`New Message from ${latestMsg.username || 'Player'} 💬`, {
+                    body: latestMsg.text || 'New message',
+                    targetTab: 'chat',
+                  });
+                }
+              }
+              lastActiveChatMsgIdRef.current = latestMsg.id;
+            }
             setChatMessages(prev => {
               const pendingTemps = prev.filter(
                 p => String(p.id).startsWith('temp_') && !d.messages.some(m => m.text === p.text)
@@ -941,11 +1238,14 @@ export default function AdminPortal({ initialTab }) {
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier: loginId, password: loginPassword }),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-request': 'true',
+        },
+        body: JSON.stringify({ identifier: loginId, password: loginPassword, forAdmin: true }),
       });
       const data = await res.json();
-      if (data.success && data.user.role !== 'player') {
+      if (data.success && data.user && data.user.role !== 'player') {
         setUser(data.user);
       } else {
         setLoginError(data.error || 'Access Denied: Not authorized for administration.');
@@ -956,7 +1256,14 @@ export default function AdminPortal({ initialTab }) {
   };
 
   const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
+    await fetch('/api/auth/logout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-request': 'true',
+      },
+      body: JSON.stringify({ adminOnly: true }),
+    });
     setUser(null);
   };
 
@@ -1110,7 +1417,7 @@ export default function AdminPortal({ initialTab }) {
       id: 'chat',
       label: 'Live Support Desk',
       icon: MessageSquare,
-      badge: chatConversations.filter(c => c.unreadStaff).length,
+      badge: (chatConversations || []).reduce((acc, c) => acc + (c.unreadCount || (c.unreadStaff ? 1 : 0)), 0),
       category: 'Operations',
     },
     { id: 'games', label: 'Games Library', icon: Gamepad2, category: 'Catalog & Players' },
@@ -1275,6 +1582,53 @@ export default function AdminPortal({ initialTab }) {
               title={audioAlertsEnabled ? 'Audio Alert ON' : 'Audio Alert MUTED'}
             >
               {audioAlertsEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
+            </button>
+          </div>
+
+          {/* Chrome Desktop Notifications Status / Permission Hub */}
+          <div
+            style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.04)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '12px',
+              padding: '5px 12px',
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <button
+              onClick={handleToggleOrRequestDesktopNotifs}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: 0,
+                color:
+                  desktopNotifPermission === 'granted'
+                    ? '#10B981'
+                    : desktopNotifPermission === 'denied'
+                    ? '#F43F5E'
+                    : '#F59E0B',
+              }}
+              title={
+                desktopNotifPermission === 'granted'
+                  ? 'Chrome Desktop Notifications Active (Click to send test alert)'
+                  : desktopNotifPermission === 'denied'
+                  ? 'Chrome Notifications Blocked in browser settings'
+                  : 'Click to Enable Chrome Desktop Notifications'
+              }
+            >
+              <Bell size={14} className={desktopNotifPermission === 'default' ? 'animate-bounce' : ''} />
+              <span className="hidden sm:inline text-[11px] font-bold font-mono">
+                {desktopNotifPermission === 'granted'
+                  ? 'Chrome Alerts ON'
+                  : desktopNotifPermission === 'denied'
+                  ? 'Alerts Blocked'
+                  : 'Enable Chrome Alerts'}
+              </span>
             </button>
           </div>
 
@@ -1963,7 +2317,7 @@ export default function AdminPortal({ initialTab }) {
                     <div>
                       <p className="text-[11px] text-[#94A3B8] font-bold uppercase tracking-wider m-0">Unread Live Chat</p>
                       <p className="text-2xl font-black text-rose-400 mt-1 mb-0 font-mono">
-                        {chatConversations.filter(c => c.unreadStaff).length}
+                        {(chatConversations || []).reduce((acc, c) => acc + (c.unreadCount || (c.unreadStaff ? 1 : 0)), 0)}
                       </p>
                     </div>
                     <button
@@ -2218,7 +2572,7 @@ export default function AdminPortal({ initialTab }) {
                   onClick={() => setApprovalModal({ open: false, request: null, username: '', password: '' })}
                 >
                   <div
-                    className="vegas-modal-card rounded-3xl max-w-lg w-full relative overflow-hidden"
+                    className="vegas-modal-card rounded-3xl max-w-xl w-full relative overflow-hidden"
                     onClick={(e) => e.stopPropagation()}
                     style={{
                       backgroundColor: '#0C0A1E',
@@ -2606,17 +2960,19 @@ export default function AdminPortal({ initialTab }) {
                     {/* Footer Actions */}
                     <div
                       style={{
-                        padding: '18px 24px',
+                        padding: '16px 24px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        gap: '16px',
-                        borderTop: '1px solid rgba(0, 240, 255, 0.18)',
+                        gap: '12px',
+                        borderTop: '1px solid rgba(0, 240, 255, 0.16)',
                         backgroundColor: '#070514',
                         position: 'relative',
                         zIndex: 10,
+                        flexWrap: 'wrap',
                       }}
                     >
+                      {/* Left: Quick Copy Credentials Pill */}
                       <button
                         type="button"
                         onClick={() => {
@@ -2628,42 +2984,52 @@ export default function AdminPortal({ initialTab }) {
                         style={{
                           fontSize: '12px',
                           fontWeight: 700,
-                          color: '#94A3B8',
-                          display: 'flex',
+                          color: copiedModalText === 'all' ? '#10B981' : '#94A3B8',
+                          backgroundColor: copiedModalText === 'all' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(255, 255, 255, 0.05)',
+                          border: copiedModalText === 'all' ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid rgba(255, 255, 255, 0.10)',
+                          borderRadius: '12px',
+                          padding: '9px 14px',
+                          display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '8px',
-                          background: 'none',
-                          border: 'none',
+                          gap: '7px',
                           cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                          whiteSpace: 'nowrap',
                         }}
+                        className="hover:bg-white/10 hover:text-white"
+                        title="Copy Username and Password to clipboard"
                       >
                         {copiedModalText === 'all' ? (
                           <>
-                            <CheckCheck size={14} style={{ color: '#10B981', marginRight: '6px' }} />
-                            <span style={{ color: '#10B981', fontWeight: 800 }}>Copied Both!</span>
+                            <CheckCheck size={14} style={{ color: '#10B981' }} />
+                            <span style={{ fontWeight: 800 }}>Copied Both!</span>
                           </>
                         ) : (
                           <>
-                            <Copy size={14} style={{ marginRight: '6px' }} />
+                            <Copy size={13} style={{ color: '#00F0FF' }} />
                             <span>Copy Both</span>
                           </>
                         )}
                       </button>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      {/* Right: Cancel & Submit Buttons */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
                         <button
                           type="button"
                           onClick={() => setApprovalModal({ open: false, request: null, username: '', password: '' })}
                           style={{
-                            padding: '10px 18px',
+                            padding: '9px 18px',
                             borderRadius: '12px',
                             fontSize: '12px',
                             fontWeight: 700,
                             color: '#94A3B8',
-                            background: 'transparent',
-                            border: 'none',
+                            backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                            border: '1px solid rgba(255, 255, 255, 0.10)',
                             cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                            whiteSpace: 'nowrap',
                           }}
+                          className="hover:bg-white/10 hover:text-white"
                         >
                           Cancel
                         </button>
@@ -2672,25 +3038,28 @@ export default function AdminPortal({ initialTab }) {
                           onClick={handleConfirmApproval}
                           disabled={submittingApproval}
                           style={{
-                            backgroundColor: '#00F0FF',
+                            background: 'linear-gradient(135deg, #00F0FF 0%, #38BDF8 100%)',
                             color: '#070514',
-                            boxShadow: '0 0 25px rgba(0, 240, 255, 0.4)',
+                            boxShadow: '0 0 20px rgba(0, 240, 255, 0.35)',
                             padding: '10px 22px',
                             borderRadius: '12px',
                             fontSize: '12px',
                             fontWeight: 900,
                             textTransform: 'uppercase',
-                            letterSpacing: '0.05em',
+                            letterSpacing: '0.04em',
                             cursor: 'pointer',
                             border: 'none',
-                            display: 'flex',
+                            display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '8px',
+                            gap: '7px',
+                            whiteSpace: 'nowrap',
+                            transition: 'all 0.15s ease',
                           }}
+                          className="hover:brightness-110 active:scale-95"
                         >
                           {submittingApproval ? (
                             <>
-                              <RefreshCw size={14} className="animate-spin" style={{ marginRight: '6px' }} />
+                              <RefreshCw size={14} className="animate-spin" />
                               <span>Issuing...</span>
                             </>
                           ) : (

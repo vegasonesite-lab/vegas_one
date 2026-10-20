@@ -37,6 +37,7 @@ import AuthModal from '@/components/AuthModal';
 import VegasRunningPromos from '@/components/player/VegasRunningPromos';
 import { compressImage } from '@/lib/imageCompressor';
 import { useAuthSession } from '@/lib/clientAuth';
+import { broadcastAdminAlert } from '@/lib/broadcastAlert';
 
 export default function DepositPage() {
   const router = useRouter();
@@ -265,6 +266,10 @@ export default function DepositPage() {
       setLoading(false);
 
       if (data.success) {
+        broadcastAdminAlert('DEPOSIT', {
+          userName: user?.username || 'Player',
+          amount: Number(depositAmount),
+        });
         setMessage('🎉 Deposit request submitted! Our Financial Desk is verifying your transaction and crediting your wallet.');
         setSenderTagName('');
         setSenderTagEmail('');

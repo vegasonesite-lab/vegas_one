@@ -30,6 +30,11 @@ export async function GET(req) {
           $group: {
             _id: '$conversationId',
             username: { $first: '$username' },
+            playerUsername: {
+              $max: {
+                $cond: [{ $eq: ['$senderRole', 'player'] }, '$username', ''],
+              },
+            },
             userId: { $first: '$userId' },
             lastMessage: { $first: '$text' },
             lastSenderRole: { $first: '$senderRole' },
@@ -45,7 +50,16 @@ export async function GET(req) {
         { $limit: 50 },
       ]).toArray();
 
-      return NextResponse.json({ success: true, conversations: activeConvs });
+      return NextResponse.json({
+        success: true,
+        conversations: activeConvs.map((c) => ({
+          ...c,
+          id: c._id,
+          username: c.playerUsername || c.username || 'Player',
+          unreadCount: c.unreadCount || 0,
+          unreadStaff: (c.unreadCount || 0) > 0,
+        })),
+      });
     }
 
     // Messages within a conversation

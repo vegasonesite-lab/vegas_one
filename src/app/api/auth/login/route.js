@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
+import { headers } from 'next/headers';
 import bcrypt from 'bcryptjs';
 import { getDb } from '@/lib/mongodb';
-import { signToken, ROLES } from '@/lib/auth';
+import { signToken, ROLES, isStaffRole } from '@/lib/auth';
 import { ensureDbInitialized } from '@/lib/initDb';
 import { getDeviceIdFromRequest } from '@/lib/deviceServer';
 
@@ -9,7 +10,8 @@ export async function POST(req) {
   try {
     await ensureDbInitialized();
 
-    const { identifier, password, deviceId: rawDeviceId } = await req.json();
+    const body = await req.json();
+    const { identifier, password, deviceId: rawDeviceId, forAdmin } = body;
 
     if (!identifier || !password) {
       return NextResponse.json({ success: false, error: 'Identifier and password are required.' }, { status: 400 });
@@ -17,6 +19,12 @@ export async function POST(req) {
 
     const cleanId = identifier.trim().toLowerCase();
     const deviceId = getDeviceIdFromRequest(req, rawDeviceId);
+
+    let reqHeaders = null;
+    try {
+      reqHeaders = await headers();
+    } catch {}
+    const isExplicitAdminLogin = Boolean(forAdmin) || reqHeaders?.get('x-admin-request') === 'true';
 
     const db = await getDb();
     const usersCol = db.collection('users');
@@ -38,25 +46,84 @@ export async function POST(req) {
       return NextResponse.json({ success: false, error: 'Invalid credentials.' }, { status: 401 });
     }
 
-    const isPlayer = !user.role || user.role === ROLES.PLAYER || user.role === 'player' || user.role === 'user';
+    const isStaff = isStaffRole(user.role);
 
-    // 1. Enforce: Only 1 account per physical device for players
-    if (isPlayer) {
-      const conflictingUser = await usersCol.findOne({
-        _id: { $ne: user._id },
-        role: { $in: [ROLES.PLAYER, 'user', 'player', null] },
-        $or: [{ deviceId: deviceId }, { boundDevices: deviceId }],
+    // ==========================================
+    // CASE A: STAFF / SUPER ADMIN LOGIN
+    // ==========================================
+    if (isStaff) {
+      const sessionVersion = Date.now().toString();
+      const userId = user._id.toString();
+
+      await usersCol.updateOne(
+        { _id: user._id },
+        {
+          $set: {
+            sessionVersion,
+            lastLoginAt: new Date(),
+          },
+        }
+      );
+
+      const token = signToken({
+        userId,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        sessionVersion,
       });
 
-      if (conflictingUser) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: `Security Restriction: Only 1 account is permitted per device. This device is already linked to account "${conflictingUser.username}". You cannot log into multiple accounts on the same device.`,
-          },
-          { status: 403 }
-        );
-      }
+      const response = NextResponse.json({
+        success: true,
+        isAdmin: true,
+        redirectTo: '/admin',
+        message: 'Staff credentials recognized. Opening Admin Console...',
+        user: {
+          userId,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+        },
+      });
+
+      // Dedicated Admin Session Cookie: vegas_admin_session
+      response.cookies.set('vegas_admin_session', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 7 * 24 * 3600,
+      });
+
+      return response;
+    }
+
+    // ==========================================
+    // CASE B: PLAYER LOGIN
+    // ==========================================
+    // If player attempts to log into Admin Console directly, block them
+    if (isExplicitAdminLogin) {
+      return NextResponse.json(
+        { success: false, error: 'Access Denied: Player accounts cannot access the Admin Console.' },
+        { status: 403 }
+      );
+    }
+
+    // 1. Enforce: Only 1 account per physical device for players
+    const conflictingUser = await usersCol.findOne({
+      _id: { $ne: user._id },
+      role: { $in: [ROLES.PLAYER, 'user', 'player', null] },
+      $or: [{ deviceId: deviceId }, { boundDevices: deviceId }],
+    });
+
+    if (conflictingUser) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Security Restriction: Only 1 account is permitted per device. This device is already linked to account "${conflictingUser.username}".`,
+        },
+        { status: 403 }
+      );
     }
 
     // 2. Bind device and update active session version
@@ -80,19 +147,20 @@ export async function POST(req) {
       userId,
       username: user.username,
       email: user.email,
-      role: user.role,
+      role: 'player',
       sessionVersion,
     });
 
     const response = NextResponse.json({
       success: true,
+      isPlayer: true,
       message: 'Login successful',
       user: {
         userId,
         username: user.username,
         email: user.email,
         phoneNumber: user.phoneNumber || user.phone || '',
-        role: user.role,
+        role: 'player',
         balanceSC: user.balanceSC || 0,
         balance: user.balanceSC || 0,
         kycStatus: user.kycStatus || 'none',
@@ -100,6 +168,7 @@ export async function POST(req) {
       },
     });
 
+    // Dedicated Player Session Cookie: vegas_session
     response.cookies.set('vegas_session', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

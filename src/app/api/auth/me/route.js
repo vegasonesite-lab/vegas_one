@@ -1,34 +1,86 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { ObjectId } from 'mongodb';
-import { getSessionUser, ROLES } from '@/lib/auth';
+import { getSessionUser, ROLES, isStaffRole } from '@/lib/auth';
 import { getDb } from '@/lib/mongodb';
 
-export async function GET() {
+export async function GET(req) {
   try {
-    const session = await getSessionUser();
-    if (!session) {
-      return NextResponse.json({ authenticated: false, user: null });
-    }
+    const { searchParams } = new URL(req.url);
+    let reqHeaders = null;
+    try {
+      reqHeaders = await headers();
+    } catch {}
+
+    const isAdminRequest =
+      searchParams.get('admin') === 'true' ||
+      reqHeaders?.get('x-admin-request') === 'true' ||
+      reqHeaders?.get('referer')?.includes('/admin');
 
     const db = await getDb();
     const usersCol = db.collection('users');
-    const user = await usersCol.findOne({ _id: new ObjectId(session.userId) });
 
-    if (!user) {
-      const resp = NextResponse.json({ authenticated: false, user: null });
+    // ==========================================
+    // 1. ADMIN STAFF SESSION CHECK
+    // ==========================================
+    if (isAdminRequest) {
+      const adminSession = await getSessionUser({ role: 'admin' });
+      if (!adminSession) {
+        return NextResponse.json({ authenticated: false, isAdmin: false, user: null });
+      }
+
+      const adminUser = await usersCol.findOne({ _id: new ObjectId(adminSession.userId) });
+      if (!adminUser || !isStaffRole(adminUser.role)) {
+        const resp = NextResponse.json({ authenticated: false, isAdmin: false, user: null });
+        resp.cookies.delete('vegas_admin_session');
+        return resp;
+      }
+
+      if (adminUser.isBanned) {
+        const resp = NextResponse.json({ authenticated: false, isAdmin: false, user: null, error: 'Staff account suspended.' });
+        resp.cookies.delete('vegas_admin_session');
+        return resp;
+      }
+
+      return NextResponse.json({
+        authenticated: true,
+        isAdmin: true,
+        user: {
+          userId: adminUser._id.toString(),
+          username: adminUser.username,
+          email: adminUser.email,
+          role: adminUser.role,
+          createdAt: adminUser.createdAt || null,
+          lastLoginAt: adminUser.lastLoginAt || null,
+        },
+      });
+    }
+
+    // ==========================================
+    // 2. PLAYER SESSION CHECK
+    // (Never return staff/admin as a player)
+    // ==========================================
+    const playerSession = await getSessionUser({ role: 'player' });
+    if (!playerSession) {
+      return NextResponse.json({ authenticated: false, isPlayer: false, user: null });
+    }
+
+    const user = await usersCol.findOne({ _id: new ObjectId(playerSession.userId) });
+
+    if (!user || isStaffRole(user.role)) {
+      const resp = NextResponse.json({ authenticated: false, isPlayer: false, user: null });
       resp.cookies.delete('vegas_session');
       return resp;
     }
 
     if (user.isBanned) {
-      const resp = NextResponse.json({ authenticated: false, user: null, error: 'Account suspended.' });
+      const resp = NextResponse.json({ authenticated: false, isPlayer: false, user: null, error: 'Account suspended.' });
       resp.cookies.delete('vegas_session');
       return resp;
     }
 
-    // 1. Single Active Session Check (If logged in elsewhere, expire older session)
-    if (session.sessionVersion && user.sessionVersion && session.sessionVersion !== user.sessionVersion) {
+    // Single Active Session Check for players
+    if (playerSession.sessionVersion && user.sessionVersion && playerSession.sessionVersion !== user.sessionVersion) {
       const resp = NextResponse.json({
         authenticated: false,
         user: null,
@@ -39,29 +91,26 @@ export async function GET() {
       return resp;
     }
 
-    // 2. Single Account Per Device Verification
-    const isPlayer = !user.role || user.role === ROLES.PLAYER || user.role === 'player' || user.role === 'user';
-    if (isPlayer) {
-      const cookieStore = await cookies();
-      const clientDeviceId = cookieStore.get('v1_device_id')?.value;
+    // Single Account Per Device Verification for players
+    const cookieStore = await cookies();
+    const clientDeviceId = cookieStore.get('v1_device_id')?.value;
 
-      if (clientDeviceId && clientDeviceId.length >= 6) {
-        const otherOwner = await usersCol.findOne({
-          _id: { $ne: user._id },
-          role: { $in: [ROLES.PLAYER, 'user', 'player', null] },
-          $or: [{ deviceId: clientDeviceId }, { boundDevices: clientDeviceId }],
+    if (clientDeviceId && clientDeviceId.length >= 6) {
+      const otherOwner = await usersCol.findOne({
+        _id: { $ne: user._id },
+        role: { $in: [ROLES.PLAYER, 'user', 'player', null] },
+        $or: [{ deviceId: clientDeviceId }, { boundDevices: clientDeviceId }],
+      });
+
+      if (otherOwner) {
+        const resp = NextResponse.json({
+          authenticated: false,
+          user: null,
+          deviceConflict: true,
+          error: `Device Policy: Only 1 account is permitted per device. This device is bound to account "${otherOwner.username}".`,
         });
-
-        if (otherOwner) {
-          const resp = NextResponse.json({
-            authenticated: false,
-            user: null,
-            deviceConflict: true,
-            error: `Device Policy: Only 1 account is permitted per device. This device is bound to account "${otherOwner.username}".`,
-          });
-          resp.cookies.delete('vegas_session');
-          return resp;
-        }
+        resp.cookies.delete('vegas_session');
+        return resp;
       }
     }
 
@@ -71,6 +120,7 @@ export async function GET() {
 
     return NextResponse.json({
       authenticated: true,
+      isPlayer: true,
       user: {
         userId: user._id.toString(),
         username: user.username,
@@ -78,7 +128,7 @@ export async function GET() {
         phoneNumber: user.phoneNumber || user.phone || '',
         createdAt: user.createdAt || null,
         lastLoginAt: user.lastLoginAt || null,
-        role: user.role,
+        role: 'player',
         balanceSC,
         balanceGC: Number(user.balanceGC || 0),
         frozenBalance,

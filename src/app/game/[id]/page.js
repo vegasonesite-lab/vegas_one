@@ -55,6 +55,13 @@ export default function GameDetailPage() {
 
   useEffect(() => {
     refreshUser();
+
+    const onBalanceUpdate = () => refreshUser();
+    window.addEventListener('balanceUpdated', onBalanceUpdate);
+
+    return () => {
+      window.removeEventListener('balanceUpdated', onBalanceUpdate);
+    };
   }, []);
 
   // 2. Fetch game details by gameId or id
