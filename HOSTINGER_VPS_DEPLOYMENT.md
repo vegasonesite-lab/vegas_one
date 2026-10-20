@@ -101,7 +101,7 @@ server {
     listen 80;
     server_name vegasone.games www.vegasone.games;
 
-    client_max_body_size 50M;
+    client_max_body_size 100M;
 
     location / {
         proxy_pass http://127.0.0.1:3000;
@@ -118,6 +118,16 @@ server {
     }
 }
 ```
+
+> **Important for File & Video Uploads (Avoiding 413 Request Entity Too Large):**
+> In `/etc/nginx/nginx.conf`, inside the `http { ... }` block (or inside both port 80 and port 443 SSL `server { ... }` blocks in `/etc/nginx/sites-available/vegasone.games`), ensure:
+> ```nginx
+> client_max_body_size 100M;
+> ```
+> Then run:
+> ```bash
+> nginx -t && systemctl reload nginx
+> ```
 
 Enable the site and restart Nginx:
 ```bash

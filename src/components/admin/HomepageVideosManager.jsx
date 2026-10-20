@@ -56,7 +56,17 @@ export default function HomepageVideosManager() {
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 100 * 1024 * 1024) {
+        setStatusMsg({
+          type: 'error',
+          text: `File is ${(file.size / (1024 * 1024)).toFixed(1)}MB. Maximum recommended direct upload is 100MB. Please compress the video or host it externally and use the Direct URL option.`,
+        });
+        setVideoFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
       setVideoFile(file);
+      setStatusMsg(null);
     }
   };
 
@@ -117,7 +127,25 @@ export default function HomepageVideosManager() {
         body: formData,
       });
 
-      const data = await res.json();
+      if (res.status === 413) {
+        setStatusMsg({
+          type: 'error',
+          text: 'Upload failed (413 Request Entity Too Large): The video file is larger than the web server allows. Increase client_max_body_size in Nginx on the VPS (e.g., client_max_body_size 100M;), or compress the video to under 50MB, or use the Direct URL option.',
+        });
+        return;
+      }
+
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        setStatusMsg({
+          type: 'error',
+          text: `Server returned HTTP ${res.status}: ${res.statusText || 'Unable to parse server response.'}`,
+        });
+        return;
+      }
+
       if (data.success) {
         setStatusMsg({ type: 'success', text: 'Player review video uploaded and published successfully!' });
         setVideoFile(null);
