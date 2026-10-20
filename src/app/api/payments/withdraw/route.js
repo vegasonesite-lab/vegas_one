@@ -200,7 +200,7 @@ export async function POST(req) {
       return NextResponse.json(
         {
           success: false,
-          error: `Aap ka is game (${cleanGameTitle}) me koi registered account moojood nahi hai. Cashout sirf unhi games se ho sakta hai jahan aapka verified account bana ho aur aap jeete hon. Pehle game account banayein.`,
+          error: `No registered account found for "${cleanGameTitle}". Cashouts can only be requested from games where you have an active, verified account with winning balance. Please select another game or create an account first.`,
         },
         { status: 400 }
       );

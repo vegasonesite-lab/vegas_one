@@ -2919,26 +2919,97 @@ textarea:focus {
   background-color: #0E0A24;
   border-radius: 24px;
   border: 1px solid rgba(0, 240, 255, 0.25);
-  padding: 28px 24px;
+  padding: 24px;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
   box-sizing: border-box;
   width: 100%;
   max-width: 100%;
 }
 
-.deposit-bonus-hub {
-  margin: 32px 0;
-  padding: 26px 24px;
-  border-radius: 22px;
-  background-color: rgba(10, 8, 26, 0.96);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+/* 2-Column Cashier Layout System */
+.cashier-two-col-layout {
   display: flex;
   flex-direction: column;
   gap: 24px;
-  box-sizing: border-box;
   width: 100%;
-  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (min-width: 1024px) {
+  .cashier-two-col-layout {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 24px;
+  }
+
+  .cashier-left-steps {
+    flex: 1 1 0%;
+    min-width: 0;
+  }
+
+  .cashier-right-calculator {
+    width: 380px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 86px;
+    z-index: 20;
+  }
+}
+
+@media (min-width: 1280px) {
+  .cashier-right-calculator {
+    width: 410px;
+  }
+}
+
+.cashier-step-card {
+  background-color: #0E0A24;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  padding: 20px 22px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  transition: border-color 0.2s ease;
+}
+
+.cashier-step-card:hover {
+  border-color: rgba(0, 240, 255, 0.3);
+}
+
+.cashier-step-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.cashier-step-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cashier-step-badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: rgba(0, 240, 255, 0.15);
+  border: 1px solid rgba(0, 240, 255, 0.45);
+  color: #00F0FF;
+  font-size: 12px;
+  font-weight: 900;
+  font-family: 'Lexend', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cashier-sticky-box {
+  background-color: #0E0A24;
+  border-radius: 22px;
+  border: 1.5px solid rgba(0, 240, 255, 0.4);
+  padding: 22px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65), 0 0 30px rgba(0, 240, 255, 0.1);
+  box-sizing: border-box;
 }
 
 .deposit-bonus-grid {

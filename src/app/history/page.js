@@ -32,8 +32,8 @@ export default function HistoryPage() {
 
 
 
-  const fetchHistory = async () => {
-    setLoadingHistory(true);
+  const fetchHistory = async (isBackground = false) => {
+    if (!isBackground) setLoadingHistory(true);
     try {
       const [depRes, withRes] = await Promise.all([
         fetch('/api/payments/deposit?status=all'),
@@ -53,16 +53,18 @@ export default function HistoryPage() {
     } catch {
       // ignore
     } finally {
-      setLoadingHistory(false);
+      if (!isBackground) setLoadingHistory(false);
     }
   };
 
   useEffect(() => {
     fetchHistory();
-    const interval = setInterval(fetchHistory, 3500);
+    const interval = setInterval(() => {
+      fetchHistory(true);
+    }, 12000);
 
     const onUpdate = () => {
-      fetchHistory();
+      fetchHistory(true);
       refreshUser();
     };
     window.addEventListener('balanceUpdated', onUpdate);

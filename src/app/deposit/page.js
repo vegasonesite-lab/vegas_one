@@ -121,6 +121,21 @@ export default function DepositPage() {
     }
   }, [user?.id, user?.username, user?.email]);
 
+  // Auto-select player's active ready game if currently selected game has no account
+  useEffect(() => {
+    if (playerGameAccounts && playerGameAccounts.length > 0) {
+      const readyAcc = playerGameAccounts.find((a) => a.status === 'READY');
+      if (readyAcc && readyAcc.gameTitle) {
+        const hasCurrent = playerGameAccounts.some(
+          (a) => a.status === 'READY' && String(a.gameTitle).toLowerCase() === String(selectedGame).toLowerCase()
+        );
+        if (!hasCurrent) {
+          setSelectedGame(readyAcc.gameTitle);
+        }
+      }
+    }
+  }, [playerGameAccounts]);
+
   // Status & Feedback
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -130,8 +145,6 @@ export default function DepositPage() {
   const [sysSettings, setSysSettings] = useState(null);
 
   const presetAmounts = [20, 50, 100, 250, 500, 1000];
-
-
 
   // Fetch payment methods with dynamic cache-busting and auto-refresh
   const fetchPaymentMethods = async () => {
@@ -153,8 +166,7 @@ export default function DepositPage() {
     fetchPaymentMethods();
     const interval = setInterval(() => {
       fetchPaymentMethods();
-      refreshUser();
-    }, 3500);
+    }, 15000);
 
     const onUpdate = () => {
       fetchPaymentMethods();
@@ -314,6 +326,41 @@ export default function DepositPage() {
     }
   };
 
+  // Live Dynamic Calculations
+  const hasClaimedWelcome = Boolean(user?.welcomeBonusClaimed || (user?.totalDeposited && user.totalDeposited > 0));
+
+  const methodBonusPercent = selectedMethod?.bonusPercentage !== undefined ? Number(selectedMethod.bonusPercentage) : 35;
+  const methodBonusSC = Number(((depositAmount * methodBonusPercent) / 100).toFixed(2));
+  const methodTotalSC = Number((depositAmount + methodBonusSC).toFixed(2));
+  const methodBonusTitle = `${selectedMethod?.name || 'Payment Gateway'} Bonus`;
+
+  const platformBonusPercent = hasClaimedWelcome
+    ? Number(sysSettings?.regularBonusPercent ?? 50)
+    : Number(sysSettings?.welcomeBonusPercent ?? 300);
+  const platformBonusMax = hasClaimedWelcome
+    ? Number(sysSettings?.regularBonusMax ?? 2500)
+    : Number(sysSettings?.welcomeBonusMax ?? 7500);
+  const platformBonusSC = Number(Math.min((depositAmount * platformBonusPercent) / 100, platformBonusMax).toFixed(2));
+  const platformTotalSC = Number((depositAmount + platformBonusSC).toFixed(2));
+  const platformBonusTitle = hasClaimedWelcome
+    ? (sysSettings?.regularBonusTitle || 'Regular Reload Bonus')
+    : (sysSettings?.welcomeBonusTitle || 'Welcome Match Bonus');
+
+  const isMethod = selectedBonusChoice === 'method';
+  const appliedBonusTitle = isMethod ? methodBonusTitle : platformBonusTitle;
+  const appliedBonusPercent = isMethod ? methodBonusPercent : platformBonusPercent;
+  const appliedBonusSC = isMethod ? methodBonusSC : platformBonusSC;
+  const appliedTotalSC = isMethod ? methodTotalSC : platformTotalSC;
+  const totalGC = (depositAmount * 10000).toLocaleString();
+
+  const currentSelectedGameObj = platformGames.find(g => String(g?.name || '').toLowerCase() === String(selectedGame || '').toLowerCase()) || platformGames[0] || { name: selectedGame || 'Juwa 777', logo: '/images/fire-kirin.webp' };
+  const filteredPlatformGames = platformGames.filter(g => String(g?.name || '').toLowerCase().includes(String(gameSearchQuery || '').toLowerCase()));
+  const matchedGameAccount = playerGameAccounts.find(
+    acc =>
+      acc.status === 'READY' &&
+      String(acc.gameTitle || '').trim().toLowerCase() === String(selectedGame || '').trim().toLowerCase()
+  );
+
   return (
     <div className="min-h-screen bg-[#070514] text-[#F8FAFC] selection:bg-[#00F0FF] selection:text-[#070514] font-body antialiased">
       {/* 1. Permanent Fixed 100vh Left Sidebar */}
@@ -370,16 +417,16 @@ export default function DepositPage() {
           </Link>
 
           {/* Page Header */}
-          <div style={{ marginBottom: '24px' }}>
+          <div style={{ marginBottom: '20px' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '6px' }}>
               <ArrowDownCircle size={14} />
               <span>CASHIER · LOAD CREDITS</span>
             </div>
-            <h1 style={{ fontFamily: 'Lexend, sans-serif', fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 900, color: '#FFFFFF', margin: 0, letterSpacing: '-0.02em' }}>
+            <h1 style={{ fontFamily: 'Lexend, sans-serif', fontSize: 'clamp(24px, 4.5vw, 34px)', fontWeight: 900, color: '#FFFFFF', margin: 0, letterSpacing: '-0.02em' }}>
               Deposit Funds
             </h1>
-            <p style={{ fontSize: '14px', color: '#9A91A8', margin: '4px 0 0 0', fontFamily: 'Lexend, sans-serif' }}>
-              Load credits instantly via Cash App, Crypto, or cards with extra reload bonuses.
+            <p style={{ fontSize: '13.5px', color: '#9A91A8', margin: '4px 0 0 0', fontFamily: 'Lexend, sans-serif' }}>
+              Load credits instantly into your game platform with bonus rewards &amp; fast approvals.
             </p>
           </div>
 
@@ -389,9 +436,9 @@ export default function DepositPage() {
               display: 'flex',
               alignItems: 'center',
               gap: '10px',
-              marginBottom: '24px',
+              marginBottom: '20px',
               borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-              paddingBottom: '16px',
+              paddingBottom: '14px',
               flexWrap: 'wrap',
             }}
           >
@@ -464,6 +511,49 @@ export default function DepositPage() {
             </Link>
           </div>
 
+          {/* Feedback Alerts */}
+          {message && (
+            <div
+              style={{
+                backgroundColor: 'rgba(16, 185, 129, 0.15)',
+                border: '1px solid rgba(16, 185, 129, 0.4)',
+                color: '#A7F3D0',
+                padding: '12px 16px',
+                borderRadius: '12px',
+                fontSize: '12.5px',
+                fontFamily: 'Lexend, sans-serif',
+                marginBottom: '18px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+              }}
+            >
+              <CheckCircle2 size={18} color="#10B981" />
+              <span>{message}</span>
+            </div>
+          )}
+
+          {errorMsg && (
+            <div
+              style={{
+                backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                border: '1px solid rgba(239, 68, 68, 0.4)',
+                color: '#FCA5A5',
+                padding: '12px 16px',
+                borderRadius: '12px',
+                fontSize: '12.5px',
+                fontFamily: 'Lexend, sans-serif',
+                marginBottom: '18px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+              }}
+            >
+              <AlertCircle size={18} color="#EF4444" />
+              <span>{errorMsg}</span>
+            </div>
+          )}
+
           {authChecking ? (
             <div
               style={{
@@ -520,661 +610,236 @@ export default function DepositPage() {
               </button>
             </div>
           ) : (
-            <div className="deposit-card-shell">
-              {/* Feedback Alerts */}
-              {message && (
-                <div
-                  style={{
-                    backgroundColor: 'rgba(16, 185, 129, 0.15)',
-                    border: '1px solid rgba(16, 185, 129, 0.4)',
-                    color: '#A7F3D0',
-                    padding: '12px 16px',
-                    borderRadius: '12px',
-                    fontSize: '12.5px',
-                    fontFamily: 'Lexend, sans-serif',
-                    marginBottom: '20px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                  }}
-                >
-                  <CheckCircle2 size={18} color="#10B981" />
-                  <span>{message}</span>
-                </div>
-              )}
+            /* Streamlined 2-Column Cashier Layout Form */
+            <form onSubmit={handleDepositSubmit} className="cashier-two-col-layout">
+              {/* LEFT COLUMN: Clean 4-Step Input Flow */}
+              <div className="cashier-left-steps" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {/* STEP 1: DESTINATION GAME PLATFORM */}
+                <div className="cashier-step-card">
+                  <div className="cashier-step-header">
+                    <div className="cashier-step-title">
+                      <span className="cashier-step-badge">1</span>
+                      <label style={{ fontSize: '12px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#FFFFFF', letterSpacing: '0.04em', textTransform: 'uppercase', margin: 0 }}>
+                        DESTINATION GAME PLATFORM
+                      </label>
+                    </div>
+                    <span style={{ fontSize: '11px', color: '#FBBF24', fontFamily: 'Lexend, sans-serif', fontWeight: 700 }}>
+                      {platformGames.length} Available
+                    </span>
+                  </div>
 
-              {errorMsg && (
-                <div
-                  style={{
-                    backgroundColor: 'rgba(239, 68, 68, 0.15)',
-                    border: '1px solid rgba(239, 68, 68, 0.4)',
-                    color: '#FCA5A5',
-                    padding: '12px 16px',
-                    borderRadius: '12px',
-                    fontSize: '12.5px',
-                    fontFamily: 'Lexend, sans-serif',
-                    marginBottom: '20px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                  }}
-                >
-                  <AlertCircle size={18} color="#EF4444" />
-                  <span>{errorMsg}</span>
-                </div>
-              )}
-
-              <form onSubmit={handleDepositSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
-                {/* Dynamic Bonus Choice & Live Calculation Hub */}
-                {(() => {
-                  const hasClaimedWelcome = Boolean(user?.welcomeBonusClaimed || (user?.totalDeposited && user.totalDeposited > 0));
-
-                  // 1. Method Bonus Calculation
-                  const methodBonusPercent = selectedMethod?.bonusPercentage !== undefined ? Number(selectedMethod.bonusPercentage) : 35;
-                  const methodBonusSC = Number(((depositAmount * methodBonusPercent) / 100).toFixed(2));
-                  const methodTotalSC = Number((depositAmount + methodBonusSC).toFixed(2));
-                  const methodBonusTitle = `${selectedMethod?.name || 'Payment Gateway'} Bonus`;
-
-                  // 2. Platform Bonus Calculation
-                  const platformBonusPercent = hasClaimedWelcome
-                    ? Number(sysSettings?.regularBonusPercent ?? 50)
-                    : Number(sysSettings?.welcomeBonusPercent ?? 300);
-                  const platformBonusMax = hasClaimedWelcome
-                    ? Number(sysSettings?.regularBonusMax ?? 2500)
-                    : Number(sysSettings?.welcomeBonusMax ?? 7500);
-                  const platformBonusSC = Number(Math.min((depositAmount * platformBonusPercent) / 100, platformBonusMax).toFixed(2));
-                  const platformTotalSC = Number((depositAmount + platformBonusSC).toFixed(2));
-                  const platformBonusTitle = hasClaimedWelcome
-                    ? (sysSettings?.regularBonusTitle || 'Regular Reload Bonus')
-                    : (sysSettings?.welcomeBonusTitle || 'Welcome Match Bonus');
-
-                  // 3. Applied Selection
-                  const isMethod = selectedBonusChoice === 'method';
-                  const appliedBonusTitle = isMethod ? methodBonusTitle : platformBonusTitle;
-                  const appliedBonusPercent = isMethod ? methodBonusPercent : platformBonusPercent;
-                  const appliedBonusSC = isMethod ? methodBonusSC : platformBonusSC;
-                  const appliedTotalSC = isMethod ? methodTotalSC : platformTotalSC;
-                  const totalGC = (depositAmount * 10000).toLocaleString();
-
-                  return (
-                    <div className="deposit-bonus-hub">
-                      {/* Selection Header */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', borderBottom: '1px solid rgba(255, 255, 255, 0.09)', paddingBottom: '16px' }}>
+                  {/* Dropdown Container */}
+                  <div
+                    style={{
+                      backgroundColor: '#070514',
+                      border: '1px solid rgba(251, 191, 36, 0.4)',
+                      borderRadius: '14px',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {/* Header Clickable Row */}
+                    <div
+                      onClick={() => setIsGameDropdownOpen(prev => !prev)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '10px 14px',
+                        cursor: 'pointer',
+                        backgroundColor: 'rgba(251, 191, 36, 0.05)',
+                        borderBottom: isGameDropdownOpen ? '1px solid rgba(255, 255, 255, 0.08)' : 'none',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div
+                          style={{
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '8px',
+                            overflow: 'hidden',
+                            border: '1px solid rgba(251, 191, 36, 0.5)',
+                            backgroundColor: '#000000',
+                            flexShrink: 0,
+                          }}
+                        >
+                          <img
+                            src={currentSelectedGameObj.logo}
+                            alt={currentSelectedGameObj.name}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        </div>
                         <div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#00F0FF', boxShadow: '0 0 12px #00F0FF' }} />
-                            <label style={{ fontSize: '13px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#FFFFFF', letterSpacing: '0.08em', textTransform: 'uppercase', margin: 0 }}>
-                              CHOOSE YOUR DEPOSIT BONUS REWARD
-                            </label>
-                          </div>
-                          <p style={{ margin: '6px 0 0 20px', fontSize: '12px', color: '#94A3B8', lineHeight: 1.5 }}>
-                            Select whether you want to claim your payment gateway bonus or the regular platform reload bonus
-                          </p>
+                          <h4 style={{ margin: 0, fontSize: '14px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#FFFFFF' }}>
+                            {currentSelectedGameObj.name}
+                          </h4>
+                          <span style={{ fontSize: '10.5px', color: '#94A3B8' }}>Click to switch destination</span>
                         </div>
-                        <span style={{ fontSize: '11.5px', color: '#10B981', fontFamily: 'Lexend, sans-serif', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: 'rgba(16, 185, 129, 0.12)', padding: '6px 14px', borderRadius: '9999px', border: '1px solid rgba(16, 185, 129, 0.35)' }}>
-                          <span>⚡</span> Live Real-Time Calculator
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span
+                          style={{
+                            fontSize: '9.5px',
+                            fontWeight: 900,
+                            color: '#FBBF24',
+                            backgroundColor: 'rgba(251, 191, 36, 0.15)',
+                            padding: '3px 8px',
+                            borderRadius: '6px',
+                            textTransform: 'uppercase',
+                          }}
+                        >
+                          Selected
                         </span>
-                      </div>
-
-                      {/* 2 Selectable Bonus Cards with Responsive Spacing */}
-                      <div className="deposit-bonus-grid">
-                        {/* Option 1: Payment Method Bonus */}
-                        <div
-                          type="button"
-                          onClick={() => setSelectedBonusChoice('method')}
-                          className="deposit-bonus-option-card"
-                          style={{
-                            border: isMethod ? '2px solid #00F0FF' : '1px solid rgba(255, 255, 255, 0.12)',
-                            backgroundColor: isMethod ? 'rgba(0, 240, 255, 0.09)' : 'rgba(14, 11, 35, 0.75)',
-                            boxShadow: isMethod ? '0 12px 35px rgba(0, 240, 255, 0.22), inset 0 0 24px rgba(0, 240, 255, 0.08)' : '0 8px 24px rgba(0, 0, 0, 0.35)',
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
-                              <div
-                                style={{
-                                  width: '36px',
-                                  height: '36px',
-                                  borderRadius: '12px',
-                                  backgroundColor: 'rgba(245, 158, 11, 0.18)',
-                                  border: '1px solid rgba(245, 158, 11, 0.45)',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  color: '#FBBF24',
-                                  flexShrink: 0,
-                                }}
-                              >
-                                <CreditCard size={18} />
-                              </div>
-                              <div style={{ minWidth: 0 }}>
-                                <span style={{ fontSize: '10px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#FBBF24', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block' }}>
-                                  METHOD BONUS
-                                </span>
-                                <h4 style={{ margin: '2px 0 0 0', fontSize: '14px', fontWeight: 900, color: '#FFFFFF', fontFamily: 'Lexend, sans-serif', wordBreak: 'break-word' }}>
-                                  {selectedMethod?.name || 'Gateway'} Special
-                                </h4>
-                              </div>
-                            </div>
-
-                            <span
-                              style={{
-                                padding: '4px 10px',
-                                borderRadius: '9999px',
-                                fontSize: '12px',
-                                fontWeight: 900,
-                                fontFamily: 'monospace',
-                                backgroundColor: isMethod ? '#00F0FF' : 'rgba(245, 158, 11, 0.15)',
-                                color: isMethod ? '#070514' : '#FBBF24',
-                                border: isMethod ? 'none' : '1px solid rgba(245, 158, 11, 0.35)',
-                                boxShadow: isMethod ? '0 2px 10px rgba(0, 240, 255, 0.4)' : 'none',
-                                flexShrink: 0,
-                              }}
-                            >
-                              +{methodBonusPercent}%
-                            </span>
-                          </div>
-
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', fontSize: '12px', flexWrap: 'wrap', gap: '8px' }}>
-                            <span style={{ color: '#94A3B8' }}>Reward: <strong style={{ color: '#10B981', fontFamily: 'monospace', fontSize: '13px' }}>+${methodBonusSC} SC</strong></span>
-                            <span
-                              style={{
-                                padding: '4px 10px',
-                                borderRadius: '8px',
-                                backgroundColor: isMethod ? 'rgba(0, 240, 255, 0.15)' : 'rgba(255, 255, 255, 0.05)',
-                                border: isMethod ? '1px solid rgba(0, 240, 255, 0.35)' : '1px solid transparent',
-                                color: isMethod ? '#00F0FF' : '#64748B',
-                                fontWeight: 900,
-                                fontSize: '10.5px',
-                                letterSpacing: '0.05em',
-                                textTransform: 'uppercase',
-                                flexShrink: 0,
-                              }}
-                            >
-                              {isMethod ? '✓ SELECTED' : 'Click to select'}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Option 2: Platform Regular / Welcome Bonus */}
-                        <div
-                          type="button"
-                          onClick={() => setSelectedBonusChoice('platform')}
-                          className="deposit-bonus-option-card"
-                          style={{
-                            border: !isMethod ? '2px solid #C084FC' : '1px solid rgba(255, 255, 255, 0.12)',
-                            backgroundColor: !isMethod ? 'rgba(168, 85, 247, 0.12)' : 'rgba(14, 11, 35, 0.75)',
-                            boxShadow: !isMethod ? '0 12px 35px rgba(168, 85, 247, 0.22), inset 0 0 24px rgba(168, 85, 247, 0.08)' : '0 8px 24px rgba(0, 0, 0, 0.35)',
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
-                              <div
-                                style={{
-                                  width: '36px',
-                                  height: '36px',
-                                  borderRadius: '12px',
-                                  backgroundColor: hasClaimedWelcome ? 'rgba(168, 85, 247, 0.18)' : 'rgba(0, 240, 255, 0.18)',
-                                  border: hasClaimedWelcome ? '1px solid rgba(168, 85, 247, 0.45)' : '1px solid rgba(0, 240, 255, 0.45)',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  color: hasClaimedWelcome ? '#C084FC' : '#00F0FF',
-                                  flexShrink: 0,
-                                }}
-                              >
-                                <Sparkles size={18} />
-                              </div>
-                              <div style={{ minWidth: 0 }}>
-                                <span style={{ fontSize: '10px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: hasClaimedWelcome ? '#C084FC' : '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block' }}>
-                                  {hasClaimedWelcome ? 'RELOAD PROMO' : 'WELCOME OFFER'}
-                                </span>
-                                <h4 style={{ margin: '2px 0 0 0', fontSize: '14px', fontWeight: 900, color: '#FFFFFF', fontFamily: 'Lexend, sans-serif', wordBreak: 'break-word' }}>
-                                  {hasClaimedWelcome ? 'Regular Reload Bonus' : 'Welcome Match Bonus'}
-                                </h4>
-                              </div>
-                            </div>
-
-                            <span
-                              style={{
-                                padding: '4px 10px',
-                                borderRadius: '9999px',
-                                fontSize: '12px',
-                                fontWeight: 900,
-                                fontFamily: 'monospace',
-                                backgroundColor: !isMethod ? '#C084FC' : 'rgba(168, 85, 247, 0.16)',
-                                color: !isMethod ? '#070514' : '#C084FC',
-                                border: !isMethod ? 'none' : '1px solid rgba(168, 85, 247, 0.4)',
-                                boxShadow: !isMethod ? '0 4px 15px rgba(192, 132, 252, 0.4)' : 'none',
-                                flexShrink: 0,
-                              }}
-                            >
-                              +{platformBonusPercent}%
-                            </span>
-                          </div>
-
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', fontSize: '12px', flexWrap: 'wrap', gap: '8px' }}>
-                            <span style={{ color: '#94A3B8' }}>Reward: <strong style={{ color: '#10B981', fontFamily: 'monospace', fontSize: '13px' }}>+${platformBonusSC} SC</strong></span>
-                            <span
-                              style={{
-                                padding: '4px 10px',
-                                borderRadius: '8px',
-                                backgroundColor: !isMethod ? 'rgba(168, 85, 247, 0.15)' : 'rgba(255, 255, 255, 0.05)',
-                                border: !isMethod ? '1px solid rgba(168, 85, 247, 0.35)' : '1px solid transparent',
-                                color: !isMethod ? '#C084FC' : '#64748B',
-                                fontWeight: 900,
-                                fontSize: '10.5px',
-                                letterSpacing: '0.05em',
-                                textTransform: 'uppercase',
-                                flexShrink: 0,
-                              }}
-                            >
-                              {!isMethod ? '✓ SELECTED' : 'Click to select'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Live Calculated Summary Box with Clear Generous Margins & Spacing */}
-                      <div
-                        className="deposit-calculation-strip"
-                        style={{
-                          marginTop: '8px',
-                          background: isMethod
-                            ? 'linear-gradient(135deg, rgba(0, 240, 255, 0.12) 0%, rgba(10, 8, 26, 0.98) 100%)'
-                            : (hasClaimedWelcome
-                              ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.12) 0%, rgba(10, 8, 26, 0.98) 100%)'
-                              : 'linear-gradient(135deg, rgba(224, 38, 216, 0.15) 0%, rgba(0, 240, 255, 0.1) 50%, rgba(10, 8, 26, 0.98) 100%)'),
-                          border: isMethod
-                            ? '1.5px solid rgba(0, 240, 255, 0.5)'
-                            : (hasClaimedWelcome ? '1.5px solid rgba(168, 85, 247, 0.45)' : '1.5px solid rgba(0, 240, 255, 0.5)'),
-                          boxShadow: '0 16px 40px rgba(0, 0, 0, 0.55)',
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
-                            <div
-                              style={{
-                                width: '42px',
-                                height: '42px',
-                                borderRadius: '12px',
-                                backgroundColor: isMethod ? 'rgba(0, 240, 255, 0.2)' : (hasClaimedWelcome ? 'rgba(168, 85, 247, 0.2)' : 'rgba(224, 38, 216, 0.2)'),
-                                border: isMethod ? '1px solid rgba(0, 240, 255, 0.5)' : (hasClaimedWelcome ? '1px solid rgba(168, 85, 247, 0.5)' : '1px solid rgba(224, 38, 216, 0.5)'),
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: isMethod ? '#00F0FF' : (hasClaimedWelcome ? '#C084FC' : '#00F0FF'),
-                                flexShrink: 0,
-                              }}
-                            >
-                              <Sparkles size={20} />
-                            </div>
-                            <div style={{ minWidth: 0 }}>
-                              <span
-                                style={{
-                                  fontSize: '10.5px',
-                                  fontFamily: 'Lexend, sans-serif',
-                                  fontWeight: 900,
-                                  textTransform: 'uppercase',
-                                  letterSpacing: '0.08em',
-                                  color: isMethod ? '#00F0FF' : (hasClaimedWelcome ? '#C084FC' : '#00F0FF'),
-                                  display: 'block',
-                                }}
-                              >
-                                {isMethod ? '💳 METHOD BONUS APPLIED' : (hasClaimedWelcome ? '⚡ REGULAR RELOAD APPLIED' : '🔥 WELCOME PACK APPLIED')}
-                              </span>
-                              <h3 style={{ margin: '3px 0 0 0', fontSize: 'clamp(14px, 4vw, 17px)', fontWeight: 900, color: '#FFFFFF', fontFamily: 'Lexend, sans-serif', wordBreak: 'break-word' }}>
-                                +{appliedBonusPercent}% {appliedBonusTitle}
-                              </h3>
-                            </div>
-                          </div>
-
-                          <div>
-                            <span style={{ fontSize: '11px', color: '#94A3B8', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em', display: 'block', marginBottom: '2px' }}>
-                              Total SC You Receive:
-                            </span>
-                            <span style={{ fontSize: 'clamp(22px, 5vw, 26px)', fontWeight: 900, color: '#00F0FF', fontFamily: 'monospace', textShadow: '0 0 20px rgba(0, 240, 255, 0.45)' }}>
-                              ${appliedTotalSC} SC
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Coin Breakdown */}
-                        <div
-                          style={{
-                            paddingTop: '18px',
-                            borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            flexWrap: 'wrap',
-                            gap: '14px',
-                            fontSize: '13px',
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                            <span style={{ color: '#94A3B8' }}>Base Deposit:</span>
-                            <strong style={{ color: '#FFFFFF', fontFamily: 'monospace', fontSize: '14px' }}>${depositAmount}</strong>
-                            <span style={{ color: '#64748B' }}>+</span>
-                            <span style={{ color: '#94A3B8' }}>Bonus ({appliedBonusPercent}%):</span>
-                            <strong style={{ color: '#10B981', fontFamily: 'monospace', fontSize: '14px' }}>+${appliedBonusSC} SC</strong>
-                          </div>
-                          <div style={{ color: '#FBBF24', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span>🪙</span>
-                            <span>+{totalGC} Gold Coins (GC) Included Free</span>
-                          </div>
-                        </div>
+                        {isGameDropdownOpen ? <ChevronUp size={16} color="#FBBF24" /> : <ChevronDown size={16} color="#FBBF24" />}
                       </div>
                     </div>
-                  );
-                })()}
 
-                {/* 1. SELECT DESTINATION GAME PLATFORM * (WinningHeaven Style Dropdown Selector) */}
-                {(() => {
-                  const currentSelectedGameObj = platformGames.find(g => String(g?.name || '').toLowerCase() === String(selectedGame || '').toLowerCase()) || platformGames[0] || { name: selectedGame || 'Juwa 777', logo: '/images/fire-kirin.webp' };
-                  const filteredPlatformGames = platformGames.filter(g => String(g?.name || '').toLowerCase().includes(String(gameSearchQuery || '').toLowerCase()));
-                  const matchedGameAccount = playerGameAccounts.find(
-                    acc =>
-                      acc.status === 'READY' &&
-                      String(acc.gameTitle || '').trim().toLowerCase() === String(selectedGame || '').trim().toLowerCase()
-                  );
-
-                  return (
-                    <div>
-                      <label style={{ fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#C8C1D4', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>
-                        1. SELECT DESTINATION GAME PLATFORM *
-                      </label>
-
-                      <div
-                        style={{
-                          backgroundColor: '#070514',
-                          border: '1.5px solid rgba(251, 191, 36, 0.45)',
-                          borderRadius: '16px',
-                          overflow: 'hidden',
-                          boxShadow: '0 8px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(251, 191, 36, 0.12)',
-                        }}
-                      >
-                        {/* Clickable Header Card */}
-                        <div
-                          onClick={() => setIsGameDropdownOpen(prev => !prev)}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: '12px 16px',
-                            cursor: 'pointer',
-                            backgroundColor: 'rgba(251, 191, 36, 0.05)',
-                            borderBottom: isGameDropdownOpen ? '1px solid rgba(255, 255, 255, 0.08)' : 'none',
-                            transition: 'all 0.15s ease',
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <div
-                              style={{
-                                width: '42px',
-                                height: '42px',
-                                borderRadius: '10px',
-                                overflow: 'hidden',
-                                border: '1.5px solid rgba(251, 191, 36, 0.6)',
-                                backgroundColor: '#000000',
-                                flexShrink: 0,
-                              }}
-                            >
-                              <img
-                                src={currentSelectedGameObj.logo}
-                                alt={currentSelectedGameObj.name}
-                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                              />
-                            </div>
-                            <div>
-                              <h4
-                                style={{
-                                  margin: 0,
-                                  fontSize: '15px',
-                                  fontFamily: 'Lexend, sans-serif',
-                                  fontWeight: 900,
-                                  color: '#FFFFFF',
-                                  letterSpacing: '-0.01em',
-                                }}
-                              >
-                                {currentSelectedGameObj.name}
-                              </h4>
-                              <p
-                                style={{
-                                  margin: '2px 0 0 0',
-                                  fontSize: '11px',
-                                  color: '#94A3B8',
-                                  fontFamily: 'Lexend, sans-serif',
-                                }}
-                              >
-                                Tap to change destination platform ({platformGames.length} available)
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Right Badge + Chevron */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <span
-                              style={{
-                                fontSize: '10px',
-                                fontFamily: 'Lexend, sans-serif',
-                                fontWeight: 900,
-                                color: '#FBBF24',
-                                backgroundColor: 'rgba(251, 191, 36, 0.12)',
-                                border: '1px solid rgba(251, 191, 36, 0.4)',
-                                padding: '4px 10px',
-                                borderRadius: '8px',
-                                letterSpacing: '0.04em',
-                                textTransform: 'uppercase',
-                              }}
-                            >
-                              SELECTED
-                            </span>
-                            <div style={{ color: '#FBBF24', display: 'flex', alignItems: 'center' }}>
-                              {isGameDropdownOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Expanded Dropdown Panel */}
-                        {isGameDropdownOpen && (
-                          <div style={{ padding: '14px 16px', backgroundColor: '#0A061C' }}>
-                            {/* Search Box */}
-                            <div
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '10px',
-                                backgroundColor: '#070514',
-                                border: '1px solid rgba(255, 255, 255, 0.14)',
-                                borderRadius: '12px',
-                                padding: '8px 14px',
-                                marginBottom: '10px',
-                              }}
-                            >
-                              <Search size={15} color="#94A3B8" />
-                              <input
-                                type="text"
-                                placeholder={`Search ${platformGames.length} platform games...`}
-                                value={gameSearchQuery}
-                                onChange={(e) => setGameSearchQuery(e.target.value)}
-                                autoFocus
-                                style={{
-                                  backgroundColor: 'transparent',
-                                  border: 'none',
-                                  outline: 'none',
-                                  color: '#FFFFFF',
-                                  fontSize: '12.5px',
-                                  fontFamily: 'Lexend, sans-serif',
-                                  width: '100%',
-                                }}
-                              />
-                              {gameSearchQuery && (
-                                <button
-                                  type="button"
-                                  onClick={() => setGameSearchQuery('')}
-                                  style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: 0 }}
-                                >
-                                  <X size={14} />
-                                </button>
-                              )}
-                            </div>
-
-                            {/* Scrollable Game Rows */}
-                            <div
-                              style={{
-                                maxHeight: '260px',
-                                overflowY: 'auto',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '4px',
-                                paddingRight: '4px',
-                              }}
-                            >
-                              {filteredPlatformGames.length === 0 ? (
-                                <div style={{ textAlign: 'center', padding: '20px', color: '#64748B', fontSize: '12px' }}>
-                                  No platform games found matching &quot;{gameSearchQuery}&quot;
-                                </div>
-                              ) : (
-                                filteredPlatformGames.map((g) => {
-                                  const isCurrent = String(selectedGame || '').toLowerCase() === String(g?.name || '').toLowerCase();
-                                  return (
-                                    <div
-                                      key={g.id || g.name}
-                                      onClick={() => {
-                                        setSelectedGame(g.name);
-                                        setIsGameDropdownOpen(false);
-                                        setGameSearchQuery('');
-                                      }}
-                                      style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'space-between',
-                                        padding: '9px 12px',
-                                        borderRadius: '10px',
-                                        cursor: 'pointer',
-                                        backgroundColor: isCurrent ? 'rgba(251, 191, 36, 0.14)' : 'transparent',
-                                        border: isCurrent ? '1px solid rgba(251, 191, 36, 0.45)' : '1px solid transparent',
-                                        transition: 'all 0.15s ease',
-                                      }}
-                                      className="hover:bg-white/5"
-                                    >
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                        <div
-                                          style={{
-                                            width: '32px',
-                                            height: '32px',
-                                            borderRadius: '8px',
-                                            overflow: 'hidden',
-                                            backgroundColor: '#000000',
-                                            border: isCurrent ? '1.5px solid #FBBF24' : '1px solid rgba(255, 255, 255, 0.12)',
-                                            flexShrink: 0,
-                                          }}
-                                        >
-                                          <img src={g.logo} alt={g.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                        </div>
-                                        <span
-                                          style={{
-                                            fontFamily: 'Lexend, sans-serif',
-                                            fontSize: '13px',
-                                            fontWeight: isCurrent ? 800 : 600,
-                                            color: isCurrent ? '#FBBF24' : '#FFFFFF',
-                                          }}
-                                        >
-                                          {g.name}
-                                        </span>
-                                      </div>
-
-                                      {isCurrent && (
-                                        <span
-                                          style={{
-                                            fontSize: '10.5px',
-                                            fontFamily: 'Lexend, sans-serif',
-                                            fontWeight: 800,
-                                            color: '#FBBF24',
-                                            backgroundColor: 'rgba(251, 191, 36, 0.15)',
-                                            border: '1px solid rgba(251, 191, 36, 0.4)',
-                                            padding: '2px 8px',
-                                            borderRadius: '6px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '4px',
-                                          }}
-                                        >
-                                          <Check size={12} color="#FBBF24" />
-                                          <span>Active</span>
-                                        </span>
-                                      )}
-                                    </div>
-                                  );
-                                })
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Game Account Status Info Pill */}
-                      {matchedGameAccount ? (
+                    {/* Expandable Search & List */}
+                    {isGameDropdownOpen && (
+                      <div style={{ padding: '12px', backgroundColor: '#0A061C' }}>
                         <div
                           style={{
-                            marginTop: '10px',
-                            padding: '10px 14px',
-                            borderRadius: '12px',
-                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                            border: '1px solid rgba(16, 185, 129, 0.35)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            gap: '10px',
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <CheckCircle2 size={16} color="#34D399" />
-                            <span style={{ fontSize: '12px', color: '#E2E8F0', fontFamily: 'Lexend, sans-serif' }}>
-                              Your Game Account: <strong style={{ color: '#34D399', fontFamily: 'monospace' }}>{matchedGameAccount.username}</strong>
-                            </span>
-                          </div>
-                          <span style={{ fontSize: '10px', fontWeight: 800, color: '#34D399', backgroundColor: 'rgba(16, 185, 129, 0.2)', padding: '2px 8px', borderRadius: '6px' }}>
-                            READY FOR COIN LOAD
-                          </span>
-                        </div>
-                      ) : (
-                        <div
-                          style={{
-                            marginTop: '10px',
-                            padding: '10px 14px',
-                            borderRadius: '12px',
-                            backgroundColor: 'rgba(0, 240, 255, 0.08)',
-                            border: '1px solid rgba(0, 240, 255, 0.25)',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '8px',
+                            backgroundColor: '#070514',
+                            border: '1px solid rgba(255, 255, 255, 0.12)',
+                            borderRadius: '10px',
+                            padding: '7px 12px',
+                            marginBottom: '8px',
                           }}
                         >
-                          <Sparkles size={16} color="#00F0FF" style={{ flexShrink: 0 }} />
-                          <span style={{ fontSize: '11.5px', color: '#CBD5E1', fontFamily: 'Lexend, sans-serif' }}>
-                            No account for <strong style={{ color: '#00F0FF' }}>{selectedGame}</strong> yet? Deposit now! We will <strong style={{ color: '#FBBF24' }}>auto-create your credentials</strong> as soon as finance approves.
-                          </span>
+                          <Search size={14} color="#94A3B8" />
+                          <input
+                            type="text"
+                            placeholder={`Search ${platformGames.length} platforms...`}
+                            value={gameSearchQuery}
+                            onChange={(e) => setGameSearchQuery(e.target.value)}
+                            autoFocus
+                            style={{
+                              backgroundColor: 'transparent',
+                              border: 'none',
+                              outline: 'none',
+                              color: '#FFFFFF',
+                              fontSize: '12px',
+                              fontFamily: 'Lexend, sans-serif',
+                              width: '100%',
+                            }}
+                          />
+                          {gameSearchQuery && (
+                            <button
+                              type="button"
+                              onClick={() => setGameSearchQuery('')}
+                              style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: 0 }}
+                            >
+                              <X size={13} />
+                            </button>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  );
-                })()}
 
-                {/* 2. Amount Selection & Live Suggestion */}
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                    <label style={{ fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#C8C1D4', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                      2. Select Deposit Amount
-                    </label>
-                    <span style={{ fontSize: '10.5px', color: '#10B981', fontFamily: 'Lexend, sans-serif', fontWeight: 800 }}>
-                      ⚡ Instant Desk Approval
+                        <div style={{ maxHeight: '220px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                          {filteredPlatformGames.map((g) => {
+                            const isCurrent = String(selectedGame || '').toLowerCase() === String(g?.name || '').toLowerCase();
+                            return (
+                              <div
+                                key={g.id || g.name}
+                                onClick={() => {
+                                  setSelectedGame(g.name);
+                                  setIsGameDropdownOpen(false);
+                                  setGameSearchQuery('');
+                                }}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  padding: '7px 10px',
+                                  borderRadius: '8px',
+                                  cursor: 'pointer',
+                                  backgroundColor: isCurrent ? 'rgba(251, 191, 36, 0.15)' : 'transparent',
+                                  border: isCurrent ? '1px solid rgba(251, 191, 36, 0.4)' : '1px solid transparent',
+                                }}
+                                className="hover:bg-white/5"
+                              >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <div style={{ width: '28px', height: '28px', borderRadius: '6px', overflow: 'hidden', backgroundColor: '#000' }}>
+                                    <img src={g.logo} alt={g.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                  </div>
+                                  <span style={{ fontSize: '12.5px', fontWeight: isCurrent ? 800 : 600, color: isCurrent ? '#FBBF24' : '#FFFFFF' }}>
+                                    {g.name}
+                                  </span>
+                                </div>
+                                {isCurrent && <Check size={14} color="#FBBF24" />}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Account Status Pill */}
+                  {matchedGameAccount ? (
+                    <div
+                      style={{
+                        marginTop: '10px',
+                        padding: '8px 12px',
+                        borderRadius: '10px',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        border: '1px solid rgba(16, 185, 129, 0.3)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '8px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <CheckCircle2 size={15} color="#34D399" />
+                        <span style={{ fontSize: '11.5px', color: '#E2E8F0', fontFamily: 'Lexend, sans-serif' }}>
+                          Linked Account: <strong style={{ color: '#34D399', fontFamily: 'monospace' }}>{matchedGameAccount.username}</strong>
+                        </span>
+                      </div>
+                      <span style={{ fontSize: '9.5px', fontWeight: 800, color: '#34D399', backgroundColor: 'rgba(16, 185, 129, 0.2)', padding: '2px 6px', borderRadius: '4px' }}>
+                        READY FOR LOAD
+                      </span>
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        marginTop: '10px',
+                        padding: '8px 12px',
+                        borderRadius: '10px',
+                        backgroundColor: 'rgba(0, 240, 255, 0.08)',
+                        border: '1px solid rgba(0, 240, 255, 0.25)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                      }}
+                    >
+                      <Sparkles size={14} color="#00F0FF" style={{ flexShrink: 0 }} />
+                      <span style={{ fontSize: '11px', color: '#CBD5E1', fontFamily: 'Lexend, sans-serif' }}>
+                        New to <strong style={{ color: '#00F0FF' }}>{selectedGame}</strong>? Credentials will be <strong style={{ color: '#FBBF24' }}>auto-created</strong> upon deposit approval.
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* STEP 2: DEPOSIT AMOUNT */}
+                <div className="cashier-step-card">
+                  <div className="cashier-step-header">
+                    <div className="cashier-step-title">
+                      <span className="cashier-step-badge">2</span>
+                      <label style={{ fontSize: '12px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#FFFFFF', letterSpacing: '0.04em', textTransform: 'uppercase', margin: 0 }}>
+                        SELECT DEPOSIT AMOUNT
+                      </label>
+                    </div>
+                    <span style={{ fontSize: '11px', color: '#10B981', fontFamily: 'Lexend, sans-serif', fontWeight: 700 }}>
+                      ⚡ Min $5 • Instant Approval
                     </span>
                   </div>
 
                   {/* Preset Amount Grid */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '12px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '8px', marginBottom: '10px' }}>
                     {presetAmounts.map((amt) => {
                       const isSel = depositAmount === amt;
                       return (
@@ -1183,13 +848,13 @@ export default function DepositPage() {
                           type="button"
                           onClick={() => setDepositAmount(amt)}
                           style={{
-                            padding: '14px 8px',
-                            borderRadius: '12px',
-                            border: isSel ? '2px solid #00F0FF' : '1px solid rgba(255, 255, 255, 0.12)',
+                            padding: '10px 4px',
+                            borderRadius: '10px',
+                            border: isSel ? '2px solid #00F0FF' : '1px solid rgba(255, 255, 255, 0.1)',
                             backgroundColor: isSel ? 'rgba(0, 240, 255, 0.16)' : '#070514',
                             color: isSel ? '#00F0FF' : '#FFFFFF',
                             fontFamily: 'Lexend, sans-serif',
-                            fontSize: '15px',
+                            fontSize: '13px',
                             fontWeight: 900,
                             cursor: 'pointer',
                             transition: 'all 0.15s ease',
@@ -1203,22 +868,22 @@ export default function DepositPage() {
 
                   {/* Custom Amount Input */}
                   <div style={{ position: 'relative' }}>
-                    <span style={{ position: 'absolute', top: '13px', left: '16px', color: '#00F0FF', fontWeight: 900, fontSize: '16px' }}>$</span>
+                    <span style={{ position: 'absolute', top: '10px', left: '14px', color: '#00F0FF', fontWeight: 900, fontSize: '15px' }}>$</span>
                     <input
                       type="number"
                       min="5"
                       max="10000"
                       value={depositAmount}
                       onChange={(e) => setDepositAmount(Number(e.target.value))}
-                      placeholder="Enter custom deposit amount"
+                      placeholder="Or enter custom amount"
                       style={{
                         width: '100%',
                         backgroundColor: '#070514',
                         border: '1px solid rgba(0, 240, 255, 0.3)',
-                        borderRadius: '12px',
-                        padding: '12px 16px 12px 34px',
+                        borderRadius: '10px',
+                        padding: '10px 14px 10px 30px',
                         color: '#FFFFFF',
-                        fontSize: '14px',
+                        fontSize: '13px',
                         fontFamily: 'Lexend, sans-serif',
                         fontWeight: 700,
                         outline: 'none',
@@ -1228,23 +893,26 @@ export default function DepositPage() {
                   </div>
                 </div>
 
-                {/* 3. Payment Method Cards (Exact Layout of Sample Screenshot) */}
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-                    <label style={{ fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#C8C1D4', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-                      3. METHOD (SELECT PAYMENT GATEWAY)
-                    </label>
-                    <span style={{ fontSize: '10.5px', color: '#FBBF24', fontFamily: 'Lexend, sans-serif', fontWeight: 800 }}>
-                      🔥 Special Method Bonuses Included
+                {/* STEP 3: PAYMENT METHOD & PAYMENT INFO */}
+                <div className="cashier-step-card">
+                  <div className="cashier-step-header">
+                    <div className="cashier-step-title">
+                      <span className="cashier-step-badge">3</span>
+                      <label style={{ fontSize: '12px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#FFFFFF', letterSpacing: '0.04em', textTransform: 'uppercase', margin: 0 }}>
+                        PAYMENT METHOD &amp; DETAILS
+                      </label>
+                    </div>
+                    <span style={{ fontSize: '11px', color: '#FBBF24', fontFamily: 'Lexend, sans-serif', fontWeight: 700 }}>
+                      Special Gateway Bonuses
                     </span>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                  {/* Methods Grid */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px', marginBottom: '14px' }}>
                     {methods.map((m) => {
                       const isSel = (selectedMethod?.id && m.id && selectedMethod.id === m.id) ||
                         (selectedMethod?.methodId && m.methodId && selectedMethod.methodId === m.methodId) ||
                         (selectedMethod?.name === m.name);
-
                       const bonusPct = m.bonusPercentage !== undefined ? Number(m.bonusPercentage) : 35;
 
                       return (
@@ -1252,261 +920,194 @@ export default function DepositPage() {
                           key={m.id || m.methodId || m.name}
                           onClick={() => setSelectedMethod(m)}
                           style={{
-                            padding: '16px 18px',
-                            borderRadius: '16px',
-                            border: isSel ? '2px solid #00F0FF' : '1px solid rgba(255, 255, 255, 0.12)',
-                            backgroundColor: isSel ? 'rgba(0, 240, 255, 0.1)' : '#070514',
-                            boxShadow: isSel ? '0 0 22px rgba(0, 240, 255, 0.3), inset 0 0 15px rgba(224, 38, 216, 0.15)' : 'none',
+                            padding: '12px 14px',
+                            borderRadius: '12px',
+                            border: isSel ? '2px solid #00F0FF' : '1px solid rgba(255, 255, 255, 0.1)',
+                            backgroundColor: isSel ? 'rgba(0, 240, 255, 0.12)' : '#070514',
+                            boxShadow: isSel ? '0 0 16px rgba(0, 240, 255, 0.25)' : 'none',
                             cursor: 'pointer',
                             display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
+                            flexDirection: 'column',
+                            gap: '4px',
                             transition: 'all 0.15s ease',
                           }}
                         >
-                          <div>
-                            <div style={{ fontSize: '15px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.01em' }}>
-                              {m.name}
-                            </div>
-                            <div style={{ fontSize: '10.5px', color: '#94A3B8', marginTop: '3px', fontWeight: 700, letterSpacing: '0.02em', textTransform: 'uppercase' }}>
-                              {bonusPct}% BONUS
-                            </div>
+                          <div style={{ fontSize: '13px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#FFFFFF' }}>
+                            {m.name}
                           </div>
-
-                          <div
-                            style={{
-                              backgroundColor: 'rgba(245, 158, 11, 0.15)',
-                              border: '1px solid rgba(245, 158, 11, 0.45)',
-                              color: '#FBBF24',
-                              fontSize: '11.5px',
-                              fontWeight: 900,
-                              fontFamily: 'monospace',
-                              padding: '4px 10px',
-                              borderRadius: '9999px',
-                            }}
-                          >
-                            +{bonusPct}%
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <span style={{ fontSize: '9.5px', color: '#94A3B8', fontWeight: 700, textTransform: 'uppercase' }}>
+                              Gateway
+                            </span>
+                            <span
+                              style={{
+                                backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                                border: '1px solid rgba(245, 158, 11, 0.4)',
+                                color: '#FBBF24',
+                                fontSize: '10px',
+                                fontWeight: 900,
+                                fontFamily: 'monospace',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                              }}
+                            >
+                              +{bonusPct}%
+                            </span>
                           </div>
                         </div>
                       );
                     })}
                   </div>
-                </div>
 
-                {/* Payment Gateway Box (Tag Name, Link Button, QR View/Download) */}
-                {selectedMethod && (() => {
-                  const identifier = selectedMethod.tagName || selectedMethod.accountDetails || selectedMethod.details || selectedMethod.cashtag || selectedMethod.address || '';
-                  const instructions = selectedMethod.instructions || selectedMethod.notes || '';
-                  return (
-                    <div
-                      style={{
-                        backgroundColor: '#070514',
-                        border: '1.5px solid rgba(0, 240, 255, 0.4)',
-                        borderRadius: '18px',
-                        padding: '20px',
-                        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
-                      }}
-                    >
-                      {/* Tag Name & Copy Section */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
-                        <span style={{ fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                          Official {selectedMethod.name} Tag Name
-                        </span>
-                        {identifier && (
-                          <button
-                            type="button"
-                            onClick={() => handleCopy(identifier)}
-                            style={{
-                              background: copied ? '#10B981' : 'rgba(0, 240, 255, 0.18)',
-                              border: copied ? '1px solid #10B981' : '1px solid rgba(0, 240, 255, 0.5)',
-                              borderRadius: '8px',
-                              color: copied ? '#FFFFFF' : '#00F0FF',
-                              padding: '6px 14px',
-                              fontSize: '11.5px',
-                              fontWeight: 900,
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '6px',
-                              transition: 'all 0.15s ease',
-                              boxShadow: '0 2px 8px rgba(0, 240, 255, 0.25)',
-                            }}
-                          >
-                            {copied ? <Check size={13} /> : <Copy size={13} />}
-                            <span>{copied ? 'Tag Copied!' : 'Copy Tag Name'}</span>
-                          </button>
+                  {/* Compact Payment Gateway Action Box */}
+                  {selectedMethod && (() => {
+                    const identifier = selectedMethod.tagName || selectedMethod.accountDetails || selectedMethod.details || selectedMethod.cashtag || selectedMethod.address || '';
+                    const instructions = selectedMethod.instructions || selectedMethod.notes || '';
+
+                    return (
+                      <div
+                        style={{
+                          backgroundColor: '#070514',
+                          border: '1px solid rgba(0, 240, 255, 0.35)',
+                          borderRadius: '14px',
+                          padding: '14px 16px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '12px',
+                        }}
+                      >
+                        {/* Tag Row */}
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                            <span style={{ fontSize: '10.5px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#00F0FF', textTransform: 'uppercase' }}>
+                              Official {selectedMethod.name} Tag / Address
+                            </span>
+                            {identifier && (
+                              <button
+                                type="button"
+                                onClick={() => handleCopy(identifier)}
+                                style={{
+                                  background: copied ? '#10B981' : 'rgba(0, 240, 255, 0.18)',
+                                  border: copied ? '1px solid #10B981' : '1px solid rgba(0, 240, 255, 0.45)',
+                                  borderRadius: '6px',
+                                  color: copied ? '#FFFFFF' : '#00F0FF',
+                                  padding: '4px 10px',
+                                  fontSize: '11px',
+                                  fontWeight: 800,
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                }}
+                              >
+                                {copied ? <Check size={12} /> : <Copy size={12} />}
+                                <span>{copied ? 'Copied!' : 'Copy'}</span>
+                              </button>
+                            )}
+                          </div>
+                          <div style={{ fontFamily: 'monospace', fontSize: '15px', color: '#FFFFFF', fontWeight: 800, wordBreak: 'break-all', backgroundColor: 'rgba(255, 255, 255, 0.05)', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                            {identifier || 'Contact 24/7 Desk for Tag'}
+                          </div>
+                        </div>
+
+                        {/* Pay Link & QR Compact Strip */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap', paddingTop: '4px' }}>
+                          {selectedMethod.paymentUrl && (
+                            <a
+                              href={selectedMethod.paymentUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                padding: '8px 16px',
+                                borderRadius: '10px',
+                                background: 'linear-gradient(135deg, #00F0FF 0%, #00B4D8 100%)',
+                                color: '#070514',
+                                fontWeight: 900,
+                                fontSize: '12px',
+                                textDecoration: 'none',
+                              }}
+                            >
+                              <span>⚡ Pay via Link ({selectedMethod.name})</span>
+                              <ExternalLink size={13} />
+                            </a>
+                          )}
+
+                          {selectedMethod.qrCode && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <div
+                                onClick={() => setQrModalOpen(true)}
+                                style={{
+                                  width: '38px',
+                                  height: '38px',
+                                  borderRadius: '6px',
+                                  overflow: 'hidden',
+                                  backgroundColor: '#FFFFFF',
+                                  padding: '2px',
+                                  cursor: 'pointer',
+                                }}
+                                title="Click to enlarge QR"
+                              >
+                                <img src={selectedMethod.qrCode} alt="QR Thumbnail" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setQrModalOpen(true)}
+                                style={{
+                                  padding: '6px 12px',
+                                  borderRadius: '8px',
+                                  backgroundColor: 'rgba(0, 240, 255, 0.12)',
+                                  border: '1px solid rgba(0, 240, 255, 0.35)',
+                                  color: '#00F0FF',
+                                  fontSize: '11px',
+                                  fontWeight: 800,
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                }}
+                              >
+                                <Eye size={12} />
+                                <span>Enlarge QR</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+
+                        {instructions && (
+                          <div style={{ fontSize: '11px', color: '#94A3B8', borderTop: '1px solid rgba(255, 255, 255, 0.06)', paddingTop: '8px' }}>
+                            ℹ️ {instructions}
+                          </div>
                         )}
                       </div>
+                    );
+                  })()}
+                </div>
 
-                      {/* Display Tag in Monospace */}
-                      <div style={{ fontFamily: 'monospace', fontSize: '18px', color: '#FFFFFF', fontWeight: 900, wordBreak: 'break-all', backgroundColor: 'rgba(255, 255, 255, 0.04)', padding: '10px 14px', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                        {identifier || 'Contact 24/7 Live Desk for Tag'}
-                      </div>
-
-                      {/* Direct Payment Link Button (Opens in new tab) */}
-                      {selectedMethod.paymentUrl && (
-                        <div style={{ marginTop: '14px' }}>
-                          <a
-                            href={selectedMethod.paymentUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '8px',
-                              padding: '12px 22px',
-                              borderRadius: '12px',
-                              background: 'linear-gradient(135deg, #00F0FF 0%, #00B4D8 100%)',
-                              color: '#070514',
-                              fontWeight: 900,
-                              fontSize: '13px',
-                              fontFamily: 'Lexend, sans-serif',
-                              textDecoration: 'none',
-                              boxShadow: '0 4px 20px rgba(0, 240, 255, 0.4)',
-                              transition: 'all 0.15s ease',
-                            }}
-                          >
-                            <span>⚡ Pay via Link ({selectedMethod.name})</span>
-                            <ExternalLink size={15} />
-                          </a>
-                        </div>
-                      )}
-
-                      {/* Scannable QR Code with View & Download Actions */}
-                      {selectedMethod.qrCode && (
-                        <div
-                          style={{
-                            marginTop: '16px',
-                            padding: '16px',
-                            borderRadius: '14px',
-                            backgroundColor: '#0E0A24',
-                            border: '1px solid rgba(0, 240, 255, 0.25)',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            gap: '12px',
-                            textAlign: 'center',
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 900, color: '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                            <QrCode size={15} />
-                            <span>Scan QR Code to Pay ({selectedMethod.name})</span>
-                          </div>
-
-                          {/* QR Code Image Preview */}
-                          <div
-                            onClick={() => setQrModalOpen(true)}
-                            style={{
-                              padding: '10px',
-                              backgroundColor: '#FFFFFF',
-                              borderRadius: '14px',
-                              boxShadow: '0 8px 24px rgba(0,0,0,0.7)',
-                              cursor: 'pointer',
-                              position: 'relative',
-                            }}
-                            title="Click to view full size QR code"
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={selectedMethod.qrCode}
-                              alt={`${selectedMethod.name} QR Code`}
-                              style={{ width: '180px', height: '180px', objectFit: 'contain', display: 'block' }}
-                            />
-                            <div
-                              style={{
-                                position: 'absolute',
-                                bottom: '14px',
-                                right: '14px',
-                                backgroundColor: '#070514',
-                                color: '#00F0FF',
-                                borderRadius: '6px',
-                                padding: '3px 6px',
-                                fontSize: '10px',
-                                fontWeight: 800,
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '3px',
-                              }}
-                            >
-                              <Eye size={11} />
-                              <span>Enlarge</span>
-                            </div>
-                          </div>
-
-                          {/* QR Action Buttons: View & Download */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                            <button
-                              type="button"
-                              onClick={() => setQrModalOpen(true)}
-                              style={{
-                                padding: '8px 14px',
-                                borderRadius: '10px',
-                                backgroundColor: 'rgba(0, 240, 255, 0.15)',
-                                border: '1px solid rgba(0, 240, 255, 0.4)',
-                                color: '#00F0FF',
-                                fontSize: '11.5px',
-                                fontWeight: 800,
-                                cursor: 'pointer',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                              }}
-                            >
-                              <Eye size={13} />
-                              <span>View QR Code</span>
-                            </button>
-
-                            <a
-                              href={selectedMethod.qrCode}
-                              download={`${selectedMethod.name.toLowerCase().replace(/[^a-z0-9]+/g, '_')}_qr.png`}
-                              style={{
-                                padding: '8px 14px',
-                                borderRadius: '10px',
-                                backgroundColor: 'rgba(16, 185, 129, 0.15)',
-                                border: '1px solid rgba(16, 185, 129, 0.4)',
-                                color: '#34D399',
-                                fontSize: '11.5px',
-                                fontWeight: 800,
-                                textDecoration: 'none',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                              }}
-                            >
-                              <Download size={13} />
-                              <span>Download QR</span>
-                            </a>
-                          </div>
-
-                          <span style={{ fontSize: '11px', color: '#9A91A8', fontFamily: 'Lexend, sans-serif' }}>
-                            Scan with your {selectedMethod.name} app or download the image to pay easily.
-                          </span>
-                        </div>
-                      )}
-
-                      {instructions && (
-                        <p style={{ margin: '14px 0 0 0', fontSize: '11.5px', color: '#C8C1D4', fontFamily: 'Lexend, sans-serif', lineHeight: 1.5, borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '10px' }}>
-                          ℹ️ {instructions}
-                        </p>
-                      )}
+                {/* STEP 4: VERIFY & SUBMIT PROOF */}
+                <div className="cashier-step-card">
+                  <div className="cashier-step-header">
+                    <div className="cashier-step-title">
+                      <span className="cashier-step-badge">4</span>
+                      <label style={{ fontSize: '12px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#FFFFFF', letterSpacing: '0.04em', textTransform: 'uppercase', margin: 0 }}>
+                        VERIFY &amp; SUBMIT PROOF
+                      </label>
                     </div>
-                  );
-                })()}
+                    <span style={{ fontSize: '11px', color: '#94A3B8', fontFamily: 'Lexend, sans-serif' }}>
+                      Required for wallet credit
+                    </span>
+                  </div>
 
-                {/* 3. Player Submission Details: Tag Name, Tag Email, Screenshot Proof */}
-                <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#C8C1D4', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '10px' }}>
-                    3. Submit Payment Proof &amp; Verification Details
-                  </label>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px', marginBottom: '14px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '12px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '6px' }}>
-                        Your Tag Name / Cashtag *
+                      <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#CBD5E1', marginBottom: '4px' }}>
+                        Your Cashtag / Tag Name *
                       </label>
                       <input
                         type="text"
-                        placeholder="e.g. $MyCashtag or @username"
+                        placeholder="e.g. $MyTag or @username"
                         value={senderTagName}
                         onChange={(e) => setSenderTagName(e.target.value)}
                         required
@@ -1514,10 +1115,10 @@ export default function DepositPage() {
                           width: '100%',
                           backgroundColor: '#070514',
                           border: '1px solid rgba(0, 240, 255, 0.3)',
-                          borderRadius: '12px',
-                          padding: '11px 14px',
+                          borderRadius: '10px',
+                          padding: '9px 12px',
                           color: '#FFFFFF',
-                          fontSize: '12.5px',
+                          fontSize: '12px',
                           fontFamily: 'Lexend, sans-serif',
                           boxSizing: 'border-box',
                           outline: 'none',
@@ -1526,7 +1127,7 @@ export default function DepositPage() {
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '6px' }}>
+                      <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#CBD5E1', marginBottom: '4px' }}>
                         Your Tag Email Address *
                       </label>
                       <input
@@ -1539,10 +1140,10 @@ export default function DepositPage() {
                           width: '100%',
                           backgroundColor: '#070514',
                           border: '1px solid rgba(0, 240, 255, 0.3)',
-                          borderRadius: '12px',
-                          padding: '11px 14px',
+                          borderRadius: '10px',
+                          padding: '9px 12px',
                           color: '#FFFFFF',
-                          fontSize: '12.5px',
+                          fontSize: '12px',
                           fontFamily: 'Lexend, sans-serif',
                           boxSizing: 'border-box',
                           outline: 'none',
@@ -1551,11 +1152,10 @@ export default function DepositPage() {
                     </div>
                   </div>
 
-                  {/* Payment Screenshot & Optional Note */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '6px' }}>
-                        Payment Screenshot Proof *
+                      <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#CBD5E1', marginBottom: '4px' }}>
+                        Payment Screenshot Receipt *
                       </label>
                       <input
                         type="file"
@@ -1566,8 +1166,8 @@ export default function DepositPage() {
                           width: '100%',
                           backgroundColor: '#070514',
                           border: '1px solid rgba(0, 240, 255, 0.3)',
-                          borderRadius: '12px',
-                          padding: '9px 12px',
+                          borderRadius: '10px',
+                          padding: '8px 10px',
                           color: '#FFFFFF',
                           fontSize: '11px',
                           fontFamily: 'Lexend, sans-serif',
@@ -1576,16 +1176,15 @@ export default function DepositPage() {
                       />
 
                       {proofImage && (
-                        <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <div style={{ width: '45px', height: '45px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #00F0FF' }}>
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ width: '38px', height: '38px', borderRadius: '6px', overflow: 'hidden', border: '1px solid #00F0FF' }}>
                             <img src={proofImage} alt="Uploaded Proof" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           </div>
-                          <span style={{ fontSize: '11px', color: '#10B981', fontWeight: 700 }}>✓ Screenshot Attached</span>
+                          <span style={{ fontSize: '10.5px', color: '#10B981', fontWeight: 700 }}>✓ Attached</span>
                           <button
                             type="button"
                             onClick={() => setProofImage('')}
-                            style={{ background: 'none', border: 'none', color: '#F87171', fontSize: '11px', cursor: 'pointer', textDecoration: 'underline' }}
+                            style={{ background: 'none', border: 'none', color: '#F87171', fontSize: '10.5px', cursor: 'pointer', textDecoration: 'underline' }}
                           >
                             Remove
                           </button>
@@ -1594,22 +1193,22 @@ export default function DepositPage() {
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#C8C1D4', marginBottom: '6px' }}>
-                        Transaction ID / Reference Note (Optional)
+                      <label style={{ display: 'block', fontSize: '11px', fontFamily: 'Lexend, sans-serif', fontWeight: 800, color: '#CBD5E1', marginBottom: '4px' }}>
+                        Transaction ID / Reference (Optional)
                       </label>
                       <input
                         type="text"
-                        placeholder="e.g. Cash App Web Receipt # or TxHash"
+                        placeholder="e.g. Receipt # or TxHash"
                         value={senderNote}
                         onChange={(e) => setSenderNote(e.target.value)}
                         style={{
                           width: '100%',
                           backgroundColor: '#070514',
                           border: '1px solid rgba(0, 240, 255, 0.3)',
-                          borderRadius: '12px',
-                          padding: '11px 14px',
+                          borderRadius: '10px',
+                          padding: '9px 12px',
                           color: '#FFFFFF',
-                          fontSize: '12.5px',
+                          fontSize: '12px',
                           fontFamily: 'Lexend, sans-serif',
                           boxSizing: 'border-box',
                           outline: 'none',
@@ -1618,19 +1217,187 @@ export default function DepositPage() {
                     </div>
                   </div>
                 </div>
+              </div>
 
-                {/* Submit Deposit Button */}
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="btn-sovereign-coral"
-                  style={{ width: '100%', padding: '16px', fontSize: '14px', marginTop: '6px', cursor: loading ? 'not-allowed' : 'pointer' }}
-                >
-                  <Zap size={18} />
-                  <span>{loading ? 'SUBMITTING TO DESK...' : `CONFIRM $${depositAmount} DEPOSIT REQUEST`}</span>
-                </button>
-              </form>
-            </div>
+              {/* RIGHT COLUMN: STICKY LIVE CALCULATOR & CONFIRMATION BOX */}
+              <div className="cashier-right-calculator">
+                <div className="cashier-sticky-box">
+                  {/* Sticky Header */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '14px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', marginBottom: '14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#00F0FF', boxShadow: '0 0 10px #00F0FF' }} />
+                      <span style={{ fontSize: '11.5px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                        ORDER &amp; REWARD CALCULATOR
+                      </span>
+                    </div>
+                    <span style={{ fontSize: '10px', color: '#10B981', fontWeight: 800, backgroundColor: 'rgba(16, 185, 129, 0.15)', padding: '3px 8px', borderRadius: '9999px' }}>
+                      ⚡ LIVE
+                    </span>
+                  </div>
+
+                  {/* Choose Your Bonus Reward Tabs */}
+                  <div style={{ marginBottom: '16px' }}>
+                    <span style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '8px' }}>
+                      CHOOSE REWARD PROMO:
+                    </span>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      {/* Option 1: Gateway Bonus */}
+                      <button
+                        type="button"
+                        onClick={() => setSelectedBonusChoice('method')}
+                        style={{
+                          padding: '10px 8px',
+                          borderRadius: '10px',
+                          border: isMethod ? '2px solid #00F0FF' : '1px solid rgba(255, 255, 255, 0.1)',
+                          backgroundColor: isMethod ? 'rgba(0, 240, 255, 0.15)' : 'rgba(255, 255, 255, 0.03)',
+                          color: isMethod ? '#00F0FF' : '#94A3B8',
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        <div style={{ fontSize: '9.5px', fontWeight: 800, textTransform: 'uppercase' }}>
+                          Gateway
+                        </div>
+                        <div style={{ fontSize: '13px', fontWeight: 900, color: isMethod ? '#FFFFFF' : '#CBD5E1', fontFamily: 'monospace' }}>
+                          +{methodBonusPercent}% SC
+                        </div>
+                      </button>
+
+                      {/* Option 2: Platform Match Bonus */}
+                      <button
+                        type="button"
+                        onClick={() => setSelectedBonusChoice('platform')}
+                        style={{
+                          padding: '10px 8px',
+                          borderRadius: '10px',
+                          border: !isMethod ? '2px solid #C084FC' : '1px solid rgba(255, 255, 255, 0.1)',
+                          backgroundColor: !isMethod ? 'rgba(168, 85, 247, 0.15)' : 'rgba(255, 255, 255, 0.03)',
+                          color: !isMethod ? '#C084FC' : '#94A3B8',
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        <div style={{ fontSize: '9.5px', fontWeight: 800, textTransform: 'uppercase' }}>
+                          {hasClaimedWelcome ? 'Reload' : 'Welcome'}
+                        </div>
+                        <div style={{ fontSize: '13px', fontWeight: 900, color: !isMethod ? '#FFFFFF' : '#CBD5E1', fontFamily: 'monospace' }}>
+                          +{platformBonusPercent}% SC
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Real-time Calculation Breakdown Card */}
+                  <div
+                    style={{
+                      backgroundColor: '#070514',
+                      borderRadius: '14px',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      padding: '14px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '10px',
+                      marginBottom: '16px',
+                    }}
+                  >
+                    {/* Destination Platform */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px' }}>
+                      <span style={{ color: '#94A3B8' }}>Destination Platform:</span>
+                      <strong style={{ color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ color: '#FBBF24' }}>🎮</span>
+                        <span>{selectedGame}</span>
+                      </strong>
+                    </div>
+
+                    {/* Base Deposit */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px' }}>
+                      <span style={{ color: '#94A3B8' }}>Base Deposit Amount:</span>
+                      <strong style={{ color: '#FFFFFF', fontFamily: 'monospace', fontSize: '13px' }}>
+                        ${depositAmount}.00
+                      </strong>
+                    </div>
+
+                    {/* Applied Bonus */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px' }}>
+                      <span style={{ color: '#94A3B8' }}>
+                        Bonus ({appliedBonusPercent}% {isMethod ? 'Gateway' : 'Match'}):
+                      </span>
+                      <strong style={{ color: '#10B981', fontFamily: 'monospace', fontSize: '13px' }}>
+                        +${appliedBonusSC} SC
+                      </strong>
+                    </div>
+
+                    {/* Gold Coins (GC) */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px' }}>
+                      <span style={{ color: '#94A3B8' }}>Included Gold Coins:</span>
+                      <strong style={{ color: '#FBBF24', fontFamily: 'monospace', fontSize: '13px' }}>
+                        +{totalGC} GC
+                      </strong>
+                    </div>
+
+                    {/* Total SC Glowing Banner */}
+                    <div
+                      style={{
+                        marginTop: '4px',
+                        padding: '12px 14px',
+                        borderRadius: '10px',
+                        background: 'linear-gradient(135deg, rgba(0, 240, 255, 0.15) 0%, rgba(14, 10, 36, 0.95) 100%)',
+                        border: '1.5px solid rgba(0, 240, 255, 0.5)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <div>
+                        <span style={{ fontSize: '10px', color: '#94A3B8', textTransform: 'uppercase', fontWeight: 800, display: 'block' }}>
+                          TOTAL CREDITED SC:
+                        </span>
+                        <span style={{ fontSize: '24px', fontWeight: 900, color: '#00F0FF', fontFamily: 'monospace', textShadow: '0 0 15px rgba(0, 240, 255, 0.5)' }}>
+                          ${appliedTotalSC} SC
+                        </span>
+                      </div>
+                      <Sparkles size={24} color="#00F0FF" />
+                    </div>
+                  </div>
+
+                  {/* Primary Submit Button */}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="btn-sovereign-coral"
+                    style={{
+                      width: '100%',
+                      padding: '14px',
+                      fontSize: '13.5px',
+                      fontWeight: 900,
+                      cursor: loading ? 'not-allowed' : 'pointer',
+                      boxShadow: '0 4px 20px rgba(0, 240, 255, 0.35)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                    }}
+                  >
+                    <Zap size={16} />
+                    <span>{loading ? 'SUBMITTING TO DESK...' : `CONFIRM $${depositAmount} DEPOSIT`}</span>
+                  </button>
+
+                  {/* Trust & Guarantee Badges */}
+                  <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '10.5px', color: '#94A3B8', borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <CheckCircle2 size={13} color="#10B981" />
+                      <span>Instant Desk Verification &amp; Crediting (2–5 mins)</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <ShieldCheck size={13} color="#00F0FF" />
+                      <span>256-Bit Financial Encryption &amp; Anti-Fraud Protection</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
           )}
 
           {/* Running Right Now Active Bonus Campaigns */}

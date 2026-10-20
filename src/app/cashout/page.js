@@ -122,9 +122,9 @@ export default function CashoutPage() {
     } catch {}
   };
 
-  const fetchPlayerGameAccounts = async () => {
+  const fetchPlayerGameAccounts = async (isBackground = false) => {
     if (!user) return;
-    setLoadingGameAccounts(true);
+    if (!isBackground) setLoadingGameAccounts(true);
     try {
       const res = await fetch(`/api/game-accounts?email=${encodeURIComponent(user.email || '')}`);
       const data = await res.json();
@@ -132,13 +132,13 @@ export default function CashoutPage() {
         setPlayerGameAccounts(data.gameAccounts);
       }
     } catch {} finally {
-      setLoadingGameAccounts(false);
+      if (!isBackground) setLoadingGameAccounts(false);
     }
   };
 
-  const fetchRedemptions = async () => {
+  const fetchRedemptions = async (isBackground = false) => {
     if (!user) return;
-    setLoadingHistory(true);
+    if (!isBackground) setLoadingHistory(true);
     try {
       const res = await fetch('/api/payments/withdraw');
       const data = await res.json();
@@ -148,7 +148,7 @@ export default function CashoutPage() {
     } catch (err) {
       console.error('Error fetching redemptions:', err);
     } finally {
-      setLoadingHistory(false);
+      if (!isBackground) setLoadingHistory(false);
     }
   };
 
@@ -156,19 +156,33 @@ export default function CashoutPage() {
     fetchGames();
   }, []);
 
+  // Auto-select player's active ready game if currently selected game has no account
+  useEffect(() => {
+    if (playerGameAccounts && playerGameAccounts.length > 0) {
+      const readyAcc = playerGameAccounts.find((a) => a.status === 'READY');
+      if (readyAcc && readyAcc.gameTitle) {
+        const hasCurrent = playerGameAccounts.some(
+          (a) => a.status === 'READY' && String(a.gameTitle).toLowerCase() === String(gameTitle).toLowerCase()
+        );
+        if (!hasCurrent) {
+          setGameTitle(readyAcc.gameTitle);
+        }
+      }
+    }
+  }, [playerGameAccounts]);
+
   useEffect(() => {
     if (user) {
       fetchRedemptions();
       fetchPlayerGameAccounts();
       const interval = setInterval(() => {
-        fetchRedemptions();
-        fetchPlayerGameAccounts();
-        refreshUser();
-      }, 3000);
+        fetchRedemptions(true);
+        fetchPlayerGameAccounts(true);
+      }, 10000);
 
       const onUpdate = () => {
-        fetchRedemptions();
-        fetchPlayerGameAccounts();
+        fetchRedemptions(true);
+        fetchPlayerGameAccounts(true);
         refreshUser();
       };
       window.addEventListener('balanceUpdated', onUpdate);
@@ -223,7 +237,7 @@ export default function CashoutPage() {
     );
 
     if (!currentSelectedGameAccount) {
-      setErrorMsg(`Aap ka is game (${gameTitle}) me koi registered account moojood nahi hai. Cashout sirf unhi games se request kar sakte hain jahan aapka verified account bana ho aur aap jeete hon. Pehle game account banayein.`);
+      setErrorMsg(`No active account found for ${gameTitle}. Cashout requests require an active, verified game account with winning balance. Please select an active game or request an account first.`);
       return;
     }
 
@@ -967,7 +981,7 @@ export default function CashoutPage() {
                                 No Registered Account Found for {gameTitle}
                               </p>
                               <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#F87171', lineHeight: 1.4 }}>
-                                Aap ka is game ({gameTitle}) me koi registered account nahi hai. Cashout sirf unhi games se request kar sakte hain jahan aapka verified account ho aur aap jeete hon. Pehle game account banayein ya koi doosri game select karein.
+                                You do not have an active registered account for {gameTitle}. Cashouts can only be requested from games where you have a verified account with winning credits. Please select another game or request an account first.
                               </p>
                             </div>
                           </div>
