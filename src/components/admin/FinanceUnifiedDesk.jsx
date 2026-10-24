@@ -516,6 +516,11 @@ export default function FinanceUnifiedDesk({
                                   <span style={{ fontSize: '10px', color: '#64748B', fontFamily: 'monospace' }}>
                                     ID: {d.userId?.slice(-6) || depositId?.slice(-6)}
                                   </span>
+                                  {d.claimedPromoTitle && (
+                                    <span style={{ fontSize: '9.5px', color: '#F472B6', fontWeight: 800, backgroundColor: 'rgba(236, 72, 153, 0.14)', border: '1px solid rgba(236, 72, 153, 0.45)', padding: '1px 6px', borderRadius: '5px' }}>
+                                      🎁 {d.claimedPromoTitle}
+                                    </span>
+                                  )}
                                   {d.targetGame && (
                                     <span style={{ fontSize: '10px', color: '#00F0FF', fontWeight: 800, backgroundColor: 'rgba(0, 240, 255, 0.12)', border: '1px solid rgba(0, 240, 255, 0.3)', padding: '1px 6px', borderRadius: '5px' }}>
                                       🎮 {d.targetGame}
@@ -560,31 +565,55 @@ export default function FinanceUnifiedDesk({
                           {/* 3. Coins to Credit */}
                           <td style={{ padding: '14px 16px' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: '180px' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                                 <span style={{ fontWeight: 900, color: '#34D399', fontSize: '13px', fontFamily: 'monospace' }}>
                                   {calculatedSC} SC
                                 </span>
-                                <span
-                                  style={{
-                                    fontSize: '9.5px',
-                                    fontWeight: 900,
-                                    padding: '2px 8px',
-                                    borderRadius: '6px',
-                                    backgroundColor: d.bonusType === 'method'
-                                      ? 'rgba(245, 158, 11, 0.18)'
-                                      : (bonusType === 'welcome' ? 'rgba(0, 240, 255, 0.15)' : 'rgba(168, 85, 247, 0.15)'),
-                                    color: d.bonusType === 'method'
-                                      ? '#FBBF24'
-                                      : (bonusType === 'welcome' ? '#00F0FF' : '#C084FC'),
-                                    border: `1px solid ${d.bonusType === 'method' ? 'rgba(245, 158, 11, 0.4)' : (bonusType === 'welcome' ? 'rgba(0, 240, 255, 0.35)' : 'rgba(168, 85, 247, 0.35)')}`,
-                                    textTransform: 'uppercase',
-                                  }}
-                                >
-                                  +{bonusPercent}% {d.bonusName || (d.bonusType === 'method' ? `${d.methodName} Bonus` : bonusType)}
-                                </span>
+                                {d.claimedPromoTitle ? (
+                                  <span
+                                    style={{
+                                      fontSize: '9.5px',
+                                      fontWeight: 900,
+                                      padding: '2px 8px',
+                                      borderRadius: '6px',
+                                      backgroundColor: 'rgba(236, 72, 153, 0.2)',
+                                      color: '#F472B6',
+                                      border: '1px solid rgba(236, 72, 153, 0.5)',
+                                      textTransform: 'uppercase',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '4px',
+                                    }}
+                                  >
+                                    🎁 {d.claimedPromoTitle}
+                                  </span>
+                                ) : (
+                                  <span
+                                    style={{
+                                      fontSize: '9.5px',
+                                      fontWeight: 900,
+                                      padding: '2px 8px',
+                                      borderRadius: '6px',
+                                      backgroundColor: d.bonusType === 'method'
+                                        ? 'rgba(245, 158, 11, 0.18)'
+                                        : (bonusType === 'welcome' ? 'rgba(0, 240, 255, 0.15)' : 'rgba(168, 85, 247, 0.15)'),
+                                      color: d.bonusType === 'method'
+                                        ? '#FBBF24'
+                                        : (bonusType === 'welcome' ? '#00F0FF' : '#C084FC'),
+                                      border: `1px solid ${d.bonusType === 'method' ? 'rgba(245, 158, 11, 0.4)' : (bonusType === 'welcome' ? 'rgba(0, 240, 255, 0.35)' : 'rgba(168, 85, 247, 0.35)')}`,
+                                      textTransform: 'uppercase',
+                                    }}
+                                  >
+                                    +{bonusPercent}% {d.bonusName || (d.bonusType === 'method' ? `${d.methodName} Bonus` : bonusType)}
+                                  </span>
+                                )}
                               </div>
                               <span style={{ fontSize: '10.5px', color: '#94A3B8' }}>
-                                Base: ${d.amount} + Bonus: ${bonusSC} SC ({d.bonusName || d.bonusType})
+                                {d.claimedPromoTitle ? (
+                                  <>Base: <strong style={{ color: '#FDE68A' }}>${d.amount}</strong> + Promo: <strong style={{ color: '#34D399' }}>+{bonusSC} SC</strong> {d.claimedPromoHighlight ? `(${d.claimedPromoHighlight})` : ''}</>
+                                ) : (
+                                  <>Base: ${d.amount} + Bonus: ${bonusSC} SC ({d.bonusName || d.bonusType})</>
+                                )}
                               </span>
 
                               {/* Editable Input Box */}
@@ -1255,7 +1284,14 @@ export default function FinanceUnifiedDesk({
                   const note = d.senderNote || d.txHash;
                   return (
                     <tr key={depositId} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
-                      <td style={{ padding: '12px 16px', fontWeight: 800, color: '#FFFFFF', fontSize: '12px' }}>{d.username}</td>
+                      <td style={{ padding: '12px 16px', fontWeight: 800, color: '#FFFFFF', fontSize: '12px' }}>
+                        <div>{d.username}</div>
+                        {d.claimedPromoTitle && (
+                          <div style={{ fontSize: '9.5px', color: '#F472B6', fontWeight: 700, marginTop: '2px' }}>
+                            🎁 {d.claimedPromoTitle}
+                          </div>
+                        )}
+                      </td>
                       <td style={{ padding: '12px 16px', fontWeight: 900, color: '#FBBF24', fontSize: '12px' }}>${d.amount} USD</td>
                       <td style={{ padding: '12px 16px', fontFamily: 'monospace', color: '#34D399', fontSize: '12px' }}>
                         {d.creditedSC ? `${Number(d.creditedSC).toFixed(2)} SC` : `${d.totalSC || d.amount} SC`}

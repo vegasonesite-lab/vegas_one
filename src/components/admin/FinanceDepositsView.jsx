@@ -270,9 +270,16 @@ export default function FinanceDepositsView({
                           </div>
                           <div>
                             <p className="font-black text-white text-sm">{d.username}</p>
-                            <span className="text-[10px] text-gray-400 uppercase tracking-wider font-mono">
-                              ID: {d.userId?.slice(-6) || d.id?.slice(-6)}
-                            </span>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-[10px] text-gray-400 uppercase tracking-wider font-mono">
+                                ID: {d.userId?.slice(-6) || d.id?.slice(-6)}
+                              </span>
+                              {d.claimedPromoTitle && (
+                                <span className="text-[9px] px-1.5 py-0.2 rounded font-black bg-pink-500/20 text-pink-300 border border-pink-500/40">
+                                  🎁 {d.claimedPromoTitle}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </td>
@@ -289,26 +296,34 @@ export default function FinanceDepositsView({
                       <td className="p-4">
                         <div className="flex flex-col gap-1.5 min-w-[210px]">
                           {/* Top row: Final SC & Bonus Tag */}
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-black text-emerald-400 text-base font-mono">
                               {calculatedSC} SC
                             </span>
-                            <span
-                              className={`text-[10px] px-2 py-0.5 rounded-full font-black uppercase border ${
-                                bonusType === 'welcome'
-                                  ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30'
-                                  : 'bg-purple-500/15 text-purple-300 border-purple-500/30'
-                              }`}
-                            >
-                              +{bonusPercent}% {bonusType}
-                            </span>
+                            {d.claimedPromoTitle ? (
+                              <span className="text-[10px] px-2 py-0.5 rounded-full font-black uppercase border bg-pink-500/20 text-pink-300 border-pink-500/40">
+                                🎁 {d.claimedPromoTitle}
+                              </span>
+                            ) : (
+                              <span
+                                className={`text-[10px] px-2 py-0.5 rounded-full font-black uppercase border ${
+                                  bonusType === 'welcome'
+                                    ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30'
+                                    : 'bg-purple-500/15 text-purple-300 border-purple-500/30'
+                                }`}
+                              >
+                                +{bonusPercent}% {bonusType}
+                              </span>
+                            )}
                           </div>
 
                           {/* Breakdown text */}
                           <div className="text-[11px] text-gray-300 flex items-center gap-1.5">
                             <span>Base: ${d.amount}</span>
                             <span className="text-gray-500">•</span>
-                            <span className="text-emerald-400 font-medium">Bonus: +${bonusSC} SC</span>
+                            <span className="text-emerald-400 font-medium">
+                              {d.claimedPromoTitle ? `Promo Bonus: +$${bonusSC} SC` : `Bonus: +$${bonusSC} SC`}
+                            </span>
                           </div>
 
                           {/* Editable SC Input for Pending */}
@@ -536,23 +551,33 @@ export default function FinanceDepositsView({
                   {/* Coins Breakdown Box */}
                   <div className="p-3 bg-emerald-500/[0.06] rounded-xl border border-emerald-500/20 space-y-2">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="font-black text-emerald-400 text-sm font-mono">{calculatedSC} SC</span>
-                        <span
-                          className={`text-[9.5px] px-1.5 py-0.5 rounded font-black uppercase border ${
-                            bonusType === 'welcome'
-                              ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30'
-                              : 'bg-purple-500/20 text-purple-300 border-purple-500/30'
-                          }`}
-                        >
-                          +{bonusPercent}%
-                        </span>
+                        {d.claimedPromoTitle ? (
+                          <span className="text-[9.5px] px-1.5 py-0.5 rounded font-black uppercase border bg-pink-500/20 text-pink-300 border-pink-500/40">
+                            🎁 {d.claimedPromoTitle}
+                          </span>
+                        ) : (
+                          <span
+                            className={`text-[9.5px] px-1.5 py-0.5 rounded font-black uppercase border ${
+                              bonusType === 'welcome'
+                                ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30'
+                                : 'bg-purple-500/20 text-purple-300 border-purple-500/30'
+                            }`}
+                          >
+                            +{bonusPercent}%
+                          </span>
+                        )}
                       </div>
                       <span className="text-[10px] text-amber-400 font-mono font-bold">+{calculatedGC} GC</span>
                     </div>
 
                     <div className="text-[10.5px] text-gray-400">
-                      Base: ${d.amount} + Bonus: ${bonusSC} SC
+                      {d.claimedPromoTitle ? (
+                        <>Base: ${d.amount} + Promo: +${bonusSC} SC</>
+                      ) : (
+                        <>Base: ${d.amount} + Bonus: ${bonusSC} SC</>
+                      )}
                     </div>
 
                     {isPending && (

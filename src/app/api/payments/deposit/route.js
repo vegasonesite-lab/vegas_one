@@ -64,6 +64,9 @@ export async function GET(req) {
           bonusSC,
           totalSC,
           totalGC,
+          claimedPromoTitle: single.claimedPromoTitle || null,
+          claimedPromoCode: single.claimedPromoCode || null,
+          claimedPromoHighlight: single.claimedPromoHighlight || null,
           creditedSC: single.creditedSC || null,
           targetGame: single.targetGame || 'Juwa 777',
           gameAccountUsername: single.gameAccountUsername || null,
@@ -128,6 +131,9 @@ export async function GET(req) {
           bonusSC,
           totalSC,
           totalGC,
+          claimedPromoTitle: d.claimedPromoTitle || null,
+          claimedPromoCode: d.claimedPromoCode || null,
+          claimedPromoHighlight: d.claimedPromoHighlight || null,
           creditedSC: d.creditedSC || null,
           status: d.status,
           processedBy: d.processedBy || null,
@@ -166,6 +172,9 @@ export async function POST(req) {
       bonusPercent: reqBonusPercent,
       bonusSC: reqBonusSC,
       totalSC: reqTotalSC,
+      claimedPromoTitle,
+      claimedPromoCode,
+      claimedPromoHighlight,
     } = body;
 
     const depositAmount = Number(amount);
@@ -211,7 +220,18 @@ export async function POST(req) {
     let finalTotalSC = depositAmount;
     let finalBonusChoice = bonusChoice || 'platform';
 
-    if (bonusChoice === 'method' || reqBonusType === 'method') {
+    if (claimedPromoTitle || bonusChoice === 'claimed_promo' || reqBonusType === 'promo') {
+      finalBonusChoice = 'claimed_promo';
+      finalBonusType = 'promo';
+      finalBonusName = claimedPromoTitle || reqBonusName || 'Special Claimed Promotion';
+      finalBonusPercent = reqBonusPercent !== undefined ? Number(reqBonusPercent) : 0;
+      finalBonusSC = reqBonusSC !== undefined 
+        ? Number(Number(reqBonusSC).toFixed(2)) 
+        : 0;
+      finalTotalSC = reqTotalSC !== undefined 
+        ? Number(Number(reqTotalSC).toFixed(2)) 
+        : Number((depositAmount + finalBonusSC).toFixed(2));
+    } else if (bonusChoice === 'method' || reqBonusType === 'method') {
       finalBonusChoice = 'method';
       finalBonusType = 'method';
       finalBonusPercent = reqBonusPercent !== undefined ? Number(reqBonusPercent) : 35;
@@ -281,6 +301,9 @@ export async function POST(req) {
       bonusSC: finalBonusSC,
       totalSC: finalTotalSC,
       totalGC,
+      claimedPromoTitle: claimedPromoTitle || (finalBonusChoice === 'claimed_promo' ? finalBonusName : null),
+      claimedPromoCode: claimedPromoCode || null,
+      claimedPromoHighlight: claimedPromoHighlight || null,
       status: 'pending',
       processedBy: null,
       createdAt: new Date(),
@@ -291,8 +314,8 @@ export async function POST(req) {
 
     // Fast real-time alert dispatch to staff
     notifyStaff({
-      title: 'New Deposit Request!',
-      message: `$${depositAmount} USD deposit from @${user.username} via ${methodName}`,
+      title: claimedPromoTitle ? '🎁 Promo Deposit Request!' : 'New Deposit Request!',
+      message: `$${depositAmount} USD deposit from @${user.username} via ${methodName}${claimedPromoTitle ? ` (Promo: ${claimedPromoTitle})` : ''}`,
       type: 'deposit',
       url: '/admin',
       targetTab: 'finance',
@@ -396,6 +419,10 @@ export async function PUT(req) {
       );
 
       // 3. Write Immutable Ledger
+      const promoInfoNote = deposit.claimedPromoTitle
+        ? `Promo: "${deposit.claimedPromoTitle}"`
+        : (deposit.bonusName || deposit.bonusType || 'welcome');
+
       await ledgerCol.insertOne({
         userId: user._id.toString(),
         username: user.username,
@@ -407,9 +434,26 @@ export async function PUT(req) {
         performedBy: session.username,
         staffRole: session.role,
         referenceId: depositId,
-        notes: `Deposit $${deposit.amount} approved (${creditedSC} SC credited: $${deposit.amount} base + ${deposit.bonusSC || 0} SC ${deposit.bonusType || 'welcome'} bonus). Method: ${deposit.methodName}. TXID: ${deposit.txHash || 'N/A'}`,
+        notes: `Deposit $${deposit.amount} approved (${creditedSC} SC credited: $${deposit.amount} base + ${deposit.bonusSC || 0} SC ${promoInfoNote}). Method: ${deposit.methodName}. TXID: ${deposit.txHash || 'N/A'}`,
         createdAt: new Date(),
       });
+
+      // 3.2. If this deposit claimed a promotion, increment promotion claim counter
+      if (deposit.claimedPromoCode || deposit.claimedPromoTitle) {
+        try {
+          const promoQuery = [];
+          if (deposit.claimedPromoCode) promoQuery.push({ promoCode: deposit.claimedPromoCode });
+          if (deposit.claimedPromoTitle) promoQuery.push({ title: deposit.claimedPromoTitle });
+          if (promoQuery.length > 0) {
+            await db.collection('promotions').updateOne(
+              { $or: promoQuery },
+              { $inc: { timesClaimed: 1 } }
+            );
+          }
+        } catch (pErr) {
+          console.warn('Failed to increment promo timesClaimed:', pErr);
+        }
+      }
 
       // 3.5. Auto-Create Game Account Request if user has no account for deposit's target game
       const depositGame = String(deposit.targetGame || '').trim();

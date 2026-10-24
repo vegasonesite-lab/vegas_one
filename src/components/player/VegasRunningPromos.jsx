@@ -93,11 +93,27 @@ export default function VegasRunningPromos({ onOpenAuth, user }) {
   const handleClaim = (promo, isEnded) => {
     if (isEnded) return; // Cannot claim expired promo
 
-    const targetUrl = promo.actionUrl || '/deposit';
+    // Store active promo in localStorage for instant retrieval on deposit page
+    try {
+      localStorage.setItem('vegas_active_promo', JSON.stringify({
+        id: promo.id || promo._id,
+        title: promo.title,
+        tag: promo.tag,
+        promoCode: promo.promoCode || 'PROMO',
+        rewardHighlight: promo.rewardHighlight,
+        rewardSC: promo.rewardSC,
+        minDeposit: promo.minDeposit,
+        description: promo.description,
+        claimedAt: Date.now(),
+      }));
+    } catch {}
+
+    const promoParam = encodeURIComponent(promo.promoCode || promo.title || 'promo');
+    const targetUrl = `/deposit?promo=${promoParam}`;
     
-    if (!user && targetUrl.includes('/deposit')) {
+    if (!user) {
       if (onOpenAuth) onOpenAuth('login');
-      else router.push('/login');
+      else router.push(`/login?redirect=${encodeURIComponent(targetUrl)}`);
       return;
     }
 

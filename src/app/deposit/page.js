@@ -27,6 +27,7 @@ import {
   ChevronDown,
   ChevronUp,
   Search,
+  Gift,
 } from 'lucide-react';
 import VegasNavbar from '@/components/player/VegasNavbar';
 import VegasSidebar from '@/components/player/VegasSidebar';
@@ -39,6 +40,7 @@ import { compressImage } from '@/lib/imageCompressor';
 import { useAuthSession } from '@/lib/clientAuth';
 import { broadcastAdminAlert } from '@/lib/broadcastAlert';
 import { getGameLogo } from '@/lib/gameLogos';
+import { calculatePromoBonus } from '@/lib/promoCalculator';
 
 export default function DepositPage() {
   const router = useRouter();
@@ -56,7 +58,8 @@ export default function DepositPage() {
   const [senderNote, setSenderNote] = useState('');
   const [txHash, setTxHash] = useState('');
   const [proofImage, setProofImage] = useState('');
-  const [selectedBonusChoice, setSelectedBonusChoice] = useState('platform'); // 'method' | 'platform'
+  const [claimedPromo, setClaimedPromo] = useState(null);
+  const [selectedBonusChoice, setSelectedBonusChoice] = useState('platform'); // 'claimed_promo' | 'method' | 'platform'
 
   const [isGameDropdownOpen, setIsGameDropdownOpen] = useState(false);
   const [gameSearchQuery, setGameSearchQuery] = useState('');
@@ -103,6 +106,59 @@ export default function DepositPage() {
         }
       })
       .catch(() => {});
+  }, []);
+
+  // Detect Claimed Promo from URL (?promo=...) or LocalStorage
+  useEffect(() => {
+    let promoParam = null;
+    try {
+      if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        promoParam = urlParams.get('promo');
+      }
+    } catch {}
+
+    let storedPromo = null;
+    try {
+      const raw = localStorage.getItem('vegas_active_promo');
+      if (raw) storedPromo = JSON.parse(raw);
+    } catch {}
+
+    if (promoParam) {
+      fetch('/api/promos')
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.success && Array.isArray(d.promotions)) {
+            const matched = d.promotions.find(
+              (p) =>
+                String(p.promoCode || '').toLowerCase() === promoParam.toLowerCase() ||
+                String(p.title || '').toLowerCase() === promoParam.toLowerCase() ||
+                String(p._id || p.id) === promoParam
+            );
+            if (matched) {
+              setClaimedPromo(matched);
+              setSelectedBonusChoice('claimed_promo');
+              try {
+                localStorage.setItem('vegas_active_promo', JSON.stringify(matched));
+              } catch {}
+              return;
+            }
+          }
+          if (storedPromo) {
+            setClaimedPromo(storedPromo);
+            setSelectedBonusChoice('claimed_promo');
+          }
+        })
+        .catch(() => {
+          if (storedPromo) {
+            setClaimedPromo(storedPromo);
+            setSelectedBonusChoice('claimed_promo');
+          }
+        });
+    } else if (storedPromo) {
+      setClaimedPromo(storedPromo);
+      setSelectedBonusChoice('claimed_promo');
+    }
   }, []);
 
   const [playerGameAccounts, setPlayerGameAccounts] = useState([]);
@@ -264,16 +320,35 @@ export default function DepositPage() {
       ? Number(sysSettings?.regularBonusMax ?? 2500)
       : Number(sysSettings?.welcomeBonusMax ?? 7500);
 
+    const isClaimedPromo = Boolean(claimedPromo) && selectedBonusChoice === 'claimed_promo';
     const isMethod = selectedBonusChoice === 'method';
-    const appliedBonusType = isMethod ? 'method' : (hasClaimedWelcome ? 'regular' : 'welcome');
-    const appliedBonusPercent = isMethod ? methodBonusPercent : platformBonusPercent;
-    const appliedBonusName = isMethod
-      ? `${selectedMethod?.name || 'Payment Method'} Special Bonus (${appliedBonusPercent}%)`
-      : (hasClaimedWelcome ? `Regular Reload Bonus (${appliedBonusPercent}%)` : `Welcome Match Bonus (${appliedBonusPercent}%)`);
-    const appliedBonusSC = isMethod
-      ? Number(((depositAmount * appliedBonusPercent) / 100).toFixed(2))
-      : Number(Math.min((depositAmount * appliedBonusPercent) / 100, platformBonusMax).toFixed(2));
-    const appliedTotalSC = Number((depositAmount + appliedBonusSC).toFixed(2));
+    const promoCalc = calculatePromoBonus(claimedPromo, depositAmount);
+
+    let appliedBonusType = 'regular';
+    let appliedBonusName = 'Regular Reload Bonus';
+    let appliedBonusPercent = 50;
+    let appliedBonusSC = 0;
+    let appliedTotalSC = Number(depositAmount);
+
+    if (isClaimedPromo) {
+      appliedBonusType = 'promo';
+      appliedBonusName = claimedPromo.title || 'Claimed Promotion';
+      appliedBonusPercent = promoCalc.percent;
+      appliedBonusSC = promoCalc.bonusSC;
+      appliedTotalSC = promoCalc.totalSC;
+    } else if (isMethod) {
+      appliedBonusType = 'method';
+      appliedBonusPercent = methodBonusPercent;
+      appliedBonusName = `${selectedMethod?.name || 'Payment Method'} Special Bonus (${appliedBonusPercent}%)`;
+      appliedBonusSC = Number(((depositAmount * appliedBonusPercent) / 100).toFixed(2));
+      appliedTotalSC = Number((depositAmount + appliedBonusSC).toFixed(2));
+    } else {
+      appliedBonusType = hasClaimedWelcome ? 'regular' : 'welcome';
+      appliedBonusPercent = platformBonusPercent;
+      appliedBonusName = hasClaimedWelcome ? `Regular Reload Bonus (${appliedBonusPercent}%)` : `Welcome Match Bonus (${appliedBonusPercent}%)`;
+      appliedBonusSC = Number(Math.min((depositAmount * appliedBonusPercent) / 100, platformBonusMax).toFixed(2));
+      appliedTotalSC = Number((depositAmount + appliedBonusSC).toFixed(2));
+    }
 
     const matchedGameAccount = playerGameAccounts.find(
       (acc) =>
@@ -296,12 +371,15 @@ export default function DepositPage() {
           senderNote: senderNote.trim(),
           proofImage,
           txHash,
-          bonusChoice: selectedBonusChoice,
+          bonusChoice: isClaimedPromo ? 'claimed_promo' : selectedBonusChoice,
           bonusType: appliedBonusType,
           bonusName: appliedBonusName,
           bonusPercent: appliedBonusPercent,
           bonusSC: appliedBonusSC,
           totalSC: appliedTotalSC,
+          claimedPromoTitle: isClaimedPromo ? (claimedPromo.title || null) : null,
+          claimedPromoCode: isClaimedPromo ? (claimedPromo.promoCode || 'PROMO') : null,
+          claimedPromoHighlight: isClaimedPromo ? (claimedPromo.rewardHighlight || null) : null,
         }),
       });
 
@@ -319,6 +397,9 @@ export default function DepositPage() {
         setSenderNote('');
         setTxHash('');
         setProofImage('');
+        setClaimedPromo(null);
+        setSelectedBonusChoice('platform');
+        try { localStorage.removeItem('vegas_active_promo'); } catch {}
         refreshUser();
         window.dispatchEvent(new CustomEvent('balanceUpdated'));
       } else {
@@ -350,11 +431,22 @@ export default function DepositPage() {
     ? (sysSettings?.regularBonusTitle || 'Regular Reload Bonus')
     : (sysSettings?.welcomeBonusTitle || 'Welcome Match Bonus');
 
+  const isClaimedPromo = Boolean(claimedPromo) && selectedBonusChoice === 'claimed_promo';
   const isMethod = selectedBonusChoice === 'method';
-  const appliedBonusTitle = isMethod ? methodBonusTitle : platformBonusTitle;
-  const appliedBonusPercent = isMethod ? methodBonusPercent : platformBonusPercent;
-  const appliedBonusSC = isMethod ? methodBonusSC : platformBonusSC;
-  const appliedTotalSC = isMethod ? methodTotalSC : platformTotalSC;
+  const promoCalc = calculatePromoBonus(claimedPromo, depositAmount);
+
+  const appliedBonusTitle = isClaimedPromo
+    ? (claimedPromo.title || 'Claimed Promotion')
+    : (isMethod ? methodBonusTitle : platformBonusTitle);
+  const appliedBonusPercent = isClaimedPromo
+    ? promoCalc.percent
+    : (isMethod ? methodBonusPercent : platformBonusPercent);
+  const appliedBonusSC = isClaimedPromo
+    ? promoCalc.bonusSC
+    : (isMethod ? methodBonusSC : platformBonusSC);
+  const appliedTotalSC = isClaimedPromo
+    ? promoCalc.totalSC
+    : (isMethod ? methodTotalSC : platformTotalSC);
   const totalGC = (depositAmount * 10000).toLocaleString();
 
   const currentSelectedGameObj = platformGames.find(g => String(g?.name || '').toLowerCase() === String(selectedGame || '').toLowerCase()) || { name: selectedGame || 'JUWA 777', logo: getGameLogo(selectedGame) };
@@ -618,6 +710,89 @@ export default function DepositPage() {
             <form onSubmit={handleDepositSubmit} className="cashier-two-col-layout">
               {/* LEFT COLUMN: Clean 4-Step Input Flow */}
               <div className="cashier-left-steps" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {/* ACTIVE CLAIMED PROMOTION BANNER */}
+                {claimedPromo && (
+                  <div
+                    style={{
+                      padding: '14px 18px',
+                      borderRadius: '16px',
+                      background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.22) 0%, rgba(224, 38, 216, 0.16) 100%)',
+                      border: '1.5px solid rgba(249, 115, 22, 0.55)',
+                      boxShadow: '0 8px 25px rgba(249, 115, 22, 0.22)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '14px',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div
+                        style={{
+                          width: '42px',
+                          height: '42px',
+                          borderRadius: '12px',
+                          background: 'linear-gradient(135deg, #FF6B00 0%, #EA580C 100%)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          boxShadow: '0 4px 14px rgba(255, 107, 0, 0.45)',
+                        }}
+                      >
+                        <Gift size={22} color="#FFFFFF" />
+                      </div>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: '14.5px', fontWeight: 900, color: '#FFFFFF', fontFamily: 'Lexend, sans-serif' }}>
+                            {claimedPromo.title}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: '10px',
+                              fontWeight: 900,
+                              color: '#059669',
+                              backgroundColor: '#ECFDF5',
+                              padding: '2px 8px',
+                              borderRadius: '6px',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.04em',
+                            }}
+                          >
+                            {claimedPromo.rewardHighlight || (promoCalc.percent > 0 ? `+${promoCalc.percent}% Extra Boost` : 'Special Promo')}
+                          </span>
+                        </div>
+                        <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#CBD5E1', fontFamily: 'Lexend, sans-serif' }}>
+                          Bonus applied: <strong style={{ color: '#34D399', fontFamily: 'monospace' }}>+{appliedBonusSC} SC</strong> will be credited on your ${depositAmount} deposit! Total to receive: <strong style={{ color: '#00F0FF', fontFamily: 'monospace' }}>${appliedTotalSC} SC</strong>.
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setClaimedPromo(null);
+                        setSelectedBonusChoice('platform');
+                        try { localStorage.removeItem('vegas_active_promo'); } catch {}
+                      }}
+                      style={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        color: '#94A3B8',
+                        padding: '6px 12px',
+                        borderRadius: '8px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                      }}
+                      className="hover:bg-white/15 hover:text-white"
+                    >
+                      Remove Promo
+                    </button>
+                  </div>
+                )}
+
                 {/* STEP 1: DESTINATION GAME PLATFORM */}
                 <div className="cashier-step-card">
                   <div className="cashier-step-header">
@@ -1302,7 +1477,32 @@ export default function DepositPage() {
                     <span style={{ fontSize: '10px', color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '8px' }}>
                       CHOOSE REWARD PROMO:
                     </span>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: claimedPromo ? '1fr 1fr 1fr' : '1fr 1fr', gap: '8px' }}>
+                      {/* Option 0: Claimed Promo if active */}
+                      {claimedPromo && (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedBonusChoice('claimed_promo')}
+                          style={{
+                            padding: '10px 8px',
+                            borderRadius: '10px',
+                            border: isClaimedPromo ? '2px solid #FF6B00' : '1px solid rgba(255, 255, 255, 0.1)',
+                            backgroundColor: isClaimedPromo ? 'rgba(255, 107, 0, 0.18)' : 'rgba(255, 255, 255, 0.03)',
+                            color: isClaimedPromo ? '#FF6B00' : '#94A3B8',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          <div style={{ fontSize: '9px', fontWeight: 900, textTransform: 'uppercase', color: isClaimedPromo ? '#FF6B00' : '#94A3B8' }}>
+                            Claimed
+                          </div>
+                          <div style={{ fontSize: '11.5px', fontWeight: 900, color: isClaimedPromo ? '#FFFFFF' : '#CBD5E1', fontFamily: 'monospace' }}>
+                            {promoCalc.percent > 0 ? `+${promoCalc.percent}%` : `+$${promoCalc.flatSC}`} SC
+                          </div>
+                        </button>
+                      )}
+
                       {/* Option 1: Gateway Bonus */}
                       <button
                         type="button"
@@ -1318,10 +1518,10 @@ export default function DepositPage() {
                           transition: 'all 0.15s ease',
                         }}
                       >
-                        <div style={{ fontSize: '9.5px', fontWeight: 800, textTransform: 'uppercase' }}>
+                        <div style={{ fontSize: '9px', fontWeight: 800, textTransform: 'uppercase' }}>
                           Gateway
                         </div>
-                        <div style={{ fontSize: '13px', fontWeight: 900, color: isMethod ? '#FFFFFF' : '#CBD5E1', fontFamily: 'monospace' }}>
+                        <div style={{ fontSize: '11.5px', fontWeight: 900, color: isMethod ? '#FFFFFF' : '#CBD5E1', fontFamily: 'monospace' }}>
                           +{methodBonusPercent}% SC
                         </div>
                       </button>
@@ -1333,18 +1533,18 @@ export default function DepositPage() {
                         style={{
                           padding: '10px 8px',
                           borderRadius: '10px',
-                          border: !isMethod ? '2px solid #C084FC' : '1px solid rgba(255, 255, 255, 0.1)',
-                          backgroundColor: !isMethod ? 'rgba(168, 85, 247, 0.15)' : 'rgba(255, 255, 255, 0.03)',
-                          color: !isMethod ? '#C084FC' : '#94A3B8',
+                          border: (!isMethod && !isClaimedPromo) ? '2px solid #C084FC' : '1px solid rgba(255, 255, 255, 0.1)',
+                          backgroundColor: (!isMethod && !isClaimedPromo) ? 'rgba(168, 85, 247, 0.15)' : 'rgba(255, 255, 255, 0.03)',
+                          color: (!isMethod && !isClaimedPromo) ? '#C084FC' : '#94A3B8',
                           textAlign: 'left',
                           cursor: 'pointer',
                           transition: 'all 0.15s ease',
                         }}
                       >
-                        <div style={{ fontSize: '9.5px', fontWeight: 800, textTransform: 'uppercase' }}>
+                        <div style={{ fontSize: '9px', fontWeight: 800, textTransform: 'uppercase' }}>
                           {hasClaimedWelcome ? 'Reload' : 'Welcome'}
                         </div>
-                        <div style={{ fontSize: '13px', fontWeight: 900, color: !isMethod ? '#FFFFFF' : '#CBD5E1', fontFamily: 'monospace' }}>
+                        <div style={{ fontSize: '11.5px', fontWeight: 900, color: (!isMethod && !isClaimedPromo) ? '#FFFFFF' : '#CBD5E1', fontFamily: 'monospace' }}>
                           +{platformBonusPercent}% SC
                         </div>
                       </button>
@@ -1389,7 +1589,11 @@ export default function DepositPage() {
                     {/* Applied Bonus */}
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px' }}>
                       <span style={{ color: '#94A3B8' }}>
-                        Bonus ({appliedBonusPercent}% {isMethod ? 'Gateway' : 'Match'}):
+                        {isClaimedPromo ? (
+                          <span style={{ color: '#FB923C', fontWeight: 800 }}>🎁 {claimedPromo.title}:</span>
+                        ) : (
+                          `Bonus (${appliedBonusPercent}% ${isMethod ? 'Gateway' : 'Match'}):`
+                        )}
                       </span>
                       <strong style={{ color: '#10B981', fontFamily: 'monospace', fontSize: '13px' }}>
                         +${appliedBonusSC} SC
