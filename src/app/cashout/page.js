@@ -33,6 +33,7 @@ import LiveChatWidget from '@/components/LiveChatWidget';
 import AuthModal from '@/components/AuthModal';
 import { compressImage } from '@/lib/imageCompressor';
 import { useAuthSession } from '@/lib/clientAuth';
+import { getGameLogo } from '@/lib/gameLogos';
 
 export default function CashoutPage() {
   const router = useRouter();
@@ -42,20 +43,20 @@ export default function CashoutPage() {
 
   // Available Games
   const defaultCashoutGames = [
-    { id: 'fire_kirin', title: 'Fire Kirin', logo: '/images/fire-kirin.webp' },
+    { id: 'fire_kirin', title: 'Fire Kirin', logo: '/images/games/fire-kirin.jpg' },
+    { id: 'juwa', title: 'JUWA 777', logo: '/images/games/juwa.jpg' },
+    { id: 'game_vault', title: 'Game Vault 999', logo: '/images/games/game-vault.jpg' },
+    { id: 'milky_way', title: 'Milkyway', logo: '/images/games/milky-way.jpg' },
+    { id: 'orion_stars', title: 'Orion Stars', logo: '/images/games/orion-stars.jpg' },
+    { id: 'ultra_panda', title: 'Ultra Panda', logo: '/images/ultra-panda.jpg' },
+    { id: 'panda_master', title: 'Panda Master', logo: '/images/games/panda-master.jpg' },
+    { id: 'vblink', title: 'VBlink 777', logo: '/images/games/v-blink.jpg' },
+    { id: 'golden_dragon', title: 'Golden Dragon', logo: '/images/games/golden-dragon.jpg' },
+    { id: 'riversweeps', title: 'Riversweeps', logo: '/images/games/river-sweeps.jpg' },
     { id: 'vegas_sweeps', title: 'Vegas Sweeps', logo: '/images/vegas-777.webp' },
-    { id: 'juwa', title: 'JUWA 777', logo: '/images/juwa-777.webp' },
-    { id: 'game_vault', title: 'Game Vault 999', logo: '/images/game-vault.webp' },
-    { id: 'milky_way', title: 'Milkyway', logo: '/images/milky-way.webp' },
-    { id: 'orion_stars', title: 'Orion Stars', logo: '/images/orion-stars.webp' },
-    { id: 'ultra_panda', title: 'Ultra Panda', logo: '/images/ultra-panda.webp' },
-    { id: 'panda_master', title: 'Panda Master', logo: '/images/ultra-panda.webp' },
-    { id: 'dragon_city', title: 'Dragon City', logo: '/images/fire-kirin.webp' },
-    { id: 'vblink', title: 'VBlink 777', logo: '/images/game-vault.webp' },
-    { id: 'riversweeps', title: 'Riversweeps', logo: '/images/orion-stars.webp' },
-    { id: 'golden_dragon', title: 'Golden Dragon', logo: '/images/fire-kirin.webp' },
+    { id: 'high_roller', title: 'High Roller VIP', logo: '/images/games/juwa-2.jpg' },
+    { id: 'dragon_city', title: 'Dragon City', logo: '/images/games/golden-dragon.jpg' },
     { id: 'vegas_777', title: 'Vegas 777', logo: '/images/vegas-777.webp' },
-    { id: 'high_roller', title: 'High Roller VIP', logo: '/images/juwa-777.webp' },
   ];
   const [gameList, setGameList] = useState(defaultCashoutGames);
   const [isGameDropdownOpen, setIsGameDropdownOpen] = useState(false);
@@ -108,11 +109,14 @@ export default function CashoutPage() {
       if (data.success && Array.isArray(data.games)) {
         const dynamicGames = data.games
           .filter((g) => Boolean(g && (g.title || g.name)))
-          .map((g) => ({
-            id: g._id || g.id,
-            title: String(g.title || g.name || '').trim(),
-            logo: g.thumbnail || g.image || g.logo || '/images/fire-kirin.webp',
-          }));
+          .map((g) => {
+            const gTitle = String(g.title || g.name || '').trim();
+            return {
+              id: g._id || g.id,
+              title: gTitle,
+              logo: g.thumbnail || g.image || g.logo || getGameLogo(gTitle),
+            };
+          });
         setGameList((prev) => {
           const existingNames = new Set(prev.map((p) => String(p?.title || p?.name || '').toLowerCase()));
           const newOnes = dynamicGames.filter((d) => Boolean(d.title) && !existingNames.has(d.title.toLowerCase()));
@@ -689,7 +693,7 @@ export default function CashoutPage() {
                 <form onSubmit={handleRedeemSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
                   {/* Step 1: Select Game Platform (WinningHeaven Style Dropdown Selector) */}
                   {(() => {
-                    const currentSelectedGameObj = gameList.find(g => String(g?.title || g?.name || '').toLowerCase() === String(gameTitle || '').toLowerCase()) || gameList[0] || { title: gameTitle || 'Fire Kirin', logo: '/images/fire-kirin.webp' };
+                    const currentSelectedGameObj = gameList.find(g => String(g?.title || g?.name || '').toLowerCase() === String(gameTitle || '').toLowerCase()) || gameList[0] || { title: gameTitle || 'Fire Kirin', logo: getGameLogo(gameTitle) };
                     const filteredGames = gameList.filter(g => String(g?.title || g?.name || '').toLowerCase().includes(String(gameSearchQuery || '').toLowerCase()));
                     const matchedAccount = playerGameAccounts.find(
                       acc =>
@@ -739,8 +743,9 @@ export default function CashoutPage() {
                                 }}
                               >
                                 <img
-                                  src={currentSelectedGameObj.logo || currentSelectedGameObj.thumbnail || currentSelectedGameObj.image || '/images/fire-kirin.webp'}
+                                  src={currentSelectedGameObj.logo || getGameLogo(currentSelectedGameObj.title || currentSelectedGameObj.name)}
                                   alt={currentSelectedGameObj.title || currentSelectedGameObj.name}
+                                  onError={(e) => { e.currentTarget.src = getGameLogo(currentSelectedGameObj.title || currentSelectedGameObj.name); }}
                                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                 />
                               </div>
@@ -891,8 +896,9 @@ export default function CashoutPage() {
                                             }}
                                           >
                                             <img
-                                              src={g.logo || g.thumbnail || g.image || '/images/fire-kirin.webp'}
+                                              src={g.logo || getGameLogo(gName)}
                                               alt={gName}
+                                              onError={(e) => { e.currentTarget.src = getGameLogo(gName); }}
                                               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                             />
                                           </div>

@@ -38,6 +38,7 @@ import VegasRunningPromos from '@/components/player/VegasRunningPromos';
 import { compressImage } from '@/lib/imageCompressor';
 import { useAuthSession } from '@/lib/clientAuth';
 import { broadcastAdminAlert } from '@/lib/broadcastAlert';
+import { getGameLogo } from '@/lib/gameLogos';
 
 export default function DepositPage() {
   const router = useRouter();
@@ -61,20 +62,20 @@ export default function DepositPage() {
   const [gameSearchQuery, setGameSearchQuery] = useState('');
 
   const defaultPlatformGames = [
-    { id: 'fire_kirin', name: 'Fire Kirin', logo: '/images/fire-kirin.webp' },
+    { id: 'fire_kirin', name: 'Fire Kirin', logo: '/images/games/fire-kirin.jpg' },
+    { id: 'juwa', name: 'JUWA 777', logo: '/images/games/juwa.jpg' },
+    { id: 'game_vault', name: 'Game Vault 999', logo: '/images/games/game-vault.jpg' },
+    { id: 'milky_way', name: 'Milkyway', logo: '/images/games/milky-way.jpg' },
+    { id: 'orion_stars', name: 'Orion Stars', logo: '/images/games/orion-stars.jpg' },
+    { id: 'ultra_panda', name: 'Ultra Panda', logo: '/images/ultra-panda.jpg' },
+    { id: 'panda_master', name: 'Panda Master', logo: '/images/games/panda-master.jpg' },
+    { id: 'vblink', name: 'VBlink 777', logo: '/images/games/v-blink.jpg' },
+    { id: 'golden_dragon', name: 'Golden Dragon', logo: '/images/games/golden-dragon.jpg' },
+    { id: 'riversweeps', name: 'Riversweeps', logo: '/images/games/river-sweeps.jpg' },
     { id: 'vegas_sweeps', name: 'Vegas Sweeps', logo: '/images/vegas-777.webp' },
-    { id: 'juwa', name: 'JUWA 777', logo: '/images/juwa-777.webp' },
-    { id: 'game_vault', name: 'Game Vault 999', logo: '/images/game-vault.webp' },
-    { id: 'milky_way', name: 'Milkyway', logo: '/images/milky-way.webp' },
-    { id: 'orion_stars', name: 'Orion Stars', logo: '/images/orion-stars.webp' },
-    { id: 'ultra_panda', name: 'Ultra Panda', logo: '/images/ultra-panda.webp' },
-    { id: 'panda_master', name: 'Panda Master', logo: '/images/ultra-panda.webp' },
-    { id: 'dragon_city', name: 'Dragon City', logo: '/images/fire-kirin.webp' },
-    { id: 'vblink', name: 'VBlink 777', logo: '/images/game-vault.webp' },
-    { id: 'riversweeps', name: 'Riversweeps', logo: '/images/orion-stars.webp' },
-    { id: 'golden_dragon', name: 'Golden Dragon', logo: '/images/fire-kirin.webp' },
+    { id: 'high_roller', name: 'High Roller VIP', logo: '/images/games/juwa-2.jpg' },
+    { id: 'dragon_city', name: 'Dragon City', logo: '/images/games/golden-dragon.jpg' },
     { id: 'vegas_777', name: 'Vegas 777', logo: '/images/vegas-777.webp' },
-    { id: 'high_roller', name: 'High Roller VIP', logo: '/images/juwa-777.webp' },
   ];
   const [platformGames, setPlatformGames] = useState(defaultPlatformGames);
 
@@ -86,11 +87,14 @@ export default function DepositPage() {
         if (data.success && Array.isArray(data.games)) {
           const dynamicGames = data.games
             .filter((g) => Boolean(g && (g.name || g.title)))
-            .map((g) => ({
-              id: g._id || g.id,
-              name: String(g.name || g.title || '').trim(),
-              logo: g.thumbnail || g.image || g.logo || '/images/game-vault.webp',
-            }));
+            .map((g) => {
+              const gName = String(g.name || g.title || '').trim();
+              return {
+                id: g._id || g.id,
+                name: gName,
+                logo: g.thumbnail || g.image || g.logo || getGameLogo(gName),
+              };
+            });
           setPlatformGames((prev) => {
             const existingNames = new Set(prev.map((p) => String(p?.name || '').toLowerCase()));
             const newOnes = dynamicGames.filter((d) => Boolean(d.name) && !existingNames.has(d.name.toLowerCase()));
@@ -353,7 +357,7 @@ export default function DepositPage() {
   const appliedTotalSC = isMethod ? methodTotalSC : platformTotalSC;
   const totalGC = (depositAmount * 10000).toLocaleString();
 
-  const currentSelectedGameObj = platformGames.find(g => String(g?.name || '').toLowerCase() === String(selectedGame || '').toLowerCase()) || platformGames[0] || { name: selectedGame || 'Juwa 777', logo: '/images/fire-kirin.webp' };
+  const currentSelectedGameObj = platformGames.find(g => String(g?.name || '').toLowerCase() === String(selectedGame || '').toLowerCase()) || { name: selectedGame || 'JUWA 777', logo: getGameLogo(selectedGame) };
   const filteredPlatformGames = platformGames.filter(g => String(g?.name || '').toLowerCase().includes(String(gameSearchQuery || '').toLowerCase()));
   const matchedGameAccount = playerGameAccounts.find(
     acc =>
@@ -628,7 +632,59 @@ export default function DepositPage() {
                     </span>
                   </div>
 
-                  {/* Dropdown Container */}
+                  {/* Top Popular Platforms Quick Selector with Full Logos */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(135px, 1fr))', gap: '8px', marginBottom: '12px' }}>
+                    {[
+                      { name: 'Fire Kirin', logo: '/images/games/fire-kirin.jpg' },
+                      { name: 'JUWA 777', logo: '/images/games/juwa.jpg' },
+                      { name: 'Game Vault 999', logo: '/images/games/game-vault.jpg' },
+                      { name: 'Milkyway', logo: '/images/games/milky-way.jpg' },
+                      { name: 'Orion Stars', logo: '/images/games/orion-stars.jpg' },
+                      { name: 'Ultra Panda', logo: '/images/ultra-panda.jpg' },
+                    ].map((fp) => {
+                      const isSel = String(selectedGame || '').toLowerCase().includes(fp.name.toLowerCase().split(' ')[0]);
+                      return (
+                        <div
+                          key={fp.name}
+                          onClick={() => {
+                            setSelectedGame(fp.name);
+                            setIsGameDropdownOpen(false);
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '7px 9px',
+                            borderRadius: '12px',
+                            backgroundColor: isSel ? 'rgba(251, 191, 36, 0.16)' : '#070514',
+                            border: isSel ? '1.5px solid #FBBF24' : '1px solid rgba(255, 255, 255, 0.08)',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                            boxShadow: isSel ? '0 0 12px rgba(251, 191, 36, 0.25)' : 'none',
+                          }}
+                        >
+                          <div style={{ width: '34px', height: '34px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, backgroundColor: '#000', border: isSel ? '1.5px solid #FBBF24' : '1px solid rgba(255, 255, 255, 0.12)' }}>
+                            <img
+                              src={fp.logo}
+                              alt={fp.name}
+                              onError={(e) => { e.currentTarget.src = getGameLogo(fp.name); }}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                          </div>
+                          <div style={{ minWidth: 0, overflow: 'hidden' }}>
+                            <div style={{ fontSize: '11.5px', fontWeight: 800, color: isSel ? '#FBBF24' : '#FFFFFF', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', fontFamily: 'Lexend, sans-serif' }}>
+                              {fp.name}
+                            </div>
+                            <div style={{ fontSize: '9px', color: isSel ? '#FDE68A' : '#94A3B8' }}>
+                              {isSel ? '✓ Selected' : 'Tap to load'}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Dropdown Container for All Platforms */}
                   <div
                     style={{
                       backgroundColor: '#070514',
@@ -654,18 +710,19 @@ export default function DepositPage() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <div
                           style={{
-                            width: '36px',
-                            height: '36px',
+                            width: '38px',
+                            height: '38px',
                             borderRadius: '8px',
                             overflow: 'hidden',
-                            border: '1px solid rgba(251, 191, 36, 0.5)',
+                            border: '1.5px solid rgba(251, 191, 36, 0.6)',
                             backgroundColor: '#000000',
                             flexShrink: 0,
                           }}
                         >
                           <img
-                            src={currentSelectedGameObj.logo}
+                            src={currentSelectedGameObj.logo || getGameLogo(currentSelectedGameObj.name)}
                             alt={currentSelectedGameObj.name}
+                            onError={(e) => { e.currentTarget.src = getGameLogo(currentSelectedGameObj.name); }}
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                           />
                         </div>
@@ -673,7 +730,7 @@ export default function DepositPage() {
                           <h4 style={{ margin: 0, fontSize: '14px', fontFamily: 'Lexend, sans-serif', fontWeight: 900, color: '#FFFFFF' }}>
                             {currentSelectedGameObj.name}
                           </h4>
-                          <span style={{ fontSize: '10.5px', color: '#94A3B8' }}>Click to switch destination</span>
+                          <span style={{ fontSize: '10.5px', color: '#94A3B8' }}>Click to view or search all platforms</span>
                         </div>
                       </div>
 
@@ -738,7 +795,7 @@ export default function DepositPage() {
                           )}
                         </div>
 
-                        <div style={{ maxHeight: '220px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                        <div style={{ maxHeight: '220px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                           {filteredPlatformGames.map((g) => {
                             const isCurrent = String(selectedGame || '').toLowerCase() === String(g?.name || '').toLowerCase();
                             return (
@@ -761,9 +818,14 @@ export default function DepositPage() {
                                 }}
                                 className="hover:bg-white/5"
                               >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  <div style={{ width: '28px', height: '28px', borderRadius: '6px', overflow: 'hidden', backgroundColor: '#000' }}>
-                                    <img src={g.logo} alt={g.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                  <div style={{ width: '32px', height: '32px', borderRadius: '6px', overflow: 'hidden', backgroundColor: '#000', border: '1px solid rgba(255, 255, 255, 0.1)', flexShrink: 0 }}>
+                                    <img
+                                      src={g.logo || getGameLogo(g.name)}
+                                      alt={g.name}
+                                      onError={(e) => { e.currentTarget.src = getGameLogo(g.name); }}
+                                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    />
                                   </div>
                                   <span style={{ fontSize: '12.5px', fontWeight: isCurrent ? 800 : 600, color: isCurrent ? '#FBBF24' : '#FFFFFF' }}>
                                     {g.name}
@@ -1305,8 +1367,13 @@ export default function DepositPage() {
                     {/* Destination Platform */}
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '12px' }}>
                       <span style={{ color: '#94A3B8' }}>Destination Platform:</span>
-                      <strong style={{ color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ color: '#FBBF24' }}>🎮</span>
+                      <strong style={{ color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <img
+                          src={currentSelectedGameObj.logo || getGameLogo(selectedGame)}
+                          alt={selectedGame}
+                          onError={(e) => { e.currentTarget.src = getGameLogo(selectedGame); }}
+                          style={{ width: '22px', height: '22px', borderRadius: '5px', objectFit: 'cover', border: '1px solid rgba(251, 191, 36, 0.4)' }}
+                        />
                         <span>{selectedGame}</span>
                       </strong>
                     </div>
