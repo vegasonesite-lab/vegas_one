@@ -26,9 +26,53 @@ function playNotificationChime() {
   } catch {}
 }
 
+function sanitizeUrl(url) {
+  if (!url || typeof url !== 'string') return '/deposit';
+  const clean = url.trim();
+  if (clean === '/wallet' || clean.startsWith('/wallet?')) return clean.replace('/wallet', '/deposit');
+  if (clean === '/vault' || clean.startsWith('/vault?')) return clean.replace('/vault', '/accounts');
+  return clean || '/deposit';
+}
+
 export default function PushNotificationManager() {
   const [activeToast, setActiveToast] = useState(null);
   const seenIdsRef = useRef(new Set());
+
+  const triggerBanner = (title, message, rawUrl = '/deposit') => {
+    const url = sanitizeUrl(rawUrl);
+    playNotificationChime();
+    setActiveToast({ title, message, url });
+
+    // Show native system status bar / lock screen notification if permitted
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      const options = {
+        body: message,
+        icon: '/icons/icon-192.png',
+        badge: '/icons/icon-192.png',
+        vibrate: [200, 100, 200],
+        tag: 'vegas_alert_' + Date.now(),
+        renotify: true,
+        data: { url },
+      };
+
+      // ServiceWorker showNotification is MANDATORY on Android Chrome
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready
+          .then((reg) => {
+            reg.showNotification(title, options);
+          })
+          .catch(() => {
+            try {
+              new Notification(title, options);
+            } catch {}
+          });
+      } else {
+        try {
+          new Notification(title, options);
+        } catch {}
+      }
+    }
+  };
 
   // 1. Setup Push Registration (Capacitor & Web Browser)
   useEffect(() => {
@@ -80,12 +124,14 @@ export default function PushNotificationManager() {
           PushNotifications.addListener('pushNotificationReceived', (notification) => {
             const title = notification.title || 'Vegas One Alert';
             const message = notification.body || notification.message || '';
-            triggerBanner(title, message, notification.data?.url || '/wallet');
+            const rawUrl = notification.data?.url || '/deposit';
+            triggerBanner(title, message, sanitizeUrl(rawUrl));
           });
 
           // 4. User clicked / tapped notification from tray or lock-screen
           PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
-            const url = notification.notification?.data?.url || '/wallet';
+            const rawUrl = notification.notification?.data?.url || '/deposit';
+            const url = sanitizeUrl(rawUrl);
             if (url && typeof window !== 'undefined') {
               window.location.href = url;
             }
@@ -118,41 +164,6 @@ export default function PushNotificationManager() {
     });
   }, []);
 
-  const triggerBanner = (title, message, url = '/wallet') => {
-    playNotificationChime();
-    setActiveToast({ title, message, url });
-
-    // Show native system status bar / lock screen notification if permitted
-    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-      const options = {
-        body: message,
-        icon: '/icons/icon-192.png',
-        badge: '/icons/icon-192.png',
-        vibrate: [200, 100, 200],
-        tag: 'vegas_alert_' + Date.now(),
-        renotify: true,
-        data: { url },
-      };
-
-      // ServiceWorker showNotification is MANDATORY on Android Chrome
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready
-          .then((reg) => {
-            reg.showNotification(title, options);
-          })
-          .catch(() => {
-            try {
-              new Notification(title, options);
-            } catch {}
-          });
-      } else {
-        try {
-          new Notification(title, options);
-        } catch {}
-      }
-    }
-  };
-
   // 2. Real-time Notification Listener (Polls every 5s for live notifications)
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -182,7 +193,7 @@ export default function PushNotificationManager() {
               try {
                 localStorage.setItem('vegas_last_shown_notif', notif.id);
               } catch {}
-              triggerBanner(notif.title, notif.message, notif.url || '/wallet');
+              triggerBanner(notif.title, notif.message, notif.url || '/deposit');
               break;
             } else {
               seenIdsRef.current.add(notif.id);

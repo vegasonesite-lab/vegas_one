@@ -23,7 +23,14 @@ import {
   Calendar,
   Layers,
   ArrowRight,
-  Pencil
+  Pencil,
+  Radio,
+  Globe,
+  Bell,
+  Zap,
+  Link2,
+  Users,
+  ShieldCheck,
 } from 'lucide-react';
 
 const QUICK_TAGS = [
@@ -102,7 +109,7 @@ export default function PromotionsManager() {
   const [pushBody, setPushBody] = useState('');
   const [pushChannel, setPushChannel] = useState('all');
   const [pushSegment, setPushSegment] = useState('all');
-  const [pushActionUrl, setPushActionUrl] = useState('/wallet');
+  const [pushActionUrl, setPushActionUrl] = useState('/deposit');
   const [isDispatchingPush, setIsDispatchingPush] = useState(false);
   const [pushStatus, setPushStatus] = useState(null);
   const [broadcastLogs, setBroadcastLogs] = useState([]);
@@ -358,6 +365,10 @@ export default function PromotionsManager() {
     setPushStatus(null);
 
     try {
+      let cleanUrl = (pushActionUrl || '/deposit').trim();
+      if (cleanUrl === '/wallet' || cleanUrl.startsWith('/wallet?')) cleanUrl = cleanUrl.replace('/wallet', '/deposit');
+      if (cleanUrl === '/vault' || cleanUrl.startsWith('/vault?')) cleanUrl = cleanUrl.replace('/vault', '/accounts');
+
       const res = await fetch('/api/notifications', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -366,7 +377,7 @@ export default function PromotionsManager() {
           message: pushBody,
           channel: pushChannel,
           segment: pushSegment,
-          url: pushActionUrl,
+          url: cleanUrl,
           target: pushSegment === 'all' ? 'all' : 'active',
         }),
       });
@@ -952,178 +963,365 @@ export default function PromotionsManager() {
       {/* ======================================================== */}
       {activeSubTab === 'broadcasts' && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Left: Broadcast Composer (7 cols) */}
-            <div className="lg:col-span-7 bg-[#0C0A1E] border border-cyan-500/20 p-6 rounded-2xl space-y-4 shadow-xl">
-              <div className="flex items-center justify-between pb-3 border-b border-cyan-500/15">
-                <div className="flex items-center gap-2">
-                  <Megaphone size={16} className="text-cyan-400" />
-                  <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                    Omnichannel Dispatcher
-                  </h3>
+            <div
+              className="lg:col-span-7 p-6 sm:p-7 rounded-3xl space-y-5 relative overflow-hidden"
+              style={{
+                background: 'linear-gradient(145deg, rgba(16, 12, 42, 0.95) 0%, rgba(8, 6, 24, 0.98) 100%)',
+                border: '1.5px solid rgba(0, 240, 255, 0.35)',
+                boxShadow: '0 25px 60px rgba(0, 0, 0, 0.8), 0 0 35px rgba(0, 240, 255, 0.12)',
+              }}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between pb-4 border-b border-cyan-500/20">
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(0, 240, 255, 0.25), rgba(224, 38, 216, 0.25))',
+                      border: '1px solid rgba(0, 240, 255, 0.5)',
+                      boxShadow: '0 0 16px rgba(0, 240, 255, 0.3)',
+                    }}
+                  >
+                    <Megaphone size={19} className="text-cyan-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                      <span>Omnichannel Dispatcher</span>
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-cyan-500/20 text-cyan-300 border border-cyan-400/40">
+                        V2 ULTRA
+                      </span>
+                    </h3>
+                    <p className="text-[11px] text-gray-400 mt-0.5">
+                      Sync instant push alerts to mobile devices, web browsers &amp; in-app feed
+                    </p>
+                  </div>
                 </div>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  Live Engine
-                </span>
+
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 flex items-center gap-1.5 shadow-[0_0_12px_rgba(16,185,129,0.3)]">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    LIVE ENGINE
+                  </span>
+                </div>
               </div>
 
-              <form onSubmit={handleDispatchBroadcast} className="space-y-3.5">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <form onSubmit={handleDispatchBroadcast} className="space-y-4">
+                {/* Target Channel & Player Segment Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div>
-                    <label className="text-[11px] font-bold text-gray-300 block mb-1">
-                      Broadcast Target Channel
+                    <label className="text-[11px] font-bold text-gray-200 block mb-1.5 flex items-center gap-1.5">
+                      <Globe size={13} className="text-cyan-400" />
+                      <span>Broadcast Target Channel</span>
                     </label>
-                    <select
-                      className="w-full bg-[#060412] border border-cyan-500/25 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/30 rounded-xl p-2.5 text-xs text-white focus:outline-none transition"
-                      value={pushChannel}
-                      onChange={(e) => setPushChannel(e.target.value)}
-                    >
-                      <option value="all">🌐 Omnichannel (Push + Email + In-App)</option>
-                      <option value="push">📱 Mobile Push Notifications Only</option>
-                      <option value="email">📧 Player Email Broadcast Only</option>
-                      <option value="in_app">🔔 In-App Notification Banner Only</option>
-                      <option value="facebook">🔵 Facebook VIP Community Drop Announcement</option>
-                    </select>
+                    <div className="relative">
+                      <select
+                        className="w-full bg-[#070516] border border-cyan-500/30 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 rounded-xl py-2.5 px-3 text-xs text-white focus:outline-none transition appearance-none cursor-pointer font-medium"
+                        value={pushChannel}
+                        onChange={(e) => setPushChannel(e.target.value)}
+                        style={{
+                          boxShadow: 'inset 0 2px 6px rgba(0, 0, 0, 0.6)',
+                        }}
+                      >
+                        <option value="all">🌐 Omnichannel (Push + Email + In-App)</option>
+                        <option value="push">📱 Mobile Push Notifications Only</option>
+                        <option value="email">📧 Player Email Broadcast Only</option>
+                        <option value="in_app">🔔 In-App Notification Bell Only</option>
+                        <option value="facebook">🔵 Facebook VIP Community Drop Alert</option>
+                      </select>
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-cyan-400 text-xs">
+                        ▼
+                      </span>
+                    </div>
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-bold text-gray-300 block mb-1">
-                      Target Player Segment
+                    <label className="text-[11px] font-bold text-gray-200 block mb-1.5 flex items-center gap-1.5">
+                      <Users size={13} className="text-purple-400" />
+                      <span>Target Player Segment</span>
                     </label>
-                    <select
-                      className="w-full bg-[#060412] border border-cyan-500/25 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/30 rounded-xl p-2.5 text-xs text-white focus:outline-none transition"
-                      value={pushSegment}
-                      onChange={(e) => setPushSegment(e.target.value)}
-                    >
-                      <option value="all">👥 All Registered Players</option>
-                      <option value="active">💳 Active Depositors Only</option>
-                      <option value="vip">👑 Tier II &amp; VIP Players Only</option>
-                    </select>
+                    <div className="relative">
+                      <select
+                        className="w-full bg-[#070516] border border-purple-500/30 focus:border-purple-400 focus:ring-2 focus:ring-purple-400/30 rounded-xl py-2.5 px-3 text-xs text-white focus:outline-none transition appearance-none cursor-pointer font-medium"
+                        value={pushSegment}
+                        onChange={(e) => setPushSegment(e.target.value)}
+                        style={{
+                          boxShadow: 'inset 0 2px 6px rgba(0, 0, 0, 0.6)',
+                        }}
+                      >
+                        <option value="all">👥 All Registered Players</option>
+                        <option value="active">💳 Active Depositors Only</option>
+                        <option value="vip">👑 Tier II &amp; VIP High Rollers Only</option>
+                      </select>
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-purple-400 text-xs">
+                        ▼
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Quick Tag Buttons */}
+                {/* Broadcast Headline with Luxury Preset Chips */}
                 <div>
-                  <label className="text-[11px] font-bold text-gray-300 block mb-1.5">
-                    Broadcast Headline
-                  </label>
-                  <div className="flex items-center gap-1.5 mb-2 overflow-x-auto pb-1 no-scrollbar">
-                    <span className="text-[10px] font-bold text-gray-500 shrink-0">Quick Tag:</span>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-[11px] font-bold text-gray-200 flex items-center gap-1.5">
+                      <Zap size={13} className="text-amber-400" />
+                      <span>Broadcast Headline</span>
+                    </label>
+                    <span className="text-[10px] text-gray-400 font-mono">
+                      {pushTitle.length}/80 chars
+                    </span>
+                  </div>
+
+                  {/* Aesthetic Quick Tag Chips */}
+                  <div className="flex items-center gap-1.5 mb-2.5 overflow-x-auto pb-1.5 no-scrollbar">
+                    <span className="text-[10px] font-bold text-gray-500 shrink-0 uppercase tracking-wider">
+                      Quick Tag:
+                    </span>
                     {[
-                      '⚡ FLASH DROP:',
-                      '🎁 FREE BONUS:',
-                      '🔥 300% BOOST:',
-                      '🎰 JACKPOT ALERT:',
-                      '👑 VIP DROP:',
-                      '📢 SYSTEM NOTICE:',
-                    ].map((tagText, idx) => (
+                      { tag: '⚡ FLASH DROP:', color: 'from-amber-400/20 to-yellow-500/20 text-yellow-300 border-amber-400/40 hover:border-amber-400' },
+                      { tag: '🎁 FREE BONUS:', color: 'from-pink-500/20 to-fuchsia-600/20 text-pink-300 border-pink-500/40 hover:border-pink-400' },
+                      { tag: '🔥 300% BOOST:', color: 'from-orange-500/20 to-red-600/20 text-orange-300 border-orange-500/40 hover:border-orange-400' },
+                      { tag: '🎰 JACKPOT ALERT:', color: 'from-emerald-500/20 to-teal-600/20 text-emerald-300 border-emerald-500/40 hover:border-emerald-400' },
+                      { tag: '👑 VIP DROP:', color: 'from-purple-500/20 to-indigo-600/20 text-purple-300 border-purple-500/40 hover:border-purple-400' },
+                      { tag: '📢 SYSTEM NOTICE:', color: 'from-cyan-500/20 to-blue-600/20 text-cyan-300 border-cyan-500/40 hover:border-cyan-400' },
+                    ].map((item, idx) => (
                       <button
                         key={idx}
                         type="button"
-                        onClick={() => setPushTitle(prev => (prev ? `${tagText} ${prev}` : `${tagText} `))}
-                        className="shrink-0 px-2 py-0.5 rounded-md bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/25 hover:border-cyan-400/50 text-cyan-300 hover:text-white text-[10px] font-bold transition cursor-pointer"
+                        onClick={() => {
+                          const existingTags = ['⚡ FLASH DROP:', '🎁 FREE BONUS:', '🔥 300% BOOST:', '🎰 JACKPOT ALERT:', '👑 VIP DROP:', '📢 SYSTEM NOTICE:'];
+                          let cleanPrev = pushTitle;
+                          for (const t of existingTags) {
+                            cleanPrev = cleanPrev.replace(t, '').trim();
+                          }
+                          setPushTitle(`${item.tag} ${cleanPrev}`.trim());
+                        }}
+                        className={`shrink-0 px-2.5 py-1 rounded-lg bg-gradient-to-r ${item.color} border text-[10.5px] font-bold transition-all duration-200 cursor-pointer shadow-sm hover:scale-105 active:scale-95`}
                       >
-                        {tagText}
+                        {item.tag}
                       </button>
                     ))}
                   </div>
+
                   <input
                     type="text"
                     placeholder="e.g. ⚡ FLASH DROP: Free $10 SC Drop on Facebook Group!"
                     value={pushTitle}
                     onChange={(e) => setPushTitle(e.target.value)}
-                    className="w-full bg-[#060412] border border-cyan-500/25 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/30 rounded-xl p-3 text-xs text-white placeholder-gray-500 focus:outline-none transition"
+                    maxLength={100}
+                    className="w-full bg-[#070516] border border-cyan-500/30 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 rounded-xl p-3 text-xs text-white placeholder-gray-500 focus:outline-none transition font-medium"
+                    style={{ boxShadow: 'inset 0 2px 6px rgba(0, 0, 0, 0.6)' }}
                   />
                 </div>
 
+                {/* Message Body & Details */}
                 <div>
-                  <label className="text-[11px] font-bold text-gray-300 block mb-1">
-                    Message Body &amp; Details
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-[11px] font-bold text-gray-200 flex items-center gap-1.5">
+                      <Bell size={13} className="text-cyan-400" />
+                      <span>Message Body &amp; Details</span>
+                    </label>
+                    <span className="text-[10px] text-gray-400 font-mono">
+                      {pushBody.length}/240 chars
+                    </span>
+                  </div>
                   <textarea
                     rows="3"
+                    maxLength={280}
                     placeholder="e.g. Log in now to claim your exclusive VIP loyalty bonus or follow our Facebook VIP group for the drop announcement!..."
                     value={pushBody}
                     onChange={(e) => setPushBody(e.target.value)}
-                    className="w-full bg-[#060412] border border-cyan-500/25 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/30 rounded-xl p-3 text-xs text-white placeholder-gray-500 focus:outline-none transition"
+                    className="w-full bg-[#070516] border border-cyan-500/30 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 rounded-xl p-3 text-xs text-white placeholder-gray-500 focus:outline-none transition leading-relaxed"
+                    style={{ boxShadow: 'inset 0 2px 6px rgba(0, 0, 0, 0.6)' }}
                   />
                 </div>
 
+                {/* Deep Link / Action URL with 1-Click Destination Presets */}
                 <div>
-                  <label className="text-[11px] font-bold text-gray-300 block mb-1">
-                    Deep Link / Action URL
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-[11px] font-bold text-gray-200 flex items-center gap-1.5">
+                      <Link2 size={13} className="text-cyan-400" />
+                      <span>Deep Link / Action URL</span>
+                      <span className="text-[10px] text-emerald-400 font-normal">
+                        (Target page when clicked)
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* One-Click Presets */}
+                  <div className="flex items-center gap-1.5 mb-2 overflow-x-auto pb-1 no-scrollbar">
+                    <span className="text-[10px] font-bold text-gray-500 shrink-0">Preset:</span>
+                    {[
+                      { label: '💳 Cashier (/deposit)', url: '/deposit' },
+                      { label: '🎁 Promos (/promotions)', url: '/promotions' },
+                      { label: '🎮 Game Vault (/accounts)', url: '/accounts' },
+                      { label: '👥 VIP Referrals (/referrals)', url: '/referrals' },
+                      { label: '🏠 Main Lobby (/)', url: '/' },
+                    ].map((dest, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setPushActionUrl(dest.url)}
+                        className={`shrink-0 px-2.5 py-1 rounded-lg text-[10.5px] font-bold transition-all border cursor-pointer ${
+                          pushActionUrl === dest.url
+                            ? 'bg-cyan-500/25 border-cyan-400 text-cyan-300 shadow-[0_0_10px_rgba(0,240,255,0.3)]'
+                            : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                        }`}
+                      >
+                        {dest.label}
+                      </button>
+                    ))}
+                  </div>
+
                   <input
                     type="text"
                     value={pushActionUrl}
                     onChange={(e) => setPushActionUrl(e.target.value)}
-                    placeholder="e.g. /wallet, /promotions, or https://facebook.com/groups/..."
-                    className="w-full bg-[#060412] border border-cyan-500/25 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/30 rounded-xl p-2.5 text-xs text-white placeholder-gray-500 focus:outline-none transition font-mono"
+                    placeholder="e.g. /deposit, /promotions, or https://facebook.com/groups/..."
+                    className="w-full bg-[#070516] border border-cyan-500/30 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/30 rounded-xl py-2.5 px-3 text-xs text-white placeholder-gray-500 focus:outline-none transition font-mono"
+                    style={{ boxShadow: 'inset 0 2px 6px rgba(0, 0, 0, 0.6)' }}
                   />
                 </div>
 
+                {/* Dispatch Button & Status */}
                 <div className="pt-2 flex items-center justify-between gap-3 flex-wrap">
                   <button
                     type="submit"
                     disabled={isDispatchingPush || !pushTitle.trim() || !pushBody.trim()}
-                    className="py-3 px-6 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black text-xs font-black uppercase flex items-center gap-2 shadow-lg hover:scale-105 transition disabled:opacity-50"
+                    className="py-3 px-7 rounded-xl text-black text-xs font-black uppercase tracking-wider flex items-center gap-2.5 shadow-xl transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+                    style={{
+                      background: 'linear-gradient(135deg, #00F0FF 0%, #3B82F6 50%, #E026D8 100%)',
+                      boxShadow: '0 8px 25px rgba(0, 240, 255, 0.4), 0 0 15px rgba(224, 38, 216, 0.3)',
+                    }}
                   >
                     {isDispatchingPush ? (
-                      <RefreshCw size={14} className="animate-spin" />
+                      <RefreshCw size={15} className="animate-spin text-black" />
                     ) : (
-                      <Send size={14} />
+                      <Send size={15} className="text-black" />
                     )}
                     <span>Dispatch Multi-Channel Broadcast</span>
                   </button>
+
                   {pushStatus && (
-                    <p className="text-xs text-emerald-400 font-bold animate-in fade-in">
-                      {pushStatus}
-                    </p>
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold animate-in fade-in">
+                      <CheckCircle2 size={14} />
+                      <span>{pushStatus}</span>
+                    </div>
                   )}
                 </div>
               </form>
             </div>
 
             {/* Right: Live Mobile Push Notification Preview (5 cols) */}
-            <div className="lg:col-span-5 flex flex-col justify-between p-6 rounded-2xl bg-gradient-to-b from-[#130d2d] to-[#070518] border border-white/10 shadow-xl">
+            <div
+              className="lg:col-span-5 flex flex-col justify-between p-6 sm:p-7 rounded-3xl relative overflow-hidden"
+              style={{
+                background: 'linear-gradient(160deg, #130D2E 0%, #07051A 100%)',
+                border: '1.5px solid rgba(224, 38, 216, 0.3)',
+                boxShadow: '0 25px 60px rgba(0, 0, 0, 0.8), 0 0 35px rgba(224, 38, 216, 0.1)',
+              }}
+            >
               <div>
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-5 pb-3 border-b border-purple-500/20">
                   <div className="flex items-center gap-2">
-                    <Smartphone size={16} className="text-cyan-400" />
+                    <Smartphone size={17} className="text-purple-400" />
                     <h4 className="text-xs font-black text-white uppercase tracking-wider">
-                      Player Mobile Lockscreen Preview
+                      Live Lockscreen Simulation
                     </h4>
                   </div>
-                  <span className="text-[10px] font-mono text-gray-400">Live Simulation</span>
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase bg-purple-500/20 text-purple-300 border border-purple-400/30">
+                    Real-time
+                  </span>
                 </div>
 
-                {/* Phone Notification Card Mockup */}
-                <div className="p-4 rounded-2xl bg-[#1e173e]/90 border border-cyan-500/30 shadow-[0_10px_30px_rgba(0,0,0,0.5)] space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 rounded-md bg-gradient-to-tr from-cyan-400 to-purple-500 flex items-center justify-center text-[10px] font-black text-black">
-                        V1
+                {/* Simulated Smartphone Chassis */}
+                <div
+                  className="mx-auto max-w-[320px] rounded-[32px] p-3 relative"
+                  style={{
+                    background: 'linear-gradient(145deg, #1A1333, #090616)',
+                    border: '2px solid rgba(255, 255, 255, 0.12)',
+                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.9), inset 0 0 20px rgba(0, 0, 0, 0.8)',
+                  }}
+                >
+                  {/* Dynamic Island / Speaker Notch */}
+                  <div className="w-24 h-4 bg-black rounded-full mx-auto mb-3 flex items-center justify-center gap-1.5">
+                    <div className="w-2 h-2 rounded-full bg-[#111] border border-white/10" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-950" />
+                  </div>
+
+                  {/* Lockscreen Time */}
+                  <div className="text-center mb-3">
+                    <span className="text-2xl font-light text-white tracking-tight font-sans">
+                      9:41
+                    </span>
+                    <p className="text-[10px] text-gray-400 font-medium">Monday, October 26</p>
+                  </div>
+
+                  {/* iOS Notification Card Mockup */}
+                  <div
+                    className="p-3.5 rounded-2xl relative overflow-hidden transition-all duration-300"
+                    style={{
+                      background: 'rgba(25, 18, 48, 0.85)',
+                      backdropFilter: 'blur(20px)',
+                      WebkitBackdropFilter: 'blur(20px)',
+                      border: '1px solid rgba(0, 240, 255, 0.35)',
+                      boxShadow: '0 10px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 240, 255, 0.15)',
+                    }}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black text-black shrink-0"
+                          style={{
+                            background: 'linear-gradient(135deg, #00F0FF 0%, #E026D8 100%)',
+                            boxShadow: '0 0 10px rgba(0, 240, 255, 0.4)',
+                          }}
+                        >
+                          V1
+                        </div>
+                        <span className="text-[11px] font-extrabold text-white tracking-wide">
+                          VEGAS ONE
+                        </span>
                       </div>
-                      <span className="text-[11px] font-bold text-gray-300">VEGAS ONE VIP</span>
+                      <span className="text-[10px] text-gray-400 font-mono">now</span>
                     </div>
-                    <span className="text-[10px] text-gray-500 font-mono">now</span>
+
+                    <div>
+                      <p className="text-xs font-black text-cyan-300 line-clamp-1 leading-snug">
+                        {pushTitle.trim() || '⚡ FLASH DROP: Free $10 SC on Vegas One!'}
+                      </p>
+                      <p className="text-[11px] text-gray-200 line-clamp-3 leading-relaxed mt-1">
+                        {pushBody.trim() || 'Log in now to claim your exclusive VIP loyalty bonus. Tap here to open your player cashier!'}
+                      </p>
+                    </div>
+
+                    <div className="mt-2.5 pt-2 border-t border-white/10 flex items-center justify-between text-[10px]">
+                      <span className="text-gray-400 font-mono flex items-center gap-1">
+                        <Link2 size={10} className="text-cyan-400" />
+                        <span>Action:</span>
+                        <strong className="text-cyan-300 font-mono">{pushActionUrl || '/deposit'}</strong>
+                      </span>
+                      <span className="text-purple-300 font-bold">Tap to Open ›</span>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs font-black text-white line-clamp-1">
-                      {pushTitle || '⚡ FLASH DROP: Free $10 SC on Vegas One!'}
-                    </p>
-                    <p className="text-[11px] text-gray-300 line-clamp-3 leading-relaxed mt-0.5">
-                      {pushBody || 'Log in now to claim your exclusive VIP loyalty bonus. Tap here to open your player wallet!'}
-                    </p>
-                  </div>
+
+                  {/* Swipe / Bottom bar */}
+                  <div className="w-28 h-1 bg-white/30 rounded-full mx-auto mt-4" />
                 </div>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-purple-500/15">
-                <p className="text-[11px] text-gray-400 leading-relaxed">
-                  💡 <strong>Omnichannel Delivery</strong> automatically fires through Web Push, SMS/Email queues, in-app notifications banner, and logs an announcement for official Facebook player communities.
-                </p>
+              {/* Delivery Info Callout */}
+              <div
+                className="mt-6 pt-4 border-t border-purple-500/20 p-3 rounded-2xl"
+                style={{ background: 'rgba(0, 0, 0, 0.35)' }}
+              >
+                <div className="flex items-start gap-2.5">
+                  <ShieldCheck size={16} className="text-emerald-400 shrink-0 mt-0.5" />
+                  <p className="text-[11px] text-gray-300 leading-relaxed">
+                    <strong className="text-white">Active Omnichannel Delivery:</strong> Broadcast dispatches instantly to Web Push, Android Chrome lock-screen notifications, player in-app notification bell, and email queues.
+                  </p>
+                </div>
               </div>
             </div>
           </div>

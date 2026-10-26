@@ -27,9 +27,17 @@ export default function NotificationsModal({ isOpen, onClose }) {
 
   const handleNotificationClick = (n) => {
     onClose?.();
-    const targetUrl = n.url || '/promotions';
-    if (targetUrl.startsWith('http')) {
-      window.open(targetUrl, '_blank');
+    let targetUrl = (n.url || '/deposit').trim();
+
+    // Map legacy / non-existent endpoints gracefully
+    if (targetUrl === '/wallet' || targetUrl.startsWith('/wallet?')) {
+      targetUrl = targetUrl.replace('/wallet', '/deposit');
+    } else if (targetUrl === '/vault' || targetUrl.startsWith('/vault?')) {
+      targetUrl = targetUrl.replace('/vault', '/accounts');
+    }
+
+    if (targetUrl.startsWith('http://') || targetUrl.startsWith('https://')) {
+      window.open(targetUrl, '_blank', 'noopener,noreferrer');
     } else {
       router.push(targetUrl);
     }

@@ -212,6 +212,10 @@ export async function POST(req) {
         return NextResponse.json({ success: false, error: 'Promotion title is required.' }, { status: 400 });
       }
 
+      let cleanActionUrl = actionUrl?.trim() || '/deposit';
+      if (cleanActionUrl === '/wallet' || cleanActionUrl.startsWith('/wallet?')) cleanActionUrl = cleanActionUrl.replace('/wallet', '/deposit');
+      if (cleanActionUrl === '/vault' || cleanActionUrl.startsWith('/vault?')) cleanActionUrl = cleanActionUrl.replace('/vault', '/accounts');
+
       const newPromo = {
         title: title.trim(),
         tag: tag?.trim() || '⚡ SPECIAL OFFER',
@@ -219,7 +223,7 @@ export async function POST(req) {
         description: description?.trim() || '',
         minDeposit: Number(minDeposit) || 0,
         rewardSC: Number(rewardSC) || 0,
-        actionUrl: actionUrl?.trim() || '/wallet',
+        actionUrl: cleanActionUrl,
         actionText: actionText?.trim() || 'CLAIM NOW',
         gradient: gradient || 'from-amber-500 via-rose-500 to-purple-600',
         badgeColor: badgeColor || '#00F0FF',
@@ -241,7 +245,7 @@ export async function POST(req) {
             ? `${rewardHighlight.trim()} — ${description?.trim() || 'Check out our latest VIP bonus promotion!'}`
             : (description?.trim() || 'A new casino promotion has just been launched! Claim yours now.');
 
-          const notifUrl = actionUrl?.trim() || '/promotions';
+          const notifUrl = cleanActionUrl;
 
           const newNotif = {
             title: `🎁 ${title.trim()}`,

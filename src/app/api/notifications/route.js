@@ -68,14 +68,19 @@ export async function GET(req) {
 
     return NextResponse.json({
       success: true,
-      notifications: items.map(n => ({
-        id: n._id.toString(),
-        title: n.title,
-        message: n.message,
-        type: n.type || 'promo',
-        url: n.url || '/wallet',
-        createdAt: n.createdAt,
-      })),
+      notifications: items.map(n => {
+        let cleanUrl = (n.url || '/deposit').trim();
+        if (cleanUrl === '/vault' || cleanUrl.startsWith('/vault?')) cleanUrl = cleanUrl.replace('/vault', '/accounts');
+        if (cleanUrl === '/wallet' || cleanUrl.startsWith('/wallet?')) cleanUrl = cleanUrl.replace('/wallet', '/deposit');
+        return {
+          id: n._id.toString(),
+          title: n.title,
+          message: n.message,
+          type: n.type || 'promo',
+          url: cleanUrl,
+          createdAt: n.createdAt,
+        };
+      }),
     });
   } catch (error) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
@@ -91,11 +96,15 @@ export async function POST(req) {
     }
 
     const body = await req.json();
-    const { title, message, target = 'all', channel = 'all', segment = 'all', url = '/wallet' } = body;
+    let { title, message, target = 'all', channel = 'all', segment = 'all', url = '/deposit' } = body;
 
     if (!title || !message) {
       return NextResponse.json({ success: false, error: 'Title and message are required.' }, { status: 400 });
     }
+
+    let cleanUrl = (url || '/deposit').trim();
+    if (cleanUrl === '/vault' || cleanUrl.startsWith('/vault?')) cleanUrl = cleanUrl.replace('/vault', '/accounts');
+    if (cleanUrl === '/wallet' || cleanUrl.startsWith('/wallet?')) cleanUrl = cleanUrl.replace('/wallet', '/deposit');
 
     const db = await getDb();
     const notifsCol = db.collection('notifications');
@@ -107,7 +116,7 @@ export async function POST(req) {
       target,
       channel,
       segment,
-      url: url || '/wallet',
+      url: cleanUrl,
       type: 'broadcast',
       sentBy: session.username || 'Admin',
       createdAt: new Date(),
@@ -122,7 +131,7 @@ export async function POST(req) {
         topic: 'vegas_all_players',
         title: title.trim(),
         body: message.trim(),
-        data: { url: url || '/wallet', type: 'broadcast' },
+        data: { url: cleanUrl, type: 'broadcast' },
       }).catch(err => console.warn('Topic push warning:', err.message));
 
       // 2. Direct device tokens delivery for INSTANT sub-second lock-screen delivery
@@ -135,7 +144,7 @@ export async function POST(req) {
           token: t,
           title: title.trim(),
           body: message.trim(),
-          data: { url: url || '/wallet', type: 'broadcast' },
+          data: { url: cleanUrl, type: 'broadcast' },
         }).catch(err => console.warn('Direct token push warning:', err.message));
       }
     } catch (fcmErr) {

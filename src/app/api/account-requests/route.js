@@ -425,7 +425,7 @@ export async function PUT(req) {
           ? `$${approvedAmount.toFixed(2)} SC has been allotted to your ${cleanTitle} balance!`
           : `Your ${cleanTitle} credentials are ready! Username: ${username || targetRequest.userName}`,
         type: isCoinLoad ? 'coin_load_approved' : 'account_ready',
-        url: '/vault',
+        url: '/accounts',
         data: { gameTitle: cleanTitle, username: username || targetRequest.userName },
       });
 
@@ -491,7 +491,7 @@ export async function PUT(req) {
         title: isCoinLoad ? 'Coin Load Update' : 'Game Request Update',
         message: `Your request for ${cleanTitle} was declined: ${reason}`,
         type: 'request_rejected',
-        url: '/vault',
+        url: '/accounts',
       });
 
       return NextResponse.json({
