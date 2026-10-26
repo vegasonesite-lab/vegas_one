@@ -26,6 +26,26 @@ export async function POST(req) {
     const db = await getDb();
     const usersCol = db.collection('users');
 
+    // Strict Device Policy: Only 1 account per device
+    if (deviceId) {
+      const boundUser = await usersCol.findOne({
+        role: { $in: [ROLES.PLAYER, 'user', 'player', null] },
+        $or: [{ deviceId: deviceId }, { boundDevices: deviceId }],
+      });
+
+      if (boundUser && boundUser.email !== cleanEmail) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Security Alert: This device is already linked to account "${boundUser.email}". Multiple accounts are not allowed on the same device. Please login with ${boundUser.email}.`,
+            registeredEmail: boundUser.email,
+            deviceConflict: true,
+          },
+          { status: 403 }
+        );
+      }
+    }
+
     let user = await usersCol.findOne({
       $or: [{ email: cleanEmail }, { googleId: googleId || '' }],
     });
@@ -83,13 +103,12 @@ export async function POST(req) {
         createdAt: new Date(),
       });
     } else {
-      await usersCol.updateMany(
-        { _id: { $ne: user._id }, deviceId: deviceId },
-        { $set: { deviceId: null } }
-      );
       await usersCol.updateOne(
         { _id: user._id },
-        { $set: { deviceId, sessionVersion, lastLoginAt: new Date(), lastLoginDevice: deviceId } }
+        {
+          $set: { deviceId, sessionVersion, lastLoginAt: new Date(), lastLoginDevice: deviceId },
+          $addToSet: { boundDevices: deviceId },
+        }
       );
     }
 
@@ -209,9 +228,130 @@ export async function GET(req) {
         .replace(/[^a-z0-9]/g, '')
         .substring(0, 15) || `player_${Date.now().toString(36)}`;
 
-    const deviceId = getDeviceIdFromRequest(req);
+    const deviceId = stateObj.deviceId || getDeviceIdFromRequest(req);
     const db = await getDb();
     const usersCol = db.collection('users');
+
+    // Strict Device Policy: Only 1 account per device
+    if (deviceId) {
+      const boundUser = await usersCol.findOne({
+        role: { $in: [ROLES.PLAYER, 'user', 'player', null] },
+        $or: [{ deviceId: deviceId }, { boundDevices: deviceId }],
+      });
+
+      if (boundUser && boundUser.email !== cleanEmail) {
+        const errorMessage = `Security Alert: This device is already linked to account "${boundUser.email}". Multiple accounts are not allowed on the same device. Please login with ${boundUser.email}.`;
+
+        if (stateObj.source === 'app') {
+          const deepLinkUrl = `vegasone://auth/callback?error=${encodeURIComponent(errorMessage)}&registered_email=${encodeURIComponent(boundUser.email)}`;
+          const appFallbackUrl = `${baseUrl}/?auth_device_error=${encodeURIComponent(errorMessage)}&registered_email=${encodeURIComponent(boundUser.email)}`;
+
+          const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Vegas One - Device Security Alert</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #070514;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+    }
+    .card {
+      background: rgba(22, 17, 45, 0.95);
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      border-radius: 20px;
+      padding: 32px 24px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+    }
+    .icon-badge {
+      width: 64px;
+      height: 64px;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin: 0 auto 18px;
+    }
+    h2 { font-size: 20px; font-weight: 700; color: #ef4444; margin-bottom: 8px; }
+    p { font-size: 14px; color: #cbd5e1; margin-bottom: 14px; line-height: 1.5; }
+    .email-box {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px dashed #ef4444;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-weight: 700;
+      color: #fca5a5;
+      font-size: 15px;
+      margin-bottom: 16px;
+      word-break: break-all;
+    }
+    .subtext { font-size: 12px; color: #94a3b8; margin-bottom: 24px; line-height: 1.4; }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px 20px;
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      color: #fff;
+      font-weight: 700;
+      font-size: 15px;
+      border-radius: 12px;
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon-badge">🛡️</div>
+    <h2>Device Already Linked</h2>
+    <p>This device is already connected to another player account:</p>
+    <div class="email-box">${boundUser.email}</div>
+    <div class="subtext">
+      Under Vegas One security policy, only 1 account is permitted per device. Multiple accounts cannot login on the same device.
+    </div>
+    <a id="launchBtn" href="${deepLinkUrl}" class="btn">Return to Vegas One App</a>
+  </div>
+
+  <script>
+    try {
+      window.location.href = ${JSON.stringify(deepLinkUrl)};
+    } catch(e) {}
+    setTimeout(function() {
+      window.location.href = ${JSON.stringify(appFallbackUrl)};
+    }, 1500);
+  </script>
+</body>
+</html>`;
+
+          return new Response(html, {
+            status: 200,
+            headers: { 'Content-Type': 'text/html; charset=utf-8' },
+          });
+        }
+
+        // Web redirect
+        const redirectUrl = new URL(stateObj.returnUrl || '/', baseUrl);
+        redirectUrl.searchParams.set('auth_device_error', errorMessage);
+        redirectUrl.searchParams.set('registered_email', boundUser.email);
+        return NextResponse.redirect(redirectUrl.toString());
+      }
+    }
 
     let user = await usersCol.findOne({
       $or: [{ email: cleanEmail }, { googleId: profile.sub || '' }],
@@ -272,7 +412,10 @@ export async function GET(req) {
     } else {
       await usersCol.updateOne(
         { _id: user._id },
-        { $set: { sessionVersion, lastLoginAt: new Date(), lastLoginDevice: deviceId } }
+        {
+          $set: { deviceId, sessionVersion, lastLoginAt: new Date(), lastLoginDevice: deviceId },
+          $addToSet: { boundDevices: deviceId },
+        }
       );
     }
 

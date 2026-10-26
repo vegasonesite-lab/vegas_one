@@ -7,6 +7,10 @@ export async function GET(req) {
     const { searchParams } = new URL(req.url);
     const source = searchParams.get('source') || 'web';
     const returnUrl = searchParams.get('returnUrl') || '/';
+    const deviceId =
+      searchParams.get('deviceId') ||
+      req.cookies?.get?.('v1_device_id')?.value ||
+      '';
 
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
@@ -20,6 +24,7 @@ export async function GET(req) {
       source,
       returnUrl,
       redirectUri,
+      deviceId,
       t: Date.now(),
     };
     const state = Buffer.from(JSON.stringify(stateObj)).toString('base64url');

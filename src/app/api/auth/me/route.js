@@ -98,7 +98,8 @@ export async function GET(req) {
     if (clientDeviceId && clientDeviceId.length >= 6) {
       const otherOwner = await usersCol.findOne({
         _id: { $ne: user._id },
-        deviceId: clientDeviceId,
+        role: { $in: [ROLES.PLAYER, 'user', 'player', null] },
+        $or: [{ deviceId: clientDeviceId }, { boundDevices: clientDeviceId }],
       });
 
       if (otherOwner) {
@@ -106,7 +107,8 @@ export async function GET(req) {
           authenticated: false,
           user: null,
           deviceConflict: true,
-          error: `Device Policy: Only 1 account is permitted per device. This device is bound to account "${otherOwner.username}".`,
+          registeredEmail: otherOwner.email,
+          error: `Security Alert: This device is already linked to account "${otherOwner.email}". Multiple accounts are not allowed on the same device.`,
         });
         resp.cookies.delete('vegas_session');
         return resp;

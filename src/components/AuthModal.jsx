@@ -28,11 +28,12 @@ export default function AuthModal({
   isOpen,
   onClose,
   initialTab = 'login',
+  initialIdentifier = '',
   onAuthSuccess,
   onSuccess,
 }) {
   const [tab, setTab] = useState(initialTab);
-  const [identifier, setIdentifier] = useState('');
+  const [identifier, setIdentifier] = useState(initialIdentifier || '');
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -65,8 +66,20 @@ export default function AuthModal({
 
   useEffect(() => {
     setTab(initialTab);
+    if (initialIdentifier) setIdentifier(initialIdentifier);
     setErrorMsg(null);
-  }, [initialTab, isOpen]);
+  }, [initialTab, initialIdentifier, isOpen]);
+
+  useEffect(() => {
+    const handleOpenAuth = (e) => {
+      const { tab: newTab, identifier: newId } = e.detail || {};
+      if (newTab) setTab(newTab);
+      if (newId) setIdentifier(newId);
+      setErrorMsg(null);
+    };
+    window.addEventListener('vegas:open-auth', handleOpenAuth);
+    return () => window.removeEventListener('vegas:open-auth', handleOpenAuth);
+  }, []);
 
   // Android Native Back Button Support for APK & Mobile Browser
   useEffect(() => {
@@ -168,9 +181,11 @@ export default function AuthModal({
       typeof window !== 'undefined' &&
       /android|iphone|ipad|ipod/i.test(navigator.userAgent);
 
+    const clientDevId = getOrCreateDeviceId();
+
     // If on Mobile App or Mobile Device, use direct OAuth redirect flow (with Chrome Custom Tabs in native)
     if (isNativeApp || isMobileDevice) {
-      const redirectUrl = `${window.location.origin}/api/auth/google/start?source=${isNativeApp ? 'app' : 'web'}`;
+      const redirectUrl = `${window.location.origin}/api/auth/google/start?source=${isNativeApp ? 'app' : 'web'}&deviceId=${encodeURIComponent(clientDevId)}`;
 
       if (isNativeApp) {
         try {
@@ -197,7 +212,7 @@ export default function AuthModal({
     try {
       const isLoaded = await ensureGoogleGsiLoaded();
       if (!isLoaded || !window.google?.accounts?.oauth2) {
-        window.location.href = `${window.location.origin}/api/auth/google/start?source=web`;
+        window.location.href = `${window.location.origin}/api/auth/google/start?source=web&deviceId=${encodeURIComponent(clientDevId)}`;
         return;
       }
 
@@ -274,7 +289,8 @@ export default function AuthModal({
       tokenClient.requestAccessToken({ prompt: 'select_account' });
     } catch (err) {
       console.warn('GSI popup failed, falling back to OAuth redirect:', err);
-      window.location.href = `${window.location.origin}/api/auth/google/start?source=web`;
+      const fallbackDevId = getOrCreateDeviceId();
+      window.location.href = `${window.location.origin}/api/auth/google/start?source=web&deviceId=${encodeURIComponent(fallbackDevId)}`;
     }
   };
 
@@ -801,27 +817,61 @@ export default function AuthModal({
             </div>
 
             {/* Error Banner */}
-            {errorMsg && (
-              <div
-                style={{
-                  backgroundColor: 'rgba(239, 68, 68, 0.15)',
-                  border: '1px solid rgba(239, 68, 68, 0.45)',
-                  color: '#FCA5A5',
-                  padding: '10px 14px',
-                  borderRadius: '12px',
-                  fontSize: '12px',
-                  fontFamily: 'Lexend, sans-serif',
-                  marginBottom: '16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  lineHeight: 1.35,
-                }}
-              >
-                <AlertCircle size={16} style={{ flexShrink: 0 }} />
-                <span>{errorMsg}</span>
-              </div>
-            )}
+            {errorMsg && (() => {
+              const emailMatch = errorMsg.match(/["']?([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})["']?/);
+              const matchedEmail = emailMatch ? emailMatch[1] : null;
+              const isDeviceConflict = errorMsg.includes('device is already linked') || errorMsg.includes('device is bound') || errorMsg.includes('Only 1 account');
+
+              return (
+                <div
+                  style={{
+                    backgroundColor: isDeviceConflict ? 'rgba(239, 68, 68, 0.2)' : 'rgba(239, 68, 68, 0.15)',
+                    border: isDeviceConflict ? '1px solid rgba(239, 68, 68, 0.6)' : '1px solid rgba(239, 68, 68, 0.45)',
+                    color: '#FCA5A5',
+                    padding: '12px 14px',
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    fontFamily: 'Lexend, sans-serif',
+                    marginBottom: '16px',
+                    lineHeight: 1.4,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                    <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '2px', color: '#ef4444' }} />
+                    <div style={{ flex: 1 }}>
+                      <span style={{ fontWeight: 600 }}>{errorMsg}</span>
+                      {isDeviceConflict && matchedEmail && (
+                        <div style={{ marginTop: '10px' }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setTab('login');
+                              setIdentifier(matchedEmail);
+                              setErrorMsg(null);
+                            }}
+                            style={{
+                              background: 'rgba(239, 68, 68, 0.3)',
+                              border: '1px solid rgba(239, 68, 68, 0.5)',
+                              color: '#fff',
+                              borderRadius: '8px',
+                              padding: '6px 12px',
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                            }}
+                          >
+                            <span>👉 Log in with {matchedEmail}</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Google One-Click Fast Sign-In / Sign-Up Button */}
             <div style={{ marginBottom: '14px' }}>

@@ -116,11 +116,26 @@ export async function POST(req) {
       );
     }
 
-    // 1. Re-assign active device to authenticated user (clearing active device from previous accounts on this machine)
-    await usersCol.updateMany(
-      { _id: { $ne: user._id }, deviceId: deviceId },
-      { $set: { deviceId: null } }
-    );
+    // 1. Strict Device Check: Only 1 account is permitted per device
+    if (deviceId) {
+      const boundPlayer = await usersCol.findOne({
+        role: { $in: [ROLES.PLAYER, 'user', 'player', null] },
+        _id: { $ne: user._id },
+        $or: [{ deviceId: deviceId }, { boundDevices: deviceId }],
+      });
+
+      if (boundPlayer) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Security Alert: This device is already linked to account "${boundPlayer.email}". Multiple accounts are not allowed on the same device. Please login with ${boundPlayer.email}.`,
+            registeredEmail: boundPlayer.email,
+            deviceConflict: true,
+          },
+          { status: 403 }
+        );
+      }
+    }
 
     // 2. Bind device and update active session version
     const sessionVersion = Date.now().toString();

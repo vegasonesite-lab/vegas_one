@@ -93,6 +93,13 @@ export default function Home() {
         setActiveTab(tabParam);
       }
     }
+
+    const handleOpenAuth = (e) => {
+      const { tab: t = 'login', identifier = '' } = e.detail || {};
+      setAuthModal({ open: true, tab: t, initialIdentifier: identifier });
+    };
+    window.addEventListener('vegas:open-auth', handleOpenAuth);
+    return () => window.removeEventListener('vegas:open-auth', handleOpenAuth);
   }, []);
 
   // Auto-open Subscription Promo modal on login if not already subscribed
@@ -428,7 +435,8 @@ export default function Home() {
       <AuthModal
         isOpen={authModal.open}
         initialTab={authModal.tab}
-        onClose={() => setAuthModal({ open: false, tab: 'login' })}
+        initialIdentifier={authModal.initialIdentifier || ''}
+        onClose={() => setAuthModal({ open: false, tab: 'login', initialIdentifier: '' })}
         onAuthSuccess={(authenticatedUser) => {
           setUser(authenticatedUser);
           refreshUser();
