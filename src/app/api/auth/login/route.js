@@ -41,6 +41,13 @@ export async function POST(req) {
       return NextResponse.json({ success: false, error: 'This account has been suspended.' }, { status: 403 });
     }
 
+    if (!user.passwordHash) {
+      return NextResponse.json({
+        success: false,
+        error: 'This account was created with Google Sign-In. Please click "Continue with Google" to login.',
+      }, { status: 400 });
+    }
+
     const passwordMatch = await bcrypt.compare(password, user.passwordHash);
     if (!passwordMatch) {
       return NextResponse.json({ success: false, error: 'Invalid credentials.' }, { status: 401 });
@@ -109,22 +116,11 @@ export async function POST(req) {
       );
     }
 
-    // 1. Enforce: Only 1 account per physical device for players
-    const conflictingUser = await usersCol.findOne({
-      _id: { $ne: user._id },
-      role: { $in: [ROLES.PLAYER, 'user', 'player', null] },
-      $or: [{ deviceId: deviceId }, { boundDevices: deviceId }],
-    });
-
-    if (conflictingUser) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: `Security Restriction: Only 1 account is permitted per device. This device is already linked to account "${conflictingUser.username}".`,
-        },
-        { status: 403 }
-      );
-    }
+    // 1. Re-assign active device to authenticated user (clearing active device from previous accounts on this machine)
+    await usersCol.updateMany(
+      { _id: { $ne: user._id }, deviceId: deviceId },
+      { $set: { deviceId: null } }
+    );
 
     // 2. Bind device and update active session version
     const sessionVersion = Date.now().toString();

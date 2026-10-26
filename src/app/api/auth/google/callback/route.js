@@ -136,9 +136,13 @@ export async function GET(req) {
         createdAt: new Date(),
       });
     } else {
+      await usersCol.updateMany(
+        { _id: { $ne: user._id }, deviceId: deviceId },
+        { $set: { deviceId: null } }
+      );
       await usersCol.updateOne(
         { _id: user._id },
-        { $set: { sessionVersion, lastLoginAt: new Date(), lastLoginDevice: deviceId } }
+        { $set: { deviceId, sessionVersion, lastLoginAt: new Date(), lastLoginDevice: deviceId } }
       );
     }
 

@@ -98,8 +98,7 @@ export async function GET(req) {
     if (clientDeviceId && clientDeviceId.length >= 6) {
       const otherOwner = await usersCol.findOne({
         _id: { $ne: user._id },
-        role: { $in: [ROLES.PLAYER, 'user', 'player', null] },
-        $or: [{ deviceId: clientDeviceId }, { boundDevices: clientDeviceId }],
+        deviceId: clientDeviceId,
       });
 
       if (otherOwner) {
