@@ -64,44 +64,47 @@ export default function DepositPage() {
   const [isGameDropdownOpen, setIsGameDropdownOpen] = useState(false);
   const [gameSearchQuery, setGameSearchQuery] = useState('');
 
-  const defaultPlatformGames = [
-    { id: 'fire_kirin', name: 'Fire Kirin', logo: '/images/games/fire-kirin.jpg' },
-    { id: 'juwa', name: 'JUWA 777', logo: '/images/games/juwa.jpg' },
-    { id: 'game_vault', name: 'Game Vault 999', logo: '/images/games/game-vault.jpg' },
-    { id: 'milky_way', name: 'Milkyway', logo: '/images/games/milky-way.jpg' },
-    { id: 'orion_stars', name: 'Orion Stars', logo: '/images/games/orion-stars.jpg' },
-    { id: 'ultra_panda', name: 'Ultra Panda', logo: '/images/ultra-panda.jpg' },
-    { id: 'panda_master', name: 'Panda Master', logo: '/images/games/panda-master.jpg' },
-    { id: 'vblink', name: 'VBlink 777', logo: '/images/games/v-blink.jpg' },
-    { id: 'golden_dragon', name: 'Golden Dragon', logo: '/images/games/golden-dragon.jpg' },
-    { id: 'riversweeps', name: 'Riversweeps', logo: '/images/games/river-sweeps.jpg' },
-    { id: 'vegas_sweeps', name: 'Vegas Sweeps', logo: '/images/vegas-777.webp' },
-    { id: 'high_roller', name: 'High Roller VIP', logo: '/images/games/juwa-2.jpg' },
-    { id: 'dragon_city', name: 'Dragon City', logo: '/images/games/golden-dragon.jpg' },
-    { id: 'vegas_777', name: 'Vegas 777', logo: '/images/vegas-777.webp' },
-  ];
-  const [platformGames, setPlatformGames] = useState(defaultPlatformGames);
+  // Platform Games strictly loaded from Admin / Database
+  const [platformGames, setPlatformGames] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('vegas_cached_games');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch {}
+    }
+    return [];
+  });
 
-  // Sync with games from Admin / Database
+  // Sync with games dynamically from Database (Admin updates/deletions)
   useEffect(() => {
     fetch('/api/games')
       .then((res) => res.json())
       .then((data) => {
         if (data.success && Array.isArray(data.games)) {
           const dynamicGames = data.games
-            .filter((g) => Boolean(g && (g.name || g.title)))
+            .filter((g) => Boolean(g && (g.name || g.title)) && g.status !== 'inactive')
             .map((g) => {
               const gName = String(g.name || g.title || '').trim();
               return {
                 id: g._id || g.id,
                 name: gName,
+                title: gName,
                 logo: g.thumbnail || g.image || g.logo || getGameLogo(gName),
               };
             });
-          setPlatformGames((prev) => {
-            const existingNames = new Set(prev.map((p) => String(p?.name || '').toLowerCase()));
-            const newOnes = dynamicGames.filter((d) => Boolean(d.name) && !existingNames.has(d.name.toLowerCase()));
-            return [...prev, ...newOnes];
+          setPlatformGames(dynamicGames);
+          try {
+            localStorage.setItem('vegas_cached_games', JSON.stringify(dynamicGames));
+          } catch {}
+
+          setSelectedGame((prev) => {
+            if (prev && dynamicGames.some((d) => d.name.toLowerCase() === prev.toLowerCase())) {
+              return prev;
+            }
+            return dynamicGames[0]?.name || '';
           });
         }
       })
@@ -819,36 +822,30 @@ export default function DepositPage() {
                   </div>
 
                   {/* Top Popular Platforms Quick Selector with Full Logos */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(135px, 1fr))', gap: '8px', marginBottom: '12px' }}>
-                    {[
-                      { name: 'Fire Kirin', logo: '/images/games/fire-kirin.jpg' },
-                      { name: 'JUWA 777', logo: '/images/games/juwa.jpg' },
-                      { name: 'Game Vault 999', logo: '/images/games/game-vault.jpg' },
-                      { name: 'Milkyway', logo: '/images/games/milky-way.jpg' },
-                      { name: 'Orion Stars', logo: '/images/games/orion-stars.jpg' },
-                      { name: 'Ultra Panda', logo: '/images/ultra-panda.jpg' },
-                    ].map((fp) => {
-                      const isSel = String(selectedGame || '').toLowerCase().includes(fp.name.toLowerCase().split(' ')[0]);
-                      return (
-                        <div
-                          key={fp.name}
-                          onClick={() => {
-                            setSelectedGame(fp.name);
-                            setIsGameDropdownOpen(false);
-                          }}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            padding: '7px 9px',
-                            borderRadius: '12px',
-                            backgroundColor: isSel ? 'rgba(251, 191, 36, 0.16)' : '#070514',
-                            border: isSel ? '1.5px solid #FBBF24' : '1px solid rgba(255, 255, 255, 0.08)',
-                            cursor: 'pointer',
-                            transition: 'all 0.15s ease',
-                            boxShadow: isSel ? '0 0 12px rgba(251, 191, 36, 0.25)' : 'none',
-                          }}
-                        >
+                  {platformGames.length > 0 && (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(135px, 1fr))', gap: '8px', marginBottom: '12px' }}>
+                      {platformGames.slice(0, 6).map((fp) => {
+                        const isSel = String(selectedGame || '').toLowerCase() === String(fp.name || '').toLowerCase();
+                        return (
+                          <div
+                            key={fp.id || fp.name}
+                            onClick={() => {
+                              setSelectedGame(fp.name);
+                              setIsGameDropdownOpen(false);
+                            }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              padding: '7px 9px',
+                              borderRadius: '12px',
+                              backgroundColor: isSel ? 'rgba(251, 191, 36, 0.16)' : '#070514',
+                              border: isSel ? '1.5px solid #FBBF24' : '1px solid rgba(255, 255, 255, 0.08)',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease',
+                              boxShadow: isSel ? '0 0 12px rgba(251, 191, 36, 0.25)' : 'none',
+                            }}
+                          >
                           <div style={{ width: '34px', height: '34px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, backgroundColor: '#000', border: isSel ? '1.5px solid #FBBF24' : '1px solid rgba(255, 255, 255, 0.12)' }}>
                             <img
                               src={fp.logo}
@@ -869,6 +866,7 @@ export default function DepositPage() {
                       );
                     })}
                   </div>
+                  )}
 
                   {/* Dropdown Container for All Platforms */}
                   <div

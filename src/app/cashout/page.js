@@ -41,24 +41,19 @@ export default function CashoutPage() {
   const [authModal, setAuthModal] = useState({ open: false, tab: 'login' });
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  // Available Games
-  const defaultCashoutGames = [
-    { id: 'fire_kirin', title: 'Fire Kirin', logo: '/images/games/fire-kirin.jpg' },
-    { id: 'juwa', title: 'JUWA 777', logo: '/images/games/juwa.jpg' },
-    { id: 'game_vault', title: 'Game Vault 999', logo: '/images/games/game-vault.jpg' },
-    { id: 'milky_way', title: 'Milkyway', logo: '/images/games/milky-way.jpg' },
-    { id: 'orion_stars', title: 'Orion Stars', logo: '/images/games/orion-stars.jpg' },
-    { id: 'ultra_panda', title: 'Ultra Panda', logo: '/images/ultra-panda.jpg' },
-    { id: 'panda_master', title: 'Panda Master', logo: '/images/games/panda-master.jpg' },
-    { id: 'vblink', title: 'VBlink 777', logo: '/images/games/v-blink.jpg' },
-    { id: 'golden_dragon', title: 'Golden Dragon', logo: '/images/games/golden-dragon.jpg' },
-    { id: 'riversweeps', title: 'Riversweeps', logo: '/images/games/river-sweeps.jpg' },
-    { id: 'vegas_sweeps', title: 'Vegas Sweeps', logo: '/images/vegas-777.webp' },
-    { id: 'high_roller', title: 'High Roller VIP', logo: '/images/games/juwa-2.jpg' },
-    { id: 'dragon_city', title: 'Dragon City', logo: '/images/games/golden-dragon.jpg' },
-    { id: 'vegas_777', title: 'Vegas 777', logo: '/images/vegas-777.webp' },
-  ];
-  const [gameList, setGameList] = useState(defaultCashoutGames);
+  // Available Games loaded strictly from Database
+  const [gameList, setGameList] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('vegas_cached_games');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch {}
+    }
+    return [];
+  });
   const [isGameDropdownOpen, setIsGameDropdownOpen] = useState(false);
   const [gameSearchQuery, setGameSearchQuery] = useState('');
 
@@ -108,7 +103,7 @@ export default function CashoutPage() {
       const data = await res.json();
       if (data.success && Array.isArray(data.games)) {
         const dynamicGames = data.games
-          .filter((g) => Boolean(g && (g.title || g.name)))
+          .filter((g) => Boolean(g && (g.title || g.name)) && g.status !== 'inactive')
           .map((g) => {
             const gTitle = String(g.title || g.name || '').trim();
             return {
@@ -117,11 +112,10 @@ export default function CashoutPage() {
               logo: g.thumbnail || g.image || g.logo || getGameLogo(gTitle),
             };
           });
-        setGameList((prev) => {
-          const existingNames = new Set(prev.map((p) => String(p?.title || p?.name || '').toLowerCase()));
-          const newOnes = dynamicGames.filter((d) => Boolean(d.title) && !existingNames.has(d.title.toLowerCase()));
-          return [...prev, ...newOnes];
-        });
+        setGameList(dynamicGames);
+        try {
+          localStorage.setItem('vegas_cached_games', JSON.stringify(dynamicGames));
+        } catch {}
       }
     } catch {}
   };
