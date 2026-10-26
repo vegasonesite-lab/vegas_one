@@ -821,7 +821,8 @@ export default function DepositPage() {
                     </span>
                   </div>
 
-                  {/* Top Popular Platforms Quick Selector with Full Logos */}
+                  {/* Top Popular Platforms Quick Selector with Full Logos (Commented out per request - can be re-enabled anytime) */}
+                  {/*
                   {platformGames.length > 0 && (
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(135px, 1fr))', gap: '8px', marginBottom: '12px' }}>
                       {platformGames.slice(0, 6).map((fp) => {
@@ -867,6 +868,7 @@ export default function DepositPage() {
                     })}
                   </div>
                   )}
+                  */}
 
                   {/* Dropdown Container for All Platforms */}
                   <div
