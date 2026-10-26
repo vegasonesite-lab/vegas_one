@@ -44,6 +44,20 @@ const GRADIENT_PRESETS = [
   { label: 'Royal Violet', value: 'from-purple-600 via-indigo-600 to-blue-700', color: '#8B5CF6' },
 ];
 
+function formatForDateTimeLocal(dateVal) {
+  if (!dateVal) return '';
+  const d = new Date(dateVal);
+  if (isNaN(d.getTime())) return '';
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function getFutureDateTimeLocal(days = 0, hours = 0) {
+  const d = new Date(Date.now() + (days * 24 + hours) * 3600 * 1000);
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 export default function PromotionsManager() {
   const [activeSubTab, setActiveSubTab] = useState('promotions'); // 'promotions' | 'broadcasts'
   const [promotions, setPromotions] = useState([]);
@@ -66,6 +80,7 @@ export default function PromotionsManager() {
   const [actionText, setActionText] = useState('CLAIM BOOST');
   const [selectedGradient, setSelectedGradient] = useState(GRADIENT_PRESETS[0]);
   const [sendNotification, setSendNotification] = useState(true);
+  const [expiresAt, setExpiresAt] = useState(''); // Expiry Date/Time for new promo
 
   // Edit Promotion Modal State
   const [editingPromo, setEditingPromo] = useState(null);
@@ -78,6 +93,7 @@ export default function PromotionsManager() {
   const [editActionUrl, setEditActionUrl] = useState('/deposit');
   const [editActionText, setEditActionText] = useState('CLAIM BOOST');
   const [editSelectedGradient, setEditSelectedGradient] = useState(GRADIENT_PRESETS[0]);
+  const [editExpiresAt, setEditExpiresAt] = useState(''); // Expiry Date/Time for edit promo
   const [isUpdating, setIsUpdating] = useState(false);
   const [editStatusMsg, setEditStatusMsg] = useState(null);
 
@@ -91,10 +107,10 @@ export default function PromotionsManager() {
   const [pushStatus, setPushStatus] = useState(null);
   const [broadcastLogs, setBroadcastLogs] = useState([]);
 
-  // Fetch all promotions
+  // Fetch all promotions (admin=true to view active + expired campaigns)
   const fetchPromotions = async () => {
     try {
-      const res = await fetch('/api/promos');
+      const res = await fetch('/api/promos?admin=true');
       const data = await res.json();
       if (data.success && Array.isArray(data.promotions)) {
         setPromotions(data.promotions);
@@ -121,8 +137,38 @@ export default function PromotionsManager() {
   };
 
   useEffect(() => {
-    fetchPromotions();
-    fetchBroadcastLogs();
+    let ignore = false;
+    const loadData = async () => {
+      try {
+        const res = await fetch('/api/promos?admin=true');
+        const data = await res.json();
+        if (!ignore && data.success && Array.isArray(data.promotions)) {
+          setPromotions(data.promotions);
+        }
+      } catch (err) {
+        console.error('Failed to load promotions:', err);
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+          setRefreshing(false);
+        }
+      }
+
+      try {
+        const res = await fetch('/api/notifications?admin=true');
+        const data = await res.json();
+        if (!ignore && data.success && Array.isArray(data.broadcasts)) {
+          setBroadcastLogs(data.broadcasts);
+        }
+      } catch (err) {
+        console.error('Failed to load broadcast logs:', err);
+      }
+    };
+
+    loadData();
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   const handleRefresh = () => {
@@ -158,6 +204,7 @@ export default function PromotionsManager() {
           actionText: actionText.trim() || 'CLAIM BOOST',
           gradient: selectedGradient.value,
           badgeColor: selectedGradient.color,
+          expiresAt: expiresAt ? new Date(expiresAt).toISOString() : null,
           sendNotification: !!sendNotification,
         }),
       });
@@ -178,6 +225,7 @@ export default function PromotionsManager() {
           setTitle('');
           setRewardHighlight('');
           setDescription('');
+          setExpiresAt('');
           setStatusMsg(null);
         }, 1200);
       } else {
@@ -203,6 +251,7 @@ export default function PromotionsManager() {
     setEditActionText(promo.actionText || 'CLAIM BOOST');
     const matched = GRADIENT_PRESETS.find(g => g.value === promo.gradient) || GRADIENT_PRESETS[0];
     setEditSelectedGradient(matched);
+    setEditExpiresAt(promo.expiresAt ? formatForDateTimeLocal(promo.expiresAt) : '');
     setEditStatusMsg(null);
   };
 
@@ -234,6 +283,7 @@ export default function PromotionsManager() {
           actionText: editActionText.trim() || 'CLAIM BOOST',
           gradient: editSelectedGradient.value,
           badgeColor: editSelectedGradient.color,
+          expiresAt: editExpiresAt ? new Date(editExpiresAt).toISOString() : null,
         }),
       });
 
@@ -494,7 +544,7 @@ export default function PromotionsManager() {
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#00F0FF', boxShadow: '0 0 10px #00F0FF' }} />
                   <span className="text-[11px] font-black uppercase tracking-wider text-cyan-400" style={{ fontFamily: 'Lexend, sans-serif' }}>
-                    Running Promotions
+                    Live Promotions
                   </span>
                 </div>
                 <div
@@ -510,9 +560,9 @@ export default function PromotionsManager() {
               </div>
               <div className="mt-3 flex items-baseline gap-2">
                 <span className="text-2xl sm:text-3xl font-extrabold text-cyan-400 font-mono tracking-tight">
-                  {promotions.filter(p => p.isActive).length}
+                  {promotions.filter(p => p.isActive !== false && (!p.expiresAt || new Date(p.expiresAt) > new Date())).length}
                 </span>
-                <span className="text-[11px] font-bold text-emerald-400 font-mono uppercase">Active</span>
+                <span className="text-[11px] font-bold text-emerald-400 font-mono uppercase">Live Active</span>
               </div>
             </div>
 
@@ -585,37 +635,38 @@ export default function PromotionsManager() {
               </div>
             </div>
 
-            {/* 4. Actions Available */}
+            {/* 4. Expired Campaigns */}
             <div
               className="p-5 sm:p-6 rounded-2xl relative overflow-hidden transition"
               style={{
                 backgroundColor: '#0C0A1E',
-                border: '1px solid rgba(245, 158, 11, 0.25)',
+                border: '1px solid rgba(244, 63, 94, 0.25)',
                 boxShadow: '0 10px 30px rgba(0, 0, 0, 0.35)',
               }}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#F59E0B', boxShadow: '0 0 10px #F59E0B' }} />
-                  <span className="text-[11px] font-black uppercase tracking-wider text-amber-400" style={{ fontFamily: 'Lexend, sans-serif' }}>
-                    Actions Available
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#F43F5E', boxShadow: '0 0 10px #F43F5E' }} />
+                  <span className="text-[11px] font-black uppercase tracking-wider text-rose-400" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                    Auto-Expired
                   </span>
                 </div>
                 <div
                   className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
                   style={{
-                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                    border: '1px solid rgba(245, 158, 11, 0.3)',
-                    color: '#F59E0B',
+                    backgroundColor: 'rgba(244, 63, 94, 0.1)',
+                    border: '1px solid rgba(244, 63, 94, 0.3)',
+                    color: '#F43F5E',
                   }}
                 >
-                  <Sparkles size={15} />
+                  <Clock size={15} />
                 </div>
               </div>
-              <div className="mt-3">
-                <span className="text-xs font-medium text-slate-300">
-                  Instant Delete &amp; Status Toggle
+              <div className="mt-3 flex items-baseline gap-2">
+                <span className="text-2xl sm:text-3xl font-extrabold text-rose-400 font-mono tracking-tight">
+                  {promotions.filter(p => p.expiresAt && new Date(p.expiresAt) <= new Date()).length}
                 </span>
+                <span className="text-[11px] font-bold text-slate-400 font-mono uppercase">Expired</span>
               </div>
             </div>
           </div>
@@ -646,7 +697,7 @@ export default function PromotionsManager() {
               </div>
               <h4 className="text-base font-black text-white m-0">No Promotions Found</h4>
               <p className="text-xs text-slate-400 max-w-sm mx-auto m-0">
-                No active promotions are currently running. Click "Add New Promotion" to publish a new bonus campaign!
+                No active promotions are currently running. Click &ldquo;Add New Promotion&rdquo; to publish a new bonus campaign!
               </p>
               <button
                 type="button"
@@ -665,7 +716,8 @@ export default function PromotionsManager() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
               {promotions.map((promo) => {
                 const id = promo._id || promo.id;
-                const isPromoActive = promo.isActive !== false;
+                const isExpired = Boolean(promo.isExpired);
+                const isPromoActive = promo.isActive !== false && !isExpired;
 
                 return (
                   <div
@@ -673,15 +725,25 @@ export default function PromotionsManager() {
                     className="relative rounded-2xl overflow-hidden flex flex-col justify-between transition-all duration-300"
                     style={{
                       backgroundColor: '#0C0A1E',
-                      border: isPromoActive ? '1px solid rgba(0, 240, 255, 0.28)' : '1px solid rgba(255, 255, 255, 0.08)',
-                      boxShadow: isPromoActive ? '0 15px 35px rgba(0, 0, 0, 0.4), 0 0 25px rgba(0, 240, 255, 0.08)' : '0 10px 25px rgba(0, 0, 0, 0.3)',
-                      opacity: isPromoActive ? 1 : 0.75,
+                      border: isExpired
+                        ? '1px solid rgba(244, 63, 94, 0.4)'
+                        : isPromoActive
+                        ? '1px solid rgba(0, 240, 255, 0.28)'
+                        : '1px solid rgba(255, 255, 255, 0.08)',
+                      boxShadow: isExpired
+                        ? '0 10px 25px rgba(244, 63, 94, 0.1)'
+                        : isPromoActive
+                        ? '0 15px 35px rgba(0, 0, 0, 0.4), 0 0 25px rgba(0, 240, 255, 0.08)'
+                        : '0 10px 25px rgba(0, 0, 0, 0.3)',
+                      opacity: isExpired ? 0.8 : isPromoActive ? 1 : 0.75,
                     }}
                   >
                     {/* Top Accent Strip */}
                     <div
                       className={`h-1.5 w-full bg-gradient-to-r ${
-                        promo.gradient || 'from-cyan-500 via-blue-600 to-indigo-600'
+                        isExpired
+                          ? 'from-rose-600 via-red-500 to-orange-600'
+                          : promo.gradient || 'from-cyan-500 via-blue-600 to-indigo-600'
                       }`}
                     />
 
@@ -705,19 +767,37 @@ export default function PromotionsManager() {
                             {/* Toggle Live Active Switch */}
                             <button
                               type="button"
-                              onClick={() => handleToggleActive(id, isPromoActive)}
+                              onClick={() => handleToggleActive(id, promo.isActive !== false)}
                               className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5"
                               style={{
-                                backgroundColor: isPromoActive ? 'rgba(16, 185, 129, 0.12)' : 'rgba(255, 255, 255, 0.05)',
-                                borderColor: isPromoActive ? 'rgba(16, 185, 129, 0.4)' : 'rgba(255, 255, 255, 0.15)',
+                                backgroundColor: isExpired
+                                  ? 'rgba(244, 63, 94, 0.12)'
+                                  : isPromoActive
+                                  ? 'rgba(16, 185, 129, 0.12)'
+                                  : 'rgba(255, 255, 255, 0.05)',
+                                borderColor: isExpired
+                                  ? 'rgba(244, 63, 94, 0.4)'
+                                  : isPromoActive
+                                  ? 'rgba(16, 185, 129, 0.4)'
+                                  : 'rgba(255, 255, 255, 0.15)',
                                 borderWidth: '1px',
                                 borderStyle: 'solid',
-                                color: isPromoActive ? '#10B981' : '#94A3B8',
+                                color: isExpired ? '#F43F5E' : isPromoActive ? '#10B981' : '#94A3B8',
                               }}
-                              title={isPromoActive ? 'Click to Pause' : 'Click to Activate'}
+                              title={isExpired ? 'Promotion expired based on expiry date' : isPromoActive ? 'Click to Pause' : 'Click to Activate'}
                             >
-                              <span className={`w-1.5 h-1.5 rounded-full ${isPromoActive ? 'bg-emerald-400 shadow-[0_0_6px_#10B981]' : 'bg-slate-400'}`} />
-                              <span>{isPromoActive ? 'Active Live' : 'Paused'}</span>
+                              <span
+                                className={`w-1.5 h-1.5 rounded-full ${
+                                  isExpired
+                                    ? 'bg-rose-400'
+                                    : isPromoActive
+                                    ? 'bg-emerald-400 shadow-[0_0_6px_#10B981]'
+                                    : 'bg-slate-400'
+                                }`}
+                              />
+                              <span>
+                                {isExpired ? 'Expired' : isPromoActive ? 'Active Live' : 'Paused'}
+                              </span>
                             </button>
 
                             {/* Edit Promo Button */}
@@ -730,7 +810,7 @@ export default function PromotionsManager() {
                                 border: '1px solid rgba(0, 240, 255, 0.3)',
                                 color: '#00F0FF',
                               }}
-                              title="Edit this promotion card"
+                              title="Edit this promotion card & expiry date"
                             >
                               <Pencil size={13} />
                             </button>
@@ -757,6 +837,57 @@ export default function PromotionsManager() {
                           <h3 className="text-lg font-black text-white leading-snug m-0" style={{ fontFamily: 'Lexend, sans-serif' }}>
                             {promo.title}
                           </h3>
+                        </div>
+
+                        {/* Expiry Badge */}
+                        <div className="mt-2 flex items-center gap-2 flex-wrap">
+                          {promo.expiresAt ? (
+                            (() => {
+                              const expDateStr = new Date(promo.expiresAt).toLocaleString([], {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              });
+                              return isExpired ? (
+                                <span
+                                  className="inline-flex items-center gap-1.5 text-[10.5px] font-black uppercase px-2.5 py-1 rounded-lg"
+                                  style={{
+                                    backgroundColor: 'rgba(244, 63, 94, 0.15)',
+                                    border: '1px solid rgba(244, 63, 94, 0.45)',
+                                    color: '#F87171',
+                                  }}
+                                >
+                                  <AlertCircle size={12} />
+                                  <span>⏰ Expired: {expDateStr}</span>
+                                </span>
+                              ) : (
+                                <span
+                                  className="inline-flex items-center gap-1.5 text-[10.5px] font-bold px-2.5 py-1 rounded-lg"
+                                  style={{
+                                    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+                                    border: '1px solid rgba(245, 158, 11, 0.35)',
+                                    color: '#FBBF24',
+                                  }}
+                                >
+                                  <Clock size={12} />
+                                  <span>⏳ Auto-Expires: {expDateStr}</span>
+                                </span>
+                              );
+                            })()
+                          ) : (
+                            <span
+                              className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-lg"
+                              style={{
+                                backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                color: '#94A3B8',
+                              }}
+                            >
+                              <span>♾️ No Expiry (Always Active)</span>
+                            </span>
+                          )}
                         </div>
 
                         {promo.rewardHighlight && (
@@ -1295,7 +1426,7 @@ export default function PromotionsManager() {
                 </div>
               </div>
 
-              {/* Gradient Theme Picker */}
+              {/* Card Gradient Theme Picker */}
               <div>
                 <label className="text-xs font-bold text-slate-300 block mb-1.5" style={{ fontFamily: 'Lexend, sans-serif' }}>
                   Card Gradient Theme
@@ -1319,6 +1450,79 @@ export default function PromotionsManager() {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* Expiry Date & Time (Auto-Expire) */}
+              <div
+                className="p-3.5 rounded-2xl space-y-2.5"
+                style={{
+                  backgroundColor: '#070514',
+                  border: '1px solid rgba(0, 240, 255, 0.28)',
+                  boxShadow: '0 0 15px rgba(0, 240, 255, 0.05)',
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-200 flex items-center gap-1.5" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                    <Calendar size={14} className="text-cyan-400" />
+                    <span>Promotion Expiry Date &amp; Time (Auto-Expire)</span>
+                  </label>
+                  {expiresAt && (
+                    <button
+                      type="button"
+                      onClick={() => setExpiresAt('')}
+                      className="text-[10px] text-rose-400 hover:text-rose-300 underline font-bold cursor-pointer"
+                    >
+                      Clear Expiry
+                    </button>
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-400 m-0 leading-relaxed">
+                  Set when this promotion automatically expires. Once this time arrives, it will automatically disappear from the live player promotions page and cannot be claimed.
+                </p>
+
+                {/* Quick Presets */}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[10px] font-bold text-slate-500 shrink-0">Quick Presets:</span>
+                  {[
+                    { label: '+24 Hours', days: 1 },
+                    { label: '+3 Days', days: 3 },
+                    { label: '+7 Days', days: 7 },
+                    { label: '+14 Days', days: 14 },
+                    { label: '+30 Days', days: 30 },
+                  ].map((preset, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setExpiresAt(getFutureDateTimeLocal(preset.days))}
+                      className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 transition cursor-pointer"
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setExpiresAt('')}
+                    className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition cursor-pointer ${
+                      !expiresAt
+                        ? 'bg-amber-500/20 border border-amber-500/50 text-amber-300'
+                        : 'bg-white/5 border border-white/10 text-slate-400'
+                    }`}
+                  >
+                    No Expiry (Never)
+                  </button>
+                </div>
+
+                <input
+                  type="datetime-local"
+                  value={expiresAt}
+                  onChange={(e) => setExpiresAt(e.target.value)}
+                  className="w-full rounded-xl p-2.5 text-xs text-white placeholder-slate-500 focus:outline-none transition font-mono"
+                  style={{
+                    backgroundColor: '#0C0A1E',
+                    border: '1px solid rgba(0, 240, 255, 0.3)',
+                    colorScheme: 'dark',
+                  }}
+                />
               </div>
 
               {/* Auto-Notification Toggle */}
@@ -1630,7 +1834,7 @@ export default function PromotionsManager() {
                 </div>
               </div>
 
-              {/* Gradient Theme Picker */}
+              {/* Card Gradient Theme Picker */}
               <div>
                 <label className="text-xs font-bold text-slate-300 block mb-1.5" style={{ fontFamily: 'Lexend, sans-serif' }}>
                   Card Gradient Theme
@@ -1654,6 +1858,79 @@ export default function PromotionsManager() {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* Expiry Date & Time (Auto-Expire) */}
+              <div
+                className="p-3.5 rounded-2xl space-y-2.5"
+                style={{
+                  backgroundColor: '#070514',
+                  border: '1px solid rgba(0, 240, 255, 0.28)',
+                  boxShadow: '0 0 15px rgba(0, 240, 255, 0.05)',
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-200 flex items-center gap-1.5" style={{ fontFamily: 'Lexend, sans-serif' }}>
+                    <Calendar size={14} className="text-cyan-400" />
+                    <span>Promotion Expiry Date &amp; Time (Auto-Expire)</span>
+                  </label>
+                  {editExpiresAt && (
+                    <button
+                      type="button"
+                      onClick={() => setEditExpiresAt('')}
+                      className="text-[10px] text-rose-400 hover:text-rose-300 underline font-bold cursor-pointer"
+                    >
+                      Clear Expiry
+                    </button>
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-400 m-0 leading-relaxed">
+                  Update when this promotion expires. When the expiry time passes, the promotion will automatically be hidden from the player promotions page.
+                </p>
+
+                {/* Quick Presets */}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[10px] font-bold text-slate-500 shrink-0">Quick Presets:</span>
+                  {[
+                    { label: '+24 Hours', days: 1 },
+                    { label: '+3 Days', days: 3 },
+                    { label: '+7 Days', days: 7 },
+                    { label: '+14 Days', days: 14 },
+                    { label: '+30 Days', days: 30 },
+                  ].map((preset, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setEditExpiresAt(getFutureDateTimeLocal(preset.days))}
+                      className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 transition cursor-pointer"
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setEditExpiresAt('')}
+                    className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition cursor-pointer ${
+                      !editExpiresAt
+                        ? 'bg-amber-500/20 border border-amber-500/50 text-amber-300'
+                        : 'bg-white/5 border border-white/10 text-slate-400'
+                    }`}
+                  >
+                    No Expiry (Never)
+                  </button>
+                </div>
+
+                <input
+                  type="datetime-local"
+                  value={editExpiresAt}
+                  onChange={(e) => setEditExpiresAt(e.target.value)}
+                  className="w-full rounded-xl p-2.5 text-xs text-white placeholder-slate-500 focus:outline-none transition font-mono"
+                  style={{
+                    backgroundColor: '#0C0A1E',
+                    border: '1px solid rgba(0, 240, 255, 0.3)',
+                    colorScheme: 'dark',
+                  }}
+                />
               </div>
 
               {/* Submit Buttons */}

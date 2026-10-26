@@ -86,9 +86,12 @@ const DEFAULT_PROMOTIONS = [
   },
 ];
 
-// GET: Returns all active promotions (and seeds defaults if empty)
-export async function GET() {
+// GET: Returns active promotions (filtered by expiry date for players, or all for admin)
+export async function GET(req) {
   try {
+    const url = new URL(req.url);
+    const isAdmin = url.searchParams.get('admin') === 'true';
+
     const db = await getDb();
     const promosCol = db.collection('promotions');
 
@@ -103,7 +106,21 @@ export async function GET() {
       }
     }
 
-    const promotions = await promosCol.find({}).sort({ createdAt: -1 }).toArray();
+    const now = new Date();
+    let query = {};
+    if (!isAdmin) {
+      // For players / public: only return active promotions that have not yet expired
+      query = {
+        isActive: { $ne: false },
+        $or: [
+          { expiresAt: null },
+          { expiresAt: { $exists: false } },
+          { expiresAt: { $gt: now } },
+        ],
+      };
+    }
+
+    const promotions = await promosCol.find(query).sort({ createdAt: -1 }).toArray();
 
     return NextResponse.json({
       success: true,
@@ -116,9 +133,13 @@ export async function GET() {
           else if (p.title?.toLowerCase().includes('flash') || p.title?.toLowerCase().includes('40%')) code = 'FLASH40';
           else code = 'VEGASVIP';
         }
+
+        const isExpired = p.expiresAt ? new Date(p.expiresAt).getTime() <= now.getTime() : false;
+
         return {
           ...p,
           promoCode: code,
+          isExpired,
           id: p._id.toString(),
           _id: p._id.toString(),
         };
@@ -279,6 +300,7 @@ export async function POST(req) {
         actionText = 'CLAIM NOW',
         gradient,
         badgeColor,
+        expiresAt,
       } = body;
 
       if (!id) {
@@ -307,6 +329,9 @@ export async function POST(req) {
       if (actionText) updateFields.actionText = actionText.trim();
       if (gradient) updateFields.gradient = gradient;
       if (badgeColor) updateFields.badgeColor = badgeColor;
+      if (expiresAt !== undefined) {
+        updateFields.expiresAt = expiresAt ? new Date(expiresAt) : null;
+      }
 
       await promosCol.updateOne(filter, { $set: updateFields });
 
@@ -483,6 +508,9 @@ export async function PATCH(req) {
     if (body.actionText) updateDoc.actionText = body.actionText.trim();
     if (body.gradient) updateDoc.gradient = body.gradient;
     if (body.badgeColor) updateDoc.badgeColor = body.badgeColor;
+    if (body.expiresAt !== undefined) {
+      updateDoc.expiresAt = body.expiresAt ? new Date(body.expiresAt) : null;
+    }
 
     await promosCol.updateOne(filter, { $set: updateDoc });
 

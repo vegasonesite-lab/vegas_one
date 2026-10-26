@@ -124,7 +124,14 @@ export default function DepositPage() {
     let storedPromo = null;
     try {
       const raw = localStorage.getItem('vegas_active_promo');
-      if (raw) storedPromo = JSON.parse(raw);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed?.expiresAt && new Date(parsed.expiresAt).getTime() <= Date.now()) {
+          localStorage.removeItem('vegas_active_promo');
+        } else {
+          storedPromo = parsed;
+        }
+      }
     } catch {}
 
     if (promoParam) {
@@ -139,12 +146,15 @@ export default function DepositPage() {
                 String(p._id || p.id) === promoParam
             );
             if (matched) {
-              setClaimedPromo(matched);
-              setSelectedBonusChoice('claimed_promo');
-              try {
-                localStorage.setItem('vegas_active_promo', JSON.stringify(matched));
-              } catch {}
-              return;
+              const isExp = matched.expiresAt && new Date(matched.expiresAt).getTime() <= Date.now();
+              if (!isExp) {
+                setClaimedPromo(matched);
+                setSelectedBonusChoice('claimed_promo');
+                try {
+                  localStorage.setItem('vegas_active_promo', JSON.stringify(matched));
+                } catch {}
+                return;
+              }
             }
           }
           if (storedPromo) {

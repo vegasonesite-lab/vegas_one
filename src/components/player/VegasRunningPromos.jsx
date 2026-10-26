@@ -66,29 +66,42 @@ export default function VegasRunningPromos({ onOpenAuth, user }) {
   const router = useRouter();
   const [promos, setPromos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [nowMs, setNowMs] = useState(Date.now());
+  const [nowMs, setNowMs] = useState(0);
 
   useEffect(() => {
     fetch('/api/promos')
       .then((res) => res.json())
       .then((data) => {
         if (data.success && Array.isArray(data.promotions)) {
-          // Filter only active promotions
+          // Keep active promotions
           const activeList = data.promotions.filter((p) => p.isActive !== false);
           setPromos(activeList);
         }
       })
       .catch((err) => console.error('Failed to load running promos:', err))
       .finally(() => setLoading(false));
-  }, []);
 
-  // Real-time ticking every second for live countdown
-  useEffect(() => {
+    const initTimeout = setTimeout(() => setNowMs(Date.now()), 0);
     const timer = setInterval(() => {
       setNowMs(Date.now());
     }, 1000);
-    return () => clearInterval(timer);
+    return () => {
+      clearTimeout(initTimeout);
+      clearInterval(timer);
+    };
   }, []);
+
+  // Filter out any promotion whose expiry date/time has passed in real time
+  const activeVisiblePromos = promos.filter((p) => {
+    if (p.isActive === false) return false;
+    if (p.expiresAt && nowMs > 0) {
+      const exp = new Date(p.expiresAt).getTime();
+      if (!isNaN(exp) && exp <= nowMs) {
+        return false; // Automatically expired, hide from player view
+      }
+    }
+    return true;
+  });
 
   const handleClaim = (promo, isEnded) => {
     if (isEnded) return; // Cannot claim expired promo
@@ -104,7 +117,7 @@ export default function VegasRunningPromos({ onOpenAuth, user }) {
         rewardSC: promo.rewardSC,
         minDeposit: promo.minDeposit,
         description: promo.description,
-        claimedAt: Date.now(),
+        expiresAt: promo.expiresAt || null,
       }));
     } catch {}
 
@@ -120,7 +133,7 @@ export default function VegasRunningPromos({ onOpenAuth, user }) {
     router.push(targetUrl);
   };
 
-  if (!loading && promos.length === 0) {
+  if (!loading && activeVisiblePromos.length === 0) {
     return null;
   }
 
@@ -187,7 +200,7 @@ export default function VegasRunningPromos({ onOpenAuth, user }) {
 
       {/* Promos Grid - 2 Cards Per Row */}
       <div className="vegas-running-promos-grid">
-        {promos.map((promo) => {
+        {activeVisiblePromos.map((promo) => {
           const promoId = promo.id || promo._id || promo.title;
           const isWelcome = promo.tag?.toLowerCase().includes('welcome') || promo.title?.toLowerCase().includes('welcome');
           
