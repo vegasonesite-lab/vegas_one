@@ -55,6 +55,30 @@ export default function Home() {
   const [dailyBonusOpen, setDailyBonusOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [subscriptionModalOpen, setSubscriptionModalOpen] = useState(false);
+  const [sysSettings, setSysSettings] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('vegas_system_settings');
+        if (stored) return JSON.parse(stored);
+      } catch {}
+    }
+    return null;
+  });
+
+  // Fetch admin settings at root so all tabs and lobby have instant access
+  useEffect(() => {
+    fetch('/api/admin/settings')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.settings) {
+          try {
+            localStorage.setItem('vegas_system_settings', JSON.stringify(data.settings));
+          } catch {}
+          setSysSettings(data.settings);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Auto-open Auth modal if redirected with ?auth=login or ?auth=register, and switch active tab if ?tab=...
   useEffect(() => {
@@ -236,23 +260,23 @@ export default function Home() {
 
         <main className="sovereign-container sovereign-main-cashier">
               {/* TAB 1: CASINO LOBBY */}
-              {activeTab === 'main' && (
-                <div>
-                  {/* Hero Banner: Left Royal Hall Headline + Right Salon Privé Frame & Mega Jackpot */}
-                  <VegasHeroBanner
-                    user={user}
-                    onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
-                    onOpenWallet={() => {
-                      if (!user) setAuthModal({ open: true, tab: 'login' });
-                      else router.push('/wallet');
-                    }}
-                    onOpenDailyBonus={() => {
-                      if (!user) setAuthModal({ open: true, tab: 'login' });
-                      else setDailyBonusOpen(true);
-                    }}
-                    onOpenReferrals={() => setActiveTab('referrals')}
-                    onPlayGame={handlePlayGame}
-                  />
+              <div style={{ display: activeTab === 'main' ? 'block' : 'none' }}>
+                {/* Hero Banner: Left Royal Hall Headline + Right Salon Privé Frame & Mega Jackpot */}
+                <VegasHeroBanner
+                  user={user}
+                  settings={sysSettings}
+                  onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
+                  onOpenWallet={() => {
+                    if (!user) setAuthModal({ open: true, tab: 'login' });
+                    else router.push('/wallet');
+                  }}
+                  onOpenDailyBonus={() => {
+                    if (!user) setAuthModal({ open: true, tab: 'login' });
+                    else setDailyBonusOpen(true);
+                  }}
+                  onOpenReferrals={() => setActiveTab('referrals')}
+                  onPlayGame={handlePlayGame}
+                />
 
                   {/* Real-Time Live Wins Strip */}
                   <LatestWinsTicker />
@@ -336,7 +360,6 @@ export default function Home() {
                   {/* Official Facebook Partner Clubs */}
                   <VegasFacebookPartners />
                 </div>
-              )}
 
               {/* TAB 2: MY GAME ACCOUNTS */}
               {activeTab === 'accounts' && (

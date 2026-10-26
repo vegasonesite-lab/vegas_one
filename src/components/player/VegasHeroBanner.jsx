@@ -15,59 +15,60 @@ import {
   Headphones
 } from 'lucide-react';
 
-let cachedSettings = null;
-
 export default function VegasHeroBanner({
   user,
+  settings: propSettings,
   onOpenAuth,
   onOpenWallet,
   onOpenDailyBonus,
   onOpenReferrals,
   onPlayGame,
 }) {
-  const [settings, setSettings] = useState(() => {
-    if (cachedSettings) return cachedSettings;
+  const [internalSettings, setInternalSettings] = useState(() => {
     if (typeof window !== 'undefined') {
       try {
         const stored = localStorage.getItem('vegas_system_settings');
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          cachedSettings = parsed;
-          return parsed;
-        }
+        if (stored) return JSON.parse(stored);
       } catch {}
     }
     return null;
   });
 
-  // Fetch live bonus settings from admin
+  // Fetch live bonus settings from admin if not provided via prop
   useEffect(() => {
-    fetch('/api/admin/settings')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && data.settings) {
-          cachedSettings = data.settings;
-          try {
-            localStorage.setItem('vegas_system_settings', JSON.stringify(data.settings));
-          } catch {}
-          setSettings(data.settings);
-        }
-      })
-      .catch(() => {});
-  }, []);
+    if (!propSettings) {
+      fetch('/api/admin/settings')
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.settings) {
+            try {
+              localStorage.setItem('vegas_system_settings', JSON.stringify(data.settings));
+            } catch {}
+            setInternalSettings(data.settings);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [propSettings]);
 
+  const activeSettings = propSettings || internalSettings;
   const hasClaimedWelcome = Boolean(user?.welcomeBonusClaimed || (user?.totalDeposited && user.totalDeposited > 0));
 
-  const bonusPercent = hasClaimedWelcome
-    ? (settings?.regularBonusPercent ?? 50)
-    : (settings?.welcomeBonusPercent ?? 120);
+  // Directly read the exact percentage set by Admin
+  const rawPercent = hasClaimedWelcome
+    ? activeSettings?.regularBonusPercent
+    : activeSettings?.welcomeBonusPercent;
+
+  const bonusPercent = rawPercent !== undefined && rawPercent !== null ? Number(rawPercent) : null;
 
   const bonusTitle = hasClaimedWelcome ? 'RELOAD BONUS' : 'INSTANT LOAD BONUS';
   const bonusBadge = hasClaimedWelcome ? 'EVERY DEPOSIT' : 'FIRST DEPOSIT';
 
-  const bonusSubtitle = hasClaimedWelcome
-    ? `Get an extra ${bonusPercent}% bonus credits on every load into your game account. Instant approvals 24/7.`
-    : `Receive up to ${bonusPercent}% extra bonus credits on your first load. Fast Cash App & Crypto deposits with instant withdrawals.`;
+  const bonusSubtitle = bonusPercent !== null
+    ? (hasClaimedWelcome
+        ? `Get an extra ${bonusPercent}% bonus credits on every load into your game account. Instant approvals 24/7.`
+        : `Receive up to ${bonusPercent}% extra bonus credits on your first load. Fast Cash App & Crypto deposits with instant withdrawals.`)
+    : 'Get exclusive load bonus credits directly on your deposits. Fast Cash App & Crypto with instant withdrawals.';
 
   const ctaText = user ? 'DEPOSIT & LOAD CREDITS' : 'GET GAME ACCOUNT';
 
@@ -171,11 +172,26 @@ export default function VegasHeroBanner({
                   <Trophy size={14} color="#00F0FF" />
                   <span>{bonusTitle}</span>
                 </div>
-                <div className="sovereign-welcome-amount" style={{ fontSize: '28px' }}>
-                  <span>+{bonusPercent}% BONUS</span>
-                  <span style={{ fontSize: '14px', color: '#94A3B8', fontWeight: 600, marginLeft: '8px' }}>
-                    ON LOAD
-                  </span>
+                <div className="sovereign-welcome-amount" style={{ fontSize: '28px', minHeight: '38px', display: 'flex', alignItems: 'center' }}>
+                  {bonusPercent !== null ? (
+                    <>
+                      <span>+{bonusPercent}% BONUS</span>
+                      <span style={{ fontSize: '14px', color: '#94A3B8', fontWeight: 600, marginLeft: '8px' }}>
+                        ON LOAD
+                      </span>
+                    </>
+                  ) : (
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        width: '130px',
+                        height: '28px',
+                        backgroundColor: 'rgba(0, 240, 255, 0.12)',
+                        borderRadius: '6px',
+                        animation: 'pulse 1.5s ease-in-out infinite',
+                      }}
+                    />
+                  )}
                 </div>
               </div>
 
