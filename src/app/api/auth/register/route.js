@@ -61,19 +61,25 @@ export async function POST(req) {
       );
     }
 
-    // 2. Device Restriction Check (Only 1 account per device)
-    const deviceOwner = await usersCol.findOne({
-      $or: [{ deviceId: deviceId }, { boundDevices: deviceId }],
-    });
+    // 2. Device Restriction Check (Only 1 account per device, if enabled in system settings)
+    const sysSettings = await db.collection('system_settings').findOne({ key: 'general' });
+    const isDeviceRestrictionActive = sysSettings?.deviceRestrictionEnabled === true;
 
-    if (deviceOwner) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: `Security Restriction: Only 1 account is permitted per device. This device is already linked to account "${deviceOwner.username}". Multiple accounts are not allowed.`,
-        },
-        { status: 403 }
-      );
+    if (isDeviceRestrictionActive && deviceId) {
+      const deviceOwner = await usersCol.findOne({
+        role: { $in: [ROLES.PLAYER, 'user', 'player', null] },
+        $or: [{ deviceId: deviceId }, { boundDevices: deviceId }],
+      });
+
+      if (deviceOwner) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Security Restriction: Only 1 account is permitted per device. This device is already linked to account "${deviceOwner.username}". Multiple accounts are not allowed.`,
+          },
+          { status: 403 }
+        );
+      }
     }
 
     // Check referrer if provided
