@@ -54,3 +54,11 @@ android/.gradle/
 # secrets
 firebase-service-account.json
 
+# ios build
+ios/App/Pods/
+ios/App/Podfile.lock
+ios/App/build/
+ios/App/.build/
+ios/App/*.xcworkspace/xcuserdata/
+ios/App/*.xcodeproj/xcuserdata/
+
