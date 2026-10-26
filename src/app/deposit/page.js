@@ -1049,25 +1049,7 @@ export default function DepositPage() {
                         READY FOR LOAD
                       </span>
                     </div>
-                  ) : (
-                    <div
-                      style={{
-                        marginTop: '10px',
-                        padding: '8px 12px',
-                        borderRadius: '10px',
-                        backgroundColor: 'rgba(0, 240, 255, 0.08)',
-                        border: '1px solid rgba(0, 240, 255, 0.25)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                      }}
-                    >
-                      <Sparkles size={14} color="#00F0FF" style={{ flexShrink: 0 }} />
-                      <span style={{ fontSize: '11px', color: '#CBD5E1', fontFamily: 'Lexend, sans-serif' }}>
-                        New to <strong style={{ color: '#00F0FF' }}>{selectedGame}</strong>? Credentials will be <strong style={{ color: '#FBBF24' }}>auto-created</strong> upon deposit approval.
-                      </span>
-                    </div>
-                  )}
+                  ) : null}
                 </div>
 
                 {/* STEP 2: DEPOSIT AMOUNT */}
