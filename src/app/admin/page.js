@@ -7029,7 +7029,7 @@ export default function AdminPortal({ initialTab }) {
                             <input
                               type="number"
                               min="0"
-                              max="100"
+                              max="1000"
                               value={sysSettings?.referralBonusPercent ?? 50}
                               onChange={(e) => setSysSettings(prev => ({ ...prev, referralBonusPercent: e.target.value }))}
                               className="w-full rounded-xl px-3.5 py-2.5 text-white font-mono font-black text-sm pr-8 outline-none transition"

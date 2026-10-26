@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Gamepad2, Clock, Wallet, Users, Smartphone, ShieldCheck } from 'lucide-react';
+import { useReferralRate } from '@/lib/siteSettings';
 
 export default function MobileBottomNav({
   activeTab = 'main',
@@ -11,6 +12,7 @@ export default function MobileBottomNav({
   onOpenAuth,
   user,
 }) {
+  const referralRate = useReferralRate();
   const itemStyle = (isActive) => ({
     display: 'flex',
     flexDirection: 'column',
@@ -90,7 +92,7 @@ export default function MobileBottomNav({
       {/* 4. Referrals */}
       <Link href="/referrals" style={itemStyle(activeTab === 'referrals')}>
         <Users size={18} color={activeTab === 'referrals' ? '#00F0FF' : '#9A91A8'} />
-        <span>VIP 50%</span>
+        <span>VIP {referralRate}%</span>
       </Link>
 
       {/* 5. Mobile App */}

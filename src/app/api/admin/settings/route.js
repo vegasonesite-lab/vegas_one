@@ -99,7 +99,34 @@ export async function PUT(req) {
     if (body.regularBonusSubtitle !== undefined) updateFields.regularBonusSubtitle = String(body.regularBonusSubtitle);
 
     // Referral Bonus Settings
-    if (body.referralBonusPercent !== undefined) updateFields.referralBonusPercent = Number(body.referralBonusPercent);
+    if (body.referralBonusPercent !== undefined) {
+      const refPercent = Number(body.referralBonusPercent);
+      updateFields.referralBonusPercent = refPercent;
+
+      // Automatically sync any referral/affiliate promotion card in promotions collection
+      try {
+        const promosCol = db.collection('promotions');
+        await promosCol.updateMany(
+          {
+            $or: [
+              { promoCode: 'AFFILIATE50' },
+              { promoCode: { $regex: /affiliate/i } },
+              { title: { $regex: /affiliate|referral/i } },
+            ],
+          },
+          {
+            $set: {
+              title: `${refPercent}% Lifetime Affiliate Cash Lounge`,
+              rewardHighlight: `${refPercent}% Lifetime Revenue Commission`,
+              description: `Invite friends to Vegas One using your referral link and receive ${refPercent}% cash commission on every deposit they make for life.`,
+              updatedAt: new Date(),
+            },
+          }
+        );
+      } catch (err) {
+        console.warn('Failed to sync promo cards with new referral rate:', err.message);
+      }
+    }
     if (body.referralBonusTitle !== undefined) updateFields.referralBonusTitle = String(body.referralBonusTitle);
     if (body.referralBonusSubtitle !== undefined) updateFields.referralBonusSubtitle = String(body.referralBonusSubtitle);
 

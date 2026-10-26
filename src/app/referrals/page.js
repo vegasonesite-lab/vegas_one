@@ -24,10 +24,15 @@ import LiveChatWidget from '@/components/LiveChatWidget';
 import AuthModal from '@/components/AuthModal';
 import WalletModal from '@/components/WalletModal';
 import VegasSidebar from '@/components/player/VegasSidebar';
+import { useReferralRate } from '@/lib/siteSettings';
+import { useAuthSession, getClientUser } from '@/lib/clientAuth';
 
 export default function ReferralsPage() {
   const router = useRouter();
-  const [user, setUser] = useState(null);
+  const dynamicRate = useReferralRate();
+  const { user, refreshUser } = useAuthSession();
+  const activeUser = user || (typeof window !== 'undefined' ? getClientUser() : null);
+
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const [claiming, setClaiming] = useState(false);
@@ -43,22 +48,7 @@ export default function ReferralsPage() {
     referrals: [],
   });
 
-  const refreshUser = async () => {
-    try {
-      const res = await fetch('/api/auth/me');
-      const data = await res.json();
-      if (data.authenticated && data.user) {
-        setUser(data.user);
-      } else {
-        setUser(null);
-      }
-    } catch {
-      setUser(null);
-    }
-  };
-
   useEffect(() => {
-    refreshUser();
     fetch('/api/affiliates')
       .then(r => r.json())
       .then(d => {
@@ -68,6 +58,8 @@ export default function ReferralsPage() {
       })
       .catch(() => {});
   }, []);
+
+  const activeRate = stats.commissionRate || dynamicRate || 50;
 
   const referralCode = stats.referralCode || (user ? `V1-${user.username?.toUpperCase() || 'VIP'}` : 'V1-SOVEREIGN');
   const referralLink = typeof window !== 'undefined'
@@ -123,7 +115,7 @@ export default function ReferralsPage() {
     <div className="min-h-screen bg-[#070514] text-[#F8FAFC] selection:bg-[#00F0FF] selection:text-[#070514] font-body antialiased">
       {/* 1. Permanent Fixed 100vh Left Sidebar */}
       <VegasSidebar
-        user={user}
+        user={activeUser}
         activeTab="referrals"
         onSelectTab={(t) => {
           if (t === 'main') router.push('/');
@@ -137,7 +129,7 @@ export default function ReferralsPage() {
       {/* 2. Right-Hand Scrollable Content Area */}
       <div className="vegas-page-right-content">
         <VegasNavbar
-          user={user}
+          user={activeUser}
           activeTab="referrals"
           onSelectTab={(tab) => {
             if (tab === 'main') router.push('/');
@@ -202,7 +194,7 @@ export default function ReferralsPage() {
               }}
             >
               <Trophy size={13} color="#00F0FF" />
-              <span>50% LIFETIME REVENUE COMMISSION PROGRAM</span>
+              <span>{activeRate}% LIFETIME REVENUE COMMISSION PROGRAM</span>
             </div>
 
             <h1
@@ -413,11 +405,11 @@ export default function ReferralsPage() {
           }}
           onOpenWallet={() => router.push('/wallet')}
           onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
-          user={user}
+          user={activeUser}
         />
       </div>
 
-      <LiveChatWidget user={user} />
+      <LiveChatWidget user={activeUser} />
       <AuthModal
         isOpen={authModal.open}
         initialTab={authModal.tab}

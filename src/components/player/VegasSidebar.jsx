@@ -18,6 +18,7 @@ import {
   Gift,
   X
 } from 'lucide-react';
+import { useReferralRate } from '@/lib/siteSettings';
 
 export default function VegasSidebar({
   user,
@@ -28,6 +29,7 @@ export default function VegasSidebar({
   onCloseMobile,
 }) {
   const router = useRouter();
+  const referralRate = useReferralRate();
 
   const handleNav = (target, action) => {
     if (onCloseMobile) onCloseMobile();
@@ -136,7 +138,7 @@ export default function VegasSidebar({
       items: [
         {
           id: 'referrals',
-          label: 'VIP 50% Referrals',
+          label: `VIP ${referralRate}% Referrals`,
           icon: Users,
           path: '/referrals',
         },

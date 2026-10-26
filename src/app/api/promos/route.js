@@ -120,6 +120,11 @@ export async function GET(req) {
       };
     }
 
+    const sysSettingsDoc = await db.collection('system_settings').findOne({ key: 'general' });
+    const currentRefPercent = sysSettingsDoc?.referralBonusPercent !== undefined
+      ? Number(sysSettingsDoc.referralBonusPercent)
+      : null;
+
     const promotions = await promosCol.find(query).sort({ createdAt: -1 }).toArray();
 
     return NextResponse.json({
@@ -134,10 +139,23 @@ export async function GET(req) {
           else code = 'VEGASVIP';
         }
 
+        let pTitle = p.title;
+        let pHighlight = p.rewardHighlight;
+        let pDescription = p.description;
+
+        if (currentRefPercent && (code === 'AFFILIATE50' || p.title?.toLowerCase().includes('affiliate') || p.tag?.toLowerCase().includes('affiliate'))) {
+          pTitle = pTitle.replace(/\d+%\s*Lifetime Affiliate/i, `${currentRefPercent}% Lifetime Affiliate`);
+          pHighlight = pHighlight.replace(/\d+%\s*Lifetime/i, `${currentRefPercent}% Lifetime`);
+          pDescription = pDescription.replace(/\d+%\s*cash commission/i, `${currentRefPercent}% cash commission`);
+        }
+
         const isExpired = p.expiresAt ? new Date(p.expiresAt).getTime() <= now.getTime() : false;
 
         return {
           ...p,
+          title: pTitle,
+          rewardHighlight: pHighlight,
+          description: pDescription,
           promoCode: code,
           isExpired,
           id: p._id.toString(),

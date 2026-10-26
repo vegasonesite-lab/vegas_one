@@ -5,12 +5,26 @@ import { getDb } from '@/lib/mongodb';
 
 export async function GET(req) {
   try {
+    const db = await getDb();
     const session = await getSessionUser();
     if (!session) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+      const sysSettingsDoc = await db.collection('system_settings').findOne({ key: 'general' });
+      const defaultCommissionRate = sysSettingsDoc?.referralBonusPercent !== undefined
+        ? Number(sysSettingsDoc.referralBonusPercent)
+        : 50;
+
+      return NextResponse.json({
+        success: true,
+        stats: {
+          commissionRate: defaultCommissionRate,
+          totalReferrals: 0,
+          commissionsEarned: 0,
+          commissionsUnpaid: 0,
+          referees: [],
+        },
+      });
     }
 
-    const db = await getDb();
     const usersCol = db.collection('users');
 
     const { searchParams } = new URL(req.url);
