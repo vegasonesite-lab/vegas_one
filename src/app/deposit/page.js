@@ -202,7 +202,15 @@ export default function DepositPage() {
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [message, setMessage] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
-  const [sysSettings, setSysSettings] = useState(null);
+  const [sysSettings, setSysSettings] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('vegas_system_settings');
+        if (stored) return JSON.parse(stored);
+      } catch {}
+    }
+    return null;
+  });
 
   const presetAmounts = [20, 50, 100, 250, 500, 1000];
 
@@ -248,6 +256,9 @@ export default function DepositPage() {
       .then((res) => res.json())
       .then((data) => {
         if (data.success && data.settings) {
+          try {
+            localStorage.setItem('vegas_system_settings', JSON.stringify(data.settings));
+          } catch {}
           setSysSettings(data.settings);
         }
       })

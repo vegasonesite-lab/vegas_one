@@ -15,6 +15,8 @@ import {
   Headphones
 } from 'lucide-react';
 
+let cachedSettings = null;
+
 export default function VegasHeroBanner({
   user,
   onOpenAuth,
@@ -23,7 +25,20 @@ export default function VegasHeroBanner({
   onOpenReferrals,
   onPlayGame,
 }) {
-  const [settings, setSettings] = useState(null);
+  const [settings, setSettings] = useState(() => {
+    if (cachedSettings) return cachedSettings;
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('vegas_system_settings');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          cachedSettings = parsed;
+          return parsed;
+        }
+      } catch {}
+    }
+    return null;
+  });
 
   // Fetch live bonus settings from admin
   useEffect(() => {
@@ -31,6 +46,10 @@ export default function VegasHeroBanner({
       .then(res => res.json())
       .then(data => {
         if (data.success && data.settings) {
+          cachedSettings = data.settings;
+          try {
+            localStorage.setItem('vegas_system_settings', JSON.stringify(data.settings));
+          } catch {}
           setSettings(data.settings);
         }
       })
@@ -41,7 +60,7 @@ export default function VegasHeroBanner({
 
   const bonusPercent = hasClaimedWelcome
     ? (settings?.regularBonusPercent ?? 50)
-    : (settings?.welcomeBonusPercent ?? 100);
+    : (settings?.welcomeBonusPercent ?? 120);
 
   const bonusTitle = hasClaimedWelcome ? 'RELOAD BONUS' : 'INSTANT LOAD BONUS';
   const bonusBadge = hasClaimedWelcome ? 'EVERY DEPOSIT' : 'FIRST DEPOSIT';
