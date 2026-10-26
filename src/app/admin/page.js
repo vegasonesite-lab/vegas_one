@@ -6576,7 +6576,8 @@ export default function AdminPortal({ initialTab }) {
                   width: '100%',
                 }}
               >
-                {/* 1. Geo-lock card */}
+                {/* 1. Geo-lock card (Hidden per admin request) */}
+                {/*
                 <div
                   className="p-6 rounded-2xl relative overflow-hidden transition-all duration-300 hover:border-cyan-400/50 flex flex-col justify-between gap-4"
                   style={{
@@ -6632,6 +6633,7 @@ export default function AdminPortal({ initialTab }) {
                     </p>
                   </div>
                 </div>
+                */}
 
                 {/* 2. Minimum Redemption Payout */}
                 <div
