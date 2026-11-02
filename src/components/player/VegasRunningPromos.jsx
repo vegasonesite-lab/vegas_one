@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sparkles, Flame, ArrowRight, Clock, ShieldAlert } from 'lucide-react';
+import { diffSet } from '@/lib/fastDiff';
 
 // Computes a target expiration timestamp for each promotion
 function getPromoExpiryMs(promo) {
@@ -75,7 +76,7 @@ export default function VegasRunningPromos({ onOpenAuth, user }) {
         if (data.success && Array.isArray(data.promotions)) {
           // Keep active promotions
           const activeList = data.promotions.filter((p) => p.isActive !== false);
-          setPromos(activeList);
+          diffSet(setPromos, activeList);
         }
       })
       .catch((err) => console.error('Failed to load running promos:', err))

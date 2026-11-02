@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import LoadCoinsModal from '@/components/player/LoadCoinsModal';
 import { broadcastAdminAlert } from '@/lib/broadcastAlert';
+import { diffSet, sanitizeGameTitle } from '@/lib/fastDiff';
 
 export default function VegasGameHubStation({
   game,
@@ -54,13 +55,13 @@ export default function VegasGameHubStation({
       const credData = credRes.ok ? await credRes.json().catch(() => ({})) : {};
       const reqData = reqRes.ok ? await reqRes.json().catch(() => ({})) : {};
 
-      const targetTitle = String(game.title || '').toLowerCase().trim();
+      const targetTitle = sanitizeGameTitle(game.title || '').toLowerCase();
 
       // Check existing ready credentials in gameAccounts
       let readyAccount = null;
       if (credData.success && Array.isArray(credData.gameAccounts)) {
         readyAccount = credData.gameAccounts.find(
-          a => String(a.gameTitle).toLowerCase().trim() === targetTitle
+          a => sanitizeGameTitle(a.gameTitle || '').toLowerCase() === targetTitle
         );
       }
 
@@ -68,17 +69,17 @@ export default function VegasGameHubStation({
       let allGameReqs = [];
       if (reqData.success && Array.isArray(reqData.accountRequests)) {
         allGameReqs = reqData.accountRequests.filter(
-          r => String(r.gameTitle).toLowerCase().trim() === targetTitle
+          r => sanitizeGameTitle(r.gameTitle || '').toLowerCase() === targetTitle
         );
       }
-      setGameHistory(allGameReqs);
+      diffSet(setGameHistory, allGameReqs);
 
       // Check for any active pending coin load
       const pendingLoad = allGameReqs.find(
         r => (r.type === 'COIN_LOAD' || Number(r.transferAmount || 0) > 0) &&
              String(r.status || '').toUpperCase() === 'PENDING'
       );
-      setActiveCoinLoad(pendingLoad || null);
+      diffSet(setActiveCoinLoad, pendingLoad || null);
 
       // Separate Account Creation requests (strictly excluding coin loads)
       const creationReqs = allGameReqs.filter(
@@ -91,12 +92,12 @@ export default function VegasGameHubStation({
       // =========================================================================
       // RULE 1: If gameAccounts already has approved credentials, status is PERMANENTLY READY
       if (readyAccount && readyAccount.username) {
-        setAccountStatus('READY');
-        setCredentials({
+        diffSet(setAccountStatus, 'READY');
+        diffSet(setCredentials, {
           username: readyAccount.username,
           password: readyAccount.password,
         });
-        setRejectionReason(null);
+        diffSet(setRejectionReason, null);
         return;
       }
 
@@ -106,20 +107,20 @@ export default function VegasGameHubStation({
         String(latestCreation.status).toUpperCase() === 'READY' &&
         latestCreation.gameAccountUsername
       ) {
-        setAccountStatus('READY');
-        setCredentials({
+        diffSet(setAccountStatus, 'READY');
+        diffSet(setCredentials, {
           username: latestCreation.gameAccountUsername,
           password: latestCreation.gameAccountPassword,
         });
-        setRejectionReason(null);
+        diffSet(setRejectionReason, null);
         return;
       }
 
       // RULE 3: If an account creation is currently pending approval by staff
       if (latestCreation && String(latestCreation.status).toUpperCase() === 'PENDING') {
-        setAccountStatus('PENDING');
-        setCredentials(null);
-        setRejectionReason(null);
+        diffSet(setAccountStatus, 'PENDING');
+        diffSet(setCredentials, null);
+        diffSet(setRejectionReason, null);
         return;
       }
 
@@ -129,16 +130,16 @@ export default function VegasGameHubStation({
         (String(latestCreation.status).toUpperCase() === 'CANCELLED' ||
          String(latestCreation.status).toUpperCase() === 'REJECTED')
       ) {
-        setAccountStatus('REJECTED');
-        setCredentials(null);
-        setRejectionReason(latestCreation.rejectionReason || 'Staff desk cancelled or credentials unavailable.');
+        diffSet(setAccountStatus, 'REJECTED');
+        diffSet(setCredentials, null);
+        diffSet(setRejectionReason, latestCreation.rejectionReason || 'Staff desk cancelled or credentials unavailable.');
         return;
       }
 
       // RULE 5: Default unlinked state
-      setAccountStatus('UNLINKED');
-      setCredentials(null);
-      setRejectionReason(null);
+      diffSet(setAccountStatus, 'UNLINKED');
+      diffSet(setCredentials, null);
+      diffSet(setRejectionReason, null);
     } catch (err) {
       console.error('Check game account error:', err);
     }

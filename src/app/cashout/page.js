@@ -34,6 +34,7 @@ import AuthModal from '@/components/AuthModal';
 import { compressImage } from '@/lib/imageCompressor';
 import { useAuthSession } from '@/lib/clientAuth';
 import { getGameLogo } from '@/lib/gameLogos';
+import { areEqual, diffSet, sanitizeGameTitle } from '@/lib/fastDiff';
 
 export default function CashoutPage() {
   const router = useRouter();
@@ -58,7 +59,7 @@ export default function CashoutPage() {
   const [gameSearchQuery, setGameSearchQuery] = useState('');
 
   // Cashout Form State
-  const [gameTitle, setGameTitle] = useState('Fire Kirin');
+  const [gameTitle, setGameTitle] = useState('');
   const [redeemAmount, setRedeemAmount] = useState(50);
   const [payoutMethod, setPayoutMethod] = useState('Cash App');
   const [destinationAddress, setDestinationAddress] = useState('');
@@ -70,7 +71,7 @@ export default function CashoutPage() {
     item: null,
     origin: null,
     amount: 50,
-    gameTitle: 'Fire Kirin',
+    gameTitle: '',
     payoutMethod: 'Cash App',
     destinationAddress: '',
     gameScreenshot: null,
@@ -105,17 +106,24 @@ export default function CashoutPage() {
         const dynamicGames = data.games
           .filter((g) => Boolean(g && (g.title || g.name)) && g.status !== 'inactive')
           .map((g) => {
-            const gTitle = String(g.title || g.name || '').trim();
+            const gTitle = sanitizeGameTitle(g.title || g.name || '');
             return {
               id: g._id || g.id,
               title: gTitle,
               logo: g.thumbnail || g.image || g.logo || getGameLogo(gTitle),
             };
           });
-        setGameList(dynamicGames);
+        diffSet(setGameList, dynamicGames);
         try {
           localStorage.setItem('vegas_cached_games', JSON.stringify(dynamicGames));
         } catch {}
+
+        setGameTitle((prev) => {
+          if (prev && dynamicGames.some((d) => d.title.toLowerCase() === prev.toLowerCase())) {
+            return prev;
+          }
+          return dynamicGames[0]?.title || '';
+        });
       }
     } catch {}
   };
@@ -127,7 +135,7 @@ export default function CashoutPage() {
       const res = await fetch(`/api/game-accounts?email=${encodeURIComponent(user.email || '')}`);
       const data = await res.json();
       if (data.success && Array.isArray(data.gameAccounts)) {
-        setPlayerGameAccounts(data.gameAccounts);
+        diffSet(setPlayerGameAccounts, data.gameAccounts);
       }
     } catch {} finally {
       if (!isBackground) setLoadingGameAccounts(false);
@@ -141,7 +149,7 @@ export default function CashoutPage() {
       const res = await fetch('/api/payments/withdraw');
       const data = await res.json();
       if (data.success) {
-        setMyRedemptions(data.redemptions || []);
+        diffSet(setMyRedemptions, data.redemptions || []);
       }
     } catch (err) {
       console.error('Error fetching redemptions:', err);
@@ -303,7 +311,7 @@ export default function CashoutPage() {
       item,
       origin: origin || (item.status === 'rejected_by_coin' ? 'coin' : 'finance'),
       amount: Number(item.amount) || 50,
-      gameTitle: item.gameTitle || 'Fire Kirin',
+      gameTitle: item.gameTitle || (gameList[0]?.title || ''),
       payoutMethod: item.payoutMethod || 'Cash App',
       destinationAddress: item.destinationAddress || item.userTagName || '',
       gameScreenshot: item.gameScreenshot || null,
@@ -687,7 +695,7 @@ export default function CashoutPage() {
                 <form onSubmit={handleRedeemSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
                   {/* Step 1: Select Game Platform (WinningHeaven Style Dropdown Selector) */}
                   {(() => {
-                    const currentSelectedGameObj = gameList.find(g => String(g?.title || g?.name || '').toLowerCase() === String(gameTitle || '').toLowerCase()) || gameList[0] || { title: gameTitle || 'Fire Kirin', logo: getGameLogo(gameTitle) };
+                    const currentSelectedGameObj = gameList.find(g => String(g?.title || g?.name || '').toLowerCase() === String(gameTitle || '').toLowerCase()) || gameList[0] || { title: gameTitle || 'Select Platform', logo: getGameLogo(gameTitle) };
                     const filteredGames = gameList.filter(g => String(g?.title || g?.name || '').toLowerCase().includes(String(gameSearchQuery || '').toLowerCase()));
                     const matchedAccount = playerGameAccounts.find(
                       acc =>

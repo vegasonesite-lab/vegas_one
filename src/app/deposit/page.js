@@ -41,6 +41,7 @@ import { useAuthSession } from '@/lib/clientAuth';
 import { broadcastAdminAlert } from '@/lib/broadcastAlert';
 import { getGameLogo } from '@/lib/gameLogos';
 import { calculatePromoBonus } from '@/lib/promoCalculator';
+import { areEqual, diffSet, sanitizeGameTitle } from '@/lib/fastDiff';
 
 export default function DepositPage() {
   const router = useRouter();
@@ -51,7 +52,7 @@ export default function DepositPage() {
   // Deposit Form State
   const [methods, setMethods] = useState([]);
   const [selectedMethod, setSelectedMethod] = useState(null);
-  const [selectedGame, setSelectedGame] = useState('Juwa 777');
+  const [selectedGame, setSelectedGame] = useState('');
   const [depositAmount, setDepositAmount] = useState(50);
   const [senderTagName, setSenderTagName] = useState('');
   const [senderTagEmail, setSenderTagEmail] = useState('');
@@ -87,7 +88,7 @@ export default function DepositPage() {
           const dynamicGames = data.games
             .filter((g) => Boolean(g && (g.name || g.title)) && g.status !== 'inactive')
             .map((g) => {
-              const gName = String(g.name || g.title || '').trim();
+              const gName = sanitizeGameTitle(g.name || g.title || '');
               return {
                 id: g._id || g.id,
                 name: gName,
@@ -95,7 +96,7 @@ export default function DepositPage() {
                 logo: g.thumbnail || g.image || g.logo || getGameLogo(gName),
               };
             });
-          setPlatformGames(dynamicGames);
+          diffSet(setPlatformGames, dynamicGames);
           try {
             localStorage.setItem('vegas_cached_games', JSON.stringify(dynamicGames));
           } catch {}
@@ -233,11 +234,12 @@ export default function DepositPage() {
       const res = await fetch(`/api/payments/methods?t=${Date.now()}`, { cache: 'no-store' });
       const data = await res.json();
       if (data.success && data.methods?.length > 0) {
-        setMethods(data.methods);
+        diffSet(setMethods, data.methods);
         setSelectedMethod(prev => {
           if (!prev) return data.methods[0];
           const matched = data.methods.find(m => (m.id && prev.id && m.id === prev.id) || (m.methodId && prev.methodId && m.methodId === prev.methodId) || (m.name === prev.name));
-          return matched || data.methods[0];
+          const next = matched || data.methods[0];
+          return areEqual(prev, next) ? prev : next;
         });
       }
     } catch {}
@@ -272,7 +274,7 @@ export default function DepositPage() {
           try {
             localStorage.setItem('vegas_system_settings', JSON.stringify(data.settings));
           } catch {}
-          setSysSettings(data.settings);
+          diffSet(setSysSettings, data.settings);
         }
       })
       .catch(() => {});

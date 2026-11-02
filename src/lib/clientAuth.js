@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 
+import { areEqual, diffSet } from '@/lib/fastDiff';
+
 // In-memory user cache across client-side page transitions in SPA
 let memoryUser = null;
 let hasCheckedInitialAuth = false;
@@ -41,7 +43,7 @@ export function getClientUser() {
 }
 
 /**
- * Saves authenticated player to memory and localStorage, broadcasting update.
+ * Saves authenticated player to memory and localStorage, broadcasting update only if changed.
  */
 export function setClientUser(user) {
   if (user && user.role && user.role !== 'player' && user.role !== 'user') {
@@ -49,20 +51,32 @@ export function setClientUser(user) {
     return;
   }
 
-  memoryUser = user || null;
+  const nextUser = user || null;
+  // Bail out early if user object hasn't changed to stop cascading re-renders and re-dispatches
+  if (areEqual(memoryUser, nextUser) && hasCheckedInitialAuth) {
+    return;
+  }
+
+  const prevBalance = memoryUser?.balance;
+  const nextBalance = nextUser?.balance;
+  const balanceChanged = !areEqual(prevBalance, nextBalance);
+
+  memoryUser = nextUser;
   hasCheckedInitialAuth = true;
 
   if (typeof window !== 'undefined') {
     try {
-      if (user) {
-        localStorage.setItem('vegas_cached_user', JSON.stringify(user));
+      if (nextUser) {
+        localStorage.setItem('vegas_cached_user', JSON.stringify(nextUser));
       } else {
         localStorage.removeItem('vegas_cached_user');
       }
     } catch {}
 
-    window.dispatchEvent(new CustomEvent('vegas_auth_updated', { detail: user || null }));
-    window.dispatchEvent(new CustomEvent('balanceUpdated'));
+    window.dispatchEvent(new CustomEvent('vegas_auth_updated', { detail: nextUser }));
+    if (balanceChanged) {
+      window.dispatchEvent(new CustomEvent('balanceUpdated'));
+    }
   }
 }
 
@@ -137,7 +151,7 @@ export function useAuthSession() {
     // 1. Immediately hydrate cached user on client mount without SSR mismatch
     const cached = getClientUser();
     if (cached) {
-      setUser(cached);
+      diffSet(setUser, cached);
       setAuthChecking(false);
     }
 
@@ -145,9 +159,9 @@ export function useAuthSession() {
     fetchCurrentUser().then((result) => {
       if (!isMounted) return;
       if (result.authenticated && result.user) {
-        setUser(result.user);
+        diffSet(setUser, result.user);
       } else {
-        setUser(null);
+        diffSet(setUser, null);
       }
       setAuthChecking(false);
     });
@@ -157,18 +171,18 @@ export function useAuthSession() {
       if (!isMounted) return;
       if (e?.type === 'vegas_auth_updated') {
         const updatedUser = e?.detail !== undefined ? e.detail : getClientUser();
-        setUser(updatedUser);
+        diffSet(setUser, updatedUser);
         setAuthChecking(false);
       } else if (e?.type === 'balanceUpdated') {
         // Balance update should never wipe out the user session
         const cached = getClientUser();
         if (cached) {
-          setUser(cached);
+          diffSet(setUser, cached);
         }
         fetchCurrentUser().then((result) => {
           if (!isMounted) return;
           if (result && result.authenticated && result.user) {
-            setUser(result.user);
+            diffSet(setUser, result.user);
           }
         }).catch(() => {});
       }
@@ -186,7 +200,7 @@ export function useAuthSession() {
 
   const refreshUser = async () => {
     const result = await fetchCurrentUser();
-    setUser(result.user);
+    diffSet(setUser, result.user);
     setAuthChecking(false);
     return result.user;
   };

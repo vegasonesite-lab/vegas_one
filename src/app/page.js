@@ -35,6 +35,7 @@ import BlackjackModal from '@/components/games/BlackjackModal';
 import ExternalGameModal from '@/components/games/ExternalGameModal';
 import SubscriptionPromoModal from '@/components/SubscriptionPromoModal';
 import { getClientUser, fetchCurrentUser } from '@/lib/clientAuth';
+import { diffSet, sanitizeGameTitle } from '@/lib/fastDiff';
 
 export default function Home() {
   const router = useRouter();
@@ -74,7 +75,7 @@ export default function Home() {
           try {
             localStorage.setItem('vegas_system_settings', JSON.stringify(data.settings));
           } catch {}
-          setSysSettings(data.settings);
+          diffSet(setSysSettings, data.settings);
         }
       })
       .catch(() => {});
@@ -155,12 +156,12 @@ export default function Home() {
     try {
       const data = await fetchCurrentUser();
       if (data && data.authenticated && data.user) {
-        setUser(data.user);
+        diffSet(setUser, data.user);
       } else {
-        setUser(null);
+        diffSet(setUser, null);
       }
     } catch {
-      setUser(null);
+      diffSet(setUser, null);
     } finally {
       setLoadingUser(false);
     }
@@ -169,7 +170,7 @@ export default function Home() {
   useEffect(() => {
     const cached = getClientUser();
     if (cached) {
-      setUser(cached);
+      diffSet(setUser, cached);
       setLoadingUser(false);
     }
     refreshUser();
@@ -191,8 +192,13 @@ export default function Home() {
       try {
         const res = await fetch('/api/games');
         const data = await res.json();
-        if (data.success && data.games) {
-          setGames(data.games);
+        if (data.success && Array.isArray(data.games)) {
+          const sanitizedGames = data.games.map(g => ({
+            ...g,
+            title: sanitizeGameTitle(g.title || g.name || ''),
+            name: sanitizeGameTitle(g.name || g.title || ''),
+          }));
+          diffSet(setGames, sanitizedGames);
         }
       } catch {}
     };
@@ -272,6 +278,7 @@ export default function Home() {
                 <VegasHeroBanner
                   user={user}
                   settings={sysSettings}
+                  games={games}
                   onOpenAuth={(tab) => setAuthModal({ open: true, tab })}
                   onOpenWallet={() => {
                     if (!user) setAuthModal({ open: true, tab: 'login' });

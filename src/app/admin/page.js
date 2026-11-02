@@ -82,6 +82,7 @@ import { formatCSTDateTime, formatCSTDate } from '@/lib/dateUtils';
 import { playTune, unlockAudioContext, AVAILABLE_TUNES } from '@/lib/soundAlerts';
 import { broadcastAdminAlert } from '@/lib/broadcastAlert';
 import { compressImage } from '@/lib/imageCompressor';
+import { areEqual, diffSet } from '@/lib/fastDiff';
 
 export default function AdminPortal({ initialTab }) {
   const [user, setUser] = useState(null);
@@ -519,7 +520,7 @@ export default function AdminPortal({ initialTab }) {
   const fetchAccountRequests = () => {
     fetch(`/api/account-requests?type=ACCOUNT_CREATION&status=${accountReqFilter}`)
       .then(r => r.json())
-      .then(d => { if (d.success) setAccountRequests(d.accountRequests || []); })
+      .then(d => { if (d.success) diffSet(setAccountRequests, d.accountRequests || []); })
       .catch(() => { });
   };
 
@@ -641,7 +642,7 @@ export default function AdminPortal({ initialTab }) {
       .then(d => {
         if (d.success) {
           const players = d.players || [];
-          setAllotmentPlayers(players);
+          diffSet(setAllotmentPlayers, players);
           setSelectedPlayer(prev => {
             if (prev) {
               const updated = players.find(p => p.id === prev.id);
@@ -656,7 +657,7 @@ export default function AdminPortal({ initialTab }) {
     fetch('/api/coins/allotment?history=true')
       .then(r => r.json())
       .then(d => {
-        if (d.success) setAllotmentHistory(d.history || []);
+        if (d.success) diffSet(setAllotmentHistory, d.history || []);
       })
       .catch(() => { });
   };
@@ -825,19 +826,19 @@ export default function AdminPortal({ initialTab }) {
       ]);
 
       if (depData.success) {
-        setDeposits(depData.deposits || []);
+        diffSet(setDeposits, depData.deposits || []);
       }
       if (withData.success) {
-        setRedemptions(withData.redemptions || []);
+        diffSet(setRedemptions, withData.redemptions || []);
       }
       if (reqData.success) {
-        setAccountRequests(reqData.accountRequests || []);
+        diffSet(setAccountRequests, reqData.accountRequests || []);
       }
       if (loadData.success) {
-        setCoinLoadRequests(loadData.accountRequests || []);
+        diffSet(setCoinLoadRequests, loadData.accountRequests || []);
       }
       if (chatData.success && Array.isArray(chatData.conversations)) {
-        setChatConversations(chatData.conversations);
+        diffSet(setChatConversations, chatData.conversations);
       }
 
       const pendingDeps = (depData.deposits || []).filter(d => d.status === 'pending');
@@ -1143,54 +1144,54 @@ export default function AdminPortal({ initialTab }) {
     const loadData = () => {
       if (typeof document !== 'undefined' && document.hidden) return;
       if (activeTab === 'overview') {
-        fetch(`/api/admin/stats?month=${statsMonth}`).then(r => r.json()).then(d => { if (d.success) setStats(d.stats); });
+        fetch(`/api/admin/stats?month=${statsMonth}`).then(r => r.json()).then(d => { if (d.success) diffSet(setStats, d.stats); });
       } else if (activeTab === 'games') {
-        fetch('/api/games?all=true').then(r => r.json()).then(d => { if (d.success) setGames(d.games); });
+        fetch('/api/games?all=true').then(r => r.json()).then(d => { if (d.success) diffSet(setGames, d.games); });
       } else if (activeTab === 'finance') {
-        fetch('/api/payments/methods?all=true').then(r => r.json()).then(d => { if (d.success) setPaymentMethods(d.methods || []); });
-        fetch('/api/payments/deposit?status=all').then(r => r.json()).then(d => { if (d.success) setDeposits(d.deposits || []); });
-        fetch('/api/payments/withdraw?status=all').then(r => r.json()).then(d => { if (d.success) setRedemptions(d.redemptions || []); });
+        fetch('/api/payments/methods?all=true').then(r => r.json()).then(d => { if (d.success) diffSet(setPaymentMethods, d.methods || []); });
+        fetch('/api/payments/deposit?status=all').then(r => r.json()).then(d => { if (d.success) diffSet(setDeposits, d.deposits || []); });
+        fetch('/api/payments/withdraw?status=all').then(r => r.json()).then(d => { if (d.success) diffSet(setRedemptions, d.redemptions || []); });
       } else if (activeTab === 'ledger') {
         fetch(`/api/ledger?username=${encodeURIComponent(ledgerFilterUser)}&type=${ledgerFilterType}&month=${ledgerFilterMonth}`)
           .then(r => r.json())
           .then(d => {
             if (d.success) {
-              setLedgerRecords(d.records || []);
-              if (d.summary) setLedgerSummary(d.summary);
+              diffSet(setLedgerRecords, d.records || []);
+              if (d.summary) diffSet(setLedgerSummary, d.summary);
             }
           });
       } else if (activeTab === 'chat') {
-        fetch('/api/chat?inbox=true').then(r => r.json()).then(d => { if (d.success) setChatConversations(d.conversations); });
+        fetch('/api/chat?inbox=true').then(r => r.json()).then(d => { if (d.success) diffSet(setChatConversations, d.conversations); });
       } else if (activeTab === 'promos') {
-        fetch('/api/notifications?admin=true').then(r => r.json()).then(d => { if (d.success) setBroadcastLogs(d.broadcasts || []); });
+        fetch('/api/notifications?admin=true').then(r => r.json()).then(d => { if (d.success) diffSet(setBroadcastLogs, d.broadcasts || []); });
       } else if (activeTab === 'affiliates' || activeTab === 'affiliate_commissions') {
         fetch('/api/affiliates?mode=admin').then(r => r.json()).then(d => {
           if (d.success) {
-            setAffiliates(d.affiliates || []);
-            setAffiliateSummary(d.summary || null);
+            diffSet(setAffiliates, d.affiliates || []);
+            diffSet(setAffiliateSummary, d.summary || null);
           }
         });
       } else if (activeTab === 'staff') {
-        fetch('/api/admin/staff').then(r => r.json()).then(d => { if (d.success) setStaffList(d.staff); });
+        fetch('/api/admin/staff').then(r => r.json()).then(d => { if (d.success) diffSet(setStaffList, d.staff); });
       } else if (activeTab === 'account_requests') {
         fetchAccountRequests();
       } else if (activeTab === 'coins_allotment') {
         fetchAllotmentData();
       } else if (activeTab === 'users') {
-        fetch(`/api/users?search=${encodeURIComponent(userSearchQuery)}`).then(r => r.json()).then(d => { if (d.success) setUsersList(d.users || []); });
+        fetch(`/api/users?search=${encodeURIComponent(userSearchQuery)}`).then(r => r.json()).then(d => { if (d.success) diffSet(setUsersList, d.users || []); });
       } else if (activeTab === 'gateways') {
-        fetch('/api/payments/methods?all=true').then(r => r.json()).then(d => { if (d.success) setPaymentMethods(d.methods || []); });
+        fetch('/api/payments/methods?all=true').then(r => r.json()).then(d => { if (d.success) diffSet(setPaymentMethods, d.methods || []); });
       } else if (activeTab === 'tx_search') {
         fetch(`/api/ledger?username=${encodeURIComponent(ledgerFilterUser)}&type=${ledgerFilterType}&month=${ledgerFilterMonth}`)
           .then(r => r.json())
           .then(d => {
             if (d.success) {
-              setLedgerRecords(d.records || []);
-              if (d.summary) setLedgerSummary(d.summary);
+              diffSet(setLedgerRecords, d.records || []);
+              if (d.summary) diffSet(setLedgerSummary, d.summary);
             }
           });
       } else if (activeTab === 'settings') {
-        fetch('/api/admin/settings').then(r => r.json()).then(d => { if (d.success) setSysSettings(d.settings); });
+        fetch('/api/admin/settings').then(r => r.json()).then(d => { if (d.success) diffSet(setSysSettings, d.settings); });
       }
     };
 
@@ -1201,9 +1202,13 @@ export default function AdminPortal({ initialTab }) {
 
   // Load chat messages when active conversation selected
   const lastActiveChatMsgIdRef = useRef(null);
+  const prevAdminChatCountRef = useRef(0);
+  const prevAdminChatConvIdRef = useRef(null);
+
   useEffect(() => {
     if (!activeChatConv) return;
     lastActiveChatMsgIdRef.current = null;
+    prevAdminChatCountRef.current = 0;
     const fetchChatMsgs = () => {
       fetch(`/api/chat?conversationId=${activeChatConv._id}`)
         .then(r => r.json())
@@ -1227,11 +1232,12 @@ export default function AdminPortal({ initialTab }) {
               }
               lastActiveChatMsgIdRef.current = latestMsg.id;
             }
-            setChatMessages(prev => {
+            diffSet(setChatMessages, prev => {
               const pendingTemps = prev.filter(
                 p => String(p.id).startsWith('temp_') && !d.messages.some(m => m.text === p.text && (m.imageUrl || null) === (p.imageUrl || null))
               );
-              return [...d.messages, ...pendingTemps];
+              const next = [...d.messages, ...pendingTemps];
+              return areEqual(prev, next) ? prev : next;
             });
           }
         });
@@ -1241,12 +1247,18 @@ export default function AdminPortal({ initialTab }) {
     return () => clearInterval(interval);
   }, [activeChatConv]);
 
-  // Auto-scroll chat messages to bottom
+  // Auto-scroll chat messages to bottom only when new message arrives or thread changes
   useEffect(() => {
     if (activeTab === 'chat' && activeChatConv) {
-      chatMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      const convChanged = prevAdminChatConvIdRef.current !== activeChatConv._id;
+      const countIncreased = chatMessages.length > prevAdminChatCountRef.current;
+      if (convChanged || countIncreased) {
+        chatMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }
+      prevAdminChatConvIdRef.current = activeChatConv._id;
+      prevAdminChatCountRef.current = chatMessages.length;
     }
-  }, [chatMessages, activeChatConv, activeTab]);
+  }, [chatMessages.length, activeChatConv?._id, activeTab]);
 
   // Handle Admin Staff Login
   const handleAdminLogin = async (e) => {
@@ -2650,7 +2662,7 @@ export default function AdminPortal({ initialTab }) {
                                 border: '1px solid rgba(245, 158, 11, 0.4)',
                               }}
                             >
-                              {approvalModal.request.gameTitle || 'Game Vault'}
+                              {sanitizeGameTitle(approvalModal.request.gameTitle || 'Game Platform')}
                             </span>
                           </div>
                           <p style={{ fontSize: '12px', color: '#94A3B8', margin: '4px 0 0 0' }}>

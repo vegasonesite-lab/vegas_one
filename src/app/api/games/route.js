@@ -53,7 +53,14 @@ export async function GET(req) {
     const mappedGames = games.map(g => ({
       id: g._id.toString(),
       gameId: g.gameId,
-      title: g.title,
+      title: String(g.title || g.name || '')
+        .replace(/[\u00a0\u2000-\u200b\u2028\u2029\ufeff]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim(),
+      name: String(g.title || g.name || '')
+        .replace(/[\u00a0\u2000-\u200b\u2028\u2029\ufeff]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim(),
       category: g.category || 'sweepstakes',
       provider: g.provider || 'Vegas One Studio',
       thumbnail: g.thumbnail || '/images/vegas-777.webp',
@@ -100,14 +107,19 @@ export async function POST(req) {
       return NextResponse.json({ success: false, error: 'Title is required.' }, { status: 400 });
     }
 
+    const cleanTitle = String(title)
+      .replace(/[\u00a0\u2000-\u200b\u2028\u2029\ufeff]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
     const db = await getDb();
     const gamesCol = db.collection('games');
 
-    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const slug = cleanTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-');
     const normalizedBadge = (badge || '').toUpperCase().trim();
     const newGame = {
       gameId: slug + '-' + Math.floor(Math.random() * 1000),
-      title,
+      title: cleanTitle,
       category: body.category ? body.category.toLowerCase() : 'sweepstakes',
       provider: provider || 'Vegas One Studio',
       thumbnail: thumbnail || '/images/vegas-777.webp',
@@ -153,7 +165,12 @@ export async function PUT(req) {
     const gamesCol = db.collection('games');
 
     const updateFields = {};
-    if (title !== undefined) updateFields.title = title;
+    if (title !== undefined) {
+      updateFields.title = String(title)
+        .replace(/[\u00a0\u2000-\u200b\u2028\u2029\ufeff]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
     if (provider !== undefined) updateFields.provider = provider;
     if (thumbnail !== undefined) updateFields.thumbnail = thumbnail;
     if (url !== undefined) updateFields.url = url;

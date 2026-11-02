@@ -24,6 +24,7 @@ import {
 import LoadCoinsModal from '@/components/player/LoadCoinsModal';
 import { broadcastAdminAlert } from '@/lib/broadcastAlert';
 import { getClientUser, fetchCurrentUser } from '@/lib/clientAuth';
+import { diffSet } from '@/lib/fastDiff';
 
 export default function PlayerGameAccountsHub({
   user,
@@ -39,21 +40,21 @@ export default function PlayerGameAccountsHub({
 
   useEffect(() => {
     if (user) {
-      setInternalUser(user);
+      diffSet(setInternalUser, user);
     }
   }, [user]);
 
   useEffect(() => {
     const handleAuth = (e) => {
       const u = e?.detail !== undefined && e.detail !== null ? e.detail : getClientUser();
-      if (u) setInternalUser(u);
+      if (u) diffSet(setInternalUser, u);
     };
     const handleBalance = () => {
       const u = getClientUser();
-      if (u) setInternalUser(u);
+      if (u) diffSet(setInternalUser, u);
       fetchCurrentUser().then((res) => {
         if (res && res.authenticated && res.user) {
-          setInternalUser(res.user);
+          diffSet(setInternalUser, res.user);
         }
       }).catch(() => {});
     };
@@ -79,10 +80,10 @@ export default function PlayerGameAccountsHub({
   const [requestSuccessMsg, setRequestSuccessMsg] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
 
-  const fetchAccountsAndRequests = async () => {
+  const fetchAccountsAndRequests = async (isBackground = false) => {
     if (!activeUser?.email) return;
 
-    setLoading(true);
+    if (!isBackground) setLoading(true);
     try {
       const [credRes, reqRes] = await Promise.all([
         fetch(`/api/game-accounts?email=${encodeURIComponent(activeUser.email)}`),
@@ -129,22 +130,22 @@ export default function PlayerGameAccountsHub({
         });
       }
 
-      setActiveAccounts(readyList);
-      setPendingRequests(pendingList);
-      setRejectedRequests(rejectedList);
+      diffSet(setActiveAccounts, readyList);
+      diffSet(setPendingRequests, pendingList);
+      diffSet(setRejectedRequests, rejectedList);
     } catch (err) {
       console.error('Error fetching game accounts:', err);
     } finally {
-      setLoading(false);
+      if (!isBackground) setLoading(false);
     }
   };
 
   useEffect(() => {
     if (activeUser?.email) {
-      fetchAccountsAndRequests();
-      const interval = setInterval(fetchAccountsAndRequests, 3000);
+      fetchAccountsAndRequests(false);
+      const interval = setInterval(() => fetchAccountsAndRequests(true), 3000);
 
-      const onUpdate = () => fetchAccountsAndRequests();
+      const onUpdate = () => fetchAccountsAndRequests(true);
       window.addEventListener('balanceUpdated', onUpdate);
       window.addEventListener('focus', onUpdate);
 
@@ -154,8 +155,9 @@ export default function PlayerGameAccountsHub({
         window.removeEventListener('focus', onUpdate);
       };
     } else {
-      setActiveAccounts([]);
-      setPendingRequests([]);
+      diffSet(setActiveAccounts, []);
+      diffSet(setPendingRequests, []);
+      diffSet(setRejectedRequests, []);
     }
   }, [activeUser?.email]);
 

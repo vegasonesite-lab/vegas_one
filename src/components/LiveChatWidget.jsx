@@ -6,6 +6,7 @@ import { broadcastAdminAlert } from '@/lib/broadcastAlert';
 import { compressImage } from '@/lib/imageCompressor';
 import { playTune } from '@/lib/soundAlerts';
 import { getClientUser } from '@/lib/clientAuth';
+import { areEqual, diffSet } from '@/lib/fastDiff';
 
 export default function LiveChatWidget({ user, soundEnabled }) {
   const activeUser = user || (typeof window !== 'undefined' ? getClientUser() : null);
@@ -75,6 +76,9 @@ export default function LiveChatWidget({ user, soundEnabled }) {
     };
   }, [isOpen]);
 
+  // Track message count to prevent scroll jumping on unchanged polling intervals
+  const prevMsgCountRef = useRef(0);
+
   // Auto-dismiss toast after 8 seconds
   useEffect(() => {
     if (!newMsgToast) return;
@@ -88,7 +92,7 @@ export default function LiveChatWidget({ user, soundEnabled }) {
       const res = await fetch(`/api/chat?markRead=${markAsRead ? 'true' : 'false'}`);
       const data = await res.json();
       if (data.success && Array.isArray(data.messages)) {
-        setMessages((prev) => {
+        diffSet(setMessages, (prev) => {
           const pendingTemps = prev.filter(
             (p) =>
               String(p.id).startsWith('temp-') &&
@@ -96,14 +100,15 @@ export default function LiveChatWidget({ user, soundEnabled }) {
                 (m) => m.text === p.text && (m.imageUrl || null) === (p.imageUrl || null)
               )
           );
-          return [...data.messages, ...pendingTemps];
+          const next = [...data.messages, ...pendingTemps];
+          return areEqual(prev, next) ? prev : next;
         });
 
         if (markAsRead) {
-          setUnreadCount(0);
+          diffSet(setUnreadCount, 0);
           setNewMsgToast(null);
         } else if (typeof data.unreadCount === 'number') {
-          setUnreadCount(data.unreadCount);
+          diffSet(setUnreadCount, data.unreadCount);
         }
 
         // Detect new incoming message from staff/admin
@@ -180,16 +185,22 @@ export default function LiveChatWidget({ user, soundEnabled }) {
   // When opening chat, clear unread and toast
   useEffect(() => {
     if (isOpen) {
-      setUnreadCount(0);
+      diffSet(setUnreadCount, 0);
       setNewMsgToast(null);
       fetchMessages(true);
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 50);
     }
   }, [isOpen]);
 
-  // Auto-scroll to bottom
+  // Stabilized scroll: only scroll when actual new messages arrive or keyboard opens
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, keyboardOffset]);
+    if (messages.length > prevMsgCountRef.current || keyboardOffset > 0) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+    prevMsgCountRef.current = messages.length;
+  }, [messages.length, keyboardOffset]);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();

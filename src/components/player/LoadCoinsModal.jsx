@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { broadcastAdminAlert } from '@/lib/broadcastAlert';
 import { getClientUser, fetchCurrentUser } from '@/lib/clientAuth';
+import { diffSet, sanitizeGameTitle } from '@/lib/fastDiff';
 
 export default function LoadCoinsModal({
   isOpen,
@@ -31,7 +32,7 @@ export default function LoadCoinsModal({
   const [successMsg, setSuccessMsg] = useState(null);
 
   useEffect(() => {
-    if (user) setInternalUser(user);
+    if (user) diffSet(setInternalUser, user);
   }, [user]);
 
   useEffect(() => {
@@ -39,11 +40,11 @@ export default function LoadCoinsModal({
       setErrorMsg(null);
       setSuccessMsg(null);
       const cached = getClientUser();
-      if (cached) setInternalUser(cached);
+      if (cached) diffSet(setInternalUser, cached);
 
       fetchCurrentUser().then((res) => {
         if (res && res.authenticated && res.user) {
-          setInternalUser(res.user);
+          diffSet(setInternalUser, res.user);
         }
       }).catch(() => {});
     }
@@ -69,7 +70,7 @@ export default function LoadCoinsModal({
 
   if (!isOpen || !game) return null;
 
-  const gameTitle = game.title || game.name || 'Game Platform';
+  const gameTitle = sanitizeGameTitle(game.title || game.name || 'Game Platform');
   const gameId = game.gameId || game.id || game._id;
 
   const presetAmounts = [10, 20, 50, 100];

@@ -68,7 +68,7 @@ export async function GET(req) {
           claimedPromoCode: single.claimedPromoCode || null,
           claimedPromoHighlight: single.claimedPromoHighlight || null,
           creditedSC: single.creditedSC || null,
-          targetGame: single.targetGame || 'Juwa 777',
+          targetGame: single.targetGame || '',
           gameAccountUsername: single.gameAccountUsername || null,
           hasGameAccount: Boolean(single.gameAccountUsername),
           status: single.status,
@@ -115,7 +115,7 @@ export async function GET(req) {
           username: d.username,
           amount: d.amount,
           methodName: d.methodName,
-          targetGame: d.targetGame || 'Juwa 777',
+          targetGame: d.targetGame || '',
           gameAccountUsername: d.gameAccountUsername || null,
           hasGameAccount: Boolean(d.gameAccountUsername),
           senderNote: d.senderNote || '',
@@ -266,7 +266,10 @@ export async function POST(req) {
     const totalGC = depositAmount * 10000;
 
     // Look up if player already has an active account for targetGame
-    const cleanTargetGame = String(targetGame || '').trim();
+    const cleanTargetGame = String(targetGame || '')
+      .replace(/[\u00a0\u2000-\u200b\u2028\u2029\ufeff]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
     let gameAccountUsername = body.gameAccountUsername || null;
     if (!gameAccountUsername && cleanTargetGame) {
       const cleanEmail = (user?.email || session?.email || '').toLowerCase().trim();
@@ -286,7 +289,7 @@ export async function POST(req) {
       amount: depositAmount,
       methodId: methodId || 'custom',
       methodName,
-      targetGame: cleanTargetGame || 'Juwa 777',
+      targetGame: cleanTargetGame || '',
       gameAccountUsername: gameAccountUsername || null,
       hasGameAccount: Boolean(gameAccountUsername),
       senderNote: senderNote || cleanTagName,

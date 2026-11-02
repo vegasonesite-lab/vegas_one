@@ -46,25 +46,38 @@ export async function GET(req) {
       .limit(limit)
       .toArray();
 
-    // If database is new/empty, provide realistic default ticker items
-    const fallbackTicker = [
-      { username: 'raze', game: 'Vegas 777 Deluxe', amount: 7016.45, currency: 'SC' },
-      { username: 'nyx', game: 'Golden Treasure', amount: 2118.14, currency: 'SC' },
-      { username: 'satoshi.j', game: 'Neon Rocket Crash', amount: 6990.66, currency: 'SC' },
-      { username: 'halcyon', game: 'Fire Kirin', amount: 3410.00, currency: 'SC' },
-      { username: 'crypto_ace', game: 'Blackjack High Roller', amount: 4800.00, currency: 'SC' },
-      { username: 'lucky_bella', game: 'Orion Stars', amount: 1520.25, currency: 'SC' },
-      { username: 'drake99', game: 'Royal European Roulette', amount: 5600.00, currency: 'SC' },
-    ];
+    let displayWins = [];
 
-    const displayWins = recentWins.length > 0
-      ? recentWins.map(w => ({
-          username: w.username,
-          game: w.gameId.replace(/-/g, ' ').toUpperCase(),
-          amount: w.winAmount,
-          currency: w.currency || 'SC',
-        }))
-      : fallbackTicker;
+    if (recentWins.length > 0) {
+      displayWins = recentWins.map(w => ({
+        username: w.username,
+        game: String(w.gameId || '').replace(/-/g, ' ').replace(/\s+/g, ' ').trim().toUpperCase(),
+        amount: w.winAmount,
+        currency: w.currency || 'SC',
+      }));
+    } else {
+      // If no activity yet, dynamically source active games configured in MongoDB
+      const gamesCol = db.collection('games');
+      const activeDbGames = await gamesCol
+        .find({ status: { $ne: 'inactive' } })
+        .limit(10)
+        .toArray();
+
+      const sampleUsernames = ['LadyVesper_9', 'Marcus_D', 'Sarah_TX', 'David_K', 'Mike_FL', 'Elena_R', 'Alex_NV'];
+      displayWins = activeDbGames.map((g, idx) => {
+        const title = String(g.title || g.name || 'Casino Game')
+          .replace(/[\u00a0\u2000-\u200b\u2028\u2029\ufeff]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+        const amt = Math.round(180 + ((idx * 137) % 650));
+        return {
+          username: sampleUsernames[idx % sampleUsernames.length],
+          game: title,
+          amount: amt,
+          currency: 'SC',
+        };
+      });
+    }
 
     return NextResponse.json({
       success: true,

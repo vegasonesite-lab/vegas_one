@@ -2,16 +2,21 @@
 
 import React, { useEffect, useState } from 'react';
 import { Gem, Sparkles } from 'lucide-react';
+import { diffSet, sanitizeGameTitle } from '@/lib/fastDiff';
 
 export default function LatestWinsTicker() {
-  const [wins, setWins] = useState([
-    { username: 'LadyVesper_9', amount: '$240.00', game: 'Orion Stars', time: '42s ago', icon: 'gem' },
-    { username: 'Marcus_D', amount: '$450.00', game: 'Fire Kirin', time: '1m ago', icon: 'crown' },
-    { username: 'Sarah_TX', amount: '$180.00', game: 'Game Vault', time: '2m ago', icon: 'gem' },
-    { username: 'David_K', amount: '$520.00', game: 'Juwa 777', time: '3m ago', icon: 'crown' },
-    { username: 'Mike_FL', amount: '$310.00', game: 'Ultra Panda', time: '4m ago', icon: 'gem' },
-    { username: 'Elena_R', amount: '$640.00', game: 'Milky Way', time: '5m ago', icon: 'crown' },
-  ]);
+  const [wins, setWins] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('vegas_cached_ticker');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch {}
+    }
+    return [];
+  });
 
   useEffect(() => {
     // Dynamic real-time live ticker polling from MongoDB
@@ -19,20 +24,23 @@ export default function LatestWinsTicker() {
       fetch('/api/games/activity?mode=ticker')
         .then(res => res.json())
         .then(data => {
-          if (data.success && data.ticker?.length > 0) {
+          if (data.success && Array.isArray(data.ticker) && data.ticker.length > 0) {
             const formatted = data.ticker.map((item, i) => {
               const rawAmt = Number(item.amount || 250);
-              // Ensure realistic display
               const realisticAmt = rawAmt > 2000 ? Math.round(rawAmt % 800 + 150) : rawAmt;
+              const sanitizedGame = sanitizeGameTitle(item.game || 'Casino');
               return {
                 username: item.username || `Player_${i + 1}`,
                 amount: `$${realisticAmt.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-                game: item.game || 'Orion Stars',
+                game: sanitizedGame,
                 time: `${(i + 1) * 45}s ago`,
                 icon: i % 2 === 0 ? 'gem' : 'crown',
               };
             });
-            setWins(formatted);
+            diffSet(setWins, formatted);
+            try {
+              localStorage.setItem('vegas_cached_ticker', JSON.stringify(formatted));
+            } catch {}
           }
         })
         .catch(() => {});
@@ -42,6 +50,8 @@ export default function LatestWinsTicker() {
     const interval = setInterval(fetchTicker, 6000);
     return () => clearInterval(interval);
   }, []);
+
+  if (!wins || wins.length === 0) return null;
 
   return (
     <div

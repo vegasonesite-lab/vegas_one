@@ -15,28 +15,30 @@ import {
   Coins,
   FileSpreadsheet
 } from 'lucide-react';
+import { diffSet } from '@/lib/fastDiff';
 
 export default function PlayerLedgerTab({ user }) {
   const [records, setRecords] = useState([]);
   const [filterType, setFilterType] = useState('all');
   const [loading, setLoading] = useState(true);
 
-  const fetchLedger = async () => {
+  const fetchLedger = async (isBackground = false) => {
+    if (!isBackground) setLoading(true);
     try {
       const res = await fetch('/api/ledger');
       const data = await res.json();
       if (data.success && data.records) {
-        setRecords(data.records);
+        diffSet(setRecords, data.records);
       }
     } catch {
     } finally {
-      setLoading(false);
+      if (!isBackground) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchLedger();
-    const interval = setInterval(fetchLedger, 5000);
+    fetchLedger(false);
+    const interval = setInterval(() => fetchLedger(true), 5000);
     return () => clearInterval(interval);
   }, []);
 

@@ -26,6 +26,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { broadcastAdminAlert } from '@/lib/broadcastAlert';
+import { diffSet } from '@/lib/fastDiff';
 
 export default function CoinOperationsDesk({
   sessionUser,
@@ -74,19 +75,19 @@ export default function CoinOperationsDesk({
       const coinLoadsOnly = parentAccountRequests.filter(
         (r) => r.type === 'COIN_LOAD' || Number(r.transferAmount || 0) > 0
       );
-      if (coinLoadsOnly.length > 0) setLoadRequests(coinLoadsOnly);
+      if (coinLoadsOnly.length > 0) diffSet(setLoadRequests, coinLoadsOnly);
     }
   }, [parentAccountRequests]);
 
   useEffect(() => {
     if (Array.isArray(parentRedemptions) && parentRedemptions.length > 0) {
-      setCashoutRequests(parentRedemptions);
+      diffSet(setCashoutRequests, parentRedemptions);
     }
   }, [parentRedemptions]);
 
   // Fetch all data with resilient error handling
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchData = async (isBackground = false) => {
+    if (!isBackground) setLoading(true);
     try {
       if (typeof onParentSync === 'function') {
         onParentSync();
@@ -100,25 +101,25 @@ export default function CoinOperationsDesk({
       if (loadsRes && loadsRes.ok) {
         const loadsData = await loadsRes.json().catch(() => null);
         if (loadsData && loadsData.success && Array.isArray(loadsData.accountRequests)) {
-          setLoadRequests(loadsData.accountRequests);
+          diffSet(setLoadRequests, loadsData.accountRequests);
         }
       }
       if (cashoutsRes && cashoutsRes.ok) {
         const cashoutsData = await cashoutsRes.json().catch(() => null);
         if (cashoutsData && cashoutsData.success && Array.isArray(cashoutsData.redemptions)) {
-          setCashoutRequests(cashoutsData.redemptions);
+          diffSet(setCashoutRequests, cashoutsData.redemptions);
         }
       }
     } catch (err) {
       console.error('Error fetching coin desk data:', err);
     } finally {
-      setLoading(false);
+      if (!isBackground) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 3000);
+    fetchData(false);
+    const interval = setInterval(() => fetchData(true), 3000);
     return () => clearInterval(interval);
   }, []);
 

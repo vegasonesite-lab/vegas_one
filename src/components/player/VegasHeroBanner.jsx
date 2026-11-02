@@ -14,10 +14,12 @@ import {
   Clock,
   Headphones
 } from 'lucide-react';
+import { diffSet, sanitizeGameTitle } from '@/lib/fastDiff';
 
 export default function VegasHeroBanner({
   user,
   settings: propSettings,
+  games: propGames = [],
   onOpenAuth,
   onOpenWallet,
   onOpenDailyBonus,
@@ -34,6 +36,20 @@ export default function VegasHeroBanner({
     return null;
   });
 
+  const [dynamicGames, setDynamicGames] = useState(() => {
+    if (Array.isArray(propGames) && propGames.length > 0) return propGames;
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('vegas_cached_games');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch {}
+    }
+    return [];
+  });
+
   // Fetch live bonus settings from admin if not provided via prop
   useEffect(() => {
     if (!propSettings) {
@@ -44,12 +60,37 @@ export default function VegasHeroBanner({
             try {
               localStorage.setItem('vegas_system_settings', JSON.stringify(data.settings));
             } catch {}
-            setInternalSettings(data.settings);
+            diffSet(setInternalSettings, data.settings);
           }
         })
         .catch(() => {});
     }
   }, [propSettings]);
+
+  // Sync active games dynamically from Database / Admin Panel
+  useEffect(() => {
+    if (Array.isArray(propGames) && propGames.length > 0) {
+      diffSet(setDynamicGames, propGames);
+      return;
+    }
+    fetch('/api/games')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.games)) {
+          const active = data.games
+            .filter(g => g && (g.title || g.name) && g.status !== 'inactive')
+            .map(g => ({
+              ...g,
+              name: sanitizeGameTitle(g.title || g.name || ''),
+            }));
+          diffSet(setDynamicGames, active);
+          try {
+            localStorage.setItem('vegas_cached_games', JSON.stringify(active));
+          } catch {}
+        }
+      })
+      .catch(() => {});
+  }, [propGames]);
 
   const activeSettings = propSettings || internalSettings;
   const hasClaimedWelcome = Boolean(user?.welcomeBonusClaimed || (user?.totalDeposited && user.totalDeposited > 0));
@@ -72,14 +113,11 @@ export default function VegasHeroBanner({
 
   const ctaText = user ? 'DEPOSIT & LOAD CREDITS' : 'GET GAME ACCOUNT';
 
-  const popularPlatforms = [
-    { name: 'Fire Kirin', badge: 'Active' },
-    { name: 'Orion Stars', badge: 'Active' },
-    { name: 'Game Vault', badge: 'Active' },
-    { name: 'Juwa 777', badge: 'Active' },
-    { name: 'Ultra Panda', badge: 'Active' },
-    { name: 'Milky Way', badge: 'Active' },
-  ];
+  // Dynamic active platforms strictly sourced from database/admin
+  const popularPlatforms = dynamicGames.slice(0, 6).map(g => ({
+    name: sanitizeGameTitle(g.title || g.name || ''),
+    badge: 'Active',
+  }));
 
   return (
     <div style={{ position: 'relative', marginBottom: '28px', paddingTop: '8px' }}>

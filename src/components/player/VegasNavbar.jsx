@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 
 import { getClientUser, clearClientUser, fetchCurrentUser } from '@/lib/clientAuth';
+import { diffSet } from '@/lib/fastDiff';
 
 export default function VegasNavbar({
   user: propUser,
@@ -48,7 +49,7 @@ export default function VegasNavbar({
         if (data.success && Array.isArray(data.notifications)) {
           const lastRead = typeof window !== 'undefined' ? localStorage.getItem('vegas_last_notif_read') || '0' : '0';
           const unread = data.notifications.filter(n => new Date(n.createdAt).getTime() > Number(lastRead));
-          setUnreadNotifs(unread.length);
+          diffSet(setUnreadNotifs, unread.length);
         }
       } catch {}
     };
@@ -64,7 +65,7 @@ export default function VegasNavbar({
         localStorage.setItem('vegas_last_notif_read', Date.now().toString());
       }
     } catch {}
-    setUnreadNotifs(0);
+    diffSet(setUnreadNotifs, 0);
     setUserDropdownOpen(false);
     if (typeof onOpenNotifications === 'function') {
       onOpenNotifications();
@@ -98,7 +99,7 @@ export default function VegasNavbar({
     // 1. Immediately hydrate cached user without SSR hydration mismatch
     const cached = getClientUser();
     if (cached) {
-      setInternalUser(cached);
+      diffSet(setInternalUser, cached);
     }
 
     const fetchLatestUser = () => {
@@ -106,9 +107,9 @@ export default function VegasNavbar({
         .then((data) => {
           if (isMounted) {
             if (data && data.authenticated && data.user) {
-              setInternalUser(data.user);
+              diffSet(setInternalUser, data.user);
             } else {
-              setInternalUser(null);
+              diffSet(setInternalUser, null);
             }
           }
         })
@@ -121,7 +122,7 @@ export default function VegasNavbar({
     const onBalanceUpdate = () => fetchLatestUser();
     const onAuthUpdate = (e) => {
       if (isMounted) {
-        setInternalUser(e?.detail !== undefined ? e.detail : getClientUser());
+        diffSet(setInternalUser, e?.detail !== undefined ? e.detail : getClientUser());
       }
     };
 

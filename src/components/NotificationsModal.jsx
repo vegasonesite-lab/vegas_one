@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { X, Bell, Sparkles, ExternalLink, ArrowRight } from 'lucide-react';
+import { diffSet } from '@/lib/fastDiff';
 
 export default function NotificationsModal({ isOpen, onClose }) {
   const router = useRouter();
@@ -16,7 +17,7 @@ export default function NotificationsModal({ isOpen, onClose }) {
       .then(res => res.json())
       .then(data => {
         if (data.success && Array.isArray(data.notifications)) {
-          setNotifications(data.notifications);
+          diffSet(setNotifications, data.notifications);
         }
       })
       .catch(() => {})

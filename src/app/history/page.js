@@ -18,6 +18,7 @@ import VegasFooter from '@/components/player/VegasFooter';
 import LiveChatWidget from '@/components/LiveChatWidget';
 import AuthModal from '@/components/AuthModal';
 import { useAuthSession } from '@/lib/clientAuth';
+import { diffSet } from '@/lib/fastDiff';
 
 export default function HistoryPage() {
   const router = useRouter();
@@ -49,7 +50,7 @@ export default function HistoryPage() {
         items.push(...withData.redemptions.map((r) => ({ ...r, kind: 'REDEMPTION' })));
       }
       items.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      setHistoryItems(items);
+      diffSet(setHistoryItems, items);
     } catch {
       // ignore
     } finally {

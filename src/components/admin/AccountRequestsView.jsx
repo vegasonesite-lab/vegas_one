@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   RefreshCw,
 } from 'lucide-react';
+import { sanitizeGameTitle } from '@/lib/fastDiff';
 
 export default function AccountRequestsView({
   requests = [],
@@ -264,7 +265,7 @@ export default function AccountRequestsView({
                       </td>
 
                       <td className="p-4 whitespace-nowrap">
-                        <span className="font-heading font-black text-amber-400 text-sm">{req.gameTitle}</span>
+                        <span className="font-heading font-black text-amber-400 text-sm">{sanitizeGameTitle(req.gameTitle)}</span>
                         {req.source === 'auto_from_approved_deposit' && (
                           <div className="mt-1">
                             <span className="inline-flex items-center gap-1 text-[10.5px] font-black text-cyan-400 bg-cyan-500/15 border border-cyan-500/30 px-2 py-0.5 rounded-lg">
@@ -407,7 +408,7 @@ export default function AccountRequestsView({
                   <div className="p-3 bg-[#070514] rounded-xl border border-cyan-500/20 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-gray-400 font-bold">Game Requested:</span>
-                      <span className="font-heading font-black text-amber-400 text-sm">{req.gameTitle}</span>
+                      <span className="font-heading font-black text-amber-400 text-sm">{sanitizeGameTitle(req.gameTitle)}</span>
                     </div>
 
                     {req.source === 'auto_from_approved_deposit' && (
