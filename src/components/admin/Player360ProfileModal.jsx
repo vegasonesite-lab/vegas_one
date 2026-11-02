@@ -21,18 +21,22 @@ import {
   Sparkles,
   Eye,
   Phone,
+  MessageSquare,
 } from 'lucide-react';
 import { formatCSTDateTime } from '@/lib/dateUtils';
+import DirectMessagePlayerModal from './DirectMessagePlayerModal';
 
 export default function Player360ProfileModal({
   userId,
   onClose,
   onUserUpdated,
+  onOpenLiveChat,
 }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeSubTab, setActiveSubTab] = useState('overview');
   const [copiedField, setCopiedField] = useState(null);
+  const [messageModalOpen, setMessageModalOpen] = useState(false);
 
   // Balance adjustment state
   const [adjustMode, setAdjustMode] = useState('add'); // 'add' | 'deduct'
@@ -798,6 +802,29 @@ export default function Player360ProfileModal({
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '14px', paddingTop: '12px', borderTop: '1px solid rgba(255, 255, 255, 0.08)', flexWrap: 'wrap' }}>
                         <button
                           type="button"
+                          onClick={() => setMessageModalOpen(true)}
+                          style={{
+                            padding: '6px 12px',
+                            borderRadius: '10px',
+                            backgroundColor: 'rgba(0, 240, 255, 0.15)',
+                            border: '1px solid rgba(0, 240, 255, 0.45)',
+                            color: '#00F0FF',
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            boxShadow: '0 0 12px rgba(0, 240, 255, 0.2)',
+                            fontFamily: 'Lexend, sans-serif',
+                          }}
+                        >
+                          <MessageSquare size={12} />
+                          <span>Message Player</span>
+                        </button>
+
+                        <button
+                          type="button"
                           onClick={handleResetPassword}
                           style={{
                             padding: '6px 12px',
@@ -1376,6 +1403,23 @@ export default function Player360ProfileModal({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Direct Message Player Modal */}
+      {messageModalOpen && data?.user && (
+        <DirectMessagePlayerModal
+          isOpen={messageModalOpen}
+          onClose={() => setMessageModalOpen(false)}
+          player={{
+            id: data.user.id || userId,
+            username: data.user.username,
+            email: data.user.email,
+            phoneNumber: data.user.phoneNumber,
+            balanceSC: data.user.balanceSC,
+            referralCode: data.user.referralCode,
+          }}
+          onOpenLiveChat={onOpenLiveChat}
+        />
       )}
     </div>
   );

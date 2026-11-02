@@ -96,7 +96,7 @@ export async function POST(req) {
     }
 
     const body = await req.json();
-    let { title, message, target = 'all', channel = 'all', segment = 'all', url = '/deposit' } = body;
+    let { title, message, target = 'all', channel = 'all', segment = 'all', url = '/deposit', userId, userEmail } = body;
 
     if (!title || !message) {
       return NextResponse.json({ success: false, error: 'Title and message are required.' }, { status: 400 });
@@ -109,86 +109,126 @@ export async function POST(req) {
     const db = await getDb();
     const notifsCol = db.collection('notifications');
 
-    // Save in-app notification & broadcast record
+    const isDirectPlayer = (target && target !== 'all') || Boolean(userId) || Boolean(userEmail);
+
+    // Save in-app notification & broadcast / direct message record
     const newRecord = {
       title: title.trim(),
       message: message.trim(),
-      target,
+      target: target || (userId ? String(userId) : 'all'),
       channel,
-      segment,
+      segment: isDirectPlayer ? 'direct' : segment,
       url: cleanUrl,
-      type: 'broadcast',
+      type: isDirectPlayer ? 'direct_message' : 'broadcast',
       sentBy: session.username || 'Admin',
       createdAt: new Date(),
     };
 
+    if (userId) newRecord.userId = String(userId);
+    if (userEmail) newRecord.userEmail = String(userEmail).toLowerCase().trim();
+
     const res = await notifsCol.insertOne(newRecord);
 
-    // Send push notification via FCM to topic AND direct device tokens (instant delivery)
+    // Send push notification via FCM
     try {
-      // 1. Topic delivery for broad coverage
-      sendPushNotification({
-        topic: 'vegas_all_players',
-        title: title.trim(),
-        body: message.trim(),
-        data: { url: cleanUrl, type: 'broadcast' },
-      }).catch(err => console.warn('Topic push warning:', err.message));
+      if (isDirectPlayer) {
+        // Targeted device push to THIS player only
+        const subsCol = db.collection('subscriptions');
+        const queryOr = [];
+        if (userId) queryOr.push({ userId: String(userId) });
+        if (userEmail) queryOr.push({ email: String(userEmail).toLowerCase().trim() });
+        if (target && target !== 'all') {
+          queryOr.push({ userId: String(target) });
+          queryOr.push({ email: String(target).toLowerCase().trim() });
+        }
 
-      // 2. Direct device tokens delivery for INSTANT sub-second lock-screen delivery
-      const subsCol = db.collection('subscriptions');
-      const subs = await subsCol.find({ fcmToken: { $ne: null } }).toArray();
-      const directTokens = [...new Set(subs.map(s => s.fcmToken).filter(t => typeof t === 'string' && t.trim().length > 10))];
+        const subs = queryOr.length > 0
+          ? await subsCol.find({ $or: queryOr, fcmToken: { $ne: null } }).toArray()
+          : [];
+        const directTokens = [...new Set(subs.map(s => s.fcmToken).filter(t => typeof t === 'string' && t.trim().length > 10))];
 
-      for (const t of directTokens) {
+        for (const t of directTokens) {
+          sendPushNotification({
+            token: t,
+            title: title.trim(),
+            body: message.trim(),
+            data: { url: cleanUrl, type: 'direct_message' },
+          }).catch(err => console.warn('Direct token push warning:', err.message));
+        }
+      } else {
+        // Broad broadcast delivery
+        // 1. Topic delivery for broad coverage
         sendPushNotification({
-          token: t,
+          topic: 'vegas_all_players',
           title: title.trim(),
           body: message.trim(),
           data: { url: cleanUrl, type: 'broadcast' },
-        }).catch(err => console.warn('Direct token push warning:', err.message));
+        }).catch(err => console.warn('Topic push warning:', err.message));
+
+        // 2. Direct device tokens delivery for INSTANT sub-second lock-screen delivery
+        const subsCol = db.collection('subscriptions');
+        const subs = await subsCol.find({ fcmToken: { $ne: null } }).toArray();
+        const directTokens = [...new Set(subs.map(s => s.fcmToken).filter(t => typeof t === 'string' && t.trim().length > 10))];
+
+        for (const t of directTokens) {
+          sendPushNotification({
+            token: t,
+            title: title.trim(),
+            body: message.trim(),
+            data: { url: cleanUrl, type: 'broadcast' },
+          }).catch(err => console.warn('Direct token push warning:', err.message));
+        }
       }
     } catch (fcmErr) {
       console.warn('FCM delivery note:', fcmErr.message);
     }
 
-    // Send email dispatch to players if channel is 'all' or 'email'
+    // Send email dispatch to player(s) if channel is 'all' or 'email'
     if (channel === 'all' || channel === 'email') {
       try {
         const { sendEmail } = await import('@/lib/email');
         const usersCol = db.collection('users');
-        let userFilter = { role: 'player' };
-        if (target !== 'all' && target.includes('@')) {
-          userFilter = { email: target.toLowerCase().trim() };
-        }
-        const targetUsers = await usersCol
-          .find(userFilter, { projection: { email: 1, username: 1 } })
-          .limit(100)
-          .toArray();
 
-        for (const u of targetUsers) {
-          if (u.email) {
-            const html = `
-              <div style="background-color: #070514; color: #FFFFFF; padding: 40px 24px; font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 540px; margin: auto; border-radius: 16px; border: 1px solid rgba(0, 240, 255, 0.35); text-align: center;">
-                <img src="https://vegasone.games/images/logo.png" alt="Vegas One" style="height: 52px; margin-bottom: 8px;" />
-                <h1 style="color: #00F0FF; margin: 0; font-size: 22px; font-weight: 900; letter-spacing: 1px;">VEGAS ONE</h1>
-                <p style="color: #E026D8; font-size: 11px; margin: 4px 0 20px 0; text-transform: uppercase; letter-spacing: 2px;">Official Player Broadcast</p>
-                <div style="background: #0E0A24; border: 1px solid rgba(0, 240, 255, 0.2); border-radius: 12px; padding: 22px; text-align: left; margin: 20px 0;">
-                  <h2 style="font-size: 18px; margin: 0 0 10px 0; color: #FFFFFF;">${title.trim()}</h2>
-                  <p style="font-size: 14px; color: #CBD5E1; line-height: 1.6; margin: 0;">${message.trim()}</p>
-                </div>
-                <a href="${url && url.startsWith('http') ? url : `https://vegasone.games${url}`}" style="display: inline-block; background: linear-gradient(135deg, #00F0FF 0%, #E026D8 100%); color: #070514; font-weight: 900; padding: 12px 28px; border-radius: 9999px; text-decoration: none; font-size: 14px; letter-spacing: 0.5px;">
-                  ACCESS NOW &amp; PLAY
-                </a>
-                <p style="margin-top: 30px; font-size: 11px; color: #64748B;">You received this update because you are a registered player at Vegas One.</p>
+        let targetEmails = [];
+        if (userEmail && userEmail.includes('@')) {
+          targetEmails.push(userEmail.toLowerCase().trim());
+        } else if (userId) {
+          const userObj = await usersCol.findOne({ $or: [{ _id: userId }, { id: userId }] });
+          if (userObj?.email) targetEmails.push(userObj.email.toLowerCase().trim());
+        } else if (target !== 'all' && target.includes('@')) {
+          targetEmails.push(target.toLowerCase().trim());
+        } else {
+          // Broadcast to all players
+          const targetUsers = await usersCol
+            .find({ role: 'player' }, { projection: { email: 1, username: 1 } })
+            .limit(100)
+            .toArray();
+          targetEmails = targetUsers.map(u => u.email).filter(Boolean);
+        }
+
+        const uniqueEmails = [...new Set(targetEmails)];
+        for (const emailAddr of uniqueEmails) {
+          const html = `
+            <div style="background-color: #070514; color: #FFFFFF; padding: 40px 24px; font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 540px; margin: auto; border-radius: 16px; border: 1px solid rgba(0, 240, 255, 0.35); text-align: center;">
+              <img src="https://vegasone.games/images/logo.png" alt="Vegas One" style="height: 52px; margin-bottom: 8px;" />
+              <h1 style="color: #00F0FF; margin: 0; font-size: 22px; font-weight: 900; letter-spacing: 1px;">VEGAS ONE</h1>
+              <p style="color: #E026D8; font-size: 11px; margin: 4px 0 20px 0; text-transform: uppercase; letter-spacing: 2px;">${isDirectPlayer ? 'Player Direct Notice' : 'Official Player Broadcast'}</p>
+              <div style="background: #0E0A24; border: 1px solid rgba(0, 240, 255, 0.2); border-radius: 12px; padding: 22px; text-align: left; margin: 20px 0;">
+                <h2 style="font-size: 18px; margin: 0 0 10px 0; color: #FFFFFF;">${title.trim()}</h2>
+                <p style="font-size: 14px; color: #CBD5E1; line-height: 1.6; margin: 0;">${message.trim()}</p>
               </div>
-            `;
-            sendEmail({ to: u.email, subject: `🎰 Vegas One: ${title.trim()}`, html }).catch((err) =>
-              console.warn('Email dispatch note:', err.message)
-            );
-          }
+              <a href="${cleanUrl && cleanUrl.startsWith('http') ? cleanUrl : `https://vegasone.games${cleanUrl}`}" style="display: inline-block; background: linear-gradient(135deg, #00F0FF 0%, #E026D8 100%); color: #070514; font-weight: 900; padding: 12px 28px; border-radius: 9999px; text-decoration: none; font-size: 14px; letter-spacing: 0.5px;">
+                ACCESS NOW &amp; PLAY
+              </a>
+              <p style="margin-top: 30px; font-size: 11px; color: #64748B;">You received this update because you are a registered player at Vegas One.</p>
+            </div>
+          `;
+          sendEmail({ to: emailAddr, subject: `🎰 Vegas One: ${title.trim()}`, html }).catch((err) =>
+            console.warn('Email dispatch note:', err.message)
+          );
         }
       } catch (emailErr) {
-        console.warn('Broadcast email batch error:', emailErr.message);
+        console.warn('Email dispatch error:', emailErr.message);
       }
     }
 

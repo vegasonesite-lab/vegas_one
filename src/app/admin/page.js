@@ -72,6 +72,7 @@ import AccountRequestsView from '@/components/admin/AccountRequestsView';
 import CoinOperationsDesk from '@/components/admin/CoinOperationsDesk';
 import SoundSettingsModal from '@/components/admin/SoundSettingsModal';
 import Player360ProfileModal from '@/components/admin/Player360ProfileModal';
+import DirectMessagePlayerModal from '@/components/admin/DirectMessagePlayerModal';
 import AffiliateManagementHub from '@/components/admin/AffiliateManagementHub';
 import HomepageVideosManager from '@/components/admin/HomepageVideosManager';
 import PromotionsManager from '@/components/admin/PromotionsManager';
@@ -192,6 +193,18 @@ export default function AdminPortal({ initialTab }) {
   const [resetPassModal, setResetPassModal] = useState({ open: false, user: null, newPass: '' });
   const [selectedPlayerId, setSelectedPlayerId] = useState(null);
   const [playerFilter, setPlayerFilter] = useState('all');
+  const [messageModalPlayer, setMessageModalPlayer] = useState(null);
+
+  const handleOpenLiveChatForPlayer = (targetPlayer) => {
+    if (!targetPlayer) return;
+    setActiveChatConv({
+      _id: targetPlayer.id,
+      id: targetPlayer.id,
+      userId: targetPlayer.id,
+      username: targetPlayer.username,
+    });
+    setActiveTab('chat');
+  };
 
   // URL synchronization
   useEffect(() => {
@@ -7683,6 +7696,21 @@ export default function AdminPortal({ initialTab }) {
 
                             <button
                               type="button"
+                              onClick={() => setMessageModalPlayer(u)}
+                              className="w-8 h-8 rounded-xl flex items-center justify-center transition cursor-pointer hover:opacity-90 active:scale-95"
+                              style={{
+                                backgroundColor: 'rgba(0, 240, 255, 0.15)',
+                                border: '1px solid rgba(0, 240, 255, 0.4)',
+                                color: '#00F0FF',
+                                boxShadow: '0 0 10px rgba(0, 240, 255, 0.2)',
+                              }}
+                              title="Direct Message Player"
+                            >
+                              <MessageSquare size={13} />
+                            </button>
+
+                            <button
+                              type="button"
                               onClick={() => setResetPassModal({ open: true, user: u, newPass: '' })}
                               className="w-8 h-8 rounded-xl flex items-center justify-center transition cursor-pointer"
                               style={{
@@ -7968,7 +7996,23 @@ export default function AdminPortal({ initialTab }) {
                                     <span>Profile</span>
                                   </button>
 
-                                  {/* 2. Reset Password Icon Button */}
+                                  {/* 2. Direct Message Button */}
+                                  <button
+                                    type="button"
+                                    onClick={() => setMessageModalPlayer(u)}
+                                    className="w-8 h-8 rounded-xl flex items-center justify-center transition cursor-pointer hover:opacity-90 active:scale-95"
+                                    style={{
+                                      backgroundColor: 'rgba(0, 240, 255, 0.15)',
+                                      border: '1px solid rgba(0, 240, 255, 0.4)',
+                                      color: '#00F0FF',
+                                      boxShadow: '0 0 10px rgba(0, 240, 255, 0.2)',
+                                    }}
+                                    title="Direct Message Player (Live Chat, Push Alert, Bell & Email)"
+                                  >
+                                    <MessageSquare size={13} />
+                                  </button>
+
+                                  {/* 3. Reset Password Icon Button */}
                                   <button
                                     type="button"
                                     onClick={() => setResetPassModal({ open: true, user: u, newPass: '' })}
@@ -10894,9 +10938,20 @@ export default function AdminPortal({ initialTab }) {
             <Player360ProfileModal
               userId={selectedPlayerId}
               onClose={() => setSelectedPlayerId(null)}
+              onOpenLiveChat={handleOpenLiveChatForPlayer}
               onUserUpdated={(uid, newBal) => {
                 setUsersList(prev => prev.map(item => item.id === uid ? { ...item, balanceSC: newBal } : item));
               }}
+            />
+          )}
+
+          {/* Direct Message Player Modal */}
+          {messageModalPlayer && (
+            <DirectMessagePlayerModal
+              isOpen={Boolean(messageModalPlayer)}
+              onClose={() => setMessageModalPlayer(null)}
+              player={messageModalPlayer}
+              onOpenLiveChat={handleOpenLiveChatForPlayer}
             />
           )}
           {/* Sound & Notification Tune Settings Modal */}
