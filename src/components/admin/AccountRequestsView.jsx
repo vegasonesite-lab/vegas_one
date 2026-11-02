@@ -14,9 +14,9 @@ import {
   ShieldCheck,
   RefreshCw,
 } from 'lucide-react';
-import { sanitizeGameTitle } from '@/lib/fastDiff';
+import { sanitizeGameTitle, areEqual } from '@/lib/fastDiff';
 
-export default function AccountRequestsView({
+function AccountRequestsView({
   requests = [],
   filter = 'PENDING',
   onFilterChange,
@@ -244,8 +244,8 @@ export default function AccountRequestsView({
                   const isPending = (req.status || '').toUpperCase() === 'PENDING';
                   return (
                     <tr
-                      key={req.id}
-                      className={`transition-colors ${
+                      key={req.id || req._id}
+                      className={`transition-all duration-300 ease-out ${
                         isPending ? 'bg-amber-500/[0.04] hover:bg-amber-500/[0.08]' : 'hover:bg-cyan-500/[0.04]'
                       }`}
                     >
@@ -372,8 +372,8 @@ export default function AccountRequestsView({
               const isPending = (req.status || '').toUpperCase() === 'PENDING';
               return (
                 <div
-                  key={req.id}
-                  className={`p-4 rounded-2xl border flex flex-col gap-3.5 transition shadow-xl ${
+                  key={req.id || req._id}
+                  className={`p-4 rounded-2xl border flex flex-col gap-3.5 transition-all duration-300 ease-out shadow-xl ${
                     isPending
                       ? 'bg-[#0E0A24] border-amber-500/40 shadow-amber-500/10'
                       : 'bg-[#0E0A24] border-cyan-500/25'
@@ -484,3 +484,11 @@ export default function AccountRequestsView({
     </div>
   );
 }
+
+export default React.memo(AccountRequestsView, (prevProps, nextProps) => {
+  return (
+    prevProps.filter === nextProps.filter &&
+    prevProps.isRefreshing === nextProps.isRefreshing &&
+    areEqual(prevProps.requests, nextProps.requests)
+  );
+});

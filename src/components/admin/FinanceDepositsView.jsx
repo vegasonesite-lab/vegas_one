@@ -19,8 +19,9 @@ import {
   ArrowRight,
   Filter,
 } from 'lucide-react';
+import { areEqual } from '@/lib/fastDiff';
 
-export default function FinanceDepositsView({
+function FinanceDepositsView({
   deposits = [],
   onApprove,
   onReject,
@@ -238,8 +239,8 @@ export default function FinanceDepositsView({
 
                   return (
                     <tr
-                      key={d.id}
-                      className={`transition-colors ${
+                      key={d.id || d._id}
+                      className={`transition-all duration-300 ease-out ${
                         isPending ? 'bg-amber-500/[0.03] hover:bg-amber-500/[0.07]' : 'hover:bg-white/[0.02]'
                       }`}
                     >
@@ -470,8 +471,8 @@ export default function FinanceDepositsView({
 
               return (
                 <div
-                  key={d.id}
-                  className={`p-4 rounded-2xl border flex flex-col gap-3.5 transition shadow-xl ${
+                  key={d.id || d._id}
+                  className={`p-4 rounded-2xl border flex flex-col gap-3.5 transition-all duration-300 ease-out shadow-xl ${
                     isPending
                       ? 'bg-[#0E0A24] border-amber-500/40 shadow-amber-500/10'
                       : 'bg-[#0E0A24] border-[#00F0FF]/25'
@@ -777,3 +778,11 @@ export default function FinanceDepositsView({
     </div>
   );
 }
+
+export default React.memo(FinanceDepositsView, (prevProps, nextProps) => {
+  return (
+    prevProps.isRefreshing === nextProps.isRefreshing &&
+    areEqual(prevProps.deposits, nextProps.deposits) &&
+    areEqual(prevProps.customDepositSC, nextProps.customDepositSC)
+  );
+});

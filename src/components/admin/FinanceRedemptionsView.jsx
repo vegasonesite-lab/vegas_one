@@ -13,8 +13,9 @@ import {
   AlertTriangle,
   ArrowRight,
 } from 'lucide-react';
+import { areEqual } from '@/lib/fastDiff';
 
-export default function FinanceRedemptionsView({
+function FinanceRedemptionsView({
   redemptions = [],
   onApprove,
   onReject,
@@ -189,8 +190,8 @@ export default function FinanceRedemptionsView({
                   const isPending = r.status === 'pending';
                   return (
                     <tr
-                      key={r.id}
-                      className={`transition-colors ${
+                      key={r.id || r._id}
+                      className={`transition-all duration-300 ease-out ${
                         isPending ? 'bg-purple-500/[0.04] hover:bg-purple-500/[0.08]' : 'hover:bg-cyan-500/[0.04]'
                       }`}
                     >
@@ -317,8 +318,8 @@ export default function FinanceRedemptionsView({
               const isPending = r.status === 'pending';
               return (
                 <div
-                  key={r.id}
-                  className={`p-4 rounded-2xl border flex flex-col gap-3.5 transition shadow-xl ${
+                  key={r.id || r._id}
+                  className={`p-4 rounded-2xl border flex flex-col gap-3.5 transition-all duration-300 ease-out shadow-xl ${
                     isPending
                       ? 'bg-[#0E0A24] border-purple-500/40 shadow-purple-500/10'
                       : 'bg-[#0E0A24] border-[#00F0FF]/25'
@@ -545,3 +546,10 @@ export default function FinanceRedemptionsView({
     </div>
   );
 }
+
+export default React.memo(FinanceRedemptionsView, (prevProps, nextProps) => {
+  return (
+    prevProps.isRefreshing === nextProps.isRefreshing &&
+    areEqual(prevProps.redemptions, nextProps.redemptions)
+  );
+});

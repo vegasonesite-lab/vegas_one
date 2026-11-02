@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { ObjectId } from 'mongodb';
 import { getDb } from '@/lib/mongodb';
 import { getSessionUser } from '@/lib/auth';
 
@@ -30,7 +31,9 @@ export async function GET(req) {
         username: acc.username,
         password: acc.password,
         status: acc.status || 'READY',
-        createdAt: acc.createdAt || new Date(),
+        createdAt: acc.createdAt
+          ? (acc.createdAt instanceof Date ? acc.createdAt.toISOString() : new Date(acc.createdAt).toISOString())
+          : (acc._id ? new ObjectId(acc._id).getTimestamp().toISOString() : '2026-01-01T00:00:00.000Z'),
       })),
     });
   } catch (err) {

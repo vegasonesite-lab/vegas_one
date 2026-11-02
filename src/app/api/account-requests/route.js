@@ -64,7 +64,9 @@ export async function GET(req) {
           source: r.source || null,
           depositAmount: r.depositAmount !== undefined ? r.depositAmount : null,
           notes: r.notes || '',
-          createdAt: r.createdAt || new Date(),
+          createdAt: r.createdAt
+            ? (r.createdAt instanceof Date ? r.createdAt.toISOString() : new Date(r.createdAt).toISOString())
+            : (r._id ? new ObjectId(r._id).getTimestamp().toISOString() : '2026-01-01T00:00:00.000Z'),
         };
       }),
     });

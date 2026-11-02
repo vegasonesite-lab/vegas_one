@@ -26,9 +26,9 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { broadcastAdminAlert } from '@/lib/broadcastAlert';
-import { diffSet } from '@/lib/fastDiff';
+import { diffSet, areEqual } from '@/lib/fastDiff';
 
-export default function CoinOperationsDesk({
+function CoinOperationsDesk({
   sessionUser,
   parentAccountRequests = [],
   parentRedemptions = [],
@@ -71,16 +71,16 @@ export default function CoinOperationsDesk({
 
   // Sync from parent props whenever available (strictly COIN_LOAD only)
   useEffect(() => {
-    if (Array.isArray(parentAccountRequests) && parentAccountRequests.length > 0) {
+    if (Array.isArray(parentAccountRequests)) {
       const coinLoadsOnly = parentAccountRequests.filter(
         (r) => r.type === 'COIN_LOAD' || Number(r.transferAmount || 0) > 0
       );
-      if (coinLoadsOnly.length > 0) diffSet(setLoadRequests, coinLoadsOnly);
+      diffSet(setLoadRequests, coinLoadsOnly);
     }
   }, [parentAccountRequests]);
 
   useEffect(() => {
-    if (Array.isArray(parentRedemptions) && parentRedemptions.length > 0) {
+    if (Array.isArray(parentRedemptions)) {
       diffSet(setCashoutRequests, parentRedemptions);
     }
   }, [parentRedemptions]);
@@ -2736,3 +2736,12 @@ export default function CoinOperationsDesk({
     </div>
   );
 }
+
+export default React.memo(CoinOperationsDesk, (prevProps, nextProps) => {
+  return (
+    prevProps.initialSection === nextProps.initialSection &&
+    areEqual(prevProps.sessionUser, nextProps.sessionUser) &&
+    areEqual(prevProps.parentAccountRequests, nextProps.parentAccountRequests) &&
+    areEqual(prevProps.parentRedemptions, nextProps.parentRedemptions)
+  );
+});

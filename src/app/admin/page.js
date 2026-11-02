@@ -518,7 +518,7 @@ export default function AdminPortal({ initialTab }) {
   const [coinDeskSection, setCoinDeskSection] = useState('loads'); // 'loads' | 'cashouts'
 
   const fetchAccountRequests = () => {
-    fetch(`/api/account-requests?type=ACCOUNT_CREATION&status=${accountReqFilter}`)
+    fetch('/api/account-requests?type=ACCOUNT_CREATION&status=all')
       .then(r => r.json())
       .then(d => { if (d.success) diffSet(setAccountRequests, d.accountRequests || []); })
       .catch(() => { });
@@ -1198,7 +1198,7 @@ export default function AdminPortal({ initialTab }) {
     loadData();
     const interval = setInterval(loadData, 6500);
     return () => clearInterval(interval);
-  }, [user, activeTab, ledgerFilterUser, ledgerFilterType, ledgerFilterMonth, statsMonth, accountReqFilter, userSearchQuery, allotmentSearch]);
+  }, [user, activeTab, ledgerFilterUser, ledgerFilterType, ledgerFilterMonth, statsMonth, userSearchQuery, allotmentSearch]);
 
   // Load chat messages when active conversation selected
   const lastActiveChatMsgIdRef = useRef(null);
@@ -2567,10 +2567,7 @@ export default function AdminPortal({ initialTab }) {
               <AccountRequestsView
                 requests={accountRequests}
                 filter={accountReqFilter}
-                onFilterChange={(f) => {
-                  setAccountReqFilter(f);
-                  fetchAccountRequests();
-                }}
+                onFilterChange={(f) => setAccountReqFilter(f)}
                 onOpenApproveModal={handleOpenApproveModal}
                 onCancelRequest={handleCancelRequest}
                 onRefresh={() => {
