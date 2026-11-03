@@ -35,6 +35,7 @@ import { compressImage } from '@/lib/imageCompressor';
 import { useAuthSession } from '@/lib/clientAuth';
 import { getGameLogo } from '@/lib/gameLogos';
 import { areEqual, diffSet, sanitizeGameTitle } from '@/lib/fastDiff';
+import { broadcastAdminAlert } from '@/lib/broadcastAlert';
 
 export default function CashoutPage() {
   const router = useRouter();
@@ -264,7 +265,38 @@ export default function CashoutPage() {
 
     setErrorMsg(null);
     setMessage(null);
-    setLoading(true);
+
+    // 0ms Optimistic UI feedback: Player immediately sees success and the pending redemption card
+    const tempId = 'temp-' + Date.now();
+    const optimisticRedemption = {
+      id: tempId,
+      amount: Number(redeemAmount),
+      gameTitle,
+      gameAccountUsername: currentSelectedGameAccount.username,
+      payoutMethod,
+      destinationAddress: destinationAddress.trim(),
+      userTagName: destinationAddress.trim(),
+      status: 'pending',
+      stage: 'coin_verification',
+      createdAt: new Date().toISOString(),
+    };
+
+    setRedemptions((prev) => [optimisticRedemption, ...prev.filter((p) => p.id !== tempId)]);
+    setMessage('🎉 Cashout submitted! Your winning proof is in queue for coin verification before finance dispatch.');
+    broadcastAdminAlert('REDEMPTION', {
+      userName: user?.username || 'Player',
+      amount: Number(redeemAmount),
+    });
+
+    const savedAddress = destinationAddress;
+    const savedScreenshot = gameScreenshot;
+    const savedQr = qrCodeImage;
+
+    setDestinationAddress('');
+    setGameScreenshot(null);
+    setQrCodeImage(null);
+    setResubmitMode(null);
+    window.dispatchEvent(new CustomEvent('balanceUpdated'));
 
     try {
       const res = await fetch('/api/payments/withdraw', {
@@ -274,32 +306,30 @@ export default function CashoutPage() {
           amount: Number(redeemAmount),
           gameTitle,
           gameAccountUsername: currentSelectedGameAccount.username,
-          gameScreenshot,
-          qrCodeImage,
+          gameScreenshot: savedScreenshot,
+          qrCodeImage: savedQr,
           payoutMethod,
-          destinationAddress: destinationAddress.trim(),
-          userTagName: destinationAddress.trim(),
+          destinationAddress: savedAddress.trim(),
+          userTagName: savedAddress.trim(),
           resubmitFrom: resubmitMode,
         }),
       });
 
       const data = await res.json();
-      setLoading(false);
 
       if (data.success) {
-        setMessage('🎉 Cashout submitted! Your winning proof is in queue for coin verification before finance dispatch.');
-        setDestinationAddress('');
-        setGameScreenshot(null);
-        setQrCodeImage(null);
-        setResubmitMode(null);
         refreshUser();
         fetchRedemptions();
         window.dispatchEvent(new CustomEvent('balanceUpdated'));
       } else {
+        // Rollback optimistic item if rejected by backend validation
+        setRedemptions((prev) => prev.filter((r) => r.id !== tempId));
+        setMessage(null);
         setErrorMsg(data.error || 'Failed to submit cashout request.');
       }
     } catch {
-      setLoading(false);
+      setRedemptions((prev) => prev.filter((r) => r.id !== tempId));
+      setMessage(null);
       setErrorMsg('Failed to submit cashout request. Please check your connection.');
     }
   };

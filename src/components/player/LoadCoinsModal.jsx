@@ -96,7 +96,21 @@ export default function LoadCoinsModal({
       return;
     }
 
-    setLoading(true);
+    // 0ms Optimistic feedback: player sees instant confirmation & admin gets instant ping
+    broadcastAdminAlert('COIN_LOAD', {
+      gameTitle,
+      userName: activeUser.username,
+      amount: amt,
+    });
+    setSuccessMsg(`🎉 $${amt.toFixed(2)} SC submitted to coin desk for ${gameTitle}!`);
+    window.dispatchEvent(new CustomEvent('balanceUpdated'));
+    if (onSuccess) onSuccess({ success: true, gameTitle, transferAmount: amt });
+
+    // Smoothly close modal after instant visual feedback
+    const closeTimeout = setTimeout(() => {
+      onClose();
+    }, 900);
+
     try {
       const res = await fetch('/api/account-requests', {
         method: 'POST',
@@ -112,26 +126,17 @@ export default function LoadCoinsModal({
       });
 
       const data = await res.json();
-      setLoading(false);
-
-      if (data.success) {
-        broadcastAdminAlert('COIN_LOAD', {
-          gameTitle,
-          userName: activeUser.username,
-          amount: amt,
-        });
-        setSuccessMsg(`🎉 $${amt.toFixed(2)} SC frozen in escrow and submitted to coin desk for ${gameTitle}!`);
-        window.dispatchEvent(new CustomEvent('balanceUpdated'));
-        if (onSuccess) onSuccess(data);
-        setTimeout(() => {
-          onClose();
-        }, 1800);
-      } else {
+      if (!data.success) {
+        clearTimeout(closeTimeout);
+        setSuccessMsg(null);
         setErrorMsg(data.message || 'Failed to submit load request.');
+        window.dispatchEvent(new CustomEvent('balanceUpdated'));
       }
     } catch {
-      setLoading(false);
+      clearTimeout(closeTimeout);
+      setSuccessMsg(null);
       setErrorMsg('Network error. Could not submit load request.');
+      window.dispatchEvent(new CustomEvent('balanceUpdated'));
     }
   };
 

@@ -335,7 +335,6 @@ export default function DepositPage() {
 
     setErrorMsg(null);
     setMessage(null);
-    setLoading(true);
 
     const hasClaimedWelcome = Boolean(user?.welcomeBonusClaimed || (user?.totalDeposited && user.totalDeposited > 0));
     const methodBonusPercent = selectedMethod?.bonusPercentage !== undefined ? Number(selectedMethod.bonusPercentage) : 35;
@@ -382,6 +381,31 @@ export default function DepositPage() {
         String(acc.gameTitle || '').trim().toLowerCase() === String(selectedGame || '').trim().toLowerCase()
     );
 
+    // 0ms Optimistic UI: Instant feedback to player and immediate ping to Admin Cashier desk
+    setMessage('🎉 Deposit request submitted! Our Financial Desk is verifying your transaction and crediting your wallet.');
+    broadcastAdminAlert('DEPOSIT', {
+      userName: user?.username || 'Player',
+      amount: Number(depositAmount),
+    });
+
+    const savedTagName = senderTagName;
+    const savedTagEmail = senderTagEmail;
+    const savedNote = senderNote;
+    const savedTx = txHash;
+    const savedProof = proofImage;
+    const savedPromo = claimedPromo;
+    const savedChoice = selectedBonusChoice;
+
+    setSenderTagName('');
+    setSenderTagEmail('');
+    setSenderNote('');
+    setTxHash('');
+    setProofImage('');
+    setClaimedPromo(null);
+    setSelectedBonusChoice('platform');
+    try { localStorage.removeItem('vegas_active_promo'); } catch {}
+    window.dispatchEvent(new CustomEvent('balanceUpdated'));
+
     try {
       const res = await fetch('/api/payments/deposit', {
         method: 'POST',
@@ -392,47 +416,35 @@ export default function DepositPage() {
           methodName: selectedMethod?.name,
           targetGame: selectedGame,
           gameAccountUsername: matchedGameAccount?.username || null,
-          senderTagName: senderTagName.trim(),
-          senderTagEmail: senderTagEmail.trim(),
-          senderNote: senderNote.trim(),
-          proofImage,
-          txHash,
-          bonusChoice: isClaimedPromo ? 'claimed_promo' : selectedBonusChoice,
+          senderTagName: savedTagName.trim(),
+          senderTagEmail: savedTagEmail.trim(),
+          senderNote: savedNote.trim(),
+          proofImage: savedProof,
+          txHash: savedTx,
+          bonusChoice: isClaimedPromo ? 'claimed_promo' : savedChoice,
           bonusType: appliedBonusType,
           bonusName: appliedBonusName,
           bonusPercent: appliedBonusPercent,
           bonusSC: appliedBonusSC,
           totalSC: appliedTotalSC,
-          claimedPromoTitle: isClaimedPromo ? (claimedPromo.title || null) : null,
-          claimedPromoCode: isClaimedPromo ? (claimedPromo.promoCode || 'PROMO') : null,
-          claimedPromoHighlight: isClaimedPromo ? (claimedPromo.rewardHighlight || null) : null,
+          claimedPromoTitle: isClaimedPromo ? (savedPromo?.title || null) : null,
+          claimedPromoCode: isClaimedPromo ? (savedPromo?.promoCode || 'PROMO') : null,
+          claimedPromoHighlight: isClaimedPromo ? (savedPromo?.rewardHighlight || null) : null,
         }),
       });
 
       const data = await res.json();
-      setLoading(false);
 
       if (data.success) {
-        broadcastAdminAlert('DEPOSIT', {
-          userName: user?.username || 'Player',
-          amount: Number(depositAmount),
-        });
-        setMessage('🎉 Deposit request submitted! Our Financial Desk is verifying your transaction and crediting your wallet.');
-        setSenderTagName('');
-        setSenderTagEmail('');
-        setSenderNote('');
-        setTxHash('');
-        setProofImage('');
-        setClaimedPromo(null);
-        setSelectedBonusChoice('platform');
-        try { localStorage.removeItem('vegas_active_promo'); } catch {}
         refreshUser();
         window.dispatchEvent(new CustomEvent('balanceUpdated'));
       } else {
+        // Restore error if server rejected
+        setMessage(null);
         setErrorMsg(data.error || 'Failed to submit deposit.');
       }
     } catch {
-      setLoading(false);
+      setMessage(null);
       setErrorMsg('Failed to submit deposit. Please verify your connection.');
     }
   };

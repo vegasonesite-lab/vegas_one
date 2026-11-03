@@ -809,44 +809,25 @@ export default function AdminPortal({ initialTab }) {
   const syncRequestsAndAlerts = async () => {
     if (!user) return;
     try {
-      const [depRes, withRes, reqRes, loadRes, chatRes] = await Promise.all([
-        fetch('/api/payments/deposit?status=all'),
-        fetch('/api/payments/withdraw?status=all'),
-        fetch('/api/account-requests?type=ACCOUNT_CREATION&status=all'),
-        fetch('/api/account-requests?type=COIN_LOAD&status=all'),
-        fetch('/api/chat?inbox=true'),
-      ]);
+      const syncRes = await fetch('/api/admin/sync').catch(() => null);
+      if (!syncRes || !syncRes.ok) return;
+      const syncData = await syncRes.json().catch(() => ({}));
+      if (!syncData.success) return;
 
-      const [depData, withData, reqData, loadData, chatData] = await Promise.all([
-        depRes.ok ? depRes.json().catch(() => ({})) : {},
-        withRes.ok ? withRes.json().catch(() => ({})) : {},
-        reqRes.ok ? reqRes.json().catch(() => ({})) : {},
-        loadRes.ok ? loadRes.json().catch(() => ({})) : {},
-        chatRes.ok ? chatRes.json().catch(() => ({})) : {},
-      ]);
-
-      if (depData.success) {
-        diffSet(setDeposits, depData.deposits || []);
-      }
-      if (withData.success) {
-        diffSet(setRedemptions, withData.redemptions || []);
-      }
-      if (reqData.success) {
-        diffSet(setAccountRequests, reqData.accountRequests || []);
-      }
-      if (loadData.success) {
-        diffSet(setCoinLoadRequests, loadData.accountRequests || []);
-      }
-      if (chatData.success && Array.isArray(chatData.conversations)) {
-        diffSet(setChatConversations, chatData.conversations);
+      diffSet(setDeposits, syncData.deposits || []);
+      diffSet(setRedemptions, syncData.redemptions || []);
+      diffSet(setAccountRequests, syncData.accountRequests || []);
+      diffSet(setCoinLoadRequests, syncData.coinLoadRequests || []);
+      if (Array.isArray(syncData.chatConversations)) {
+        diffSet(setChatConversations, syncData.chatConversations);
       }
 
-      const pendingDeps = (depData.deposits || []).filter(d => d.status === 'pending');
-      const pendingWith = (withData.redemptions || []).filter(r => r.status === 'pending');
-      const pendingReqs = (reqData.accountRequests || []).filter(r => (r.status || '').toUpperCase() === 'PENDING');
-      const pendingCoinLoads = (loadData.accountRequests || []).filter(r => (r.status || '').toUpperCase() === 'PENDING');
-      const pendingCoinCashouts = (withData.redemptions || []).filter(r => r.status === 'pending_coin' || r.stage === 'coin_verification');
-      const chatConvs = chatData.success && Array.isArray(chatData.conversations) ? chatData.conversations : [];
+      const pendingDeps = (syncData.deposits || []).filter(d => d.status === 'pending');
+      const pendingWith = (syncData.redemptions || []).filter(r => r.status === 'pending');
+      const pendingReqs = (syncData.accountRequests || []).filter(r => (r.status || '').toUpperCase() === 'PENDING');
+      const pendingCoinLoads = (syncData.coinLoadRequests || []).filter(r => (r.status || '').toUpperCase() === 'PENDING');
+      const pendingCoinCashouts = (syncData.redemptions || []).filter(r => r.status === 'pending_coin' || r.stage === 'coin_verification');
+      const chatConvs = syncData.chatConversations || [];
       const pendingChatConvs = chatConvs.filter(c => (c.unreadCount || 0) > 0 || c.unreadStaff);
       const totalUnreadChatMsgs = chatConvs.reduce((acc, c) => acc + (c.unreadCount || (c.unreadStaff ? 1 : 0)), 0);
       const latestChatConv = chatConvs[0] || null;

@@ -24,7 +24,29 @@ export default function DailyBonusModal({ isOpen, onClose, user, onBonusClaimed 
 
   const handleClaim = async () => {
     setErrorMsg(null);
-    setLoading(true);
+
+    // 0ms Optimistic UI feedback: User sees instant celebration without waiting for server response
+    const nextDayNum = (currentStreak % 7) + 1;
+    const dayConfig = days.find((d) => d.day === nextDayNum) || days[0];
+    const optimisticRewardGC = nextDayNum === 7 ? 100000 : nextDayNum * 10000;
+
+    setClaimedData({
+      rewardSC: dayConfig.sc,
+      rewardGC: optimisticRewardGC,
+      streak: nextDayNum,
+    });
+
+    try {
+      confetti({
+        particleCount: 80,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors: ['#F59E0B', '#FBBF24', '#00F0FF', '#10B981'],
+      });
+    } catch {}
+
+    if (onBonusClaimed) onBonusClaimed();
+    window.dispatchEvent(new CustomEvent('balanceUpdated'));
 
     try {
       const res = await fetch('/api/promos', {
@@ -34,24 +56,19 @@ export default function DailyBonusModal({ isOpen, onClose, user, onBonusClaimed 
       });
 
       const data = await res.json();
-      setLoading(false);
 
       if (data.success) {
+        // Update with verified server values
         setClaimedData(data);
-        confetti({
-          particleCount: 70,
-          spread: 70,
-          origin: { y: 0.6 },
-          colors: ['#F59E0B', '#FBBF24', '#8B5CF6'],
-        });
-        if (onBonusClaimed) onBonusClaimed();
         window.dispatchEvent(new CustomEvent('balanceUpdated'));
       } else {
-        setErrorMsg(data.error);
+        // Rollback optimistic state if backend denies (e.g. 24h timer not yet reached)
+        setClaimedData(null);
+        setErrorMsg(data.error || 'You have already claimed your daily bonus today.');
       }
     } catch {
-      setLoading(false);
-      setErrorMsg('Failed to claim bonus.');
+      setClaimedData(null);
+      setErrorMsg('Failed to claim bonus. Please check your connection.');
     }
   };
 

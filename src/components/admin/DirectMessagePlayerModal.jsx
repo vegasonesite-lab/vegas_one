@@ -20,6 +20,7 @@ import {
   Gift,
   CreditCard,
 } from 'lucide-react';
+import { broadcastAdminAlert } from '@/lib/broadcastAlert';
 
 const QUICK_TEMPLATES = [
   {
@@ -98,88 +99,90 @@ export default function DirectMessagePlayerModal({
     const results = [];
     const errors = [];
 
-    try {
-      // 1. Send via Live Support Chat if checked
-      if (sendChat) {
-        try {
-          const chatRes = await fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              text: `[Staff Direct Message] ${title ? `**${title}**\n\n` : ''}${message.trim()}${actionUrl ? `\n\nDirect Link: ${actionUrl}` : ''}`,
-              conversationId: player.id,
-              targetUserId: player.id,
-              targetUsername: player.username,
-            }),
-          });
-          const chatData = await chatRes.json();
-          if (chatData.success) {
-            results.push('Live Support Chat');
-          } else {
-            errors.push(`Chat: ${chatData.error || 'Failed'}`);
-          }
-        } catch (err) {
-          errors.push(`Chat: ${err.message}`);
-        }
-      }
+    const tasks = [];
 
-      // 2. Send via In-App Bell / Push Notification if checked
-      if (sendPush) {
-        try {
-          const pushRes = await fetch('/api/notifications', {
+    // 1. Send via Live Support Chat in parallel
+    if (sendChat) {
+      tasks.push(
+        fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: `[Staff Direct Message] ${title ? `**${title}**\n\n` : ''}${message.trim()}${actionUrl ? `\n\nDirect Link: ${actionUrl}` : ''}`,
+            conversationId: player.id,
+            targetUserId: player.id,
+            targetUsername: player.username,
+          }),
+        })
+          .then((r) => r.json())
+          .then((d) => {
+            if (d.success) {
+              results.push('Live Support Chat');
+              broadcastAdminAlert('PLAYER_CHAT_MESSAGE', { conversationId: player.id });
+            } else {
+              errors.push(`Chat: ${d.error || 'Failed'}`);
+            }
+          })
+          .catch((err) => errors.push(`Chat: ${err.message}`))
+      );
+    }
+
+    // 2. Send via In-App Bell / Push Notification in parallel
+    if (sendPush) {
+      tasks.push(
+        fetch('/api/notifications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: title.trim() || 'Notice from Vegas One',
+            message: message.trim(),
+            target: player.id,
+            userId: player.id,
+            userEmail: player.email || null,
+            channel: 'push',
+            url: actionUrl || '/deposit',
+          }),
+        })
+          .then((r) => r.json())
+          .then((d) => {
+            if (d.success) results.push('In-App & Push Notification');
+            else errors.push(`Push: ${d.error || 'Failed'}`);
+          })
+          .catch((err) => errors.push(`Push: ${err.message}`))
+      );
+    }
+
+    // 3. Send via Direct Email in parallel
+    if (sendEmail) {
+      if (!player.email) {
+        errors.push('Email: Player does not have an email registered');
+      } else {
+        tasks.push(
+          fetch('/api/notifications', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               title: title.trim() || 'Notice from Vegas One',
               message: message.trim(),
-              target: player.id,
+              target: player.email,
               userId: player.id,
-              userEmail: player.email || null,
-              channel: 'push',
+              userEmail: player.email,
+              channel: 'email',
               url: actionUrl || '/deposit',
             }),
-          });
-          const pushData = await pushRes.json();
-          if (pushData.success) {
-            results.push('In-App & Push Notification');
-          } else {
-            errors.push(`Push: ${pushData.error || 'Failed'}`);
-          }
-        } catch (err) {
-          errors.push(`Push: ${err.message}`);
-        }
+          })
+            .then((r) => r.json())
+            .then((d) => {
+              if (d.success) results.push('Direct VIP Email');
+              else errors.push(`Email: ${d.error || 'Failed'}`);
+            })
+            .catch((err) => errors.push(`Email: ${err.message}`))
+        );
       }
+    }
 
-      // 3. Send via Direct Email if checked and player has email
-      if (sendEmail) {
-        if (!player.email) {
-          errors.push('Email: Player does not have an email registered');
-        } else {
-          try {
-            const emailRes = await fetch('/api/notifications', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                title: title.trim() || 'Notice from Vegas One',
-                message: message.trim(),
-                target: player.email,
-                userId: player.id,
-                userEmail: player.email,
-                channel: 'email',
-                url: actionUrl || '/deposit',
-              }),
-            });
-            const emailData = await emailRes.json();
-            if (emailData.success) {
-              results.push('Direct VIP Email');
-            } else {
-              errors.push(`Email: ${emailData.error || 'Failed'}`);
-            }
-          } catch (err) {
-            errors.push(`Email: ${err.message}`);
-          }
-        }
-      }
+    try {
+      await Promise.all(tasks);
 
       if (results.length > 0) {
         setFeedback({
