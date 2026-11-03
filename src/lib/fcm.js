@@ -25,9 +25,9 @@ export async function getMessagingService() {
 
     if (!serviceAccount) {
       for (const p of possiblePaths) {
-        if (fs.existsSync(p)) {
+        if (fs.existsSync(/*turbopackIgnore: true*/ p)) {
           try {
-            serviceAccount = JSON.parse(fs.readFileSync(p, 'utf8'));
+            serviceAccount = JSON.parse(fs.readFileSync(/*turbopackIgnore: true*/ p, 'utf8'));
             break;
           } catch {}
         }

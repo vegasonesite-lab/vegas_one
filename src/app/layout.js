@@ -1,15 +1,7 @@
 import './globals.css';
-import { Lexend } from 'next/font/google';
 import Script from 'next/script';
 import PushNotificationManager from '@/components/player/PushNotificationManager';
 import AuthCallbackListener from '@/components/auth/AuthCallbackListener';
-
-const lexend = Lexend({
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700', '800', '900'],
-  variable: '--font-lexend',
-  display: 'swap',
-});
 
 export const metadata = {
   title: 'Vegas One - Official Gaming Portal | Instant Accounts & Fast Payouts',
@@ -44,7 +36,7 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={lexend.variable} style={{ fontFamily: `var(--font-lexend), 'Lexend', -apple-system, sans-serif` }}>
+    <html lang="en" style={{ fontFamily: `'Lexend', -apple-system, BlinkMacSystemFont, sans-serif` }}>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
@@ -57,7 +49,7 @@ export default function RootLayout({ children }) {
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </head>
-      <body className={lexend.className} style={{ fontFamily: `var(--font-lexend), 'Lexend', -apple-system, sans-serif` }}>
+      <body style={{ fontFamily: `'Lexend', -apple-system, BlinkMacSystemFont, sans-serif` }}>
         <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
         <AuthCallbackListener />
         <PushNotificationManager />
