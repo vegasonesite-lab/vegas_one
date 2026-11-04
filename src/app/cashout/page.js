@@ -36,6 +36,7 @@ import { useAuthSession } from '@/lib/clientAuth';
 import { getGameLogo } from '@/lib/gameLogos';
 import { areEqual, diffSet, sanitizeGameTitle } from '@/lib/fastDiff';
 import { broadcastAdminAlert } from '@/lib/broadcastAlert';
+import { playTune, unlockAudioContext } from '@/lib/soundAlerts';
 
 export default function CashoutPage() {
   const router = useRouter();
@@ -84,6 +85,7 @@ export default function CashoutPage() {
   // Player's Redemptions History
   const [myRedemptions, setMyRedemptions] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const prevStatusMapRef = React.useRef({});
 
   // Player's Active Game Accounts
   const [playerGameAccounts, setPlayerGameAccounts] = useState([]);
@@ -149,8 +151,52 @@ export default function CashoutPage() {
     try {
       const res = await fetch('/api/payments/withdraw');
       const data = await res.json();
-      if (data.success) {
-        diffSet(setMyRedemptions, data.redemptions || []);
+      if (data.success && Array.isArray(data.redemptions)) {
+        const list = data.redemptions;
+        const prevMap = prevStatusMapRef.current || {};
+        const hadPrev = Object.keys(prevMap).length > 0;
+        let statusChangedTune = null;
+
+        list.forEach((item) => {
+          const prevStatus = prevMap[item.id];
+          if (hadPrev && prevStatus && prevStatus !== item.status) {
+            if (item.status === 'approved') {
+              statusChangedTune = 'jackpot';
+            } else if (
+              item.status === 'rejected_by_coin' ||
+              item.status === 'rejected_by_finance' ||
+              item.status === 'rejected'
+            ) {
+              statusChangedTune = 'radar';
+            } else if (item.status === 'pending' && prevStatus === 'pending_coin') {
+              statusChangedTune = 'bell';
+            }
+          }
+          prevMap[item.id] = item.status;
+        });
+
+        prevStatusMapRef.current = prevMap;
+        if (statusChangedTune) {
+          try {
+            unlockAudioContext();
+            playTune(statusChangedTune, 0.7);
+          } catch {}
+        }
+
+        setMyRedemptions((prev) => {
+          const prevImgMap = {};
+          (prev || []).forEach((p) => {
+            if (p.id && (p.gameScreenshot || p.qrCodeImage)) {
+              prevImgMap[p.id] = { gameScreenshot: p.gameScreenshot, qrCodeImage: p.qrCodeImage };
+            }
+          });
+          const merged = list.map((r) => ({
+            ...r,
+            gameScreenshot: r.gameScreenshot || prevImgMap[r.id]?.gameScreenshot || null,
+            qrCodeImage: r.qrCodeImage || prevImgMap[r.id]?.qrCodeImage || null,
+          }));
+          return areEqual(prev, merged) ? prev : merged;
+        });
       }
     } catch (err) {
       console.error('Error fetching redemptions:', err);
@@ -185,7 +231,7 @@ export default function CashoutPage() {
       const interval = setInterval(() => {
         fetchRedemptions(true);
         fetchPlayerGameAccounts(true);
-      }, 10000);
+      }, 4000);
 
       const onUpdate = () => {
         fetchRedemptions(true);
@@ -265,32 +311,49 @@ export default function CashoutPage() {
 
     setErrorMsg(null);
     setMessage(null);
+    setLoading(true);
+
+    const savedAddress = destinationAddress;
+    const savedScreenshot = gameScreenshot;
+    const savedQr = qrCodeImage;
+    const savedResubmitMode = resubmitMode;
 
     // 0ms Optimistic UI feedback: Player immediately sees success and the pending redemption card
     const tempId = 'temp-' + Date.now();
+    const initialStatus = savedResubmitMode === 'finance' ? 'pending' : 'pending_coin';
+    const initialStage = savedResubmitMode === 'finance' ? 'finance_payout' : 'coin_verification';
     const optimisticRedemption = {
       id: tempId,
       amount: Number(redeemAmount),
       gameTitle,
       gameAccountUsername: currentSelectedGameAccount.username,
+      gameScreenshot: savedScreenshot,
+      qrCodeImage: savedQr,
+      hasGameScreenshot: true,
+      hasQrCodeImage: true,
       payoutMethod,
-      destinationAddress: destinationAddress.trim(),
-      userTagName: destinationAddress.trim(),
-      status: 'pending',
-      stage: 'coin_verification',
+      destinationAddress: savedAddress.trim(),
+      userTagName: savedAddress.trim(),
+      status: initialStatus,
+      stage: initialStage,
       createdAt: new Date().toISOString(),
     };
 
-    setRedemptions((prev) => [optimisticRedemption, ...prev.filter((p) => p.id !== tempId)]);
-    setMessage('🎉 Cashout submitted! Your winning proof is in queue for coin verification before finance dispatch.');
+    setMyRedemptions((prev) => [optimisticRedemption, ...(prev || []).filter((p) => p.id !== tempId)]);
+    setMessage('🎉 Cashout submitted! Your winning proof is in queue at Coin Allotment Desk for Stage 1 verification before Finance payout.');
+
+    // Play confirmation sound & broadcast 0ms alert to Admin Desk
+    try {
+      unlockAudioContext();
+      playTune('chaching', 0.65);
+    } catch {}
+
     broadcastAdminAlert('REDEMPTION', {
       userName: user?.username || 'Player',
       amount: Number(redeemAmount),
+      gameTitle,
+      stage: initialStage,
     });
-
-    const savedAddress = destinationAddress;
-    const savedScreenshot = gameScreenshot;
-    const savedQr = qrCodeImage;
 
     setDestinationAddress('');
     setGameScreenshot(null);
@@ -311,31 +374,60 @@ export default function CashoutPage() {
           payoutMethod,
           destinationAddress: savedAddress.trim(),
           userTagName: savedAddress.trim(),
-          resubmitFrom: resubmitMode,
+          resubmitFrom: savedResubmitMode,
         }),
       });
 
       const data = await res.json();
+      setLoading(false);
 
       if (data.success) {
+        if (data.redemptionId) {
+          prevStatusMapRef.current[data.redemptionId] = initialStatus;
+        }
         refreshUser();
-        fetchRedemptions();
+        fetchRedemptions(true);
         window.dispatchEvent(new CustomEvent('balanceUpdated'));
+        setTimeout(() => {
+          const hist = document.getElementById('redemption-history-section');
+          if (hist) hist.scrollIntoView({ behavior: 'smooth' });
+        }, 150);
       } else {
         // Rollback optimistic item if rejected by backend validation
-        setRedemptions((prev) => prev.filter((r) => r.id !== tempId));
+        setMyRedemptions((prev) => (prev || []).filter((r) => r.id !== tempId));
+        setDestinationAddress(savedAddress);
+        setGameScreenshot(savedScreenshot);
+        setQrCodeImage(savedQr);
         setMessage(null);
         setErrorMsg(data.error || 'Failed to submit cashout request.');
       }
     } catch {
-      setRedemptions((prev) => prev.filter((r) => r.id !== tempId));
+      setLoading(false);
+      setMyRedemptions((prev) => (prev || []).filter((r) => r.id !== tempId));
+      setDestinationAddress(savedAddress);
+      setGameScreenshot(savedScreenshot);
+      setQrCodeImage(savedQr);
       setMessage(null);
       setErrorMsg('Failed to submit cashout request. Please check your connection.');
     }
   };
 
   // Open dedicated Resubmit Modal for rejected redemption
-  const handleResubmit = (item, origin) => {
+  const handleResubmit = async (item, origin) => {
+    let fullScreenshot = item.gameScreenshot || null;
+    let fullQr = item.qrCodeImage || null;
+
+    if ((!fullScreenshot && item.hasGameScreenshot) || (!fullQr && item.hasQrCodeImage)) {
+      try {
+        const res = await fetch(`/api/payments/withdraw?id=${item.id}`);
+        const data = await res.json();
+        if (data.success && data.redemption) {
+          fullScreenshot = data.redemption.gameScreenshot || fullScreenshot;
+          fullQr = data.redemption.qrCodeImage || fullQr;
+        }
+      } catch {}
+    }
+
     setResubmitModal({
       open: true,
       item,
@@ -344,8 +436,8 @@ export default function CashoutPage() {
       gameTitle: item.gameTitle || (gameList[0]?.title || ''),
       payoutMethod: item.payoutMethod || 'Cash App',
       destinationAddress: item.destinationAddress || item.userTagName || '',
-      gameScreenshot: item.gameScreenshot || null,
-      qrCodeImage: item.qrCodeImage || null,
+      gameScreenshot: fullScreenshot,
+      qrCodeImage: fullQr,
       loading: false,
       error: null,
     });
@@ -397,7 +489,17 @@ export default function CashoutPage() {
 
       const data = await res.json();
       if (data.success) {
-        const deskName = resubmitModal.origin === 'coin' ? 'Game Coin Operations Desk' : 'Finance Desk';
+        const deskName = resubmitModal.origin === 'coin' ? 'Coin Allotment Desk' : 'Finance Desk';
+        try {
+          unlockAudioContext();
+          playTune('chaching', 0.65);
+        } catch {}
+        broadcastAdminAlert('REDEMPTION', {
+          userName: user?.username || 'Player',
+          amount: amt,
+          gameTitle: resubmitModal.gameTitle,
+          stage: resubmitModal.origin === 'finance' ? 'finance_payout' : 'coin_verification',
+        });
         setResubmitModal({ open: false, item: null, origin: null });
         setMessage(`🎉 Request Resubmitted Successfully! Your $${amt.toFixed(2)} SC request has been forwarded to the ${deskName} for verification.`);
         refreshUser();
@@ -1426,11 +1528,20 @@ export default function CashoutPage() {
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     {myRedemptions.map((item) => {
-                      const isPendingCoin = item.status === 'pending_coin' || item.stage === 'coin_verification';
-                      const isPendingFinance = item.status === 'pending' || item.stage === 'finance_payout';
+                      const isPendingCoin =
+                        item.status === 'pending_coin' ||
+                        (item.status === 'pending' && item.stage === 'coin_verification');
+                      const isPendingFinance =
+                        item.status === 'pending' && item.stage !== 'coin_verification';
                       const isApproved = item.status === 'approved';
                       const isRejectedCoin = item.status === 'rejected_by_coin';
                       const isRejectedFinance = item.status === 'rejected_by_finance' || item.status === 'rejected';
+                      const rejectionNote =
+                        item.rejectReason ||
+                        item.coinRejectReason ||
+                        item.financeRejectReason ||
+                        item.rejectionReason ||
+                        '';
 
                       return (
                         <div
@@ -1585,43 +1696,46 @@ export default function CashoutPage() {
                           {(isRejectedCoin || isRejectedFinance) && item.status !== 'resubmitted' && (
                             <div
                               style={{
-                                backgroundColor: 'rgba(239, 68, 68, 0.12)',
-                                border: '1px solid rgba(239, 68, 68, 0.3)',
-                                borderRadius: '10px',
-                                padding: '10px 14px',
+                                backgroundColor: 'rgba(239, 68, 68, 0.14)',
+                                border: '1.5px solid rgba(239, 68, 68, 0.45)',
+                                borderRadius: '12px',
+                                padding: '12px 16px',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'space-between',
                                 flexWrap: 'wrap',
-                                gap: '10px',
+                                gap: '12px',
                               }}
                             >
-                              <div>
-                                <p style={{ margin: 0, fontSize: '11.5px', color: '#FCA5A5' }}>
-                                  <strong>Staff Note ({isRejectedCoin ? 'Game Coin Desk' : 'Finance Desk'}):</strong>{' '}
-                                  {item.rejectReason || item.coinRejectReason || item.financeRejectReason || 'Score or recipient address verification failed.'}
+                              <div style={{ flex: 1, minWidth: '220px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                                  <AlertCircle size={14} color="#EF4444" />
+                                  <span style={{ fontSize: '11px', fontWeight: 900, color: '#F87171', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                                    Withdrawal Rejected ({isRejectedCoin ? 'Coin Allotment Desk' : 'Finance Desk'}) — Reason Note:
+                                  </span>
+                                </div>
+                                <p style={{ margin: 0, fontSize: '12.5px', color: '#FECACA', fontWeight: 700, lineHeight: 1.45 }}>
+                                  &ldquo;{rejectionNote || 'Score or recipient address verification failed. Please check your details and resubmit.'}&rdquo;
                                 </p>
-                                <span style={{ fontSize: '10.5px', color: '#9A91A8' }}>
-                                  Your ${Number(item.amount).toFixed(2)} SC has been unfrozen and returned to your balance.
-                                </span>
                               </div>
 
                               <button
                                 type="button"
                                 onClick={() => handleResubmit(item, isRejectedCoin ? 'coin' : 'finance')}
                                 style={{
-                                  padding: '6px 14px',
-                                  borderRadius: '8px',
+                                  padding: '8px 16px',
+                                  borderRadius: '10px',
                                   backgroundColor: '#EF4444',
                                   border: 'none',
                                   color: '#FFFFFF',
-                                  fontSize: '11px',
+                                  fontSize: '11.5px',
                                   fontWeight: 800,
                                   cursor: 'pointer',
-                                  boxShadow: '0 2px 10px rgba(239, 68, 68, 0.4)',
+                                  boxShadow: '0 2px 12px rgba(239, 68, 68, 0.45)',
                                   display: 'flex',
                                   alignItems: 'center',
                                   gap: '6px',
+                                  flexShrink: 0,
                                 }}
                               >
                                 <RefreshCw size={12} />
@@ -1632,10 +1746,22 @@ export default function CashoutPage() {
 
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '10.5px', color: '#9A91A8' }}>
                             <span>Submitted: {new Date(item.createdAt).toLocaleString()}</span>
-                            {item.gameScreenshot && (
+                            {(item.gameScreenshot || item.hasGameScreenshot) && (
                               <button
                                 type="button"
-                                onClick={() => setLightbox({ open: true, src: item.gameScreenshot, title: 'My Game Screenshot' })}
+                                onClick={async () => {
+                                  if (item.gameScreenshot) {
+                                    setLightbox({ open: true, src: item.gameScreenshot, title: 'My Game Screenshot' });
+                                  } else {
+                                    try {
+                                      const res = await fetch(`/api/payments/withdraw?id=${item.id}`);
+                                      const data = await res.json();
+                                      if (data.success && data.redemption?.gameScreenshot) {
+                                        setLightbox({ open: true, src: data.redemption.gameScreenshot, title: 'My Game Screenshot' });
+                                      }
+                                    } catch {}
+                                  }
+                                }}
                                 style={{ background: 'transparent', border: 'none', color: '#00F0FF', cursor: 'pointer', fontSize: '11px', fontWeight: 700 }}
                               >
                                 View My Submitted Proof 👁️

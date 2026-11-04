@@ -264,18 +264,19 @@ export async function POST(req) {
       createdAt: new Date(),
     });
 
-    // Instant notification to staff
+    // Instant notification to staff (Coin Allotment first, or Finance if resubmitted from finance)
     notifyStaff({
-      title: 'New Cashout Request!',
+      title: initialStage === 'finance_payout' ? 'Cashout Resubmitted for Finance!' : 'New Cashout Request (Stage 1: Coin Allotment)!',
       message: `$${redeemAmount} SC cashout from @${user.username} (${gameTitle || 'Platform'})`,
-      type: 'coin_verification',
+      type: initialStage === 'finance_payout' ? 'finance_payout' : 'coin_verification',
       url: '/admin',
-      targetTab: 'coins_allotment',
+      targetTab: initialStage === 'finance_payout' ? 'finance' : 'coins_allotment',
       targetSubTab: 'cashouts',
     });
 
     return NextResponse.json({
       success: true,
+      redemptionId: insertRes.insertedId.toString(),
       message: `Cashout requested successfully! Your winning proof and payment QR code have been submitted to our desk for verification & dispatch.`,
     });
   } catch (error) {
@@ -350,9 +351,18 @@ export async function PUT(req) {
         userId: redemption.userId,
         userEmail: user?.email,
         title: 'Cashout Screenshot Verified! 🏆',
-        message: `Your $${redemption.amount} SC cashout win proof was approved! Passed to Finance cashier for payout dispatch.`,
+        message: `Your $${redemption.amount} SC cashout win proof was approved by Coin Allotment! Forwarded to Finance Cashier for payout dispatch.`,
         type: 'cashout_verified',
-        url: '/wallet',
+        url: '/cashout',
+      });
+
+      // Notify Finance Desk Staff that Stage 1 is approved and ready for Stage 2 Payout
+      notifyStaff({
+        title: 'Cashout Verified by Coin Desk — Ready for Payout! 💸',
+        message: `$${redemption.amount} SC for @${redemption.username} (${redemption.gameTitle || 'Platform'}) via ${redemption.payoutMethod}`,
+        type: 'finance_payout',
+        url: '/admin/finance',
+        targetTab: 'finance',
       });
 
       return NextResponse.json({
@@ -402,10 +412,10 @@ export async function PUT(req) {
       notifyPlayer({
         userId: redemption.userId,
         userEmail: user?.email,
-        title: 'Cashout Win Proof Update',
-        message: `Your $${redemption.amount} SC cashout proof could not be verified. Note: ${reason}`,
+        title: 'Cashout Win Proof Rejected ❌',
+        message: `Your $${redemption.amount} SC cashout proof was rejected by Coin Allotment. Reason: ${reason}`,
         type: 'cashout_rejected',
-        url: '/wallet',
+        url: '/cashout',
       });
 
       if (user?.email) {
@@ -473,9 +483,9 @@ export async function PUT(req) {
         userId: redemption.userId,
         userEmail: user?.email,
         title: '🎉 Cashout Dispatched & Sent!',
-        message: `Your payout of $${redemption.amount} SC via ${redemption.payoutMethod} has been sent!`,
+        message: `Your payout of $${redemption.amount} SC via ${redemption.payoutMethod} has been approved & sent by Finance!`,
         type: 'cashout_dispatched',
-        url: '/wallet',
+        url: '/cashout',
       });
 
       // Email notification
@@ -532,10 +542,10 @@ export async function PUT(req) {
       notifyPlayer({
         userId: redemption.userId,
         userEmail: user?.email,
-        title: 'Cashout Payout Update',
-        message: `Your payout of $${redemption.amount} SC was not approved. Note: ${reason}`,
+        title: 'Cashout Rejected by Finance Desk ❌',
+        message: `Your payout of $${redemption.amount} SC was rejected by Finance. Reason: ${reason}`,
         type: 'cashout_rejected',
-        url: '/wallet',
+        url: '/cashout',
       });
 
       if (user?.email) {

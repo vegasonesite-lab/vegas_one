@@ -58,8 +58,63 @@ export default function FinanceUnifiedDesk({
 
   const pendingDeposits = deposits.filter((d) => d.status === 'pending');
   const historyDeposits = deposits.filter((d) => d.status !== 'pending');
-  const pendingRedemptions = redemptions.filter((r) => r.status === 'pending');
-  const historyRedemptions = redemptions.filter((r) => r.status !== 'pending');
+  // Stage 2 Only: Finance only sees cashouts AFTER Coin Allotment approves them (status === 'pending' && stage !== 'coin_verification')
+  const pendingRedemptions = redemptions.filter(
+    (r) => r.status === 'pending' && r.stage !== 'coin_verification'
+  );
+  // Finance History only shows cashouts that reached Finance (excludes pending_coin and rejected_by_coin)
+  const historyRedemptions = redemptions.filter(
+    (r) =>
+      r.status === 'approved' ||
+      r.status === 'rejected_by_finance' ||
+      (r.status === 'rejected' && r.stage !== 'rejected_coin')
+  );
+
+  const handleViewRedemptionProof = async (r, type = 'game') => {
+    const redeemId = r.id || r._id;
+    const userTag = r.destinationAddress || r.accountDetails || 'No Address Provided';
+    const existingImg = type === 'qr' ? r.qrCodeImage : r.gameScreenshot;
+    if (existingImg) {
+      setPreviewProof({
+        image: existingImg,
+        url: existingImg,
+        title:
+          type === 'qr'
+            ? `${r.username}'s ${r.payoutMethod || 'Payment'} QR Code`
+            : `${r.username}'s Game Score (${r.gameTitle || 'Platform'})`,
+        username: r.username,
+        player: r.username,
+        amount: r.amount,
+        method: type === 'qr' ? r.payoutMethod || 'Direct Payment' : r.gameTitle || 'Platform',
+        note: type === 'qr' ? userTag : `Game: ${r.gameTitle || 'N/A'}`,
+        date: r.createdAt,
+      });
+      return;
+    }
+    try {
+      const res = await fetch(`/api/payments/withdraw?id=${encodeURIComponent(redeemId)}`);
+      const data = await res.json();
+      const fetchedImg = type === 'qr' ? data.redemption?.qrCodeImage : data.redemption?.gameScreenshot;
+      if (data.success && fetchedImg) {
+        setPreviewProof({
+          image: fetchedImg,
+          url: fetchedImg,
+          title:
+            type === 'qr'
+              ? `${r.username}'s ${r.payoutMethod || 'Payment'} QR Code`
+              : `${r.username}'s Game Score (${r.gameTitle || 'Platform'})`,
+          username: r.username,
+          player: r.username,
+          amount: r.amount,
+          method: type === 'qr' ? r.payoutMethod || 'Direct Payment' : r.gameTitle || 'Platform',
+          note: type === 'qr' ? userTag : `Game: ${r.gameTitle || 'N/A'}`,
+          date: r.createdAt,
+        });
+      }
+    } catch (err) {
+      console.error('Error loading redemption proof:', err);
+    }
+  };
 
   const filterItems = (list, isRedeem = false) => {
     const q = searchQuery.toLowerCase().trim();
@@ -1057,6 +1112,18 @@ export default function FinanceUnifiedDesk({
                               >
                                 {r.payoutMethod || 'Direct'}
                               </span>
+                              {r.coinApprovedBy && (
+                                <span
+                                  style={{
+                                    fontSize: '9.5px',
+                                    fontWeight: 800,
+                                    color: '#34D399',
+                                    marginTop: '2px',
+                                  }}
+                                >
+                                  ✓ Verified by {r.coinApprovedBy}
+                                </span>
+                              )}
                             </div>
                           </td>
 
@@ -1103,22 +1170,10 @@ export default function FinanceUnifiedDesk({
 
                           {/* 5. Game Winning Screenshot (Clickable Preview) */}
                           <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
-                            {r.gameScreenshot ? (
+                            {r.gameScreenshot || r.hasGameScreenshot ? (
                               <button
                                 type="button"
-                                onClick={() =>
-                                  setPreviewProof({
-                                    image: r.gameScreenshot,
-                                    url: r.gameScreenshot,
-                                    title: `${r.username}'s Game Score (${r.gameTitle || 'Platform'})`,
-                                    username: r.username,
-                                    player: r.username,
-                                    amount: r.amount,
-                                    method: r.gameTitle || 'Platform',
-                                    note: `Game: ${r.gameTitle || 'N/A'}`,
-                                    date: r.createdAt,
-                                  })
-                                }
+                                onClick={() => handleViewRedemptionProof(r, 'game')}
                                 style={{
                                   display: 'inline-flex',
                                   alignItems: 'center',
@@ -1145,22 +1200,10 @@ export default function FinanceUnifiedDesk({
 
                           {/* 6. User Payment QR Code (Clickable Preview) */}
                           <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
-                            {r.qrCodeImage ? (
+                            {r.qrCodeImage || r.hasQrCodeImage ? (
                               <button
                                 type="button"
-                                onClick={() =>
-                                  setPreviewProof({
-                                    image: r.qrCodeImage,
-                                    url: r.qrCodeImage,
-                                    title: `${r.username}'s ${r.payoutMethod || 'Payment'} QR Code`,
-                                    username: r.username,
-                                    player: r.username,
-                                    amount: r.amount,
-                                    method: r.payoutMethod || 'Direct Payment',
-                                    note: userTag,
-                                    date: r.createdAt,
-                                  })
-                                }
+                                onClick={() => handleViewRedemptionProof(r, 'qr')}
                                 style={{
                                   display: 'inline-flex',
                                   alignItems: 'center',
@@ -1390,6 +1433,7 @@ export default function FinanceUnifiedDesk({
               <tbody>
                 {filteredHistoryRedemptions.map((r) => {
                   const redeemId = r.id || r._id;
+                  const rejectNote = r.rejectReason || r.financeRejectReason;
                   return (
                     <tr key={redeemId} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
                       <td style={{ padding: '12px 16px', fontWeight: 800, color: '#FFFFFF', fontSize: '12px' }}>{r.username}</td>
@@ -1398,20 +1442,27 @@ export default function FinanceUnifiedDesk({
                       <td style={{ padding: '12px 16px', fontFamily: 'monospace', color: '#94A3B8', fontSize: '11.5px' }}>{r.destinationAddress}</td>
                       <td style={{ padding: '12px 16px', color: '#94A3B8', fontSize: '11.5px' }}>{new Date(r.createdAt).toLocaleString()}</td>
                       <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                        <span
-                          style={{
-                            padding: '3px 8px',
-                            borderRadius: '9999px',
-                            fontSize: '10px',
-                            fontWeight: 900,
-                            textTransform: 'uppercase',
-                            backgroundColor: r.status === 'approved' ? 'rgba(16, 185, 129, 0.18)' : 'rgba(239, 68, 68, 0.18)',
-                            color: r.status === 'approved' ? '#34D399' : '#F87171',
-                            border: `1px solid ${r.status === 'approved' ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}`,
-                          }}
-                        >
-                          {r.status}
-                        </span>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                          <span
+                            style={{
+                              padding: '3px 8px',
+                              borderRadius: '9999px',
+                              fontSize: '10px',
+                              fontWeight: 900,
+                              textTransform: 'uppercase',
+                              backgroundColor: r.status === 'approved' ? 'rgba(16, 185, 129, 0.18)' : 'rgba(239, 68, 68, 0.18)',
+                              color: r.status === 'approved' ? '#34D399' : '#F87171',
+                              border: `1px solid ${r.status === 'approved' ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}`,
+                            }}
+                          >
+                            {r.status === 'approved' ? 'APPROVED & PAID' : 'REJECTED BY FINANCE'}
+                          </span>
+                          {r.status !== 'approved' && rejectNote && (
+                            <span style={{ fontSize: '10.5px', color: '#FCA5A5', fontStyle: 'italic', maxWidth: '240px', textAlign: 'right' }}>
+                              &quot;{rejectNote}&quot;
+                            </span>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );

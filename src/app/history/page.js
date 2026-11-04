@@ -372,77 +372,116 @@ export default function HistoryPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {filteredItems.map((item, idx) => {
                     const isDep = item.kind === 'DEPOSIT';
-                    const statusColor =
-                      item.status === 'APPROVED' || item.status === 'COMPLETED'
-                        ? '#10B981'
-                        : item.status === 'PENDING'
-                        ? '#F59E0B'
-                        : '#EF4444';
+                    const rawStatus = String(item.status || 'pending').toLowerCase();
+                    const isApproved = rawStatus === 'approved' || rawStatus === 'completed';
+                    const isRejected =
+                      rawStatus === 'rejected' ||
+                      rawStatus === 'rejected_by_coin' ||
+                      rawStatus === 'rejected_by_finance';
+                    const statusColor = isApproved
+                      ? '#10B981'
+                      : isRejected
+                      ? '#EF4444'
+                      : rawStatus === 'pending_coin'
+                      ? '#00F0FF'
+                      : '#F59E0B';
+                    const statusLabel = isApproved
+                      ? isDep
+                        ? 'APPROVED'
+                        : 'PAID & DISPATCHED'
+                      : rawStatus === 'rejected_by_coin'
+                      ? 'REJECTED BY COIN DESK'
+                      : rawStatus === 'rejected_by_finance'
+                      ? 'REJECTED BY FINANCE'
+                      : isRejected
+                      ? 'REJECTED'
+                      : rawStatus === 'pending_coin' || item.stage === 'coin_verification'
+                      ? 'VERIFYING GAME SCREENSHOT (STAGE 1)'
+                      : !isDep && (rawStatus === 'pending' || item.stage === 'finance_payout')
+                      ? 'IN FINANCE PAYOUT QUEUE (STAGE 2)'
+                      : 'PENDING';
+                    const rejectNote = item.rejectReason || item.coinRejectReason || item.financeRejectReason;
 
                     return (
                       <div
                         key={item._id || item.id || idx}
                         style={{
                           backgroundColor: '#070514',
-                          border: '1px solid rgba(255, 255, 255, 0.08)',
+                          border: isRejected
+                            ? '1px solid rgba(239, 68, 68, 0.35)'
+                            : '1px solid rgba(255, 255, 255, 0.08)',
                           borderRadius: '14px',
                           padding: '14px 16px',
                           display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: '12px',
+                          flexDirection: 'column',
+                          gap: '10px',
                         }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <div
-                            style={{
-                              width: '38px',
-                              height: '38px',
-                              borderRadius: '10px',
-                              backgroundColor: isDep ? 'rgba(0, 240, 255, 0.15)' : 'rgba(255, 0, 85, 0.15)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: isDep ? '#00F0FF' : '#FF0055',
-                              flexShrink: 0,
-                            }}
-                          >
-                            {isDep ? <ArrowDownCircle size={18} /> : <ArrowUpCircle size={18} />}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div
+                              style={{
+                                width: '38px',
+                                height: '38px',
+                                borderRadius: '10px',
+                                backgroundColor: isDep ? 'rgba(0, 240, 255, 0.15)' : 'rgba(255, 0, 85, 0.15)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: isDep ? '#00F0FF' : '#FF0055',
+                                flexShrink: 0,
+                              }}
+                            >
+                              {isDep ? <ArrowDownCircle size={18} /> : <ArrowUpCircle size={18} />}
+                            </div>
+                            <div>
+                              <p style={{ margin: '0 0 2px 0', fontFamily: 'Lexend, sans-serif', fontSize: '13.5px', fontWeight: 800, color: '#FFFFFF' }}>
+                                {isDep ? 'Deposit Transfer' : `Cashout Redemption${item.gameTitle ? ` • ${item.gameTitle}` : ''}`}
+                              </p>
+                              <p style={{ margin: 0, fontSize: '11px', color: '#8E849E', fontFamily: 'Lexend, sans-serif' }}>
+                                {new Date(item.createdAt).toLocaleString()} • {item.methodName || item.payoutMethod || 'Direct'}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p style={{ margin: '0 0 2px 0', fontFamily: 'Lexend, sans-serif', fontSize: '13.5px', fontWeight: 800, color: '#FFFFFF' }}>
-                              {isDep ? 'Deposit Transfer' : 'Cashout Redemption'}
+
+                          <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                            <p style={{ margin: '0 0 2px 0', fontFamily: 'Lexend, sans-serif', fontSize: '15px', fontWeight: 900, color: isDep ? '#00F0FF' : '#10B981' }}>
+                              {isDep ? '+' : '-'}${Number(item.amount || 0).toFixed(2)}
                             </p>
-                            <p style={{ margin: 0, fontSize: '11px', color: '#8E849E', fontFamily: 'Lexend, sans-serif' }}>
-                              {new Date(item.createdAt).toLocaleString()} • {item.methodName || item.payoutMethod || 'Direct'}
-                            </p>
+                            <span
+                              style={{
+                                fontSize: '9.5px',
+                                fontFamily: 'Lexend, sans-serif',
+                                fontWeight: 900,
+                                padding: '2px 8px',
+                                borderRadius: '4px',
+                                backgroundColor: `${statusColor}22`,
+                                color: statusColor,
+                                border: `1px solid ${statusColor}44`,
+                              }}
+                            >
+                              {statusLabel}
+                            </span>
                           </div>
                         </div>
 
-                        <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                          <p style={{ margin: '0 0 2px 0', fontFamily: 'Lexend, sans-serif', fontSize: '15px', fontWeight: 900, color: isDep ? '#00F0FF' : '#10B981' }}>
-                            {isDep ? '+' : '-'}${Number(item.amount || 0).toFixed(2)}
-                          </p>
-                          <span
+                        {isRejected && rejectNote && (
+                          <div
                             style={{
-                              fontSize: '9.5px',
-                              fontFamily: 'Lexend, sans-serif',
-                              fontWeight: 900,
-                              padding: '2px 8px',
-                              borderRadius: '4px',
-                              backgroundColor: `${statusColor}22`,
-                              color: statusColor,
-                              border: `1px solid ${statusColor}44`,
+                              padding: '10px 12px',
+                              borderRadius: '10px',
+                              backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                              border: '1px solid rgba(239, 68, 68, 0.35)',
                             }}
                           >
-                            {item.status || 'PENDING'}
-                          </span>
-                          {item.status === 'rejected' && item.rejectReason && (
-                            <p style={{ margin: '4px 0 0 0', fontSize: '10.5px', color: '#F87171', fontStyle: 'italic', maxWidth: '240px', wordBreak: 'break-word' }}>
-                              Note: {item.rejectReason}
+                            <p style={{ margin: '0 0 3px 0', fontSize: '10px', fontWeight: 900, color: '#FCA5A5', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                              ⚠️ Why Your Request Was Rejected:
                             </p>
-                          )}
-                        </div>
+                            <p style={{ margin: 0, fontSize: '12px', color: '#FEE2E2', fontWeight: 600 }}>
+                              &quot;{rejectNote}&quot;
+                            </p>
+                          </div>
+                        )}
                       </div>
                     );
                   })}

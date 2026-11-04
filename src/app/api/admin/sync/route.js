@@ -30,94 +30,123 @@ export async function GET(req) {
     const chatCol = db.collection('chat_messages');
 
     // Fetch all 5 datasets in parallel with optimized projections
-    const [rawDeposits, rawRedemptions, rawAccountReqs, rawCoinLoads, rawChatConvs] =
-      await Promise.all([
-        // 1. Deposits (Lean projection: exclude heavy base64 proofImage from list polling)
-        depositsCol
-          .find({}, { projection: { proofImage: 0 } })
-          .sort({ createdAt: -1 })
-          .limit(100)
-          .toArray(),
+    // Pending deposits & pending redemptions keep proof images so Coin & Finance desks can view screenshots immediately
+    const [
+      pendingDepositsRaw,
+      historyDepositsRaw,
+      pendingRedemptionsRaw,
+      historyRedemptionsRaw,
+      rawAccountReqs,
+      rawCoinLoads,
+      rawChatConvs,
+    ] = await Promise.all([
+      // 1a. Pending Deposits (with proofImage)
+      depositsCol
+        .find({ status: 'pending' })
+        .sort({ createdAt: -1 })
+        .limit(30)
+        .toArray(),
 
-        // 2. Redemptions (Lean projection: exclude heavy screenshots from list polling)
-        redemptionsCol
-          .find({}, { projection: { gameScreenshot: 0, qrCodeImage: 0 } })
-          .sort({ createdAt: -1 })
-          .limit(100)
-          .toArray(),
+      // 1b. Historical Deposits (lean projection)
+      depositsCol
+        .find({ status: { $ne: 'pending' } }, { projection: { proofImage: 0 } })
+        .sort({ createdAt: -1 })
+        .limit(70)
+        .toArray(),
 
-        // 3. Account Creation Requests
-        accountReqCol
-          .find({
-            $or: [
-              { type: 'ACCOUNT_CREATION' },
-              { type: { $exists: false }, transferAmount: { $lte: 0 } },
-              { type: null, transferAmount: { $lte: 0 } },
-            ],
-          })
-          .sort({ createdAt: -1 })
-          .limit(100)
-          .toArray(),
+      // 2a. Pending Redemptions - Stage 1 (pending_coin) & Stage 2 (pending) WITH gameScreenshot and qrCodeImage
+      redemptionsCol
+        .find({ status: { $in: ['pending_coin', 'pending'] } })
+        .sort({ createdAt: -1 })
+        .limit(40)
+        .toArray(),
 
-        // 4. Coin Load Requests
-        accountReqCol
-          .find({
-            $or: [
-              { type: 'COIN_LOAD' },
-              { type: { $exists: false }, transferAmount: { $gt: 0 } },
-              { type: null, transferAmount: { $gt: 0 } },
-            ],
-          })
-          .sort({ createdAt: -1 })
-          .limit(100)
-          .toArray(),
+      // 2b. Historical Redemptions (lean projection)
+      redemptionsCol
+        .find({ status: { $nin: ['pending_coin', 'pending'] } }, { projection: { gameScreenshot: 0, qrCodeImage: 0 } })
+        .sort({ createdAt: -1 })
+        .limit(60)
+        .toArray(),
 
-        // 5. Chat Conversations Inbox summary
-        chatCol
-          .aggregate([
-            { $sort: { createdAt: -1 } },
-            {
-              $group: {
-                _id: '$conversationId',
-                username: { $first: '$username' },
-                playerUsername: {
-                  $max: {
-                    $cond: [{ $eq: ['$senderRole', 'player'] }, '$username', ''],
-                  },
+      // 3. Account Creation Requests
+      accountReqCol
+        .find({
+          $or: [
+            { type: 'ACCOUNT_CREATION' },
+            { type: { $exists: false }, transferAmount: { $lte: 0 } },
+            { type: null, transferAmount: { $lte: 0 } },
+          ],
+        })
+        .sort({ createdAt: -1 })
+        .limit(100)
+        .toArray(),
+
+      // 4. Coin Load Requests
+      accountReqCol
+        .find({
+          $or: [
+            { type: 'COIN_LOAD' },
+            { type: { $exists: false }, transferAmount: { $gt: 0 } },
+            { type: null, transferAmount: { $gt: 0 } },
+          ],
+        })
+        .sort({ createdAt: -1 })
+        .limit(100)
+        .toArray(),
+
+      // 5. Chat Conversations Inbox summary
+      chatCol
+        .aggregate([
+          { $sort: { createdAt: -1 } },
+          {
+            $group: {
+              _id: '$conversationId',
+              username: { $first: '$username' },
+              playerUsername: {
+                $max: {
+                  $cond: [{ $eq: ['$senderRole', 'player'] }, '$username', ''],
                 },
-                userId: { $first: '$userId' },
-                lastMessage: {
-                  $first: {
-                    $cond: [
-                      {
-                        $and: [
-                          { $ifNull: ['$imageUrl', false] },
-                          { $eq: [{ $ifNull: ['$text', ''] }, ''] },
-                        ],
-                      },
-                      '📷 Photo',
-                      '$text',
-                    ],
-                  },
+              },
+              userId: { $first: '$userId' },
+              lastMessage: {
+                $first: {
+                  $cond: [
+                    {
+                      $and: [
+                        { $ifNull: ['$imageUrl', false] },
+                        { $eq: [{ $ifNull: ['$text', ''] }, ''] },
+                      ],
+                    },
+                    '📷 Photo',
+                    '$text',
+                  ],
                 },
-                lastSenderRole: { $first: '$senderRole' },
-                updatedAt: { $first: '$createdAt' },
-                unreadCount: {
-                  $sum: {
-                    $cond: [
-                      { $and: [{ $eq: ['$read', false] }, { $eq: ['$senderRole', 'player'] }] },
-                      1,
-                      0,
-                    ],
-                  },
+              },
+              lastSenderRole: { $first: '$senderRole' },
+              updatedAt: { $first: '$createdAt' },
+              unreadCount: {
+                $sum: {
+                  $cond: [
+                    { $and: [{ $eq: ['$read', false] }, { $eq: ['$senderRole', 'player'] }] },
+                    1,
+                    0,
+                  ],
                 },
               },
             },
-            { $sort: { updatedAt: -1 } },
-            { $limit: 50 },
-          ])
-          .toArray(),
-      ]);
+          },
+          { $sort: { updatedAt: -1 } },
+          { $limit: 50 },
+        ])
+        .toArray(),
+    ]);
+
+    const rawDeposits = [...pendingDepositsRaw, ...historyDepositsRaw].sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
+    const rawRedemptions = [...pendingRedemptionsRaw, ...historyRedemptionsRaw].sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
 
     // Format Deposits with stable fields
     const deposits = rawDeposits.map((d) => {
@@ -140,6 +169,7 @@ export async function GET(req) {
         senderNote: d.senderNote || '',
         senderTagName: d.senderTagName || d.senderNote || '',
         senderTagEmail: d.senderTagEmail || '',
+        proofImage: d.proofImage || null,
         hasProofImage: Boolean(d.proofImage || d.hasProofImage),
         txHash: d.txHash || '',
         bonusType,
@@ -173,6 +203,8 @@ export async function GET(req) {
       amount: r.amount,
       gameTitle: r.gameTitle || 'Standard Platform',
       gameAccountUsername: r.gameAccountUsername || null,
+      gameScreenshot: r.gameScreenshot || null,
+      qrCodeImage: r.qrCodeImage || null,
       hasGameScreenshot: Boolean(r.gameScreenshot || r.hasGameScreenshot),
       hasQrCodeImage: Boolean(r.qrCodeImage || r.hasQrCodeImage),
       payoutMethod: r.payoutMethod,
@@ -182,8 +214,18 @@ export async function GET(req) {
       stage: r.stage || (r.status === 'pending_coin' ? 'coin_verification' : 'finance_payout'),
       processedBy: r.processedBy || null,
       processedAt: r.processedAt || null,
-      rejectionReason: r.rejectionReason || null,
+      coinApprovedBy: r.coinApprovedBy || null,
+      coinApprovedAt: r.coinApprovedAt
+        ? (r.coinApprovedAt instanceof Date ? r.coinApprovedAt.toISOString() : new Date(r.coinApprovedAt).toISOString())
+        : null,
+      rejectReason: r.rejectReason || r.coinRejectReason || r.financeRejectReason || r.rejectionReason || null,
+      coinRejectReason: r.coinRejectReason || null,
+      financeRejectReason: r.financeRejectReason || null,
+      rejectionReason: r.rejectionReason || r.rejectReason || null,
       notes: r.notes || null,
+      updatedAt: r.updatedAt
+        ? (r.updatedAt instanceof Date ? r.updatedAt.toISOString() : new Date(r.updatedAt).toISOString())
+        : null,
       createdAt: r.createdAt
         ? (r.createdAt instanceof Date ? r.createdAt.toISOString() : new Date(r.createdAt).toISOString())
         : (r._id ? new ObjectId(r._id).getTimestamp().toISOString() : '2026-01-01T00:00:00.000Z'),

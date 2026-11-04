@@ -81,7 +81,18 @@ function CoinOperationsDesk({
 
   useEffect(() => {
     if (Array.isArray(parentRedemptions)) {
-      diffSet(setCashoutRequests, parentRedemptions);
+      setCashoutRequests((prev) => {
+        const existingMap = new Map((prev || []).map((r) => [r.id || r._id, r]));
+        const merged = parentRedemptions.map((r) => {
+          const prevItem = existingMap.get(r.id || r._id);
+          return {
+            ...r,
+            gameScreenshot: r.gameScreenshot || prevItem?.gameScreenshot || null,
+            qrCodeImage: r.qrCodeImage || prevItem?.qrCodeImage || null,
+          };
+        });
+        return areEqual(prev, merged) ? prev : merged;
+      });
     }
   }, [parentRedemptions]);
 
@@ -107,13 +118,47 @@ function CoinOperationsDesk({
       if (cashoutsRes && cashoutsRes.ok) {
         const cashoutsData = await cashoutsRes.json().catch(() => null);
         if (cashoutsData && cashoutsData.success && Array.isArray(cashoutsData.redemptions)) {
-          diffSet(setCashoutRequests, cashoutsData.redemptions);
+          setCashoutRequests((prev) => {
+            const existingMap = new Map((prev || []).map((r) => [r.id || r._id, r]));
+            const merged = cashoutsData.redemptions.map((r) => {
+              const prevItem = existingMap.get(r.id || r._id);
+              return {
+                ...r,
+                gameScreenshot: r.gameScreenshot || prevItem?.gameScreenshot || null,
+                qrCodeImage: r.qrCodeImage || prevItem?.qrCodeImage || null,
+              };
+            });
+            return areEqual(prev, merged) ? prev : merged;
+          });
         }
       }
     } catch (err) {
       console.error('Error fetching coin desk data:', err);
     } finally {
       if (!isBackground) setLoading(false);
+    }
+  };
+
+  const handleViewCashoutScreenshot = async (item) => {
+    const title = `${item.username || 'Player'} - ${item.gameTitle || 'Game'} Winning Proof`;
+    if (item.gameScreenshot) {
+      setScreenshotModal({ open: true, src: item.gameScreenshot, title });
+      return;
+    }
+    try {
+      const res = await fetch(`/api/payments/withdraw?id=${encodeURIComponent(item.id || item._id)}`);
+      const data = await res.json();
+      if (data.success && data.redemption?.gameScreenshot) {
+        const src = data.redemption.gameScreenshot;
+        setCashoutRequests((prev) =>
+          prev.map((c) => ((c.id || c._id) === (item.id || item._id) ? { ...c, gameScreenshot: src } : c))
+        );
+        setScreenshotModal({ open: true, src, title });
+      } else {
+        showAlert('error', 'Game screenshot proof not found for this request.');
+      }
+    } catch {
+      showAlert('error', 'Failed to load game screenshot proof.');
     }
   };
 
@@ -156,11 +201,11 @@ function CoinOperationsDesk({
     });
   }, [loadRequests, loadFilter, loadSearch]);
 
-  // Filtered Cashouts for Coin Desk (Pending Coin Verification)
+  // Filtered Cashouts for Coin Desk (Strictly Stage 1: Pending Coin Verification)
   const pendingCashouts = useMemo(() => {
     return (cashoutRequests || []).filter(
       (c) =>
-        (c.status === 'pending_coin' || c.stage === 'coin_verification' || c.status === 'pending') &&
+        (c.status === 'pending_coin' || (c.status === 'pending' && c.stage === 'coin_verification')) &&
         (cashoutSearch === '' ||
           c.username?.toLowerCase().includes(cashoutSearch.toLowerCase()) ||
           c.gameTitle?.toLowerCase().includes(cashoutSearch.toLowerCase()) ||
@@ -168,12 +213,27 @@ function CoinOperationsDesk({
     );
   }, [cashoutRequests, cashoutSearch]);
 
+  // Auto-switch to Cashout Proof Verifications tab if there are pending cashouts and no pending loads
+  const [hasAutoSwitchedTab, setHasAutoSwitchedTab] = useState(false);
+  useEffect(() => {
+    if (!hasAutoSwitchedTab && pendingCashouts.length > 0 && pendingLoads.length === 0) {
+      setActiveSection('cashouts');
+      setHasAutoSwitchedTab(true);
+    }
+  }, [pendingCashouts.length, pendingLoads.length, hasAutoSwitchedTab]);
+
   const historyCashouts = useMemo(() => {
     return (cashoutRequests || []).filter((c) => {
-      if (c.status === 'pending_coin' || c.stage === 'coin_verification' || c.status === 'pending') return false;
+      if (c.status === 'pending_coin' || (c.status === 'pending' && c.stage === 'coin_verification')) return false;
+      const isVerifiedByCoin =
+        Boolean(c.coinApprovedBy) ||
+        c.status === 'approved' ||
+        (c.status === 'pending' && c.stage === 'finance_payout');
+      const isRejected =
+        c.status === 'rejected_by_coin' || c.status === 'rejected_by_finance' || c.status === 'rejected';
       if (cashoutFilter !== 'all') {
-        if (cashoutFilter === 'verified' && !c.coinApprovedBy && c.status !== 'approved') return false;
-        if (cashoutFilter === 'rejected' && c.status !== 'rejected_by_coin') return false;
+        if (cashoutFilter === 'verified' && !isVerifiedByCoin) return false;
+        if (cashoutFilter === 'rejected' && !isRejected) return false;
       }
       if (cashoutSearch) {
         return (
@@ -323,9 +383,21 @@ function CoinOperationsDesk({
     if (actionLoading) return;
     setActionLoading(true);
 
-    // 1. Optimistically advance redemption stage
+    const targetItem = (cashoutRequests || []).find((c) => (c.id || c._id) === redemptionId);
+
+    // 1. Optimistically advance redemption stage so it leaves Coin Pending and enters Finance Pending
     setCashoutRequests((prev) =>
-      prev.map((c) => (c.id === redemptionId ? { ...c, status: 'pending', stage: 'finance_payout' } : c))
+      prev.map((c) =>
+        (c.id || c._id) === redemptionId
+          ? {
+              ...c,
+              status: 'pending',
+              stage: 'finance_payout',
+              coinApprovedBy: sessionUser?.username || 'Coin Staff',
+              coinApprovedAt: new Date().toISOString(),
+            }
+          : c
+      )
     );
     showAlert('success', '🏆 Game screenshot verified! Forwarding to Finance Cashier...');
 
@@ -341,6 +413,13 @@ function CoinOperationsDesk({
 
       const data = await res.json();
       if (data.success) {
+        broadcastAdminAlert('CASHOUT_COIN_APPROVED', {
+          redemptionId,
+          amount: targetItem?.amount || 0,
+          userName: targetItem?.username || 'Player',
+          gameTitle: targetItem?.gameTitle || 'Game',
+          stage: 'finance_payout',
+        });
         showAlert('success', '🏆 Game screenshot verified! Request forwarded to Finance Ledger for payout.');
         if (typeof onParentSync === 'function') onParentSync();
       } else {
@@ -355,7 +434,7 @@ function CoinOperationsDesk({
     }
   };
 
-  // Handle Reject Cashout with Note (Instant Optimistic)
+  // Handle Reject Cashout with Note (Instant Optimistic - Stops here, does NOT go to Finance)
   const handleRejectCashoutSubmit = async (e) => {
     e.preventDefault();
     if (!rejectCashoutModal.item || actionLoading) return;
@@ -368,9 +447,13 @@ function CoinOperationsDesk({
     const targetItem = rejectCashoutModal.item;
     const reasonText = rejectCashoutModal.reason.trim();
 
-    // 1. Optimistically mark as rejected
+    // 1. Optimistically mark as rejected_by_coin so it never reaches Finance
     setCashoutRequests((prev) =>
-      prev.map((c) => (c.id === targetItem.id ? { ...c, status: 'rejected_by_coin', rejectReason: reasonText } : c))
+      prev.map((c) =>
+        (c.id || c._id) === (targetItem.id || targetItem._id)
+          ? { ...c, status: 'rejected_by_coin', stage: 'rejected_coin', rejectReason: reasonText, coinRejectReason: reasonText }
+          : c
+      )
     );
 
     // 2. Dismiss modal immediately
@@ -382,7 +465,7 @@ function CoinOperationsDesk({
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          redemptionId: targetItem.id,
+          redemptionId: targetItem.id || targetItem._id,
           action: 'coin_reject',
           rejectReason: reasonText,
         }),
@@ -390,7 +473,12 @@ function CoinOperationsDesk({
 
       const data = await res.json();
       if (data.success) {
-        showAlert('success', 'Cashout rejected. Note sent to user and funds unfrozen.');
+        broadcastAdminAlert('CASHOUT_COIN_REJECTED', {
+          redemptionId: targetItem.id || targetItem._id,
+          userName: targetItem.username || 'Player',
+          reason: reasonText,
+        });
+        showAlert('success', 'Cashout rejected by Coin Allotment. Rejection note sent to player (not forwarded to Finance).');
         if (typeof onParentSync === 'function') onParentSync();
       } else {
         showAlert('error', data.error || 'Failed to reject cashout.');
@@ -1511,10 +1599,10 @@ function CoinOperationsDesk({
                         </div>
                       </div>
 
-                      {item.gameScreenshot ? (
+                      {item.gameScreenshot || item.hasGameScreenshot ? (
                         <button
                           type="button"
-                          onClick={() => setScreenshotModal({ open: true, src: item.gameScreenshot, title: `${item.username} - ${item.gameTitle} Winning Proof` })}
+                          onClick={() => handleViewCashoutScreenshot(item)}
                           className="w-full py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all hover:scale-[1.01]"
                           style={{
                             backgroundColor: 'rgba(0, 240, 255, 0.12)',
@@ -1522,9 +1610,11 @@ function CoinOperationsDesk({
                             color: '#00F0FF',
                           }}
                         >
-                          <div className="w-5 h-5 rounded overflow-hidden bg-black shrink-0">
-                            <img src={item.gameScreenshot} alt="Proof" className="w-full h-full object-cover" />
-                          </div>
+                          {item.gameScreenshot && (
+                            <div className="w-5 h-5 rounded overflow-hidden bg-black shrink-0">
+                              <img src={item.gameScreenshot} alt="Proof" className="w-full h-full object-cover" />
+                            </div>
+                          )}
                           <span>View Game Proof Screenshot 👁️</span>
                         </button>
                       ) : (
@@ -1647,10 +1737,10 @@ function CoinOperationsDesk({
 
                           {/* Game Screenshot Proof with Thumbnail & Zoom modal */}
                           <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
-                            {item.gameScreenshot ? (
+                            {item.gameScreenshot || item.hasGameScreenshot ? (
                               <button
                                 type="button"
-                                onClick={() => setScreenshotModal({ open: true, src: item.gameScreenshot, title: `${item.username} - ${item.gameTitle} Winning Proof` })}
+                                onClick={() => handleViewCashoutScreenshot(item)}
                                 style={{
                                   display: 'inline-flex',
                                   alignItems: 'center',
@@ -1666,23 +1756,25 @@ function CoinOperationsDesk({
                                   fontWeight: 800,
                                 }}
                               >
-                                <div
-                                  style={{
-                                    width: '26px',
-                                    height: '26px',
-                                    borderRadius: '6px',
-                                    overflow: 'hidden',
-                                    backgroundColor: '#000',
-                                    position: 'relative',
-                                    flexShrink: 0,
-                                  }}
-                                >
-                                  <img
-                                    src={item.gameScreenshot}
-                                    alt="Proof"
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                  />
-                                </div>
+                                {item.gameScreenshot && (
+                                  <div
+                                    style={{
+                                      width: '26px',
+                                      height: '26px',
+                                      borderRadius: '6px',
+                                      overflow: 'hidden',
+                                      backgroundColor: '#000',
+                                      position: 'relative',
+                                      flexShrink: 0,
+                                    }}
+                                  >
+                                    <img
+                                      src={item.gameScreenshot}
+                                      alt="Proof"
+                                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    />
+                                  </div>
+                                )}
                                 <span>View Proof 👁️</span>
                               </button>
                             ) : (
@@ -1869,7 +1961,9 @@ function CoinOperationsDesk({
                 {/* Mobile Cards View for History */}
                 <div className="block sm:hidden space-y-2.5">
                   {historyCashouts.map((item) => {
-                    const isRejected = item.status === 'rejected_by_coin' || item.status === 'rejected';
+                    const isRejected = item.status === 'rejected_by_coin' || item.status === 'rejected_by_finance' || item.status === 'rejected';
+                    const isRejectedByFinance = item.status === 'rejected_by_finance' || (item.status === 'rejected' && item.stage !== 'rejected_coin');
+                    const rejectNote = item.rejectReason || item.coinRejectReason || item.financeRejectReason;
                     return (
                       <div
                         key={item.id}
@@ -1915,11 +2009,11 @@ function CoinOperationsDesk({
                                 }}
                               >
                                 <XCircle size={11} />
-                                <span>REJECTED BY COIN DESK</span>
+                                <span>{isRejectedByFinance ? 'REJECTED BY FINANCE' : 'REJECTED BY COIN DESK'}</span>
                               </span>
-                              {item.rejectReason && (
+                              {rejectNote && (
                                 <p className="m-0 mt-1 text-[10px] text-rose-300/80 italic">
-                                  &quot;{item.rejectReason}&quot;
+                                  &quot;{rejectNote}&quot;
                                 </p>
                               )}
                             </div>
@@ -1944,10 +2038,10 @@ function CoinOperationsDesk({
                             </div>
                           )}
 
-                          {item.gameScreenshot && (
+                          {(item.gameScreenshot || item.hasGameScreenshot) && (
                             <button
                               type="button"
-                              onClick={() => setScreenshotModal({ open: true, src: item.gameScreenshot, title: `${item.username} - Proof` })}
+                              onClick={() => handleViewCashoutScreenshot(item)}
                               className="px-2.5 py-1 rounded-lg text-[10.5px] font-bold shrink-0 cursor-pointer"
                               style={{
                                 backgroundColor: 'rgba(0, 240, 255, 0.12)',
@@ -1992,7 +2086,9 @@ function CoinOperationsDesk({
                     </thead>
                     <tbody>
                       {historyCashouts.map((item) => {
-                        const isRejected = item.status === 'rejected_by_coin' || item.status === 'rejected';
+                        const isRejected = item.status === 'rejected_by_coin' || item.status === 'rejected_by_finance' || item.status === 'rejected';
+                        const isRejectedByFinance = item.status === 'rejected_by_finance' || (item.status === 'rejected' && item.stage !== 'rejected_coin');
+                        const rejectNote = item.rejectReason || item.coinRejectReason || item.financeRejectReason;
                         return (
                           <tr key={item.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.04)' }}>
                             <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
@@ -2006,10 +2102,10 @@ function CoinOperationsDesk({
                               ${Number(item.amount).toFixed(2)} SC
                             </td>
                             <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
-                              {item.gameScreenshot ? (
+                              {item.gameScreenshot || item.hasGameScreenshot ? (
                                 <button
                                   type="button"
-                                  onClick={() => setScreenshotModal({ open: true, src: item.gameScreenshot, title: `${item.username} - Proof` })}
+                                  onClick={() => handleViewCashoutScreenshot(item)}
                                   style={{
                                     padding: '5px 10px',
                                     borderRadius: '8px',
@@ -2046,11 +2142,11 @@ function CoinOperationsDesk({
                                     }}
                                   >
                                     <XCircle size={12} />
-                                    <span>REJECTED BY COIN DESK</span>
+                                    <span>{isRejectedByFinance ? 'REJECTED BY FINANCE' : 'REJECTED BY COIN DESK'}</span>
                                   </span>
-                                  {item.rejectReason && (
+                                  {rejectNote && (
                                     <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#fca5a5', fontStyle: 'italic' }}>
-                                      &quot;{item.rejectReason}&quot;
+                                      &quot;{rejectNote}&quot;
                                     </p>
                                   )}
                                 </div>

@@ -971,9 +971,28 @@ export default function WalletModal({
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '420px', overflowY: 'auto', paddingRight: '4px' }}>
                 {historyItems.map((item) => {
                   const isDeposit = item.kind === 'DEPOSIT';
-                  const isApproved = item.status === 'APPROVED';
-                  const isRejected = item.status === 'REJECTED';
-                  const isPending = !isApproved && !isRejected;
+                  const rawStatus = String(item.status || 'pending').toLowerCase();
+                  const isApproved = rawStatus === 'approved' || rawStatus === 'completed';
+                  const isRejected =
+                    rawStatus === 'rejected' ||
+                    rawStatus === 'rejected_by_coin' ||
+                    rawStatus === 'rejected_by_finance';
+                  const rejectNote = item.rejectReason || item.coinRejectReason || item.financeRejectReason;
+                  const statusLabel = isApproved
+                    ? isDeposit
+                      ? 'APPROVED'
+                      : 'PAID & DISPATCHED'
+                    : rawStatus === 'rejected_by_coin'
+                    ? 'REJECTED BY COIN DESK'
+                    : rawStatus === 'rejected_by_finance'
+                    ? 'REJECTED BY FINANCE'
+                    : isRejected
+                    ? 'REJECTED'
+                    : rawStatus === 'pending_coin' || item.stage === 'coin_verification'
+                    ? 'VERIFYING SCREENSHOT (COIN DESK)'
+                    : !isDeposit && (rawStatus === 'pending' || item.stage === 'finance_payout')
+                    ? 'READY FOR PAYOUT (FINANCE DESK)'
+                    : 'PENDING';
 
                   return (
                     <div
@@ -1053,7 +1072,7 @@ export default function WalletModal({
                                 }`,
                               }}
                             >
-                              {item.status}
+                              {statusLabel}
                             </span>
                           </div>
                         </div>
@@ -1067,7 +1086,7 @@ export default function WalletModal({
                       )}
 
                       {/* Rejection Note Display */}
-                      {isRejected && item.rejectReason && (
+                      {isRejected && rejectNote && (
                         <div
                           style={{
                             backgroundColor: 'rgba(239, 68, 68, 0.1)',
@@ -1082,7 +1101,7 @@ export default function WalletModal({
                             <span>STAFF REJECTION NOTE / REASON:</span>
                           </div>
                           <p style={{ margin: '4px 0 0 0', fontSize: '11.5px', color: '#FECACA', fontFamily: 'Lexend, sans-serif', lineHeight: 1.4 }}>
-                            {item.rejectReason}
+                            {rejectNote}
                           </p>
                         </div>
                       )}

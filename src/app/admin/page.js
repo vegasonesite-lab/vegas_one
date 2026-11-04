@@ -778,6 +778,8 @@ export default function AdminPortal({ initialTab }) {
     lastRequestTime: 0,
     lastCoinLoadId: null,
     lastCoinLoadTime: 0,
+    lastCoinCashoutId: null,
+    lastCoinCashoutTime: 0,
     lastDepositId: null,
     lastDepositTime: 0,
     lastRedemptionId: null,
@@ -798,6 +800,7 @@ export default function AdminPortal({ initialTab }) {
         notif.onclick = () => {
           window.focus();
           if (options.targetTab) setActiveTab(options.targetTab);
+          if (options.coinSection) setCoinDeskSection(options.coinSection);
           notif.close();
         };
       }
@@ -814,8 +817,29 @@ export default function AdminPortal({ initialTab }) {
       const syncData = await syncRes.json().catch(() => ({}));
       if (!syncData.success) return;
 
-      diffSet(setDeposits, syncData.deposits || []);
-      diffSet(setRedemptions, syncData.redemptions || []);
+      setDeposits((prev) => {
+        const existingMap = new Map((prev || []).map((d) => [d.id || d._id, d]));
+        const merged = (syncData.deposits || []).map((d) => {
+          const prevItem = existingMap.get(d.id || d._id);
+          return {
+            ...d,
+            proofImage: d.proofImage || prevItem?.proofImage || null,
+          };
+        });
+        return areEqual(prev, merged) ? prev : merged;
+      });
+      setRedemptions((prev) => {
+        const existingMap = new Map((prev || []).map((r) => [r.id || r._id, r]));
+        const merged = (syncData.redemptions || []).map((r) => {
+          const prevItem = existingMap.get(r.id || r._id);
+          return {
+            ...r,
+            gameScreenshot: r.gameScreenshot || prevItem?.gameScreenshot || null,
+            qrCodeImage: r.qrCodeImage || prevItem?.qrCodeImage || null,
+          };
+        });
+        return areEqual(prev, merged) ? prev : merged;
+      });
       diffSet(setAccountRequests, syncData.accountRequests || []);
       diffSet(setCoinLoadRequests, syncData.coinLoadRequests || []);
       if (Array.isArray(syncData.chatConversations)) {
@@ -823,10 +847,10 @@ export default function AdminPortal({ initialTab }) {
       }
 
       const pendingDeps = (syncData.deposits || []).filter(d => d.status === 'pending');
-      const pendingWith = (syncData.redemptions || []).filter(r => r.status === 'pending');
+      const pendingWith = (syncData.redemptions || []).filter(r => r.status === 'pending' && r.stage !== 'coin_verification');
       const pendingReqs = (syncData.accountRequests || []).filter(r => (r.status || '').toUpperCase() === 'PENDING');
       const pendingCoinLoads = (syncData.coinLoadRequests || []).filter(r => (r.status || '').toUpperCase() === 'PENDING');
-      const pendingCoinCashouts = (syncData.redemptions || []).filter(r => r.status === 'pending_coin' || r.stage === 'coin_verification');
+      const pendingCoinCashouts = (syncData.redemptions || []).filter(r => r.status === 'pending_coin' || (r.status === 'pending' && r.stage === 'coin_verification'));
       const chatConvs = syncData.chatConversations || [];
       const pendingChatConvs = chatConvs.filter(c => (c.unreadCount || 0) > 0 || c.unreadStaff);
       const totalUnreadChatMsgs = chatConvs.reduce((acc, c) => acc + (c.unreadCount || (c.unreadStaff ? 1 : 0)), 0);
@@ -839,11 +863,16 @@ export default function AdminPortal({ initialTab }) {
       const newestCoinLoad = pendingCoinLoads[0] || null;
       const newestCoinLoadTime = newestCoinLoad?.createdAt ? new Date(newestCoinLoad.createdAt).getTime() : 0;
 
+      const newestCoinCashout = pendingCoinCashouts[0] || null;
+      const newestCoinCashoutTime = newestCoinCashout?.createdAt ? new Date(newestCoinCashout.createdAt).getTime() : 0;
+
       const newestDep = pendingDeps[0] || null;
       const newestDepTime = newestDep?.createdAt ? new Date(newestDep.createdAt).getTime() : 0;
 
       const newestWith = pendingWith[0] || null;
-      const newestWithTime = newestWith?.createdAt ? new Date(newestWith.createdAt).getTime() : 0;
+      const newestWithTime = newestWith
+        ? new Date(newestWith.coinApprovedAt || newestWith.updatedAt || newestWith.createdAt).getTime()
+        : 0;
 
       // Update Browser Tab Title Badge
       const totalPending = pendingDeps.length + pendingWith.length + pendingReqs.length + pendingCoinLoads.length + pendingCoinCashouts.length + totalUnreadChatMsgs;
@@ -867,6 +896,8 @@ export default function AdminPortal({ initialTab }) {
           lastRequestTime: newestReqTime,
           lastCoinLoadId: newestCoinLoad?.id || null,
           lastCoinLoadTime: newestCoinLoadTime,
+          lastCoinCashoutId: newestCoinCashout?.id || null,
+          lastCoinCashoutTime: newestCoinCashoutTime,
           lastDepositId: newestDep?.id || null,
           lastDepositTime: newestDepTime,
           lastRedemptionId: newestWith?.id || null,
@@ -891,15 +922,15 @@ export default function AdminPortal({ initialTab }) {
         });
       }
 
-      // 2. Check for incoming new redemptions (Finance Stage 2)
+      // 2. Check for incoming new redemptions (Finance Stage 2 - Verified by Coin Allotment)
       const isNewWith =
         pendingWith.length > (prevCountsRef.current.redemptions || 0) ||
         (newestWith && newestWith.id !== prevCountsRef.current.lastRedemptionId && newestWithTime > (prevCountsRef.current.lastRedemptionTime || 0));
 
       if (isNewWith) {
         shouldChime = true;
-        showDesktopNotification('New Cashout Request! 💸', {
-          body: `$${Number(newestWith?.amount || 0).toFixed(2)} SC for ${newestWith?.username || 'Player'} via ${newestWith?.payoutMethod || 'Direct'}`,
+        showDesktopNotification('Cashout Ready for Payout! 💸', {
+          body: `$${Number(newestWith?.amount || 0).toFixed(2)} SC for ${newestWith?.username || 'Player'} (Verified by Coin Desk)`,
           targetTab: 'finance',
         });
       }
@@ -914,16 +945,24 @@ export default function AdminPortal({ initialTab }) {
         showDesktopNotification('New Coin Load Request! ⚡', {
           body: `$${Number(newestCoinLoad?.transferAmount || 0).toFixed(2)} SC for ${newestCoinLoad?.gameTitle || 'Game'} from ${newestCoinLoad?.userName || 'Player'}`,
           targetTab: 'coins_allotment',
+          coinSection: 'loads',
         });
       }
 
       // 4. Check for incoming coin cashout proof verifications (Stage 1 Coins Allotment Desk)
-      if (pendingCoinCashouts.length > (prevCountsRef.current.coinCashouts || 0)) {
-        const newest = pendingCoinCashouts[0];
+      const isNewCoinCashout =
+        pendingCoinCashouts.length > (prevCountsRef.current.coinCashouts || 0) ||
+        (newestCoinCashout &&
+          newestCoinCashout.id !== prevCountsRef.current.lastCoinCashoutId &&
+          newestCoinCashoutTime > (prevCountsRef.current.lastCoinCashoutTime || 0));
+
+      if (isNewCoinCashout) {
+        const newest = newestCoinCashout;
         shouldChime = true;
-        showDesktopNotification('Cashout Winning Proof Uploaded! 🏆', {
-          body: `$${Number(newest?.amount || 0).toFixed(2)} SC for ${newest?.username || 'Player'} (${newest?.gameTitle || 'Game'})`,
+        showDesktopNotification('New Cashout Proof Uploaded! 🏆', {
+          body: `$${Number(newest?.amount || 0).toFixed(2)} SC for ${newest?.username || 'Player'} (${newest?.gameTitle || 'Game'}) — Verify Screenshot`,
           targetTab: 'coins_allotment',
+          coinSection: 'cashouts',
         });
       }
 
@@ -975,6 +1014,8 @@ export default function AdminPortal({ initialTab }) {
         lastRequestTime: newestReqTime,
         lastCoinLoadId: newestCoinLoad?.id || null,
         lastCoinLoadTime: newestCoinLoadTime,
+        lastCoinCashoutId: newestCoinCashout?.id || null,
+        lastCoinCashoutTime: newestCoinCashoutTime,
         lastDepositId: newestDep?.id || null,
         lastDepositTime: newestDepTime,
         lastRedemptionId: newestWith?.id || null,
@@ -1003,15 +1044,26 @@ export default function AdminPortal({ initialTab }) {
         showDesktopNotification('New Coin Load Request! ⚡', {
           body: `$${Number(eventData.amount || 0).toFixed(2)} SC for ${eventData.gameTitle || 'Game'} from ${eventData.userName || 'Player'}`,
           targetTab: 'coins_allotment',
+          coinSection: 'loads',
         });
       } else if (eventData.type === 'DEPOSIT') {
         showDesktopNotification('New Deposit Request! 💰', {
           body: `$${Number(eventData.amount || 0).toFixed(2)} USD from ${eventData.userName || 'Player'}`,
           targetTab: 'finance',
         });
-      } else if (eventData.type === 'CASHOUT') {
-        showDesktopNotification('New Cashout Request! 💸', {
-          body: `$${Number(eventData.amount || 0).toFixed(2)} SC for ${eventData.userName || 'Player'}`,
+      } else if (eventData.type === 'REDEMPTION' || eventData.type === 'CASHOUT') {
+        const isStage1Coin = !eventData.stage || eventData.stage === 'coin_verification';
+        showDesktopNotification(
+          isStage1Coin ? 'New Cashout Proof Uploaded! 🏆' : 'New Cashout Request! 💸',
+          {
+            body: `$${Number(eventData.amount || 0).toFixed(2)} SC for ${eventData.userName || eventData.username || 'Player'}${eventData.gameTitle ? ` (${eventData.gameTitle})` : ''}`,
+            targetTab: isStage1Coin ? 'coins_allotment' : 'finance',
+            coinSection: isStage1Coin ? 'cashouts' : undefined,
+          }
+        );
+      } else if (eventData.type === 'CASHOUT_COIN_APPROVED') {
+        showDesktopNotification('Cashout Verified by Coin Desk! 💸', {
+          body: `$${Number(eventData.amount || 0).toFixed(2)} SC for ${eventData.userName || 'Player'} forwarded to Finance Desk`,
           targetTab: 'finance',
         });
       } else if (eventData.type === 'CHAT_MESSAGE') {

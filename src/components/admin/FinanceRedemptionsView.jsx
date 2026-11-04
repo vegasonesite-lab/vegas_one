@@ -35,8 +35,18 @@ function FinanceRedemptionsView({
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const filtered = redemptions.filter((r) => {
-    const matchesStatus = statusFilter === 'all' || r.status === statusFilter;
+  // Stage 2 Only: Exclude requests that are still at Coin Allotment or were rejected by Coin Allotment
+  const financeRedemptions = redemptions.filter(
+    (r) =>
+      r.status !== 'pending_coin' &&
+      r.stage !== 'coin_verification' &&
+      r.status !== 'rejected_by_coin' &&
+      r.stage !== 'rejected_coin'
+  );
+
+  const filtered = financeRedemptions.filter((r) => {
+    const normalizedStatus = r.status === 'rejected_by_finance' ? 'rejected' : r.status;
+    const matchesStatus = statusFilter === 'all' || normalizedStatus === statusFilter;
     const q = searchQuery.toLowerCase().trim();
     const matchesSearch =
       !q ||
@@ -47,14 +57,18 @@ function FinanceRedemptionsView({
     return matchesStatus && matchesSearch;
   });
 
-  const pendingCount = redemptions.filter((r) => r.status === 'pending').length;
-  const approvedCount = redemptions.filter((r) => r.status === 'approved').length;
-  const rejectedCount = redemptions.filter((r) => r.status === 'rejected').length;
+  const pendingCount = financeRedemptions.filter((r) => r.status === 'pending').length;
+  const approvedCount = financeRedemptions.filter((r) => r.status === 'approved').length;
+  const rejectedCount = financeRedemptions.filter((r) => r.status === 'rejected' || r.status === 'rejected_by_finance').length;
 
   const handleConfirmReject = () => {
     if (!rejectModal.item) return;
+    const reason = (rejectModal.reason || '').trim();
+    if (!reason) {
+      alert('Please write a rejection note explaining why this withdrawal was rejected.');
+      return;
+    }
     const targetId = rejectModal.item.id || rejectModal.item._id;
-    const reason = rejectModal.reason.trim() || 'Redemption rejected. Coins refunded to balance.';
     setRejectModal({ open: false, item: null, reason: '' });
     onReject(targetId, reason);
   };
